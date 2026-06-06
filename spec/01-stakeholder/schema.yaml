@@ -1,0 +1,24 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "reqmd-stakeholder-goals"
+title: "reqmd Stakeholder Goals"
+type: object
+required:
+  - priority
+  - source
+  - category
+properties:
+  priority:
+    type: string
+    enum: [Critical, High, Medium, Low]
+  source:
+    type: string
+    enum: [Product, Engineering, Safety, Quality]
+  category:
+    type: string
+    enum: [Authoring, Validation, Export, Traceability, Performance]
+additionalProperties: false
+
+x-reqmd:
+  level: stakeholder-needs
+  document-id: stakeholder
+  id-prefix: STK-GOAL-

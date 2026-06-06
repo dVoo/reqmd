@@ -1,0 +1,211 @@
+workspace "ReqMD" "Specification authoring, validation, export, and source-code requirement traceability" {
+
+    model {
+
+        // People
+        author    = person "Requirement Author"  "Engineers writing specs in Markdown"
+        viewer    = person "Viewer / Consumer"   "Engineers viewing and evaluating specs"
+        reviewer  = person "Reviewer / Supplier" "Stakeholders and tier-1 suppliers reviewing specs"
+        developer = person "Developer"           "Runs the extraction tool locally or in CI to generate traceability links"
+
+        // ReqMD software system
+        reqmd = softwareSystem "ReqMD Toolchain" "Text-first authoring, validation, export" {
+
+            specRepo = container "Specification Repository" "Git repo holding *.md and schema.yaml" "Git / plain text" "Repository" {
+                mdFiles    = component "*.md Spec Files"   "Requirement prose + attr blocks + YAML frontmatter per subsystem" "Markdown"
+                schemaFile = component "schema.yaml"   "JSON Schema 2020-12 in YAML + x-reqmd upstream" "YAML"
+            }
+
+            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph) with --json output" "Go 1.25" "CLI" {
+                parser       = component "Markdown Parser"  "Discovers schema.yaml per dir and parses .md via goldmark AST with GFM and parallel worker pool" "Go / goldmark"
+                validator    = component "Schema Validator" "Injects built-in attrs and validates attr maps against JSON Schema 2020-12" "Go / google/jsonschema-go"
+                graphBuilder = component "Graph Builder"    "Builds in-memory adjacency from parsed requirements, resolves doc-id-qualified traces" "Go"
+                traceChecker = component "Trace Checker"   "Runs Pass 2 trace checks and Pass 3 sub-req parent validation against the in-memory cache" "Go"
+                exporter     = component "Exporter"        "Renders standalone HTML, CSV, and LadybugDB graph outputs" "Go"
+                reporter     = component "Reporter"        "Aggregates Pass 1/2/3 results, emits formatted or JSON output, sets exit code" "Go"
+            }
+        }
+
+        // reqmd-import: source-code requirement trace extraction tool
+        extractionTool = softwareSystem "Extraction Tool" "Parses source code with Tree-sitter, extracts symbols and requirement IDs, and writes ephemeral .md requirement files (proxy items) into a target spec directory" {
+
+            scanner = container "Repository Scanner" "Discovers files, detects languages, computes hashes, and schedules parsing work" "CLI / File walker"
+
+            parserRuntime = container "Parsing Runtime" "Loads Tree-sitter language grammars, parses files, and executes language-specific queries" "Tree-sitter runtime" {
+                languageRegistry = component "Language Registry" "Selects the correct Tree-sitter grammar and query set for each file type" "Registry component"
+                syntaxParser     = component "Syntax Parser"     "Builds syntax trees from source files using Tree-sitter parsers" "Tree-sitter parser"
+                queryExecutor    = component "Query Executor"    "Runs queries that capture definitions, names, spans, and documentation nodes" "Tree-sitter query engine"
+            }
+
+            normalizer = container "Normalization & Trace Engine" "Maps raw captures into a common symbol model, binds adjacent docs, extracts requirement IDs, and resolves trace links" "Application service" {
+                symbolNormalizer = component "Symbol Normalizer"        "Converts language-specific captures into a common symbol schema" "Transformation component"
+                docBinder        = component "Documentation Binder"     "Associates adjacent comments or docstrings with symbols and cleans comment markers" "Binding component"
+                reqExtractor     = component "Requirement ID Extractor" "Extracts IDs such as REQ-1 from documentation text using configured rules" "Rule engine"
+                traceResolver    = component "Trace Resolver"           "Builds symbol-to-requirement links and de-duplicates trace edges" "Graph builder"
+            }
+
+            cache = container "Extraction Cache" "Stores file hashes, parse metadata, and extracted symbols to support incremental runs" "SQLite or embedded KV" {
+                tags "Database"
+            }
+
+            proxyWriter = container "Proxy .md Writer" "Renders normalized symbols into ephemeral .md requirement files and writes them into a target spec directory" "CLI / File writer"
+        }
+
+        // External systems
+        vscodeExt        = softwareSystem "VS Code / Editor"         "Author edits *.md and schema.yaml" "External"
+        supplier         = softwareSystem "Tier-1 Supplier Tool"     "(Planned) Receives CSV export" "External"
+        sourceRepository = softwareSystem "Source Repository"        "Git repository containing Go, Python, Rust, Zig, and other source files with requirement references in comments or docstrings" "External"
+        ci               = softwareSystem "CI Pipeline"              "Automated pipeline that runs extraction on changes and publishes trace artifacts" "External"
+
+        // People → systems
+        author    -> vscodeExt          "Authors specs in"
+        reviewer  -> specRepo           "Reviews diffs and comments on PRs"
+        viewer    -> specRepo           "Reads rendered requirements from"
+        developer -> extractionTool     "Configures and runs"
+        developer -> sourceRepository   "Commits source code to"
+
+        // Editor → repo
+        vscodeExt -> specRepo "Reads and writes"
+
+        // CI → extractionTool
+        ci -> extractionTool "Runs on push / pull request"
+
+        // --- ReqMD CLI internal flow ---
+        parser       -> mdFiles      "Reads and parses *.md via goldmark AST with frontmatter"
+        parser       -> schemaFile   "Reads x-reqmd upstream from"
+        validator    -> schemaFile   "Loads JSON Schema from"
+        validator    -> parser       "Receives parsed attr maps from"
+        graphBuilder -> parser       "Receives all parsed requirements from"
+        traceChecker -> graphBuilder "Runs Pass 2 checks against CachedNode cache"
+        reporter     -> validator    "Receives Pass 1 errors from"
+        reporter     -> traceChecker "Receives Pass 2 warnings and errors from"
+        exporter     -> graphBuilder "Queries upstream/downstream neighbours from graph"
+
+        // --- Extraction tool internal flow ---
+        extractionTool.scanner        -> extractionTool.cache          "Reads/writes file hashes and work state"
+        extractionTool.scanner        -> extractionTool.parserRuntime  "Submits files for parsing"
+        extractionTool.parserRuntime  -> extractionTool.cache          "Reads cached parse metadata from"
+        extractionTool.parserRuntime  -> extractionTool.normalizer     "Sends raw symbol and doc captures to"
+        extractionTool.normalizer     -> extractionTool.cache          "Stores normalized symbols and trace links in"
+        extractionTool.normalizer     -> extractionTool.proxyWriter   "Provides normalized trace model to"
+        extractionTool.proxyWriter    -> extractionTool.cache          "Reads incremental results from"
+
+        // --- Extraction tool component internals ---
+        extractionTool.parserRuntime.languageRegistry  -> extractionTool.parserRuntime.syntaxParser     "Provides parser configuration to"
+        extractionTool.parserRuntime.languageRegistry  -> extractionTool.parserRuntime.queryExecutor    "Provides language queries to"
+        extractionTool.parserRuntime.syntaxParser      -> extractionTool.parserRuntime.queryExecutor    "Provides syntax trees to"
+        extractionTool.parserRuntime.queryExecutor     -> extractionTool.normalizer.symbolNormalizer   "Sends captured definitions to"
+        extractionTool.parserRuntime.queryExecutor     -> extractionTool.normalizer.docBinder          "Sends captured comments/docstrings to"
+        extractionTool.normalizer.symbolNormalizer     -> extractionTool.normalizer.docBinder          "Provides symbol identities to"
+        extractionTool.normalizer.docBinder            -> extractionTool.normalizer.reqExtractor       "Provides cleaned documentation to"
+        extractionTool.normalizer.reqExtractor         -> extractionTool.normalizer.traceResolver      "Provides extracted requirement IDs to"
+        extractionTool.normalizer.symbolNormalizer     -> extractionTool.normalizer.traceResolver      "Provides normalized symbols to"
+        extractionTool.normalizer.traceResolver        -> extractionTool.proxyWriter                  "Provides resolved symbol-to-requirement links to"
+
+        // --- CLI → repo ---
+        reqmdCli -> specRepo "Reads *.md and schema.yaml from"
+
+        // --- Cross-system ---
+        extractionTool                  -> sourceRepository   "Reads source files from"
+        extractionTool                  -> reqmd.specRepo     "Reads requirement ID schemas from"
+        extractionTool.proxyWriter      -> reqmd.specRepo               "Writes ephemeral .md requirement files to"
+        extractionTool.proxyWriter      -> reqmd.specRepo.schemaFile    "Reads x-reqmd.id-prefix and x-reqmd.upstream from"
+
+        // --- CI runs both tools ---
+        ci -> reqmd.reqmdCli "Runs check/ls/stats/export on"
+
+        // --- Exports ---
+        exporter     -> supplier         "Exports CSV to" "Planned"
+    }
+
+    views {
+
+        // ReqMD views
+        systemContext reqmd "SystemContext" "ReqMD system context" {
+            include *
+            autoLayout
+        }
+
+        container reqmd "Containers" "ReqMD containers" {
+            include *
+            autoLayout
+        }
+
+        component reqmdCli "CLI_Components" "reqmd CLI internals" {
+            include *
+            autoLayout
+        }
+
+        component specRepo "Repo_Components" "Specification repository contents" {
+            include *
+            autoLayout
+        }
+
+        // Extraction tool views
+        systemContext extractionTool "ExtractionSystemContext" "Extraction tool system context" {
+            include *
+            autoLayout
+        }
+
+        container extractionTool "ExtractionContainers" "Extraction tool containers" {
+            include *
+            autoLayout
+        }
+
+        component extractionTool.parserRuntime "ParsingComponents" "Parsing runtime internals" {
+            include *
+            autoLayout
+        }
+
+        component extractionTool.normalizer "TraceComponents" "Trace engine internals" {
+            include *
+            autoLayout
+        }
+
+        // proxyWriter is a single-container box with no sub-components; it appears in ExtractionContainers
+
+        styles {
+            element "Person" {
+                shape Person
+                background #08427b
+                color #ffffff
+            }
+            element "Software System" {
+                background #1168bd
+                color #ffffff
+            }
+            element "External" {
+                background #999999
+                color #ffffff
+            }
+            element "Container" {
+                background #438dd5
+                color #ffffff
+            }
+            element "Component" {
+                background #85bbf0
+                color #000000
+            }
+            element "Repository" {
+                shape Cylinder
+                background #438dd5
+                color #ffffff
+            }
+            element "Database" {
+                shape Cylinder
+                background #2e7d32
+                color #ffffff
+            }
+            element "CLI" {
+                shape RoundedBox
+            }
+            element "Relationship" {
+                color #707070
+            }
+            element "Planned" {
+                opacity 40
+                stroke dashed
+            }
+        }
+    }
+}

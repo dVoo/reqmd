@@ -1,0 +1,60 @@
+package export
+
+import (
+	"fmt"
+	"os"
+	"path/filepath"
+
+	"github.com/spf13/cobra"
+
+	"reqmd/internal/exporter"
+	"reqmd/internal/parser"
+)
+
+func newCsvCmd() *cobra.Command {
+	var outputDir string
+
+	cmd := &cobra.Command{
+		Use:   "csv <dir>",
+		Short: "Export requirements to CSV format",
+		Args:  cobra.ExactArgs(1),
+		RunE: func(cmd *cobra.Command, args []string) error {
+			root := args[0]
+
+			docs, err := parser.Discover(root)
+			if err != nil {
+				return fmt.Errorf("discovering documents: %w", err)
+			}
+
+			var exp exporter.CSV
+
+			for _, doc := range docs {
+				props := doc.Properties
+				dirName := filepath.Base(doc.Path)
+				outPath := dirName + "-requirements.csv"
+
+				if outputDir != "" {
+					outPath = filepath.Join(outputDir, outPath)
+				} else {
+					outPath = filepath.Join(doc.Path, outPath)
+				}
+
+				f, err := os.Create(outPath)
+				if err != nil {
+					return fmt.Errorf("creating %s: %w", outPath, err)
+				}
+
+				if err := exp.Export(f, doc, props); err != nil {
+					f.Close()
+					return fmt.Errorf("exporting %s: %w", doc.Path, err)
+				}
+				f.Close()
+				fmt.Fprintf(os.Stderr, "Wrote %s\n", outPath)
+			}
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVarP(&outputDir, "output", "o", "", "Output directory for CSV files")
+	return cmd
+}

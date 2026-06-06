@@ -1,0 +1,20 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "aspice-v40-base-practices"
+title: "Automotive SPICE v4.0 — Base Practices"
+type: object
+required:
+  - process
+  - process-name
+properties:
+  process:
+    type: string
+    enum: [ACQ, SPL, SYS, SWE, VAL, MLE, HWE, SUP, MAN, PIM, REU]
+  process-name:
+    type: string
+additionalProperties: false
+
+x-reqmd:
+  level: external-standards
+  document-id: aspice
+  external: true
+  id-prefix: ASP-

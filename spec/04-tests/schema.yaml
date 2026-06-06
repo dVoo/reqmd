@@ -1,0 +1,25 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "reqmd-test-specs"
+title: "reqmd Test Specifications"
+type: object
+required:
+  - verify
+  - test-type
+properties:
+  verify:
+    type: string
+    enum: [Test]
+  test-type:
+    type: string
+    enum: [unit, integration, end-to-end, build]
+additionalProperties: false
+
+x-reqmd:
+  level: test-specs
+  document-id: tests
+  upstream:
+    level: software-requirements
+    sources:
+      - ../03-software/
+  mandatory-disposition: true
+  id-prefix: TST-

@@ -1,0 +1,33 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "reqmd-aspice-stakeholder"
+title: "ASPICE v4.0 Stakeholder Requirements for reqmd"
+type: object
+required:
+  - process
+  - aspice-bp
+properties:
+  process:
+    type: string
+    enum: [ACQ, SPL, SYS, SWE, VAL, MLE, HWE, SUP, MAN, PIM, REU]
+  aspice-bp:
+    type: array
+    items:
+      type: string
+      pattern: "^[A-Z]+[A-Z0-9]*-BP[0-9]+$"
+    description: "The ASPICE base practice IDs this requirement is derived from"
+  coverage:
+    type: string
+    enum: [Full, Partial, Planned, Not-Applicable]
+    default: Planned
+    description: "How completely reqmd satisfies the underlying ASPICE intent"
+additionalProperties: false
+
+x-reqmd:
+  level: aspice-stakeholder
+  document-id: aspice-stakeholder
+  upstream:
+    level: external-standards
+    sources:
+      - ../00-aspice/
+  mandatory-disposition: true
+  id-prefix: ASP-SR-

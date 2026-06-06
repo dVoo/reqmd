@@ -1,0 +1,13 @@
+x-reqmd:
+  level: software-requirements
+  document-id: software
+  upstream:
+    level: system-requirements
+    sources:
+      - ../system/
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "software-requirements"
+title: "Software Requirements"
+type: object
+additionalProperties: false

@@ -28,7 +28,37 @@ go.work.sum
 # env file
 .env
 
-# Editor/IDE
-# .idea/
-# .vscode/
+# Internal planning docs (not shipped)
+TODO.md
+discussions/
 
+# Ladybug DBs
+.lbug/
+
+# External Docs
+external_docs/
+
+# Deprecated files
+*deprecated*
+
+# Build
+reqmd
+
+# prebuilt extraction-tool binary
+reqmd-import/reqmd-import
+
+# Harnesses
+.opencode/
+.commandcode/
+.omp/
+
+# .slim/deepwork
+.slim/deepwork/
+
+# Hugo site (reqmd.xyz)
+
+# Hugo build lock
+site/.hugo_build.lock
+
+# Hugo build output
+site/public/

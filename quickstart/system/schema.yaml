@@ -1,0 +1,13 @@
+x-reqmd:
+  level: system-requirements
+  document-id: system
+  upstream:
+    level: stakeholder-needs
+    sources:
+      - ../stakeholder/
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "system-requirements"
+title: "System Requirements"
+type: object
+additionalProperties: false

@@ -1,0 +1,24 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "reqmd-software-requirements"
+title: "reqmd Software Requirements"
+type: object
+required:
+  - package
+  - priority
+properties:
+  package:
+    type: string
+    enum: [parser, schema, graph, reporter, exporter, cmd]
+  priority:
+    type: string
+    enum: [Critical, High, Medium]
+additionalProperties: false
+
+x-reqmd:
+  level: software-requirements
+  document-id: software
+  upstream:
+    level: system-requirements
+    sources:
+      - ../02-system/
+  id-prefix: SW-

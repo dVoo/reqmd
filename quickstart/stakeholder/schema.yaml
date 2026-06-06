@@ -1,0 +1,14 @@
+x-reqmd:
+  level: stakeholder-needs
+  document-id: stakeholder
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "stakeholder-goals"
+title: "Stakeholder Goals"
+type: object
+required: [priority]
+properties:
+  priority:
+    type: string
+    enum: [Low, Medium, High, Critical]
+additionalProperties: false

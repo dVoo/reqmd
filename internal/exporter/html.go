@@ -1,0 +1,346 @@
+package exporter
+
+import (
+	"bufio"
+	"bytes"
+	"embed"
+	"encoding/json"
+	"fmt"
+	"html"
+	"io"
+	"io/fs"
+	"strconv"
+	"strings"
+
+	"github.com/FurqanSoftware/goldmark-katex"
+	"github.com/stefanfritsch/goldmark-fences"
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark-emoji"
+	highlighting "github.com/yuin/goldmark-highlighting/v2"
+	"github.com/yuin/goldmark/extension"
+	"github.com/yuin/goldmark/parser"
+	"go.abhg.dev/goldmark/mermaid"
+
+	"reqmd/internal/model"
+)
+
+//go:embed static
+var staticFS embed.FS
+
+// css and js are the embedded stylesheet and client script for the
+// exported HTML. Each is read once at init and reused for every page.
+// A leading "\n" is prepended so the inlined block sits on its own
+// line after the <style> / <script> open tag, matching the previous
+// byte-for-byte output.
+var (
+	css = mustReadStatic("static/style.css")
+	js  = mustReadStatic("static/app.js")
+)
+
+func mustReadStatic(name string) string {
+	b, err := fs.ReadFile(staticFS, name)
+	if err != nil {
+		panic(err)
+	}
+	return "\n" + string(b)
+}
+
+
+// HTML exports requirements as standalone HTML with card-based layout.
+type HTML struct {
+	docChainGraph DocChainGraph // tiered document graph for the Confluence-Flow visualization
+	boundary      DocBoundary   // current document's root/leaf position in the V-model chain
+}
+
+// schemaTitle safely extracts the title field from a document's parsed
+// schema. Returns "" when Schema is nil, not a map, or has no string title.
+func schemaTitle(doc model.Document) string {
+	m, ok := doc.Schema.(map[string]any)
+	if !ok {
+		return ""
+	}
+	s, _ := m["title"].(string)
+	return s
+}
+
+// bodyRenderer renders requirement body markdown to HTML.
+var bodyRenderer = goldmark.New(
+	goldmark.WithExtensions(
+		extension.GFM,
+		&mermaid.Extender{},
+		&fences.Extender{},
+		highlighting.Highlighting,
+		emoji.Emoji,
+		&katex.Extender{},
+	),
+	goldmark.WithParserOptions(
+		parser.WithAutoHeadingID(),
+	),
+)
+
+// renderMarkdown renders markdown content to safe HTML.
+func renderMarkdown(content string) string {
+	var buf bytes.Buffer
+	if err := bodyRenderer.Convert([]byte(content), &buf); err != nil {
+		return html.EscapeString(content)
+	}
+	return buf.String()
+}
+
+// SetDocChainGraph configures the tiered document graph used by the
+// Confluence-Flow chain visualization. The graph holds the upstream tiers
+// (above the current doc), the current doc card, and the downstream tiers
+// (below the current doc). Pass a zero-value graph to disable the chain.
+func (h *HTML) SetDocChainGraph(graph DocChainGraph) {
+	h.docChainGraph = graph
+}
+
+// SetBoundary configures the document-level boundary flags (root/leaf
+// position in the V-model chain) used by the header badges.
+func (h *HTML) SetBoundary(b DocBoundary) {
+	h.boundary = b
+}
+
+// Export writes requirements as a standalone HTML page.
+func (h *HTML) Export(w io.Writer, doc model.Document, propOrder []string) error {
+	return h.exportHTML(w, doc, propOrder, nil)
+}
+
+// ExportWithTraces writes HTML with upstream/downstream trace links.
+// tc bundles the four callback hooks: Upstream / Downstream return
+// requirement IDs reachable from the given ID; ResolveLink maps a
+// requirement ID to a cross-file HTML anchor; TitleOf maps a
+// requirement ID to its human-readable title. Nil fields are tolerated —
+// the trace section is simply omitted for that side.
+func (h *HTML) ExportWithTraces(w io.Writer, doc model.Document, propOrder []string, tc TraceResolver) error {
+	return h.exportHTML(w, doc, propOrder, &tc)
+}
+
+func (h *HTML) exportHTML(w io.Writer, doc model.Document, propOrder []string, tc *TraceResolver) error {
+	title := doc.Path
+	if t := schemaTitle(doc); t != "" {
+		title = t
+	}
+
+	rd := buildRenderData(doc)
+	traceCache := buildTraceCache(doc, tc)
+	ignoreStatus := doc.XReqmd != nil && doc.XReqmd.IgnoreStatus
+
+	b := bufio.NewWriterSize(w, 32*1024) // 32KB buffer
+
+	renderDocHead(b, title)
+	renderBodyOpen(b)
+	renderDocChain(b, h.docChainGraph)
+	renderDocHeader(b, doc, title, rd, h.boundary.IsRoot, h.boundary.IsLeaf)
+	renderToolbar(b, doc, ignoreStatus)
+
+	b.WriteString("<main>\n")
+	for _, req := range rd.TopLevel {
+		renderCard(b, req, propOrder, traceCache, tc, ignoreStatus, false)
+		renderChildren(b, req.ID, rd, propOrder, traceCache, tc, ignoreStatus)
+	}
+	b.WriteString("</main>\n")
+
+	renderScripts(b, rd)
+	renderBodyClose(b)
+
+	return b.Flush()
+}
+
+// formatAttrLabel converts a snake_case or kebab-case attribute name to
+// a human-readable title-case label (e.g. "disposition-reason" → "Disposition Reason").
+func formatAttrLabel(s string) string {
+	parts := strings.FieldsFunc(s, func(r rune) bool { return r == '_' || r == '-' })
+	for i, p := range parts {
+		if len(p) > 0 {
+			parts[i] = strings.ToUpper(p[:1]) + p[1:]
+		}
+	}
+	return strings.Join(parts, " ")
+}
+
+// formatAttrHTML renders an attribute value as rich HTML for the card grid.
+// Arrays become inline pill tags. Nested maps become a compact <pre> JSON block.
+// All output is already HTML-escaped where needed by the caller.
+func formatAttrHTML(v any) string {
+	switch val := v.(type) {
+	case string:
+		return html.EscapeString(val)
+	case bool:
+		return strconv.FormatBool(val)
+	case int:
+		return strconv.Itoa(val)
+	case int64:
+		return strconv.FormatInt(val, 10)
+	case float64:
+		return strconv.FormatFloat(val, 'f', -1, 64)
+	case []any:
+		if len(val) == 0 {
+			return "—"
+		}
+		var b strings.Builder
+		b.WriteString(`<span class="attr-pills">`)
+		for i, item := range val {
+			if i > 0 {
+				b.WriteByte(' ')
+			}
+			b.WriteString(`<span class="attr-pill">`)
+			switch it := item.(type) {
+			case string:
+				b.WriteString(html.EscapeString(it))
+			case nil:
+				b.WriteString(`<em class="attr-pill-null">null</em>`)
+			default:
+				b.WriteString(html.EscapeString(formatAttrHTML(it)))
+			}
+			b.WriteString(`</span>`)
+		}
+		b.WriteString(`</span>`)
+		return b.String()
+	case []string:
+		if len(val) == 0 {
+			return "—"
+		}
+		var b strings.Builder
+		b.WriteString(`<span class="attr-pills">`)
+		for i, s := range val {
+			if i > 0 {
+				b.WriteByte(' ')
+			}
+			b.WriteString(`<span class="attr-pill">`)
+			b.WriteString(html.EscapeString(s))
+			b.WriteString(`</span>`)
+		}
+		b.WriteString(`</span>`)
+		return b.String()
+	case map[string]any:
+		b, _ := json.MarshalIndent(val, "", "  ")
+		return fmt.Sprintf(`<pre class="attr-nested">%s</pre>`, html.EscapeString(string(b)))
+	default:
+		return ""
+	}
+}
+
+// renderChainGraph writes the Document Stack chain as HTML to b.
+// The output is pure HTML/CSS — no JavaScript.
+//
+// Layout: three vertically stacked zones (upstream / current / downstream)
+// with short centered separator rules (chevron + lines) between the major
+// zones. There are no per-card connectors, no merge/fork lines, and no
+// sibling separators inside a zone.
+func renderChainGraph(b *bufio.Writer, g DocChainGraph) {
+	b.WriteString("  <div class=\"chain-stack\">\n")
+
+	// ── Upstream zone ──
+	if len(g.Upstream) > 0 {
+		b.WriteString("    <div class=\"chain-zone chain-zone--upstream\">\n")
+		b.WriteString("      <div class=\"chain-zone-header\">Upstream Sources</div>\n")
+		for _, tier := range g.Upstream {
+			b.WriteString("      <div class=\"chain-tier\">\n")
+			b.WriteString("        <div class=\"chain-tier-label\">")
+			b.WriteString(html.EscapeString(tier.Label))
+			b.WriteString("</div>\n")
+			b.WriteString("        <div class=\"chain-tier-cards\">\n")
+			for _, card := range tier.Cards {
+				renderChainCard(b, card, false)
+			}
+			b.WriteString("        </div>\n")
+			b.WriteString("      </div>\n")
+		}
+		b.WriteString("    </div>\n")
+
+		b.WriteString("    <div class=\"chain-separator\" aria-hidden=\"true\">\n")
+		b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
+		b.WriteString("      <div class=\"chain-separator-chevron\">&#9662;</div>\n")
+		b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
+		b.WriteString("    </div>\n")
+	}
+
+	// ── Current zone ──
+	b.WriteString("    <div class=\"chain-zone chain-zone--current\">\n")
+	renderChainCard(b, g.Current, true)
+	b.WriteString("    </div>\n")
+
+	// ── Downstream zone ──
+	if len(g.Downstream) > 0 {
+		b.WriteString("    <div class=\"chain-separator\" aria-hidden=\"true\">\n")
+		b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
+		b.WriteString("      <div class=\"chain-separator-chevron\">&#9662;</div>\n")
+		b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
+		b.WriteString("    </div>\n")
+
+		b.WriteString("    <div class=\"chain-zone chain-zone--downstream\">\n")
+		b.WriteString("      <div class=\"chain-zone-header\">Downstream Consumers</div>\n")
+		for _, tier := range g.Downstream {
+			b.WriteString("      <div class=\"chain-tier\">\n")
+			b.WriteString("        <div class=\"chain-tier-label\">")
+			b.WriteString(html.EscapeString(tier.Label))
+			b.WriteString("</div>\n")
+			b.WriteString("        <div class=\"chain-tier-cards\">\n")
+			for _, card := range tier.Cards {
+				renderChainCard(b, card, false)
+			}
+			b.WriteString("        </div>\n")
+			b.WriteString("      </div>\n")
+		}
+		b.WriteString("    </div>\n")
+	}
+
+	b.WriteString("  </div>\n")
+}
+
+// renderChainCard writes one <a> (or <span> for the current doc) card.
+// isZoneCurrent flags whether the card lives inside the chain-zone--current
+// region. The current document gets the chain-card--current class; external
+// documents get the chain-card--external class. Non-current cards receive no
+// side-specific class.
+func renderChainCard(b *bufio.Writer, card ChainCard, isZoneCurrent bool) {
+	classes := []string{"chain-card"}
+	if card.IsCurrent {
+		classes = append(classes, "chain-card--current")
+	}
+	if card.IsExternal {
+		classes = append(classes, "chain-card--external")
+	}
+	display := card.Title
+	if display == "" {
+		display = card.DirName
+	}
+	escapedDisplay := html.EscapeString(display)
+	escapedDir := html.EscapeString(card.DirName)
+	escapedHref := html.EscapeString(card.Path)
+
+	if card.IsCurrent || card.Path == "" {
+		b.WriteString("      <span class=\"")
+		b.WriteString(strings.Join(classes, " "))
+		b.WriteString("\" aria-current=\"page\">\n")
+		if card.IsExternal {
+			b.WriteString("        <span class=\"chain-card-glyph\" aria-hidden=\"true\">&#8599;</span>\n")
+		}
+		b.WriteString("        <span class=\"chain-card-title\">")
+		b.WriteString(escapedDisplay)
+		b.WriteString("</span>\n")
+		b.WriteString("        <span class=\"chain-card-meta\">")
+		b.WriteString(escapedDir)
+		b.WriteString("</span>\n")
+		b.WriteString("      </span>\n")
+		return
+	}
+
+	b.WriteString("      <a class=\"")
+	b.WriteString(strings.Join(classes, " "))
+	b.WriteString("\" href=\"")
+	b.WriteString(escapedHref)
+	b.WriteString("\">\n")
+	if card.IsExternal {
+		b.WriteString("        <span class=\"chain-card-glyph\" aria-hidden=\"true\">&#8599;</span>\n")
+	}
+	b.WriteString("        <span class=\"chain-card-title\">")
+	b.WriteString(escapedDisplay)
+	b.WriteString("</span>\n")
+	b.WriteString("        <span class=\"chain-card-meta\">")
+	b.WriteString(escapedDir)
+	b.WriteString("</span>\n")
+	b.WriteString("      </a>\n")
+}
+

@@ -1,3 +1,742 @@
-# mdreq
+# ReqMD
 
-MDreq 
+**ReqMD** (pronounced "req-em-dee") is a lightweight CLI tool for writing, validating, and exporting
+requirement specifications in plain Markdown. Designed for teams that want Git-native, text-first
+requirements management without a heavy toolchain.
+
+```
+$ reqmd check example/
+=
+Schema : ivi-requirements — IVI Requirements
+File   : example  (3 requirements)
+=
+  ⚠  IVI-FUN-001  attributes valid (see trace checks below)
+  ⚠  IVI-FUN-001  broken reference: target "SYS-001" not found
+  ⚠  IVI-FUN-001  broken reference: target "SAFE-003" not found
+  ⚠  IVI-FUN-001  no upstream reference
+  ⚠  IVI-FUN-002  attributes valid (see trace checks below)
+  ⚠  IVI-FUN-002  broken reference: target "SYS-007" not found
+  ❌  IVI-FUN-003  validating ivi-requirements: required: missing properties: ["asil"]
+  ⚠  IVI-FUN-003  untraced: no downstream reference
+  ⚠  IVI-FUN-003  no upstream reference
+
+Summary: 3 total, 2 valid, 1 invalid, 0 parse errors, 6 warnings
+```
+
+---
+
+## Installation
+
+```sh
+git clone <your-repo>
+cd mdreq
+go build -o reqmd ./cmd/reqmd
+```
+
+Requires Go 1.25+. The graph export subcommand requires Cgo support;
+build with `go build -tags ladybug -o reqmd ./cmd/reqmd` to include it.
+
+---
+
+## Quick Start
+
+The repo ships with an example you can try immediately:
+
+```sh
+go run ./cmd/reqmd check example/
+go run ./cmd/reqmd ls example/
+go run ./cmd/reqmd stats example/
+go run ./cmd/reqmd check --json example/
+go run ./cmd/reqmd export csv example/ -o /tmp/out/
+go run ./cmd/reqmd export html example/ -o /tmp/out/
+```
+
+Scaffold a new requirements project:
+
+```sh
+go run ./cmd/reqmd init my-requirements/
+go run ./cmd/reqmd check my-requirements/
+```
+
+Watch for changes and serve a live-reloading HTML preview:
+
+```sh
+go run ./cmd/reqmd serve spec/reqs/          # opens browser
+go run ./cmd/reqmd serve spec/reqs/ --headless   # terminal-only
+```
+
+---
+
+## Core Concepts
+
+### 1. Requirement files
+
+Each requirement is a level-2 heading followed by a fenced `attr` block with
+YAML attributes, then free-form prose. The heading text **is** the requirement ID.
+An optional title can follow the ID after a colon and space:
+
+````markdown
+## IVI-FUN-001: Fast startup
+```attr
+status: approved
+asil: QM
+maturity: Production
+verify: Test
+owner: TierOneSupplierA
+trace: [SYS-001, SAFE-003]
+version: 1
+```
+The system shall display the home screen within 5 seconds after ignition on,
+provided the head unit is operational.
+
+*Rationale:* Fast startup improves perceived quality.
+````
+
+Demonstrates: `trace` (upstream refs), `version` (version pinning), and the `ID: Title` syntax (optional human-readable title after the ID).
+
+```markdown
+## IVI-FUN-002
+```attr
+status: draft
+asil: B
+maturity: Prototype
+verify: Test
+owner: TierOneSupplierA
+trace: [SYS-007]
+disposition: deferred
+disposition-reason: "Moved to Phase 2 — requires next PCB revision"
+```
+The system shall disable manual text entry while vehicle speed is greater
+than 0 km/h, except for approved passenger-only functions.
+```
+
+Demonstrates: `disposition` + `disposition-reason` (defers traces, suppresses warnings).
+
+```markdown
+## IVI-FUN-003
+```attr
+status: draft
+maturity: Concept
+verify: Test
+```
+The system shall resume the last active audio source after an ignition cycle.
+```
+
+No built-in attrs — triggers untraced, no upstream reference, and any missing
+required fields from the schema.
+
+**Rules:**
+- Heading must start with a unique requirement ID (e.g. `IVI-FUN-001`, `SYS-001`)
+- An optional title can follow the ID after a colon and space: `## IVI-FUN-001: Fast startup`
+- The `attr` block must be valid YAML — keys must match the directory's schema
+- Requirement IDs use uppercase letters, digits, and hyphens: `^[A-Z][A-Z0-9]*(-[A-Z0-9]+)*$` with a trailing number segment (e.g. `STK-GOAL-001`, `SYS-FMT-002`). Optional version pinning suffix `~N` is allowed for trace references (e.g. `SYS-001~3`). Colons and spaces are not allowed in IDs — they delimit the optional title.
+- If `x-reqmd.id-prefix` is set, every ID in that directory must start with the declared prefix
+
+### 2. Schema files (`schema.yaml`)
+
+Every directory with requirements needs a `schema.yaml` — standard JSON Schema 2020-12
+in YAML, defining which attributes are allowed, required, and their types.
+
+```yaml
+x-reqmd:
+  level: software-requirements    # V-model layer label
+  id-prefix: IVI-FUN-             # enforce ID prefix
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "ivi-requirements"
+title: "IVI Requirements"
+type: object
+required: [asil, maturity, status, verify]
+properties:
+  status:
+    type: string
+    enum: [draft, approved]
+  asil:
+    type: string
+    enum: [QM, A, B, C, D]
+  maturity:
+    type: string
+    enum: [Concept, Prototype, Production, Serial]
+  verify:
+    type: string
+    enum: [Test, Analysis, Inspection, Review]
+  owner:
+    type: string
+  priority:
+    type: string
+    enum: [Low, Medium, High, Critical]
+  safety_relevant:
+    type: boolean
+additionalProperties: false
+```
+
+### 3. Built-in attributes
+
+These attributes are reserved by reqmd and injected automatically — you must
+**not** list them in `schema.yaml`:
+
+| Attribute | Type | Description |
+|-----------|------|-------------|
+| `trace` | `ref[]` | Cross-document upstream references, e.g. `[SYS-001, SAFE-003]` |
+| `disposition` | `enum` | How intent is addressed: `implemented`, `deferred`, or `rejected` |
+| `disposition-reason` | `string` | Required when disposition ≠ `implemented` |
+| `requires-trace-from` | `string[]` | Coverage expectations — which downstream levels or document-ids are expected to trace to this requirement |
+| `version` | `int` | Version number for trace pinning (e.g. `SYS-001~3`) |
+| `status` | `enum` | Approval lifecycle. Default: `approved`. Only `approved` satisfies traceability coverage. |
+
+All built-in attributes are **optional**. Redefining them in `schema.yaml` is a compile error.
+
+### 4. Status lifecycle
+
+Every requirement has an approval status. The built-in enum is `[draft, approved]`.
+Omitting `status` is equivalent to `status: approved` (silent default).
+
+**Coverage rule:** only `approved` requirements count as upstream coverage
+providers. A `draft` requirement can be referenced by a `trace`, but it does
+**not** satisfy a `requires-trace-from:` expectation. This is the only behavioral difference
+between `draft` and `approved` — drafts remain visible, exported, and clickable,
+they simply do not complete a coverage chain.
+
+```yaml
+## REQ-001: System boot
+```attr
+status: approved
+trace: [STK-001]
+```
+
+```yaml
+## REQ-002: Power management (in progress)
+```attr
+status: draft
+trace: [STK-002]
+requires-trace-from: [system]
+```
+The `requires-trace-from: [system]` declaration will emit a warning while REQ-002 is still
+`draft`, because no system-level requirement traces here yet. Bump it to
+`status: approved` once downstream work is complete.
+
+The coverage-gate message keeps authors informed:
+
+```
+no upstream trace: no approved requirement from "system" traces to this item (3 draft downstreams ignored)
+```
+
+The `(N draft downstreams ignored)` parenthetical appears only when at least
+one inbound candidate was filtered by the status gate. When no inbound exists
+at all, the message is silent on draft counts.
+
+### 4a. Extending the status enum
+
+When the built-in enum is too narrow, declare extensions in `x-reqmd`:
+
+```yaml
+x-reqmd:
+  additional-status-values: [review, in-progress]
+```
+
+Rules (violations are **config errors** at compile time):
+- Values must be lowercase, matching `^[a-z][a-z0-9_-]*$`.
+- `draft` and `approved` cannot be redeclared.
+- Duplicates are rejected.
+- An empty array (`[]`) is a no-op.
+
+Extensions appear in the status filter and header breakdown alongside the
+built-ins. Their dot color is hash-derived (DJB2a, 4 collision-free hue
+regions) so authors don't need to configure colors.
+
+### 4b. Opting out of the lifecycle
+
+Documents that don't follow the lifecycle (legacy imports, generated specs,
+one-off documents) can opt out:
+
+```yaml
+x-reqmd:
+  ignore-status: true
+```
+
+In an `ignore-status` document:
+- All requirements count as coverage providers, regardless of their `status`.
+- The status filter is hidden in the HTML export.
+- The status breakdown row is not rendered.
+
+### 5. Directory metadata (`x-reqmd`)
+
+The `x-reqmd` key in `schema.yaml` carries directory-level metadata. It's optional —
+standard JSON Schema validators ignore it because of the `x-` prefix.
+
+```yaml
+x-reqmd:
+  level: software-requirements                 # V-model layer label
+  upstream:                          # parent layer config
+    level: system-requirements
+    sources:
+      - ../sys/
+  mandatory-disposition: false                 # promote missing disposition to ERROR
+  external: false                              # proxy for non-reqmd artefacts
+  url: "https://example.com/model-export"      # human link (HTML export)
+  source:
+    path: ".reqmd/arch/sys/*.md"               # reqmd-scan input glob
+    format: archi                               # input format
+  id-prefix: IVI-FUN-                          # enforce ID prefix
+```
+
+| Field | What it does |
+|-------|-------------|
+| `level` | Labels the V-model layer for reporting and diagram generation |
+| `document-id` | Stable identifier for the document. Used to disambiguate `trace: [doc-id/ID]` references and as the `requires-trace-from:` coverage target |
+| `upstream.level` | Names the expected parent layer (informational) |
+| `upstream.sources` | Relative paths to upstream document directories |
+| `mandatory-disposition` | When `true`, missing `disposition` becomes an **ERROR** |
+| `external` | When `true`, marks as proxy directory; untraced warnings suppressed |
+| `url` | Human-readable link for HTML export (meaningful only when `external: true`) |
+| `source.path` | Path/glob/URL for the source artefact (future `reqmd-scan`) |
+| `source.format` | Source format: `archi`, `doxygen`, `gtest`, `pytest`, `junit`, `reqif` |
+| `id-prefix` | Enforces that all requirement IDs start with this prefix; collision is an ERROR |
+| `additional-status-values` | Lowercase extensions to the built-in `status` enum (e.g. `[review]`). See [Status lifecycle](#4-status-lifecycle). |
+| `ignore-status` | When `true`, the document opts out of the status lifecycle (see [Opting out](#4b-opting-out-of-the-lifecycle)) |
+
+**Simple rule:**
+- No `external` field or `external: false` → normal authored requirement directory
+- `external: true` → proxy/generated directory for external or scanned artefacts
+
+### 5. Directory layout
+
+Any folder with a `schema.yaml` is a document directory. ReqMD validates all `.md`
+files inside it (non-recursive), then recurses into subdirectories.
+
+```
+requirements/
+├── stakeholder/
+│   ├── schema.yaml                # level: stakeholder-needs
+│   └── needs.md
+├── sys/requirements/
+│   ├── schema.yaml                # level: system-requirements
+│   └── system-functions.md
+├── swe/requirements/
+│   ├── schema.yaml                # level: software-requirements
+│   ├── startup.md
+│   └── media.md
+├── tests/swe/unit/
+│   ├── schema.yaml                # level: test-spec-unit
+│   └── ecum-tests.md
+├── external/
+│   └── autosar-ecum/
+│       └── schema.yaml            # external: true — committed config only
+└── .github/workflows/
+    └── validate.yml               # CI: runs reqmd check on every PR
+```
+
+### 6. Document frontmatter (YAML)
+
+Each `.md` file MAY include YAML frontmatter delimited by `---`, parsed via
+[goldmark-meta](https://github.com/yuin/goldmark-meta). The `description` key
+provides document-level prose rendered in the HTML export below the document
+header:
+
+```yaml
+---
+description: "This document defines the **stakeholder goals** that drive all downstream requirements."
+---
+```
+
+Frontmatter keys from multiple `.md` files in the same document directory are
+merged with first-file-wins semantics. The `description` field is processed
+through goldmark, supporting inline Markdown (bold, code, links, etc.).
+
+### 7. Goldmark extensions
+
+ReqMD uses [goldmark](https://github.com/yuin/goldmark) for Markdown rendering
+in both parsing and HTML export, with these extensions enabled:
+
+| Extension | Package | What it does |
+|-----------|---------|-------------|
+| **GFM** | `github.com/yuin/goldmark/extension` | Tables, strikethrough, autolinks, task lists |
+| **AutoHeadingID** | `github.com/yuin/goldmark/parser` | Auto-generates `id` attributes for headings |
+| **Mermaid** | `go.abhg.dev/goldmark/mermaid` | Diagram rendering from `` ```mermaid `` blocks |
+| **Fenced divs** | `github.com/stefanfritsch/goldmark-fences` | Pandoc-style `::: {.class}` containers |
+| **Highlighting** | `github.com/yuin/goldmark-highlighting/v2` | Syntax-highlighted code blocks via chroma |
+| **Emoji** | `github.com/yuin/goldmark-emoji` | GitHub-style `:joy:` → 😊 emoji |
+| **KaTeX** | `github.com/FurqanSoftware/goldmark-katex` | Math rendering: inline `$x^2$` and display `$$...$$` |
+
+---
+
+## Commands
+
+| Command | What it does |
+|---------|--------------|
+| `reqmd check <root>` | Validate all `.md` against their `schema.yaml` recursively |
+| `reqmd check <file> -s <schema>` | Validate a single file against an explicit schema |
+| `reqmd check --json <root>` | JSON validation report |
+| `reqmd check --relaxed-versions <root>` | Demote outdated version-pin findings from ERROR to WARNING (predated stays ERROR) |
+| `reqmd init <dir>` | Scaffold a new requirements directory with schema.yaml and example (flags: `--preset`, `--id-prefix`, `--force`) |
+| `reqmd ls <root>` | Table of all requirements with attribute values |
+| `reqmd ls --json <root>` | JSON list |
+| `reqmd stats <root>` | Attribute-value breakdown per document |
+| `reqmd stats --json <root>` | JSON stats |
+| `reqmd export csv <root> -o <dir>` | CSV export with Body and Rationale columns |
+| `reqmd export html <root> -o <dir>` | Standalone HTML: card layout, goldmark-rendered body, trace columns, doc chain tab strip, search/filter, theme toggle |
+| `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build) |
+| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`) |
+
+Aliases: `check` = `validate` or `v`; `ls` = `list` or `l`.
+
+### Example: `check`
+
+```
+=
+Schema : ivi-requirements — IVI Requirements
+File   : example  (3 requirements)
+=
+  ⚠  IVI-FUN-001  attributes valid (see trace checks below)
+  ⚠  IVI-FUN-001  broken reference: target "SYS-001" not found
+  ⚠  IVI-FUN-001  broken reference: target "SAFE-003" not found
+  ⚠  IVI-FUN-001  no upstream reference
+  ⚠  IVI-FUN-002  attributes valid (see trace checks below)
+  ⚠  IVI-FUN-002  broken reference: target "SYS-007" not found
+  ❌  IVI-FUN-003  validating ivi-requirements: required: missing properties: ["asil"]
+  ⚠  IVI-FUN-003  untraced: no downstream reference
+  ⚠  IVI-FUN-003  no upstream reference
+
+Summary: 3 total, 2 valid, 1 invalid, 0 parse errors, 6 warnings
+```
+
+- `⚠` — trace validation warning (broken reference, untraced, no upstream reference, disposition without reason)
+- `❌` — schema validation error (missing required, wrong type, invalid enum)
+- IVI-FUN-001 traces to external targets (broken references; untraced suppressed by `requires-trace-from: []`)
+- IVI-FUN-002 uses `disposition: deferred` (requires `disposition-reason`)
+
+### Example: `ls`
+
+```
+=== example ===
+ID                       | asil         | maturity     | status       | verify       | owner        | priority     | safety_relevant | trace        | disposition  | disposition-reason | version  |
+----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+IVI-FUN-001              | QM           | Production   | approved     | Test         | TierOneSupplierA |              |              | ["SYS-001","SAFE-003"] |              |              | 1            |
+IVI-FUN-002              | B            | Prototype    | draft        | Test         | TierOneSupplierA |              |              | ["SYS-007"]  | deferred     | Moved to Phase 2 — serial peripheral interface requires next PCB revision |              |
+IVI-FUN-003              |              | Concept      | draft        | Test         |              |              |              |                   |              |              |              |
+```
+
+User-defined attributes first, then built-in attributes. Empty cells mean the
+requirement didn't set that attribute. Non-string values (arrays, integers,
+booleans) are formatted automatically.
+
+### Example: `stats`
+
+```
+Requirements: 3
+Documents:    1
+
+=== example (3 reqs) ===
+  asil:
+    B                    1
+    QM                   1
+  maturity:
+    Concept              1
+    Production           1
+    Prototype            1
+  status:
+    approved             1
+    draft                2
+  verify:
+    Test                 3
+  owner:
+    TierOneSupplierA     2
+  disposition:
+    deferred             1
+  disposition-reason:
+    Moved to Phase 2...  1
+```
+
+### Example: `check --json`
+
+```json
+{
+  "version": 1,
+  "exit_code": 1,
+  "summary": {
+    "total": 3,
+    "valid": 2,
+    "invalid": 1,
+    "parse_errors": 0,
+    "warnings": 6
+  },
+  "documents": [
+    {
+      "path": "example",
+      "schema_title": "ivi-requirements — IVI Requirements",
+      "req_count": 3,
+      "requirements": [
+        {
+          "id": "IVI-FUN-001",
+          "valid": true,
+          "checks": [
+            {"level": "WARNING", "message": "broken reference: target \"SYS-001\" not found"},
+            {"level": "WARNING", "message": "broken reference: target \"SAFE-003\" not found"},
+            {"level": "WARNING", "message": "no upstream reference"}
+          ]
+        },
+        {
+          "id": "IVI-FUN-002",
+          "valid": true,
+          "checks": [
+            {"level": "WARNING", "message": "broken reference: target \"SYS-007\" not found"}
+          ]
+        },
+        {
+          "id": "IVI-FUN-003",
+          "valid": false,
+          "checks": [
+            {"level": "ERROR", "message": "validating ivi-requirements: required: missing properties: [\"asil\"]"},
+            {"level": "WARNING", "message": "untraced: no downstream reference"},
+            {"level": "WARNING", "message": "no upstream reference"}
+          ]
+        }
+      ]
+    }
+  ],
+  "parse_errors": []
+}
+```
+
+---
+
+## Trace validation in detail
+
+The `trace` attribute links requirements across documents. Each value is a
+requirement ID (uppercase letters, digits, hyphens) with optional version pinning
+(e.g. `SYS-001~3` means "fulfills SYS-001 version 3").
+
+### Version pins
+
+A downstream requirement can pin the upstream version it was last verified
+against. When the upstream `version` is bumped, the pin becomes stale and
+reqmd flags the downstream as needing re-verification (change-impact analysis,
+ISO 29148).
+
+```yaml
+# Upstream declares its current version
+```attr
+id: UP-001
+version: 3
+```
+
+```yaml
+# Downstream pins the version it was verified against
+```attr
+id: DN-001
+trace: [UP-001~2]   # re-verify against UP-001 v3
+```
+
+Findings:
+
+| Condition | Meaning | Level | Demote with |
+|-----------|---------|-------|-------------|
+| `pin < upstream.version` | Outdated — upstream bumped, downstream needs re-verify | **ERROR** | `--relaxed-versions` |
+| `pin > upstream.version` | Predated — downstream claims a non-existent version | **ERROR** | (never — data integrity) |
+| `pin == upstream.version` | Current | — | — |
+| No pin | No version check applies | — | — |
+| Upstream `version: 0` / unset | No ground truth to compare | — | — |
+| Upstream `external: true` | Out of scope | — | — |
+
+Suppression per-requirement: `reqmd-suppress: [version-pin]`.
+
+When multiple documents share the same ID prefix (e.g., two teams both use `STK-`),
+you can disambiguate with a **path-qualified reference** using the document directory:
+
+```yaml
+trace:
+  - stakeholder-a/STK-001   # qualified: STK-001 in the stakeholder-a/ directory
+  - STK-002                  # unqualified: works when ID is globally unique
+```
+
+If an unqualified reference matches IDs in multiple documents, reqmd reports an
+ERROR suggesting the qualified form. Use qualified references when integrating
+independently-authored documents (e.g., git submodules).
+
+ReqMD builds an **ephemeral graph** of all requirements and their traces, then
+runs these checks:
+
+| Check | Level | Condition | Exit code? |
+|-------|-------|-----------|------------|
+| **Broken reference** | WARNING | `trace` references an ID not found in any document | No |
+| **Circular dependency** | ERROR | Cycle detected via DFS along `TRACES` edges | **Yes** |
+| **requires-trace-from coverage** | WARNING | When a requirement declares `requires-trace-from: [..]`, at least one inbound edge must originate from each named `document-id` or `level` | No |
+| **Untraced (generic)** | WARNING | Fallback: no incoming traces, not a top-boundary dir, not a sub-req, `requires-trace-from` not set | No |
+| **No upstream reference (generic)** | WARNING | Fallback: no outgoing traces, not a bottom-boundary dir, `requires-trace-from` not set | No |
+| **Disposition without reason** | WARNING | `disposition` is `deferred`/`rejected` but reason is missing | No |
+| **Mandatory disposition** | ERROR | `mandatory-disposition: true` and `disposition` is missing | **Yes** |
+| **ID prefix mismatch** | ERROR | ID doesn't start with directory's `id-prefix` | **Yes** |
+| **ID prefix collision** | ERROR | Two directories declare the same `id-prefix` | **Yes** |
+| **Duplicate ID** | ERROR | Same requirement ID defined in two different documents | **Yes** |
+| **Ambiguous reference** | ERROR | Unqualified trace reference matches IDs in multiple documents | **Yes** |
+| **Version pin outdated** | ERROR (or WARNING with `--relaxed-versions`) | `trace: [UP-001~3]` but `UP-001` is at `version: 5` — downstream must be re-verified | **Yes** (strict) |
+| **Version pin predated** | ERROR | `trace: [UP-001~5]` but `UP-001` is at `version: 2` — downstream claims a version that doesn't exist | **Yes** |
+
+Boundary inference: Directories with no `upstream.sources` are
+**top-boundary** (generic untraced suppressed). Directories not referenced by
+any other directory's `upstream.sources` are **bottom-boundary**
+(generic no-upstream-reference suppressed). For fine-grained control, declare
+`requires-trace-from: [..]` on a requirement to specify exactly which document-ids or
+levels must trace to it; use `requires-trace-from: []` to explicitly opt out of generic
+boundary coverage.
+
+Per-requirement check suppression is available via the `reqmd-suppress` attr:
+```yaml
+reqmd-suppress:
+  - untraced
+  - id-prefix
+```
+Supported suppression names: `broken-ref`, `circular`, `untraced`, `no-downstream`,
+`disposition-reason`, `mandatory-disposition`, `id-prefix`, `version-pin`,
+`requires-trace-from-coverage`.
+
+Only **ERROR** level checks affect the exit code. WARNING and INFO are
+informational.
+
+---
+
+## Disposition workflow
+
+When a stakeholder requirement can't be immediately implemented, use the built-in
+`disposition` + `disposition-reason` attributes instead of leaving silent gaps:
+
+```yaml
+disposition: deferred
+disposition-reason: "Deferred to v2.0 — HW SPI interface not available until next PCB revision"
+```
+
+| Disposition | What it signals | Rationale needed? |
+|-------------|-----------------|-------------------|
+| `implemented` | Actively developed | No |
+| `deferred` | Accepted, postponed | **Yes** |
+| `rejected` | Not accepted | **Yes** |
+
+Disposition is orthogonal to trace coverage. Use `requires-trace-from: []` to explicitly state that no downstream coverage is expected.
+
+### Worked example — deferred with rationale (passes)
+
+```markdown
+## STAKE-007
+```attr
+status: approved
+disposition: deferred
+disposition-reason: "Deferred to Phase 2 per steering committee 2025-03-14"
+```
+The system shall support over-the-air firmware updates for all ECUs.
+```
+**Result:** ✅ `disposition: deferred` requires reason. Reason present → no
+"disposition without reason" warning. `requires-trace-from: []` → no "no upstream reference" warning.
+No `trace` → correct for a postponed need.
+
+### Worked example — rejected without reason (warning)
+
+```markdown
+## STAKE-008
+```attr
+status: approved
+disposition: rejected
+```
+The system shall support wireless charging.
+```
+**Result:** ⚠ WARNING — `disposition: rejected` but no `disposition-reason` provided.
+
+---
+
+## Exit codes
+
+| Code | Meaning |
+|------|---------|
+| 0 | All valid |
+| 1 | Validation errors or ERROR-level trace check triggered |
+| 2 | Schema or file parse error |
+
+---
+
+## Real-world workflow
+
+```sh
+# Scaffold a new requirements project
+reqmd init my-project/ --preset generic
+
+# Validate your entire requirements tree
+reqmd check requirements/
+
+# List all requirements with all attributes
+reqmd ls requirements/
+
+# Check attribute coverage
+reqmd stats requirements/
+
+# Export for stakeholder review
+reqmd export html requirements/ -o docs/
+
+# Generate CSV for spreadsheet import
+reqmd export csv requirements/ -o docs/
+
+# JSON for CI scripting
+reqmd check --json requirements/
+
+# Live preview while editing
+reqmd serve requirements/          # browser auto-opens
+reqmd serve requirements/ --headless  # terminal-only
+```
+
+Wire `reqmd check requirements/` into CI (GitHub Actions, GitLab CI, etc.)
+to catch missing attributes and broken trace links on every PR. Use `--json`
+output for programmatic parsing.
+
+---
+
+## Design principles
+
+- **No lock-in.** Your data is plain Markdown and YAML — openable in any editor,
+  renderable on GitHub/GitLab, diffable with standard Git tools.
+- **No database.** The trace graph is ephemeral, built in a temp directory on
+  each invocation and discarded when done. The `*.md` files are the single
+  source of truth — nothing is committed except text files.
+- **Per-directory schemas.** Different subsystems (IVI, safety, system) can have
+  different required fields and validation rules, all validated in one pass.
+- **Scale.** Parses thousands of files in parallel using a `runtime.NumCPU()`
+  worker pool.
+- **Dogfooding.** The reqmd tool's own requirements are defined in `spec/reqs/`
+  using the reqmd format and validate with `reqmd check spec/reqs/`. This ensures
+  the format is always production-ready for the team's own use.
+
+---
+
+## Self-hosted requirements
+
+ReqMD dogfoods its own format. The `spec/reqs/` directory contains a complete
+6-level V-model tree defining the tool itself:
+
+| Level | Directory | Reqs | Description |
+|-------|-----------|:----:|-------------|
+| External | `spec/reqs/00-aspice/` | 191 | Automotive SPICE v4.0 base practices (`external: true`) |
+| Stakeholder | `spec/reqs/01-stakeholder/` | 5 | Stakeholder goals (top boundary, no upstream) |
+| ASPICE SR | `spec/reqs/01a-aspice-stakeholder/` | 18 | ASPICE stakeholder requirements mapped to base practices |
+| System | `spec/reqs/02-system/` | 8 | Feature specifications |
+| Software | `spec/reqs/03-software/` | 6 | Component-level design |
+| Tests | `spec/reqs/04-tests/` | 4 | Test specifications (mandatory-disposition) |
+
+All 232 requirements validate cleanly:
+
+```sh
+$ reqmd check spec/reqs/
+# ... 232 total, 232 valid, 0 invalid, 0 parse errors, 197 warnings
+
+$ reqmd serve spec/reqs/          # live-reloading HTML preview
+$ reqmd export html spec/reqs/ -o /tmp/out/
+Wrote /tmp/out/00-aspice-requirements.html
+Wrote /tmp/out/01-stakeholder-requirements.html
+Wrote /tmp/out/01a-aspice-stakeholder-requirements.html
+Wrote /tmp/out/02-system-requirements.html
+Wrote /tmp/out/03-software-requirements.html
+Wrote /tmp/out/04-tests-requirements.html
+```
+
+The 196 warnings are expected — external base practices (`00-aspice`) and
+stakeholder goals (`01-stakeholder`) have no upstream traces (untraced warnings
+suppressed by boundary inference and `external: true`). The ASPICE proxy layer
+(`01a-aspice-stakeholder`) is the first fully-traced tier.
+
+>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> conflict 1 of 1 ends

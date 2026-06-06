@@ -1,0 +1,28 @@
+# ReqMD document schema. The required built-in attributes `id`, `title`,
+# `trace`, and `status` are injected automatically. See README for the
+# full list of built-in attributes and x-reqmd configuration fields.
+x-reqmd:
+  level: "{{ .Level }}"              # Top-level requirement level
+{{- if .IDPrefix }}
+  id-prefix: {{ .IDPrefix }}         # Prefix prepended to all requirement IDs
+{{- end }}
+  # Optional x-reqmd fields (uncomment as needed):
+  # document-id: my-doc              # Stable identifier for this document
+  # upstream:                         # Upstream tracing configuration
+  #   sources:
+  #     - ../00-base/                 # Path(s) to upstream document directories
+  # ignore-status: true               # All reqs are coverage providers (status filter disabled)
+  # additional-status-values:         # Add custom status values (lowercase, no built-ins)
+  #   - review
+  # mandatory-disposition: true       # Require disposition on every requirement
+  # external: true                    # Mark this document as external (provides coverage, not validated)
+  # url: https://example.com/spec     # Link to authoritative source
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "{{ .ID }}"
+title: "{{ .Title }}"
+type: object
+properties:
+  owner:
+    type: string
+    description: "Responsible person or team"
+additionalProperties: false

@@ -1,0 +1,6 @@
+# Whitelist: only source files for go:embed.
+# Prevents accidental minified/compiled/temp files from being embedded.
+*
+!.gitignore
+!*.css
+!*.js

@@ -1,0 +1,21 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "reqmd-system-requirements"
+title: "reqmd System Requirements"
+type: object
+required:
+  - priority
+properties:
+  priority:
+    type: string
+    enum: [Critical, High, Medium]
+additionalProperties: false
+
+x-reqmd:
+  level: system-requirements
+  document-id: system
+  upstream:
+    level: stakeholder-needs
+    sources:
+      - ../01-stakeholder/
+      - ../01a-aspice-stakeholder/
+  id-prefix: SYS-
