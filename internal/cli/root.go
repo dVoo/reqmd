@@ -9,7 +9,7 @@ import (
 func NewRootCmd() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:   "reqmd",
-		Short: "Requirement specification tool — check, ls, stats, export",
+		Short: "Requirement specification tool — check, ls, stats, export, serve, baseline, init",
 		Long: `reqmd — requirement specification tool
 
 reqmd is a CLI tool for authoring, validating, and exporting
@@ -18,6 +18,8 @@ attr blocks validated against JSON Schema (YAML-serialized).`,
 		Example: `  reqmd check example/
   reqmd ls example/
   reqmd export csv example/`,
+		SilenceErrors: true,
+		SilenceUsage:  true,
 	}
 
 	cmd.AddCommand(newCheckCmd())
@@ -25,6 +27,7 @@ attr blocks validated against JSON Schema (YAML-serialized).`,
 	cmd.AddCommand(newStatsCmd())
 	cmd.AddCommand(newInitCmd())
 	cmd.AddCommand(newServeCmd())
+	cmd.AddCommand(newBaselineCmd())
 	cmd.AddCommand(export.NewExportCmd())
 
 	return cmd

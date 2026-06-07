@@ -137,4 +137,16 @@ The HTML exporter SHALL produce a standalone `.html` page per document directory
 
 *Rationale:* The HTML export is the primary human-reviewable output for non-technical stakeholders. A self-contained page eliminates server dependencies for distribution.
 
+## SYS-BAS-001: Baseline comparison via git tags
+```attr
+status: approved
+priority: High
+requires-trace-from: [software-requirements]
+trace:
+  - STK-GOAL-002
+```
+The tool shall provide a `reqmd baseline diff <tag1> <tag2>` subcommand that compares requirement specifications between two git tags without requiring a working-tree checkout. The command shall extract the repository at each tag using `git archive | tar`, parse both versions with the standard pipeline, and produce a semantic diff showing added, removed, and modified requirements with attribute-level detail, plus schema changes (new/removed properties, changed required fields). Output shall be colored text by default with a `--json` flag for structured output.
+
+*Rationale:* Requirement-level diffs enable change-impact analysis and release notes generation. Using git tags as baseline anchors means the diff inherits the team's existing version-control workflow — no separate baseline store to maintain. `git archive` avoids the need to check out tags in separate worktrees, keeping the operation fast and side-effect-free.
+
 

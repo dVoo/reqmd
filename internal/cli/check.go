@@ -125,7 +125,10 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 	}
 
 	report.NewIndex()
-	return formatReport(report, jsonOutput), &reporter.ExitCodeError{Code: report.ExitCode()}
+	if code := report.ExitCode(); code != 0 {
+		return formatReport(report, jsonOutput), &reporter.ExitCodeError{Code: code}
+	}
+	return formatReport(report, jsonOutput), nil
 }
 
 // demoteOutdatedVersionPins demotes Code=="version-pin" + Direction=="outdated"
@@ -181,4 +184,3 @@ func formatReport(r *reporter.Report, jsonOutput bool) string {
 	}
 	return r.Format()
 }
-

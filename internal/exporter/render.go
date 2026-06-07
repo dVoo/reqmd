@@ -76,7 +76,6 @@ type renderData struct {
 	Filters    filterSet
 	TopLevel   []model.Requirement
 	ChildrenOf map[string][]model.Requirement
-	HasChild   map[string]bool
 	StatusCnt  map[string]int
 }
 
@@ -167,12 +166,10 @@ func normalizeAttrValue(v any) []string {
 // values are omitted (single-value filters are not useful).
 func buildRenderData(doc model.Document) *renderData {
 	childrenOf := make(map[string][]model.Requirement)
-	hasChild := make(map[string]bool)
 	var topLevel []model.Requirement
 	for _, req := range doc.Requirements {
 		if req.ParentID != "" {
 			childrenOf[req.ParentID] = append(childrenOf[req.ParentID], req)
-			hasChild[req.ParentID] = true
 		} else {
 			topLevel = append(topLevel, req)
 		}
@@ -237,7 +234,6 @@ func buildRenderData(doc model.Document) *renderData {
 		Filters:    filters,
 		TopLevel:   topLevel,
 		ChildrenOf: childrenOf,
-		HasChild:   hasChild,
 		StatusCnt:  statusCounts,
 	}
 }
@@ -394,7 +390,7 @@ func buildIndexEntry(req model.Requirement, childrenOf map[string][]model.Requir
 // renderDocHeader writes the <header class="doc-header">...</header>
 // block: title, count line, status breakdown, boundary badges, and the
 // optional description from YAML frontmatter.
-func renderDocHeader(b *bufio.Writer, doc model.Document, title string, rd *renderData, isRoot, isLeaf bool) {
+func renderDocHeader(b *bufio.Writer, doc model.Document, title string, isRoot, isLeaf bool) {
 	b.WriteString("<header class=\"doc-header\">\n")
 	fmt.Fprintf(b, "<h1>%s</h1>\n", html.EscapeString(title))
 

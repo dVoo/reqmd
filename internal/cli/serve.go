@@ -5,12 +5,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"sync"
 	"time"
 
@@ -39,14 +41,17 @@ func newServeCmd() *cobra.Command {
 		Long: `Watch a requirements directory tree and serve a live-reloading
 HTML preview via HTTP.
 
-Whenever a .md or schema.yaml file changes, reqmd re-parses,
-re-validates, and re-exports all documents. The browser auto-reloads
-via Server-Sent Events (SSE).
+Whenever a .md or schema.yaml file changes, reqmd re-parses, rebuilds the
+trace graph, re-checks graph-level invariants, and re-exports all documents.
+The browser auto-reloads via Server-Sent Events (SSE).
+
+Note: serve runs graph-level checks (trace refs, cycles, coverage) but does
+not re-run JSON Schema validation. Use ` + "`reqmd check`" + ` for full validation.
 
 Use --headless for terminal-only re-check output without the HTTP server.`,
-		Example: `  reqmd serve spec/reqs/
-  reqmd serve spec/reqs/ --addr :9090
-  reqmd serve spec/reqs/ --headless`,
+		Example: `  reqmd serve spec/
+  reqmd serve spec/ --addr :9090
+  reqmd serve spec/ --headless`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			return runServe(args[0], addr, debounce, headless, noOpen)
@@ -150,15 +155,7 @@ func (s *serveData) rebuild(ctx context.Context) error {
 		return fmt.Errorf("building graph: %w", err)
 	}
 
-	// Build ID→title map across all documents for trace link labels
-	titleMap := make(map[string]string)
-	for _, d := range docs {
-		for _, req := range d.Requirements {
-			if req.Title != "" {
-				titleMap[req.ID] = req.Title
-			}
-		}
-	}
+	titleMap := exporter.BuildTitleMap(docs)
 
 	var exp exporter.HTML
 
@@ -212,18 +209,20 @@ func (s *serveData) rebuild(ctx context.Context) error {
 		totalReqs += len(doc.Requirements)
 	}
 
-	// Count valid (no ERROR-level checks)
+	// Count ERROR/WARNING-level graph checks. serve does not run Pass 1
+	// schema validation, so a per-requirement "valid" count would be
+	// misleading (one req can yield multiple ERRORs, or none). Report
+	// check counts instead.
 	errCount := 0
 	warnCount := 0
 	for _, cr := range results {
 		switch cr.Level {
-		case "ERROR":
+		case graph.LevelError:
 			errCount++
-		case "WARNING":
+		case graph.LevelWarning:
 			warnCount++
 		}
 	}
-	validReqs := totalReqs - errCount
 
 	// Update pages atomically
 	s.mu.Lock()
@@ -233,9 +232,9 @@ func (s *serveData) rebuild(ctx context.Context) error {
 	// Print status
 	var status string
 	if errCount == 0 {
-		status = fmt.Sprintf("✅  all valid (%d reqs, %d warnings)", totalReqs, warnCount)
+		status = fmt.Sprintf("✅  no graph errors (%d reqs, %d warnings)", totalReqs, warnCount)
 	} else {
-		status = fmt.Sprintf("❌  %d/%d valid, %d errors, %d warnings", validReqs, totalReqs, errCount, warnCount)
+		status = fmt.Sprintf("❌  %d reqs, %d errors, %d warnings", totalReqs, errCount, warnCount)
 	}
 	fmt.Fprintf(os.Stderr, "\r[%s] %s\n", time.Now().Format("15:04:05"), status)
 
@@ -303,7 +302,7 @@ func (s *serveData) watchFsnotify(ctx context.Context) error {
 			if ext != ".md" && ext != ".yaml" && ext != ".yml" {
 				continue
 			}
-			if event.Op&(fsnotify.Create|fsnotify.Write) == 0 {
+			if event.Op&(fsnotify.Create|fsnotify.Write|fsnotify.Remove|fsnotify.Rename) == 0 {
 				continue
 			}
 
@@ -364,17 +363,28 @@ func (s *serveData) watchPolling(ctx context.Context) error {
 				newState.paths[filepath.Join(dir, e.Name())] = info.ModTime()
 			}
 			oldState := state[dir]
-			state[dir] = newState
-
-			// Compare with old state
+			// Compare with old state: detect added/modified and deleted files.
 			if oldState == nil {
 				continue // first snapshot, no comparison
 			}
+			changed := false
 			for path, mtime := range newState.paths {
 				if oldMtime, ok := oldState.paths[path]; !ok || !mtime.Equal(oldMtime) {
-					rebuildAndNotify()
-					return
+					changed = true
+					break
 				}
+			}
+			if !changed {
+				for path := range oldState.paths {
+					if _, ok := newState.paths[path]; !ok {
+						changed = true // file was deleted
+						break
+					}
+				}
+			}
+			if changed {
+				rebuildAndNotify()
+				return
 			}
 		}
 	}
@@ -431,15 +441,18 @@ func openBrowser(url string) error {
 // findDocDirsFlat finds all directories under root that contain a schema.yaml.
 func findDocDirsFlat(root string) []string {
 	var dirs []string
-	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return nil
 		}
-		if !info.IsDir() && info.Name() == "schema.yaml" {
+		if !d.IsDir() && d.Name() == "schema.yaml" {
 			dirs = append(dirs, filepath.Dir(path))
 		}
 		return nil
 	})
+	if err != nil {
+		return nil
+	}
 	return dirs
 }
 
@@ -494,6 +507,7 @@ func (s *serveData) fileHandler(w http.ResponseWriter, r *http.Request) {
 		for p := range s.pages {
 			names = append(names, p)
 		}
+		sort.Strings(names)
 		s.mu.RUnlock()
 
 		if len(names) == 0 {

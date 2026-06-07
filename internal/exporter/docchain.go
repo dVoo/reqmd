@@ -6,15 +6,30 @@ import (
 	"reqmd/internal/model"
 )
 
+// BuildTitleMap builds a reqID → title map across all documents, for use as
+// trace-link labels. Requirements with an empty title are omitted.
+func BuildTitleMap(docs []model.Document) map[string]string {
+	titleMap := make(map[string]string)
+	for _, d := range docs {
+		for _, req := range d.Requirements {
+			if req.Title != "" {
+				titleMap[req.ID] = req.Title
+			}
+		}
+	}
+	return titleMap
+}
+
 // RenderContext holds precomputed document chain and link resolution data
 // for cross-document HTML traceability. It is shared by the export and serve commands.
 type RenderContext struct {
-	docs      []model.Document
-	root      string
-	reqToHTML map[string]string // reqID → output HTML path
-	docLinks  []docLinkInfo
-	absPaths  []string
-	absMap    map[string]absDocInfo
+	docs         []model.Document
+	root         string
+	reqToHTML    map[string]string // reqID → output HTML path
+	docLinks     []docLinkInfo
+	absPaths     []string
+	absMap       map[string]absDocInfo
+	downstreamOf map[string][]string // absPath → docs that declare absPath as an upstream source
 }
 
 type docLinkInfo struct {
@@ -66,6 +81,21 @@ func NewRenderContext(docs []model.Document, root string) (*RenderContext, error
 		rctx.absPaths = append(rctx.absPaths, absPath)
 	}
 
+	rctx.downstreamOf = make(map[string][]string, len(rctx.absPaths))
+	for _, abs := range rctx.absPaths {
+		info := rctx.absMap[abs]
+		if info.doc.XReqmd == nil || info.doc.XReqmd.Upstream == nil {
+			continue
+		}
+		for _, src := range info.doc.XReqmd.Upstream.Sources {
+			target := filepath.Clean(filepath.Join(abs, src))
+			if _, ok := rctx.absMap[target]; !ok {
+				continue
+			}
+			rctx.downstreamOf[target] = append(rctx.downstreamOf[target], abs)
+		}
+	}
+
 	return rctx, nil
 }
 
@@ -87,18 +117,18 @@ func (r *RenderContext) ResolveLink(currentOutPath string) func(string) string {
 
 // ChainCard represents a single document in the chain graph visualization.
 type ChainCard struct {
-	Title     string // schema title (or dirName if empty)
-	Path      string // output HTML path (empty for current doc, or unknown)
-	DirName   string // directory basename
-	IsCurrent bool   // true for the doc this graph was built for
-	IsExternal bool  // true for docs marked x-reqmd.external: true
+	Title      string // schema title (or dirName if empty)
+	Path       string // output HTML path (empty for current doc, or unknown)
+	DirName    string // directory basename
+	IsCurrent  bool   // true for the doc this graph was built for
+	IsExternal bool   // true for docs marked x-reqmd.external: true
 }
 
 // ChainTier is a horizontal row of docs at the same trace distance.
 type ChainTier struct {
-	Level  int         // distance from current (negative upstream, positive downstream, 0 = current)
-	Label  string      // human label, e.g. "Upstream tier 2", "Downstream tier 1", "Current"
-	Cards  []ChainCard // docs in this tier (1 for current tier, n for parallel branches)
+	Level int         // distance from current (negative upstream, positive downstream, 0 = current)
+	Label string      // human label, e.g. "Upstream tier 2", "Downstream tier 1", "Current"
+	Cards []ChainCard // docs in this tier (1 for current tier, n for parallel branches)
 }
 
 // DocChainGraph is the full tiered document graph for a single current doc.
@@ -212,28 +242,13 @@ func (r *RenderContext) BuildChainGraph(doc model.Document) DocChainGraph {
 			Label: downstreamTierLabel(distance),
 		}
 		for _, abs := range frontier {
-			// Walk every other doc in the registry; if it traces to abs
-			// (directly) and is not yet visited, it is a downstream doc.
-			for _, otherAbs := range r.absPaths {
+			// Direct adjacency lookup: downstreamOf[abs] is exactly the set of
+			// docs whose upstream.sources resolve to abs.
+			for _, otherAbs := range r.downstreamOf[abs] {
 				if visited[otherAbs] {
 					continue
 				}
 				otherInfo := r.absMap[otherAbs]
-				if otherInfo.doc.XReqmd == nil || otherInfo.doc.XReqmd.Upstream == nil {
-					continue
-				}
-				sources := otherInfo.doc.XReqmd.Upstream.Sources
-				hit := false
-				for _, src := range sources {
-					target := filepath.Clean(filepath.Join(otherAbs, src))
-					if target == abs {
-						hit = true
-						break
-					}
-				}
-				if !hit {
-					continue
-				}
 				visited[otherAbs] = true
 				nextFrontier = append(nextFrontier, otherAbs)
 				card := ChainCard{

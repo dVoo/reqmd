@@ -37,5 +37,3 @@ func (CSV) Export(w io.Writer, doc model.Document, propOrder []string) error {
 	}
 	return nil
 }
-
-

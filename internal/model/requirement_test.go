@@ -4,15 +4,15 @@ import "testing"
 
 func TestRequirementAllFields(t *testing.T) {
 	r := Requirement{
-		ID: "REQ-001",
+		ID:    "REQ-001",
 		Title: "Login requirement",
 		Attrs: map[string]any{
 			"title": "Login",
 			"asil":  "B",
 		},
-		Body:     "The system shall support login.",
+		Body:      "The system shall support login.",
 		Rationale: "Required by safety standard XYZ.",
-		Source:   "/test/doc.md",
+		Source:    "/test/doc.md",
 	}
 	if r.ID != "REQ-001" {
 		t.Errorf("ID = %q, want %q", r.ID, "REQ-001")
@@ -39,11 +39,11 @@ func TestRequirementAllFields(t *testing.T) {
 
 func TestRequirementEdgeCases(t *testing.T) {
 	r := Requirement{
-		ID:       "",
-		Attrs:    nil,
-		Body:     "",
+		ID:        "",
+		Attrs:     nil,
+		Body:      "",
 		Rationale: "",
-		Source:   "",
+		Source:    "",
 	}
 	if r.ID != "" {
 		t.Errorf("expected empty ID, got %q", r.ID)

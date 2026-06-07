@@ -26,12 +26,11 @@ import (
 const (
 	LevelError   = "ERROR"
 	LevelWarning = "WARNING"
-	LevelInfo    = "INFO"
 )
 
 // CheckResult describes a single Pass 2 trace validation finding.
 type CheckResult struct {
-	Level     string // one of LevelError, LevelWarning, LevelInfo
+	Level     string // one of LevelError, LevelWarning
 	Code      string // machine-readable check identifier (e.g. "version-pin"); empty for findings that don't need one
 	Direction string // "outdated" | "predated" — only set for version-pin findings
 	ReqID     string
@@ -60,6 +59,9 @@ type CachedNode struct {
 	// Empty means the attribute was not declared — effectiveStatus()
 	// falls back to model.StatusDefault in that case.
 	Status string
+	// Dir is the directory path of the requirement's source file.
+	// Precomputed to avoid repeated filepath.Dir(node.File) calls.
+	Dir string
 }
 
 // Graph wraps an in-memory adjacency map with a typed node cache. It is
@@ -70,6 +72,7 @@ type Graph struct {
 	nodesByIDDir     map[[2]string]*CachedNode // (docIDorDir, reqID) → CachedNode (used for both document-id and dir resolution)
 	idDirs           map[string][]string       // reqID → list of directory paths containing it
 	docByID          map[string]string         // document-id → directory path
+	docByDir         map[string]string         // directory path → document-id
 	docByLevel       map[string][]string       // level → list of directory paths
 	dangling         []CheckResult
 	duplicateIDs     []CheckResult   // duplicate requirement IDs across documents
@@ -93,6 +96,7 @@ func New(docs []model.Document) (*Graph, error) {
 		nodesByIDDir:     make(map[[2]string]*CachedNode),
 		idDirs:           make(map[string][]string),
 		docByID:          make(map[string]string),
+		docByDir:         make(map[string]string),
 		docByLevel:       make(map[string][]string),
 		ignoreStatusDirs: make(map[string]bool),
 	}
@@ -105,6 +109,7 @@ func New(docs []model.Document) (*Graph, error) {
 		}
 		if doc.XReqmd.DocumentID != "" {
 			g.docByID[doc.XReqmd.DocumentID] = doc.Path
+			g.docByDir[doc.Path] = doc.XReqmd.DocumentID
 		}
 		if doc.XReqmd.Level != "" {
 			g.docByLevel[doc.XReqmd.Level] = append(g.docByLevel[doc.XReqmd.Level], doc.Path)
@@ -124,6 +129,7 @@ func New(docs []model.Document) (*Graph, error) {
 			node := &CachedNode{
 				ReqID:             req.ID,
 				File:              req.Source,
+				Dir:               filepath.Dir(req.Source),
 				IsChild:           req.ParentID != "",
 				Disposition:       getString(req.Attrs, model.AttrDisposition),
 				DispositionReason: getString(req.Attrs, model.AttrDispositionReason),
@@ -151,7 +157,7 @@ func New(docs []model.Document) (*Graph, error) {
 				continue // skip overwrite — first definition wins
 			}
 			g.nodes[req.ID] = node
-			dirPath := filepath.Dir(req.Source)
+			dirPath := node.Dir
 			g.nodesByIDDir[[2]string{dirPath, req.ID}] = node
 			g.idDirs[req.ID] = append(g.idDirs[req.ID], dirPath)
 		}
@@ -283,11 +289,9 @@ func New(docs []model.Document) (*Graph, error) {
 // directory paths, or the first directory path itself if no document-id
 // is declared.
 func (g *Graph) firstDocID(dirs []string) string {
-	for id, dir := range g.docByID {
-		for _, d := range dirs {
-			if d == dir {
-				return id
-			}
+	for _, d := range dirs {
+		if id, ok := g.docByDir[d]; ok {
+			return id
 		}
 	}
 	if len(dirs) == 0 {
@@ -609,8 +613,8 @@ func (g *Graph) checkMandatoryDisposition() []CheckResult {
 
 // checkIDPrefixes validates that every requirement ID matches the declared
 // prefix for its document directory and that no two directories share a prefix.
-// Prefix collision is a WARNING (not ERROR) because independently-authored
-// documents (e.g., git submodules) may legitimately use the same prefix convention.
+// Prefix collision is an ERROR: two document directories must not declare the
+// same ID prefix, since that would make requirement IDs ambiguous across docs.
 func (g *Graph) checkIDPrefixes() []CheckResult {
 	var results []CheckResult
 	prefixFiles := make(map[string]string) // prefix → first file seen for collision detection
@@ -863,7 +867,7 @@ func (g *Graph) isCoverageProvider(reqID string) bool {
 	if !ok {
 		return false
 	}
-	if g.ignoreStatusDirs[filepath.Dir(node.File)] {
+	if g.ignoreStatusDirs[node.Dir] {
 		return true
 	}
 	return strings.EqualFold(node.effectiveStatus(), model.StatusApproved)

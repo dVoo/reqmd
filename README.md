@@ -61,8 +61,8 @@ go run ./cmd/reqmd check my-requirements/
 Watch for changes and serve a live-reloading HTML preview:
 
 ```sh
-go run ./cmd/reqmd serve spec/reqs/          # opens browser
-go run ./cmd/reqmd serve spec/reqs/ --headless   # terminal-only
+go run ./cmd/reqmd serve spec/          # opens browser
+go run ./cmd/reqmd serve spec/ --headless   # terminal-only
 ```
 
 ---
@@ -377,6 +377,7 @@ in both parsing and HTML export, with these extensions enabled:
 | `reqmd export html <root> -o <dir>` | Standalone HTML: card layout, goldmark-rendered body, trace columns, doc chain tab strip, search/filter, theme toggle |
 | `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build) |
 | `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`) |
+| `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`) |
 
 Aliases: `check` = `validate` or `v`; `ls` = `list` or `l`.
 
@@ -496,6 +497,61 @@ Documents:    1
   ],
   "parse_errors": []
 }
+```
+
+---
+
+## 8. Baseline diff
+
+Compare two requirement baselines anchored by git tags without checking either
+one out. `reqmd baseline diff <tag1> <tag2>` extracts the repository at each tag
+via `git archive | tar`, parses both versions through the standard pipeline, and
+produces a semantic diff:
+
+- **Requirements**: added (green `+`), removed (red `-`), and modified
+  (yellow `~`) with attribute-level detail.
+- **Schemas**: new properties, removed properties, and changes to `required`
+  fields.
+
+Use `--json` for a structured report suitable for CI or release-note generation.
+The command always exits `0` — the diff is informational, not validation.
+
+```sh
+reqmd baseline diff v1.0.0 v1.1.0
+```
+
+```text
+Requirements
+  + IVI-FUN-004  added in v1.1.0
+  - IVI-FUN-002  removed in v1.1.0
+  ~ IVI-FUN-001
+      asil: QM -> B
+      trace: ["SYS-001"] -> ["SYS-001","SAFE-003"]
+
+Schemas
+  ~ ivi-requirements
+      + property: owner
+      - property: safety_relevant
+      required: ["asil","maturity","status","verify"] -> ["asil","maturity","status","verify","owner"]
+```
+
+The extraction uses `git archive` so no working-tree checkout or extra worktree
+is needed; both baselines are processed in temporary directories.
+
+### Submodule changes
+
+When comparing two git tags, `reqmd baseline diff` also reports submodule
+changes (pinned commit SHA differences) in a `--- Submodule Changes ---`
+section. This is always-on and uses `git ls-tree -t <tag>` to read the
+submodule pins. The section is hidden when the repository has no submodules.
+
+Example output:
+
+```
+--- Submodule Changes ---
+  vendor/spec-a:  a1b2c3d  →  e4f5g6h  (updated)
+  vendor/spec-b:  f7g8h9i  →  (removed)
+  vendor/spec-c:  (added)   →  j0k1l2m
 ```
 
 ---
@@ -698,34 +754,34 @@ output for programmatic parsing.
   different required fields and validation rules, all validated in one pass.
 - **Scale.** Parses thousands of files in parallel using a `runtime.NumCPU()`
   worker pool.
-- **Dogfooding.** The reqmd tool's own requirements are defined in `spec/reqs/`
-  using the reqmd format and validate with `reqmd check spec/reqs/`. This ensures
+- **Dogfooding.** The reqmd tool's own requirements are defined in `spec/`
+  using the reqmd format and validate with `reqmd check spec/`. This ensures
   the format is always production-ready for the team's own use.
 
 ---
 
 ## Self-hosted requirements
 
-ReqMD dogfoods its own format. The `spec/reqs/` directory contains a complete
+ReqMD dogfoods its own format. The `spec/` directory contains a complete
 6-level V-model tree defining the tool itself:
 
 | Level | Directory | Reqs | Description |
 |-------|-----------|:----:|-------------|
-| External | `spec/reqs/00-aspice/` | 191 | Automotive SPICE v4.0 base practices (`external: true`) |
-| Stakeholder | `spec/reqs/01-stakeholder/` | 5 | Stakeholder goals (top boundary, no upstream) |
-| ASPICE SR | `spec/reqs/01a-aspice-stakeholder/` | 18 | ASPICE stakeholder requirements mapped to base practices |
-| System | `spec/reqs/02-system/` | 8 | Feature specifications |
-| Software | `spec/reqs/03-software/` | 6 | Component-level design |
-| Tests | `spec/reqs/04-tests/` | 4 | Test specifications (mandatory-disposition) |
+| External | `spec/00-aspice/` | 191 | Automotive SPICE v4.0 base practices (`external: true`) |
+| Stakeholder | `spec/01-stakeholder/` | 5 | Stakeholder goals (top boundary, no upstream) |
+| ASPICE SR | `spec/01a-aspice-stakeholder/` | 18 | ASPICE stakeholder requirements mapped to base practices |
+| System | `spec/02-system/` | 9 | Feature specifications |
+| Software | `spec/03-software/` | 6 | Component-level design |
+| Tests | `spec/04-tests/` | 4 | Test specifications (mandatory-disposition) |
 
-All 232 requirements validate cleanly:
+All 233 requirements validate cleanly:
 
 ```sh
-$ reqmd check spec/reqs/
-# ... 232 total, 232 valid, 0 invalid, 0 parse errors, 197 warnings
+$ reqmd check spec/
+# ... 233 total, 233 valid, 0 invalid, 0 parse errors, 197 warnings
 
-$ reqmd serve spec/reqs/          # live-reloading HTML preview
-$ reqmd export html spec/reqs/ -o /tmp/out/
+$ reqmd serve spec/          # live-reloading HTML preview
+$ reqmd export html spec/ -o /tmp/out/
 Wrote /tmp/out/00-aspice-requirements.html
 Wrote /tmp/out/01-stakeholder-requirements.html
 Wrote /tmp/out/01a-aspice-stakeholder-requirements.html

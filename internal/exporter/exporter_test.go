@@ -36,7 +36,7 @@ func TestCSVExport(t *testing.T) {
 					"maturity": "released",
 					"verify":   "test",
 				},
-				Body:     "The system shall do X.",
+				Body:      "The system shall do X.",
 				Rationale: "Required for safety.",
 			},
 			{
@@ -45,7 +45,7 @@ func TestCSVExport(t *testing.T) {
 					"status": "draft",
 					// asil, maturity, verify intentionally missing
 				},
-				Body:     "The system shall do Y.",
+				Body:      "The system shall do Y.",
 				Rationale: "",
 			},
 		},
@@ -147,7 +147,7 @@ func TestHTMLExport(t *testing.T) {
 					"maturity": "released",
 					"verify":   "test",
 				},
-				Body:     "The system shall do X.",
+				Body:      "The system shall do X.",
 				Rationale: "Required for safety.",
 			},
 			{
@@ -368,7 +368,7 @@ func TestHTMLExportHTMLEscaping(t *testing.T) {
 				Attrs: map[string]any{
 					"status": "a < b & c > d",
 				},
-				Body:     "Body with <tag> & stuff",
+				Body:      "Body with <tag> & stuff",
 				Rationale: "Rationale with \"quotes\" & <angle>",
 			},
 		},

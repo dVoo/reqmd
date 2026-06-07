@@ -405,3 +405,69 @@ func TestParseMD_TitleWithColonInTitle(t *testing.T) {
 		t.Errorf("Title = %q, want %q", r.Title, "Do this: then that")
 	}
 }
+
+func TestParseLsTreeOutput_Empty(t *testing.T) {
+	result := parseLsTreeOutput("")
+	if len(result) != 0 {
+		t.Errorf("expected empty map, got %d entries", len(result))
+	}
+}
+
+func TestParseLsTreeOutput_NoSubmodules(t *testing.T) {
+	output := `100644 blob abc123def4567890123456789012345678901234	README.md
+100644 blob def4567890123456789012345678901234567890	go.mod`
+	result := parseLsTreeOutput(output)
+	if len(result) != 0 {
+		t.Errorf("expected empty map (no submodules), got %d entries", len(result))
+	}
+}
+
+func TestParseLsTreeOutput_OneSubmodule(t *testing.T) {
+	output := `100644 blob abc123def4567890123456789012345678901234	README.md
+160000 commit def4567890123456789012345678901234567890	vendor/spec-a
+100644 blob 789012345678901234567890123456789012345a	go.mod`
+	result := parseLsTreeOutput(output)
+	if len(result) != 1 {
+		t.Fatalf("expected 1 submodule, got %d", len(result))
+	}
+	if result["vendor/spec-a"] != "def4567890123456789012345678901234567890" {
+		t.Errorf("unexpected SHA: %s", result["vendor/spec-a"])
+	}
+}
+
+func TestParseLsTreeOutput_MultipleSubmodules(t *testing.T) {
+	output := `160000 commit aaa1111111111111111111111111111111111111	vendor/a
+160000 commit bbb2222222222222222222222222222222222222	vendor/b
+160000 commit ccc3333333333333333333333333333333333333	vendor/c
+100644 blob ddd4444444444444444444444444444444444444	README.md`
+	result := parseLsTreeOutput(output)
+	if len(result) != 3 {
+		t.Fatalf("expected 3 submodules, got %d", len(result))
+	}
+	if result["vendor/a"] != "aaa1111111111111111111111111111111111111" {
+		t.Errorf("vendor/a: unexpected SHA")
+	}
+	if result["vendor/b"] != "bbb2222222222222222222222222222222222222" {
+		t.Errorf("vendor/b: unexpected SHA")
+	}
+	if result["vendor/c"] != "ccc3333333333333333333333333333333333333" {
+		t.Errorf("vendor/c: unexpected SHA")
+	}
+}
+
+func TestParseLsTreeOutput_Malformed(t *testing.T) {
+	output := `garbage line without tab
+160000 commit abc123	invalid
+not enough fields here
+`
+	result := parseLsTreeOutput(output)
+	// "garbage line without tab" has no tab → skipped
+	// "160000 commit abc123\tinvalid" → valid submodule entry
+	// "not enough fields here" → no tab → skipped
+	if len(result) != 1 {
+		t.Errorf("expected 1 valid entry, got %d", len(result))
+	}
+	if result["invalid"] != "abc123" {
+		t.Errorf("unexpected SHA: %s", result["invalid"])
+	}
+}

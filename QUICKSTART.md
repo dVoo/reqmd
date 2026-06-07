@@ -352,6 +352,60 @@ Run check:
 
 ---
 
+## Step 8 — Compare baselines
+
+Tag the current state, then change a requirement to see how `reqmd baseline diff`
+reports the delta between git tags.
+
+```sh
+git tag -a quickstart-v1 -m "baseline v1"
+```
+
+Edit `system/features.md` to add a new requirement:
+
+```markdown
+## SYS-002: Resume Audio
+```attr
+status: draft
+trace: [stakeholder/STK-GOAL-001]
+```
+The system shall resume the last active audio source after an ignition cycle.
+```
+
+Stage and commit the change, then tag it:
+
+```sh
+git add system/features.md
+git commit -m "add resume audio requirement"
+git tag -a quickstart-v2 -m "baseline v2"
+```
+
+Compare the two baselines:
+
+```sh
+./reqmd baseline diff quickstart-v1 quickstart-v2
+```
+
+**Expected output:**
+
+```text
+Requirements
+  + SYS-002  added in quickstart-v2
+
+Schemas
+  no schema changes
+```
+
+Use `--json` for a machine-readable report:
+
+```sh
+./reqmd baseline diff quickstart-v1 quickstart-v2 --json
+```
+
+The command always exits `0` because diffing is informational, not validation.
+
+---
+
 ## What you learned
 
 | Concept | What it does |
@@ -372,7 +426,7 @@ Run check:
 ## Next steps
 
 - Read the [full README](README.md) for command reference and advanced features
-- Explore the [dogfooding spec](spec/reqs/) — 232 real requirements validated by reqmd itself
+- Explore the [dogfooding spec](spec/) — 233 real requirements validated by reqmd itself
 - Compare with [OpenFastTrace](external_docs/openfasttrace_user_guide.md) to understand ReqMD's design differences
 - Wire `reqmd check` into CI (see README CI example)
 

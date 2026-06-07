@@ -14,12 +14,12 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 
-	"go.abhg.dev/goldmark/mermaid"
-	"github.com/stefanfritsch/goldmark-fences"
-	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/FurqanSoftware/goldmark-katex"
+	"github.com/stefanfritsch/goldmark-fences"
 	"github.com/yuin/goldmark-emoji"
+	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/yuin/goldmark-meta"
+	"go.abhg.dev/goldmark/mermaid"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 
@@ -28,6 +28,23 @@ import (
 )
 
 const attrFenceInfo = "attr"
+
+// mdParser is the shared goldmark instance used by parseMD.
+// Constructed once at package init to avoid re-running extension Init for every .md file.
+var mdParser = goldmark.New(
+	goldmark.WithExtensions(
+		extension.GFM,
+		&mermaid.Extender{},
+		&fences.Extender{},
+		highlighting.Highlighting,
+		emoji.Emoji,
+		meta.Meta,
+		&katex.Extender{},
+	),
+	goldmark.WithParserOptions(
+		parser.WithAutoHeadingID(),
+	),
+)
 
 // Discover walks root recursively, locating schema.yaml files.
 // Every directory containing schema.yaml is a document directory.
@@ -79,14 +96,24 @@ func findDocDirs(root string) ([]string, error) {
 	return docDirs, nil
 }
 
-func loadDocument(dir string) (model.Document, error) {
-	schemaRaw, err := os.ReadFile(filepath.Join(dir, "schema.yaml"))
+// LoadSchema reads and parses the schema.yaml file from a document directory.
+// It returns the raw schema map before any x-reqmd extraction.
+func LoadSchema(docDir string) (map[string]any, error) {
+	schemaRaw, err := os.ReadFile(filepath.Join(docDir, "schema.yaml"))
 	if err != nil {
-		return model.Document{}, fmt.Errorf("reading schema: %w", err)
+		return nil, fmt.Errorf("reading schema: %w", err)
 	}
-	var schemaData any
-	if err := yaml.Unmarshal(schemaRaw, &schemaData); err != nil {
-		return model.Document{}, fmt.Errorf("parsing schema: %w", err)
+	var schema map[string]any
+	if err := yaml.Unmarshal(schemaRaw, &schema); err != nil {
+		return nil, fmt.Errorf("parsing schema: %w", err)
+	}
+	return schema, nil
+}
+
+func loadDocument(dir string) (model.Document, error) {
+	schemaData, err := LoadSchema(dir)
+	if err != nil {
+		return model.Document{}, err
 	}
 
 	entries, err := os.ReadDir(dir)
@@ -122,7 +149,7 @@ func parseFiles(files []string) ([]model.Requirement, map[string]any, []error) {
 		return nil, nil, nil
 	}
 
-		type result struct {
+	type result struct {
 		reqs []model.Requirement
 		meta map[string]any
 		err  error
@@ -179,21 +206,7 @@ func parseFiles(files []string) ([]model.Requirement, map[string]any, []error) {
 // parseMD uses goldmark to extract requirements from a single .md file
 // and returns any YAML frontmatter as a map.
 func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any, error) {
-	md := goldmark.New(
-		goldmark.WithExtensions(
-			extension.GFM,
-			&mermaid.Extender{},
-			&fences.Extender{},
-			highlighting.Highlighting,
-			emoji.Emoji,
-			meta.Meta,
-			&katex.Extender{},
-		),
-		goldmark.WithParserOptions(
-			parser.WithAutoHeadingID(),
-		),
-	)
-	p := md.Parser()
+	p := mdParser.Parser()
 	parseCtx := parser.NewContext()
 	doc := p.Parse(text.NewReader(src), parser.WithContext(parseCtx))
 
@@ -205,7 +218,7 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 
 	var reqs []model.Requirement
 	var cur *model.Requirement
-	var reqLevel int     // 0 = unknown, set on first heading+attr pair
+	var reqLevel int // 0 = unknown, set on first heading+attr pair
 	var parentID string
 	var waitingForAttr bool
 
@@ -239,14 +252,14 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 						reqs = append(reqs, *cur)
 						cur = nil
 					}
-			heading := collectInlineText(v, src)
-				id, title := splitHeadingID(heading)
-				cur = &model.Requirement{
-					ID:     id,
-					Title:  title,
-					Source: sourcePath,
-				}
-				parentID = id
+					heading := collectInlineText(v, src)
+					id, title := splitHeadingID(heading)
+					cur = &model.Requirement{
+						ID:     id,
+						Title:  title,
+						Source: sourcePath,
+					}
+					parentID = id
 					waitingForAttr = true
 				} else if cur != nil {
 					// reqLevel heading without attr → body text
@@ -319,12 +332,12 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 				if text == "" {
 					continue
 				}
-			if strings.HasPrefix(text, "*Rationale:") {
-				// Handle both *Rationale: and *Rationale:* (markdown italic)
-				trimmed := strings.TrimPrefix(text, "*Rationale:")
-				trimmed = strings.TrimLeft(trimmed, "* ")
-				cur.Rationale = strings.TrimSpace(trimmed)
-			} else {
+				if strings.HasPrefix(text, "*Rationale:") {
+					// Handle both *Rationale: and *Rationale:* (markdown italic)
+					trimmed := strings.TrimPrefix(text, "*Rationale:")
+					trimmed = strings.TrimLeft(trimmed, "* ")
+					cur.Rationale = strings.TrimSpace(trimmed)
+				} else {
 					if cur.Body != "" {
 						cur.Body += "\n\n"
 					}

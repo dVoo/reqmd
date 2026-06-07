@@ -51,23 +51,30 @@ type Report struct {
 	GraphChecks []graph.CheckResult
 	DocHeaders  []DocHeader
 
-	// Pre-indexed maps (populated by newIndex once at creation)
-	valErrorsByDoc  map[string][]ValidationError     // docPath → errors
-	graphChecksByDoc map[string][]graph.CheckResult  // docPath → graph checks
+	// Pre-indexed maps (populated by NewIndex once at creation)
+	valErrorsByDoc   map[string][]ValidationError   // docPath → errors
+	graphChecksByDoc map[string][]graph.CheckResult // docPath → graph checks
+	valErrorsByReq   map[string][]ValidationError   // reqID → errors
+	graphChecksByReq map[string][]graph.CheckResult // reqID → graph checks
 }
 
 // NewIndex populates the pre-indexed maps from the flat slices.
-// This replaces O(N²) per-reqID loops in Format()/FormatJSON().
+// Bucketing by reqID makes the per-reqID lookups in Format()/FormatJSON() O(1)
+// instead of scanning all errors/checks per requirement.
 func (r *Report) NewIndex() {
 	r.valErrorsByDoc = make(map[string][]ValidationError)
+	r.valErrorsByReq = make(map[string][]ValidationError)
 	for _, ve := range r.ValErrors {
 		docPath := filepath.Dir(ve.File)
 		r.valErrorsByDoc[docPath] = append(r.valErrorsByDoc[docPath], ve)
+		r.valErrorsByReq[ve.ReqID] = append(r.valErrorsByReq[ve.ReqID], ve)
 	}
 	r.graphChecksByDoc = make(map[string][]graph.CheckResult)
+	r.graphChecksByReq = make(map[string][]graph.CheckResult)
 	for _, gc := range r.GraphChecks {
 		docPath := filepath.Dir(gc.File)
 		r.graphChecksByDoc[docPath] = append(r.graphChecksByDoc[docPath], gc)
+		r.graphChecksByReq[gc.ReqID] = append(r.graphChecksByReq[gc.ReqID], gc)
 	}
 }
 
@@ -93,7 +100,7 @@ func (r *Report) ExitCode() int {
 }
 
 // Format produces the per-file, per-requirement validation report
-// as specified in SPEC.md.
+// as specified in the spec tree under spec/.
 func (r *Report) Format() string {
 	var b strings.Builder
 
@@ -109,26 +116,16 @@ func (r *Report) Format() string {
 		b.WriteString(fmt.Sprintf("File   : %s  (%d requirements)\n", dh.Path, dh.ReqCount))
 		b.WriteString("=\n")
 
-		docValErrors := r.valErrorsByDoc[dh.Path]
-		docChecks := r.graphChecksByDoc[dh.Path]
-
 		for _, reqID := range dh.ReqIDs {
-			// Find matching validation error
+			// Find matching validation error (first only)
 			var pass1Err string
-			for _, ve := range docValErrors {
-				if ve.ReqID == reqID {
-					pass1Err = ve.Message
-					break
-				}
+			for _, ve := range r.valErrorsByReq[reqID] {
+				pass1Err = ve.Message
+				break
 			}
 
-			// Find matching graph checks
-			var graphMsgs []graph.CheckResult
-			for _, gc := range docChecks {
-				if gc.ReqID == reqID {
-					graphMsgs = append(graphMsgs, gc)
-				}
-			}
+			// Collect matching graph checks
+			graphMsgs := r.graphChecksByReq[reqID]
 
 			// Render status line
 			if pass1Err != "" {
@@ -149,12 +146,10 @@ func (r *Report) Format() string {
 			}
 
 			// Render graph check detail lines
-		for _, g := range graphMsgs {
+			for _, g := range graphMsgs {
 				prefix := "⚠"
 				if g.Level == graph.LevelError {
 					prefix = "❌"
-				} else if g.Level == graph.LevelInfo {
-					prefix = "ℹ"
 				}
 				b.WriteString(fmt.Sprintf("  %s  %s  %s\n", prefix, reqID, g.Message))
 			}
@@ -292,16 +287,16 @@ type jsonSummary struct {
 }
 
 type jsonDocSection struct {
-	Path        string           `json:"path"`
-	SchemaTitle string           `json:"schema_title"`
-	ReqCount    int              `json:"req_count"`
-	Reqs        []jsonReqResult  `json:"requirements"`
+	Path        string          `json:"path"`
+	SchemaTitle string          `json:"schema_title"`
+	ReqCount    int             `json:"req_count"`
+	Reqs        []jsonReqResult `json:"requirements"`
 }
 
 type jsonReqResult struct {
-	ID     string       `json:"id"`
-	Valid  bool         `json:"valid"`
-	Checks []jsonChk    `json:"checks,omitempty"`
+	ID     string    `json:"id"`
+	Valid  bool      `json:"valid"`
+	Checks []jsonChk `json:"checks,omitempty"`
 }
 
 type jsonChk struct {
@@ -321,8 +316,8 @@ type jsonListReport struct {
 }
 
 type jsonListDoc struct {
-	Path       string       `json:"path"`
-	Properties []string     `json:"properties"`
+	Path       string        `json:"path"`
+	Properties []string      `json:"properties"`
 	Reqs       []jsonListReq `json:"requirements"`
 }
 
@@ -339,8 +334,8 @@ type jsonStatsReport struct {
 }
 
 type jsonStatsDoc struct {
-	Path           string                   `json:"path"`
-	ReqCount       int                      `json:"req_count"`
+	Path           string                    `json:"path"`
+	ReqCount       int                       `json:"req_count"`
 	AttributeStats map[string]map[string]int `json:"attribute_stats"`
 }
 
@@ -384,29 +379,22 @@ func (r *Report) FormatJSON() string {
 			Reqs:        make([]jsonReqResult, 0, len(dh.ReqIDs)),
 		}
 
-		docValErrors := r.valErrorsByDoc[dh.Path]
-		docChecks := r.graphChecksByDoc[dh.Path]
-
 		for _, reqID := range dh.ReqIDs {
 			// Collect all checks for this req into a flat list
 			var checks []jsonChk
 
 			// Schema validation errors
-			for _, ve := range docValErrors {
-				if ve.ReqID == reqID {
-					checks = append(checks, jsonChk{Level: graph.LevelError, Message: ve.Message})
-				}
+			for _, ve := range r.valErrorsByReq[reqID] {
+				checks = append(checks, jsonChk{Level: graph.LevelError, Message: ve.Message})
 			}
 			// Trace graph results
-			for _, gc := range docChecks {
-				if gc.ReqID == reqID {
-					checks = append(checks, jsonChk{
-						Level:     gc.Level,
-						Code:      gc.Code,
-						Direction: gc.Direction,
-						Message:   gc.Message,
-					})
-				}
+			for _, gc := range r.graphChecksByReq[reqID] {
+				checks = append(checks, jsonChk{
+					Level:     gc.Level,
+					Code:      gc.Code,
+					Direction: gc.Direction,
+					Message:   gc.Message,
+				})
 			}
 
 			// Valid = no ERROR-level checks

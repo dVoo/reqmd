@@ -45,7 +45,6 @@ func mustReadStatic(name string) string {
 	return "\n" + string(b)
 }
 
-
 // HTML exports requirements as standalone HTML with card-based layout.
 type HTML struct {
 	docChainGraph DocChainGraph // tiered document graph for the Confluence-Flow visualization
@@ -131,7 +130,7 @@ func (h *HTML) exportHTML(w io.Writer, doc model.Document, propOrder []string, t
 	renderDocHead(b, title)
 	renderBodyOpen(b)
 	renderDocChain(b, h.docChainGraph)
-	renderDocHeader(b, doc, title, rd, h.boundary.IsRoot, h.boundary.IsLeaf)
+	renderDocHeader(b, doc, title, h.boundary.IsRoot, h.boundary.IsLeaf)
 	renderToolbar(b, doc, ignoreStatus)
 
 	b.WriteString("<main>\n")
@@ -242,7 +241,7 @@ func renderChainGraph(b *bufio.Writer, g DocChainGraph) {
 			b.WriteString("</div>\n")
 			b.WriteString("        <div class=\"chain-tier-cards\">\n")
 			for _, card := range tier.Cards {
-				renderChainCard(b, card, false)
+				renderChainCard(b, card)
 			}
 			b.WriteString("        </div>\n")
 			b.WriteString("      </div>\n")
@@ -258,7 +257,7 @@ func renderChainGraph(b *bufio.Writer, g DocChainGraph) {
 
 	// ── Current zone ──
 	b.WriteString("    <div class=\"chain-zone chain-zone--current\">\n")
-	renderChainCard(b, g.Current, true)
+	renderChainCard(b, g.Current)
 	b.WriteString("    </div>\n")
 
 	// ── Downstream zone ──
@@ -278,7 +277,7 @@ func renderChainGraph(b *bufio.Writer, g DocChainGraph) {
 			b.WriteString("</div>\n")
 			b.WriteString("        <div class=\"chain-tier-cards\">\n")
 			for _, card := range tier.Cards {
-				renderChainCard(b, card, false)
+				renderChainCard(b, card)
 			}
 			b.WriteString("        </div>\n")
 			b.WriteString("      </div>\n")
@@ -290,11 +289,9 @@ func renderChainGraph(b *bufio.Writer, g DocChainGraph) {
 }
 
 // renderChainCard writes one <a> (or <span> for the current doc) card.
-// isZoneCurrent flags whether the card lives inside the chain-zone--current
-// region. The current document gets the chain-card--current class; external
-// documents get the chain-card--external class. Non-current cards receive no
-// side-specific class.
-func renderChainCard(b *bufio.Writer, card ChainCard, isZoneCurrent bool) {
+// The current document gets the chain-card--current class; external
+// documents get the chain-card--external class.
+func renderChainCard(b *bufio.Writer, card ChainCard) {
 	classes := []string{"chain-card"}
 	if card.IsCurrent {
 		classes = append(classes, "chain-card--current")
@@ -343,4 +340,3 @@ func renderChainCard(b *bufio.Writer, card ChainCard, isZoneCurrent bool) {
 	b.WriteString("</span>\n")
 	b.WriteString("      </a>\n")
 }
-

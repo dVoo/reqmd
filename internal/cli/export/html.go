@@ -33,15 +33,7 @@ func newHtmlCmd() *cobra.Command {
 				return fmt.Errorf("building trace graph: %w", err)
 			}
 
-			// Build ID→title map across all documents for trace link labels
-			titleMap := make(map[string]string)
-			for _, d := range docs {
-				for _, req := range d.Requirements {
-					if req.Title != "" {
-						titleMap[req.ID] = req.Title
-					}
-				}
-			}
+			titleMap := exporter.BuildTitleMap(docs)
 
 			// Build render context for doc chain and cross-file links
 			rctx, err := exporter.NewRenderContext(docs, root)
@@ -71,7 +63,7 @@ func newHtmlCmd() *cobra.Command {
 					outPath = filepath.Join(doc.Path, outPath)
 				}
 
-			exp.SetBoundary(boundaries[doc.Path])
+				exp.SetBoundary(boundaries[doc.Path])
 
 				// Build doc-level Confluence-Flow trace graph and rewrite card
 				// paths to be relative to the output file we're about to write.

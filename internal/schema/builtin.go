@@ -1,6 +1,7 @@
 // Package schema — built-in attribute definitions.
 //
-// reqmd reserves a set of attribute names that have tool-level meaning.
+// reqmd reserves a set of attribute names that have tool-level meaning:
+// trace, disposition, disposition-reason, requires-trace-from, version, status.
 // These attributes are always valid in any attr block — they are injected
 // into every schema before JSON Schema validation runs. Users must not
 // redefine them in schema.yaml.
@@ -17,19 +18,16 @@ import (
 // BuiltinAttr describes a single reqmd built-in attribute.
 type BuiltinAttr struct {
 	Name       string
-	Type       string
-	Required   bool
 	Definition map[string]any // JSON Schema property definition
 }
 
 // builtinDefs is the canonical list of all reqmd built-in attributes.
 //
-// Order defines the display order: trace (most common) first, then
-// alphabetically by name.
+// Order defines the display order: trace first (most common), then the
+// remaining attributes in the order they were added to the tool.
 var builtinDefs = []BuiltinAttr{
 	{
 		Name: model.AttrTrace,
-		Type: "ref[]",
 		Definition: map[string]any{
 			"type": "array",
 			"items": map[string]any{
@@ -41,7 +39,6 @@ var builtinDefs = []BuiltinAttr{
 	},
 	{
 		Name: model.AttrDisposition,
-		Type: "enum",
 		Definition: map[string]any{
 			"type":        "string",
 			"enum":        []any{"implemented", "deferred", "rejected"},
@@ -50,7 +47,6 @@ var builtinDefs = []BuiltinAttr{
 	},
 	{
 		Name: model.AttrDispositionReason,
-		Type: "string",
 		Definition: map[string]any{
 			"type":        "string",
 			"description": "Required when disposition is not 'implemented' — explains why",
@@ -58,7 +54,6 @@ var builtinDefs = []BuiltinAttr{
 	},
 	{
 		Name: model.AttrRequiresTraceFrom,
-		Type: "string[]",
 		Definition: map[string]any{
 			"type": "array",
 			"items": map[string]any{
@@ -70,7 +65,6 @@ var builtinDefs = []BuiltinAttr{
 	},
 	{
 		Name: model.AttrVersion,
-		Type: "int",
 		Definition: map[string]any{
 			"type":        "integer",
 			"description": "Version number — bumped on substantive changes to the requirement statement or rationale",
@@ -78,7 +72,6 @@ var builtinDefs = []BuiltinAttr{
 	},
 	{
 		Name: model.AttrStatus,
-		Type: "enum",
 		Definition: map[string]any{
 			"type":        "string",
 			"enum":        []any{"draft", "approved"},
@@ -156,5 +149,3 @@ func InjectBuiltins(schema map[string]any) {
 		props[a.Name] = a.Definition
 	}
 }
-
-

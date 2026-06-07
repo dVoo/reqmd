@@ -27,7 +27,7 @@ trace:
 ```
 Integration tests shall run the full pipeline end-to-end: parse a multi-level requirement tree (including sub-requirements), validate all attributes, build the graph (including Pass 3 parent-child edges), run all ten Pass 2 checks plus Pass 3 broken-parent validation, and produce correct CSV/HTML/graph output with hierarchical display.
 
-*Rationale:* Integration tests catch cross-package contract violations that unit tests miss. The reqmd's own `spec/reqs/` directory serves as the primary integration test fixture, and should exercise the sub-requirement hierarchy.
+*Rationale:* Integration tests catch cross-package contract violations that unit tests miss. The reqmd's own `spec/` directory serves as the primary integration test fixture, and should exercise the sub-requirement hierarchy.
 
 ## TST-FIX-001: Build and test gate
 ```attr

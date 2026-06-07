@@ -7,13 +7,14 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 
 ## Layout
 
-- `SPEC.md` — authoritative design spec
-- `workspace.dsl` — C4 model (Structurizr DSL) for architecture visualization
-- `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 doc dirs, 232 total reqs, V-model dogfood fixture
+- `SPEC.md` — authoritative design spec (if absent, the spec tree under `spec/` is the source of truth)
+- `spec/workspace.dsl` — C4 model (Structurizr DSL) for architecture visualization
+- `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 doc dirs, 233 total reqs, V-model dogfood fixture
 - `quickstart/` — three-document tutorial tree (stakeholder → system → software [+ tests])
-- `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, cli)
+- `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
 - `go.mod` / `go.sum` — Go module (1.25)
+- `reqmd-import/` — separate Go module (`reqmd-import`) for the extraction tool that imports source code as proxy requirements. Partial source tree (not all packages compile yet); ships a prebuilt binary. Modeled in `spec/workspace.dsl` as the "Extraction Tool" softwareSystem.
 - `.opencode/` — OpenCode tooling install (not part of the project)
 
 ## Key facts
@@ -47,10 +48,10 @@ go run ./cmd/reqmd check <file> -s <schema>  # single-file mode
 | `reqmd check --json <root>` | JSON validation report with requirements, pass/fail, trace checks |
 | `reqmd ls --json <root>` | JSON list of requirement IDs with all attributes |
 | `reqmd stats --json <root>` | JSON attribute-value breakdown per document |
+| `reqmd baseline diff <tag1> <tag2>` | Compare requirements between two git tags; also reports added/removed/updated submodules (flags: `--json`) |
 
 Exit codes: 0 (all valid), 1 (validation errors), 2 (parse error).
 
-Exit codes: 0 (all valid), 1 (validation errors), 2 (parse error).
 
 ## Architecture
 
@@ -90,16 +91,27 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   `--relaxed-versions` CLI flag; `direction: "predated"` (pin ahead of upstream)
   is always ERROR. Unpinned refs and external/unversioned upstreams skip the
   check. Suppression: `reqmd-suppress: [version-pin]`.
+- **Baseline diff (`reqmd baseline diff`)**: Loads the spec tree at two git tags
+  via `git archive | tar` (no checkout), parses both with the standard pipeline,
+  and produces a semantic diff of requirements (added/removed/modified with
+  attribute-level detail) and schemas (new/removed properties, changed required
+  fields). Output: colored text by default, `--json` for structured. Uses
+  `github.com/r3labs/diff/v3` for structured diffing.
+- **Submodule diff**: `git ls-tree -t <tag>` extracts submodule commit pins. The
+  diff reports added, removed, and updated submodules (same-commit skipped).
+  No new dependencies; pure stdlib `os/exec`. Output: short hashes in text,
+  full SHA in JSON. Section is hidden when no submodules exist.
 
 ## Testing
 
 ```sh
-go test ./internal/...          # all unit tests (132 tests across 6 packages)
-go test -v ./internal/parser/   # parser tests (most complex — 11 tests)
-go test -v ./internal/schema/   # schema tests (Compile, Validate, Properties — 11 tests)
-go test ./internal/reporter/    # reporter tests (ExitCode, Format, FormatList, FormatStats, Warnings, FormatJSON, FormatListJSON, FormatStatsJSON — 18 tests)
-go test ./internal/exporter/    # exporter tests (CSV + HTML format — 5 tests)
-go test ./internal/model/       # model tests (struct construction — 4 tests)
+go test ./internal/...          # all unit tests (167 tests across 7 packages: diff, exporter, graph, model, parser, reporter, schema)
+go test -v ./internal/parser/   # parser tests (most complex)
+go test -v ./internal/schema/   # schema tests (Compile, Validate, Properties)
+go test ./internal/reporter/    # reporter tests (ExitCode, Format, FormatList, FormatStats, Warnings, FormatJSON, FormatListJSON, FormatStatsJSON)
+go test ./internal/exporter/    # exporter tests (CSV + HTML format)
+go test ./internal/model/       # model tests (struct construction)
+go test ./internal/diff/        # baseline diff tests
 ```
 
 Tests use inline fixtures (no external files). No integration prerequisites.
@@ -121,6 +133,7 @@ go run ./cmd/reqmd check spec/example/
 | `github.com/yuin/goldmark` | Markdown AST parsing |
 | `gopkg.in/yaml.v3` | YAML parsing |
 | `github.com/google/jsonschema-go/jsonschema` | JSON Schema 2020-12 validation |
+| `github.com/r3labs/diff/v3` | Structured diffing for baseline comparison |
 
 ## Important gotchas
 
@@ -147,11 +160,19 @@ Always comply to common best-practices and coding standards whenever possible
 
 Whenever larger functionality is added, make sure to add unit-tests for
 testing the functionality.
+## Version control
+
+This project uses Jujutsu (jj) as its own VCS. For each new feature create a new changeset.
+Do not use Git for the tool's own history.
+
+Note: the `baseline diff` command and `internal/parser/git.go` shell out to `git` to
+read document trees (the spec repos reqmd operates on), which are typically git-backed.
+That is expected: jj for the tool, git for the document trees the tool validates/diffs.
 
 ## Keep documentation up to date
 
 After adding functionality:
 
 - Check and update README.md
-- Make sure that the specification (spec/reqs) is up to date
+- Make sure that the specification (the `spec/` tree) is up to date
 - Make sure that the software architecture (spec/workspace.dsl) is up to date

@@ -40,7 +40,6 @@ import (
 // Compiled holds a compiled schema ready for validation and property introspection.
 type Compiled struct {
 	resolved *jsonschema.Resolved
-	schema   *jsonschema.Schema // parsed schema with Properties and Required fields
 }
 
 // Compile validates the schema, injects built-in attrs, and compiles it
@@ -95,7 +94,7 @@ func Compile(schemaRaw any, schemaPath string) (*Compiled, error) {
 		return nil, fmt.Errorf("resolving schema: %w", err)
 	}
 
-	return &Compiled{resolved: resolved, schema: &s}, nil
+	return &Compiled{resolved: resolved}, nil
 }
 
 // statusAdditionPattern matches the lowercase-only requirement for
@@ -261,8 +260,6 @@ func Normalize(raw any) (any, error) {
 	return raw, nil
 }
 
-
-
 // ExtractProperties extracts property order from a raw JSON Schema map.
 // Uses the google/jsonschema-go library to parse the schema struct.
 // Required fields first (in schema's required order), then optional
@@ -354,48 +351,4 @@ func ExtractXReqmd(schema any) *model.XReqmd {
 	}
 
 	return &xr
-}
-
-// SortedKeys returns the sorted keys of a string set (map[string]bool or map[string]int).
-func SortedKeys[V any](m map[string]V) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
-}
-
-// CheckTracePattern verifies that a string matches the trace ID pattern.
-// Accepts SYS-001, STK-GOAL-001, ASP-SYS2-BP2, or ABC-DEF-123 formats.
-func CheckTracePattern(s string) bool {
-	// Must start with an uppercase letter
-	if s == "" || s[0] < 'A' || s[0] > 'Z' {
-		return false
-	}
-	parts := strings.Split(s, "-")
-	if len(parts) < 2 {
-		return false
-	}
-	last := parts[len(parts)-1]
-	if len(last) == 0 {
-		return false
-	}
-	// Last segment must end with at least one digit (e.g. "001" or "BP2")
-	digitEnd := 0
-	for i := len(last) - 1; i >= 0 && last[i] >= '0' && last[i] <= '9'; i-- {
-		digitEnd++
-	}
-	if digitEnd == 0 {
-		return false
-	}
-	// All preceding dash-delimited parts must be uppercase letters or digits
-	for i := 0; i < len(parts)-1; i++ {
-		for _, c := range parts[i] {
-			if !((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) {
-				return false
-			}
-		}
-	}
-	return true
 }

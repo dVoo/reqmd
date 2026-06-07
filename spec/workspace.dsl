@@ -16,13 +16,14 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
                 schemaFile = component "schema.yaml"   "JSON Schema 2020-12 in YAML + x-reqmd upstream" "YAML"
             }
 
-            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph) with --json output" "Go 1.25" "CLI" {
+            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph), serve (live-reload), baseline diff, init — all with --json output" "Go 1.25" "CLI" {
                 parser       = component "Markdown Parser"  "Discovers schema.yaml per dir and parses .md via goldmark AST with GFM and parallel worker pool" "Go / goldmark"
                 validator    = component "Schema Validator" "Injects built-in attrs and validates attr maps against JSON Schema 2020-12" "Go / google/jsonschema-go"
                 graphBuilder = component "Graph Builder"    "Builds in-memory adjacency from parsed requirements, resolves doc-id-qualified traces" "Go"
                 traceChecker = component "Trace Checker"   "Runs Pass 2 trace checks and Pass 3 sub-req parent validation against the in-memory cache" "Go"
                 exporter     = component "Exporter"        "Renders standalone HTML, CSV, and LadybugDB graph outputs" "Go"
                 reporter     = component "Reporter"        "Aggregates Pass 1/2/3 results, emits formatted or JSON output, sets exit code" "Go"
+                differ       = component "Baseline Differ" "Compares requirements and schemas between two git tags via git archive, using r3labs/diff for attribute-level changes" "Go / r3labs-diff"
             }
         }
 
@@ -80,6 +81,8 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         reporter     -> validator    "Receives Pass 1 errors from"
         reporter     -> traceChecker "Receives Pass 2 warnings and errors from"
         exporter     -> graphBuilder "Queries upstream/downstream neighbours from graph"
+        differ       -> parser       "Parses both tag snapshots via"
+        differ       -> specRepo     "Extracts tags via git archive from"
 
         // --- Extraction tool internal flow ---
         extractionTool.scanner        -> extractionTool.cache          "Reads/writes file hashes and work state"
@@ -112,7 +115,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         extractionTool.proxyWriter      -> reqmd.specRepo.schemaFile    "Reads x-reqmd.id-prefix and x-reqmd.upstream from"
 
         // --- CI runs both tools ---
-        ci -> reqmd.reqmdCli "Runs check/ls/stats/export on"
+        ci -> reqmd.reqmdCli "Runs check/ls/stats/export/serve/baseline on"
 
         // --- Exports ---
         exporter     -> supplier         "Exports CSV to" "Planned"
