@@ -3,12 +3,11 @@ package reporter
 import (
 	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
 	"reqmd/internal/graph"
+	"reqmd/internal/model"
 )
 
 // ValidationError describes a single requirement that failed validation.
@@ -52,8 +51,6 @@ type Report struct {
 	DocHeaders  []DocHeader
 
 	// Pre-indexed maps (populated by NewIndex once at creation)
-	valErrorsByDoc   map[string][]ValidationError   // docPath → errors
-	graphChecksByDoc map[string][]graph.CheckResult // docPath → graph checks
 	valErrorsByReq   map[string][]ValidationError   // reqID → errors
 	graphChecksByReq map[string][]graph.CheckResult // reqID → graph checks
 }
@@ -62,18 +59,12 @@ type Report struct {
 // Bucketing by reqID makes the per-reqID lookups in Format()/FormatJSON() O(1)
 // instead of scanning all errors/checks per requirement.
 func (r *Report) NewIndex() {
-	r.valErrorsByDoc = make(map[string][]ValidationError)
 	r.valErrorsByReq = make(map[string][]ValidationError)
 	for _, ve := range r.ValErrors {
-		docPath := filepath.Dir(ve.File)
-		r.valErrorsByDoc[docPath] = append(r.valErrorsByDoc[docPath], ve)
 		r.valErrorsByReq[ve.ReqID] = append(r.valErrorsByReq[ve.ReqID], ve)
 	}
-	r.graphChecksByDoc = make(map[string][]graph.CheckResult)
 	r.graphChecksByReq = make(map[string][]graph.CheckResult)
 	for _, gc := range r.GraphChecks {
-		docPath := filepath.Dir(gc.File)
-		r.graphChecksByDoc[docPath] = append(r.graphChecksByDoc[docPath], gc)
 		r.graphChecksByReq[gc.ReqID] = append(r.graphChecksByReq[gc.ReqID], gc)
 	}
 }
@@ -106,14 +97,14 @@ func (r *Report) Format() string {
 
 	// Parse errors first
 	for _, pe := range r.ParseErrors {
-		b.WriteString(fmt.Sprintf("PARSE ERROR — %s\n  %s\n\n", pe.File, pe.Message))
+		fmt.Fprintf(&b, "PARSE ERROR — %s\n  %s\n\n", pe.File, pe.Message)
 	}
 
 	// Per-doc sections
 	for _, dh := range r.DocHeaders {
 		b.WriteString("=\n")
-		b.WriteString(fmt.Sprintf("Schema : %s\n", dh.SchemaTitle))
-		b.WriteString(fmt.Sprintf("File   : %s  (%d requirements)\n", dh.Path, dh.ReqCount))
+		fmt.Fprintf(&b, "Schema : %s\n", dh.SchemaTitle)
+		fmt.Fprintf(&b, "File   : %s  (%d requirements)\n", dh.Path, dh.ReqCount)
 		b.WriteString("=\n")
 
 		for _, reqID := range dh.ReqIDs {
@@ -127,31 +118,60 @@ func (r *Report) Format() string {
 			// Collect matching graph checks
 			graphMsgs := r.graphChecksByReq[reqID]
 
-			// Render status line
-			if pass1Err != "" {
-				b.WriteString(fmt.Sprintf("  ❌  %s  %s\n", reqID, pass1Err))
-			} else {
-				hasWarn := false
-				for _, g := range graphMsgs {
-					if g.Level == graph.LevelWarning {
-						hasWarn = true
-						break
-					}
-				}
-				if hasWarn {
-					b.WriteString(fmt.Sprintf("  ⚠  %s  attributes valid (see trace checks below)\n", reqID))
-				} else {
-					b.WriteString(fmt.Sprintf("  ✅  %s  all attributes valid\n", reqID))
+		// Extract verdict info (if present) for the status line.
+		verdict := ""
+		verdictSource := ""
+		for _, g := range graphMsgs {
+			if g.Code == graph.CodeVerdict {
+				verdict = g.Message
+				verdictSource = g.File
+				break
+			}
+		}
+
+		// Render status line
+		if pass1Err != "" {
+			fmt.Fprintf(&b, "  ❌  %s  %s\n", reqID, pass1Err)
+		} else {
+			hasWarn := false
+			hasError := false
+			for _, g := range graphMsgs {
+				switch g.Level {
+				case graph.LevelWarning:
+					hasWarn = true
+				case graph.LevelError:
+					hasError = true
 				}
 			}
-
-			// Render graph check detail lines
-			for _, g := range graphMsgs {
-				prefix := "⚠"
-				if g.Level == graph.LevelError {
-					prefix = "❌"
+			if hasError {
+				fmt.Fprintf(&b, "  ❌  %s  attributes valid (see trace checks below)\n", reqID)
+			} else if hasWarn {
+				fmt.Fprintf(&b, "  ⚠  %s  attributes valid (see trace checks below)\n", reqID)
+			} else if verdict != "" {
+				if verdictSource != "" {
+					fmt.Fprintf(&b, "  ✅  %s  all attributes valid (%s — %s)\n", reqID, verdict, verdictSource)
+				} else {
+					fmt.Fprintf(&b, "  ✅  %s  all attributes valid (%s)\n", reqID, verdict)
 				}
-				b.WriteString(fmt.Sprintf("  %s  %s  %s\n", prefix, reqID, g.Message))
+			} else {
+				fmt.Fprintf(&b, "  ✅  %s  all attributes valid\n", reqID)
+			}
+		}
+
+		// Render graph check detail lines (skip verdict INFO — already
+		// shown in the status line annotation).
+			for _, g := range graphMsgs {
+				if g.Code == graph.CodeVerdict {
+					continue
+				}
+				prefix := "⚠"
+				switch g.Level {
+				case graph.LevelError:
+					prefix = "❌"
+				case graph.LevelInfo:
+					prefix = "✅"
+				}
+				fmt.Fprintf(&b, "  %s  %s  %s\n", prefix, reqID, g.Message)
 			}
 		}
 		b.WriteString("\n")
@@ -173,7 +193,7 @@ func (r *Report) Format() string {
 	b.WriteString(fmt.Sprintf("Summary: %d total, %d valid, %d invalid, %d parse errors",
 		r.TotalReqs, r.ValidReqs, valErrCount+graphErrCount, len(r.ParseErrors)))
 	if warnCount > 0 {
-		b.WriteString(fmt.Sprintf(", %d warnings", warnCount))
+		fmt.Fprintf(&b, ", %d warnings", warnCount)
 	}
 	b.WriteString("\n")
 	return b.String()
@@ -184,12 +204,12 @@ func FormatList(docs []DocumentSummary) string {
 	var b strings.Builder
 
 	for _, doc := range docs {
-		b.WriteString(fmt.Sprintf("=== %s ===\n", doc.Path))
+		fmt.Fprintf(&b, "=== %s ===\n", doc.Path)
 		// Header row
-		b.WriteString(fmt.Sprintf("%-24s", "ID"))
+		fmt.Fprintf(&b, "%-24s", "ID")
 		b.WriteString(" | ")
 		for _, prop := range doc.Properties {
-			b.WriteString(fmt.Sprintf("%-12s", prop))
+			fmt.Fprintf(&b, "%-12s", prop)
 			b.WriteString(" | ")
 		}
 		b.WriteString("\n")
@@ -201,11 +221,11 @@ func FormatList(docs []DocumentSummary) string {
 			if req.Title != "" {
 				displayID = req.ID + ": " + req.Title
 			}
-			b.WriteString(fmt.Sprintf("%-24s", displayID))
+			fmt.Fprintf(&b, "%-24s", displayID)
 			b.WriteString(" | ")
 			for _, prop := range doc.Properties {
 				val := formatAttrValue(req.Attrs[prop])
-				b.WriteString(fmt.Sprintf("%-12s", val))
+				fmt.Fprintf(&b, "%-12s", val)
 				b.WriteString(" | ")
 			}
 			b.WriteString("\n")
@@ -219,11 +239,11 @@ func FormatList(docs []DocumentSummary) string {
 func FormatStats(docs []DocumentSummary, totalReqs int) string {
 	var b strings.Builder
 
-	b.WriteString(fmt.Sprintf("Requirements: %d\n", totalReqs))
-	b.WriteString(fmt.Sprintf("Documents:    %d\n\n", len(docs)))
+	fmt.Fprintf(&b, "Requirements: %d\n", totalReqs)
+	fmt.Fprintf(&b, "Documents:    %d\n\n", len(docs))
 
 	for _, doc := range docs {
-		b.WriteString(fmt.Sprintf("=== %s (%d reqs) ===\n", doc.Path, len(doc.Rows)))
+		fmt.Fprintf(&b, "=== %s (%d reqs) ===\n", doc.Path, len(doc.Rows))
 		for _, prop := range doc.Properties {
 			counts := map[string]int{}
 			for _, req := range doc.Rows {
@@ -232,9 +252,9 @@ func FormatStats(docs []DocumentSummary, totalReqs int) string {
 				}
 			}
 			if len(counts) > 0 {
-				b.WriteString(fmt.Sprintf("  %s:\n", prop))
+				fmt.Fprintf(&b, "  %s:\n", prop)
 				for _, val := range sortedKeys(counts) {
-					b.WriteString(fmt.Sprintf("    %-20s %d\n", val, counts[val]))
+					fmt.Fprintf(&b, "    %-20s %d\n", val, counts[val])
 				}
 			}
 		}
@@ -303,6 +323,8 @@ type jsonChk struct {
 	Level     string `json:"level"`
 	Code      string `json:"code,omitempty"`
 	Direction string `json:"direction,omitempty"`
+	Outcome   string `json:"outcome,omitempty"`
+	Source    string `json:"source,omitempty"`
 	Message   string `json:"message"`
 }
 
@@ -325,12 +347,6 @@ type jsonListReq struct {
 	ID    string         `json:"id"`
 	Title string         `json:"title,omitempty"`
 	Attrs map[string]any `json:"attrs"`
-}
-
-type jsonStatsReport struct {
-	TotalRequirements int            `json:"total_requirements"`
-	TotalDocuments    int            `json:"total_documents"`
-	Documents         []jsonStatsDoc `json:"documents"`
 }
 
 type jsonStatsDoc struct {
@@ -383,19 +399,21 @@ func (r *Report) FormatJSON() string {
 			// Collect all checks for this req into a flat list
 			var checks []jsonChk
 
-			// Schema validation errors
-			for _, ve := range r.valErrorsByReq[reqID] {
-				checks = append(checks, jsonChk{Level: graph.LevelError, Message: ve.Message})
-			}
-			// Trace graph results
-			for _, gc := range r.graphChecksByReq[reqID] {
-				checks = append(checks, jsonChk{
-					Level:     gc.Level,
-					Code:      gc.Code,
-					Direction: gc.Direction,
-					Message:   gc.Message,
-				})
-			}
+		// Schema validation errors
+		for _, ve := range r.valErrorsByReq[reqID] {
+			checks = append(checks, jsonChk{Level: graph.LevelError, Message: ve.Message})
+		}
+		// Trace graph results
+		for _, gc := range r.graphChecksByReq[reqID] {
+			checks = append(checks, jsonChk{
+				Level:     gc.Level,
+				Code:      gc.Code,
+				Direction: gc.Direction,
+				Outcome:   gc.Outcome,
+				Source:    gc.File,
+				Message:   gc.Message,
+			})
+		}
 
 			// Valid = no ERROR-level checks
 			valid := true
@@ -495,19 +513,11 @@ func FormatStatsJSON(docs []DocumentSummary, totalReqs int) string {
 
 // formatAttrValue formats an arbitrary attr value for display in text tables.
 func formatAttrValue(v any) string {
-	switch val := v.(type) {
-	case string:
-		return val
-	case bool:
-		return strconv.FormatBool(val)
-	case int:
-		return strconv.Itoa(val)
-	case int64:
-		return strconv.FormatInt(val, 10)
-	case float64:
-		return strconv.FormatFloat(val, 'f', -1, 64)
+	switch v.(type) {
+	case string, bool, int, int64, float64:
+		return model.FormatScalar(v)
 	case []any:
-		b, _ := json.Marshal(val)
+		b, _ := json.Marshal(v)
 		return string(b)
 	default:
 		return ""

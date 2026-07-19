@@ -9,7 +9,6 @@ import (
 	"html"
 	"io"
 	"io/fs"
-	"strconv"
 	"strings"
 
 	"github.com/FurqanSoftware/goldmark-katex"
@@ -45,10 +44,25 @@ func mustReadStatic(name string) string {
 	return "\n" + string(b)
 }
 
+// VerdictInfo carries the verification result for a single measure.
+type VerdictInfo struct {
+	Outcome string // pass | fail | skipped | inconclusive
+	Source  string // CTRF file path or manual-results markdown path
+}
+
+
+
 // HTML exports requirements as standalone HTML with card-based layout.
 type HTML struct {
-	docChainGraph DocChainGraph // tiered document graph for the Confluence-Flow visualization
-	boundary      DocBoundary   // current document's root/leaf position in the V-model chain
+	docChainGraph DocChainGraph            // tiered document graph for the Confluence-Flow visualization
+	boundary      DocBoundary              // current document's root/leaf position in the V-model chain
+	verdicts      map[string]VerdictInfo   // measureID → verdict (nil when no --results loaded)
+}
+
+// SetVerdicts stores the verification verdicts for rendering badges on
+// measure cards. Called by the CLI when --results is supplied.
+func (h *HTML) SetVerdicts(v map[string]VerdictInfo) {
+	h.verdicts = v
 }
 
 // schemaTitle safely extracts the title field from a document's parsed
@@ -135,8 +149,8 @@ func (h *HTML) exportHTML(w io.Writer, doc model.Document, propOrder []string, t
 
 	b.WriteString("<main>\n")
 	for _, req := range rd.TopLevel {
-		renderCard(b, req, propOrder, traceCache, tc, ignoreStatus, false)
-		renderChildren(b, req.ID, rd, propOrder, traceCache, tc, ignoreStatus)
+		renderCard(b, req, propOrder, traceCache, tc, ignoreStatus, false, h.verdicts)
+		renderChildren(b, req.ID, rd, propOrder, traceCache, tc, ignoreStatus, h.verdicts)
 	}
 	b.WriteString("</main>\n")
 
@@ -165,14 +179,8 @@ func formatAttrHTML(v any) string {
 	switch val := v.(type) {
 	case string:
 		return html.EscapeString(val)
-	case bool:
-		return strconv.FormatBool(val)
-	case int:
-		return strconv.Itoa(val)
-	case int64:
-		return strconv.FormatInt(val, 10)
-	case float64:
-		return strconv.FormatFloat(val, 'f', -1, 64)
+	case bool, int, int64, float64:
+		return model.FormatScalar(v)
 	case []any:
 		if len(val) == 0 {
 			return "—"

@@ -221,7 +221,7 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 	var reqLevel int // 0 = unknown, set on first heading+attr pair
 	var parentID string
 	var waitingForAttr bool
-
+	var bodyBuf strings.Builder // accumulates cur.Body efficiently (avoids O(n²) string concat)
 	for n := doc.FirstChild(); n != nil; n = n.NextSibling() {
 		switch v := n.(type) {
 		case *ast.Heading:
@@ -236,7 +236,7 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 			// Before reqLevel is known, all headings are body text.
 			if reqLevel == 0 {
 				if cur != nil {
-					cur.Body += renderHeading(v, src)
+					bodyBuf.WriteString(renderHeading(v, src))
 				}
 				continue
 			}
@@ -249,6 +249,7 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 						if cur.Attrs == nil {
 							return nil, frontmatter, fmt.Errorf("%s: req %s: missing attr block", sourcePath, cur.ID)
 						}
+						cur.Body = bodyBuf.String()
 						reqs = append(reqs, *cur)
 						cur = nil
 					}
@@ -259,11 +260,12 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 						Title:  title,
 						Source: sourcePath,
 					}
+					bodyBuf.Reset()
 					parentID = id
 					waitingForAttr = true
 				} else if cur != nil {
 					// reqLevel heading without attr → body text
-					cur.Body += renderHeading(v, src)
+					bodyBuf.WriteString(renderHeading(v, src))
 				}
 
 			case level == reqLevel+1:
@@ -273,6 +275,7 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 						if cur.Attrs == nil {
 							return nil, frontmatter, fmt.Errorf("%s: req %s: missing attr block", sourcePath, cur.ID)
 						}
+						cur.Body = bodyBuf.String()
 						reqs = append(reqs, *cur)
 						cur = nil
 					}
@@ -288,16 +291,17 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 						Source:   sourcePath,
 						ParentID: parentID,
 					}
+					bodyBuf.Reset()
 					waitingForAttr = true
 				} else if cur != nil {
 					// Sub-req-level heading without attr → body text
-					cur.Body += renderHeading(v, src)
+					bodyBuf.WriteString(renderHeading(v, src))
 				}
 
 			default:
 				// Other heading levels → body text
 				if cur != nil {
-					cur.Body += renderHeading(v, src)
+					bodyBuf.WriteString(renderHeading(v, src))
 				}
 			}
 
@@ -323,7 +327,7 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 				waitingForAttr = false
 			} else if cur != nil {
 				// Non-attr code block inside requirement body
-				cur.Body += renderFence(v, src)
+				bodyBuf.WriteString(renderFence(v, src))
 			}
 
 		case *ast.Paragraph:
@@ -338,10 +342,10 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 					trimmed = strings.TrimLeft(trimmed, "* ")
 					cur.Rationale = strings.TrimSpace(trimmed)
 				} else {
-					if cur.Body != "" {
-						cur.Body += "\n\n"
+					if bodyBuf.Len() > 0 {
+						bodyBuf.WriteString("\n\n")
 					}
-					cur.Body += text
+					bodyBuf.WriteString(text)
 				}
 			}
 
@@ -351,7 +355,7 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 		default:
 			// Any other block (blockquote, list, etc.) → body text if inside a requirement
 			if cur != nil {
-				cur.Body += renderBlock(src, n)
+				bodyBuf.WriteString(renderBlock(src, n))
 			}
 		}
 	}
@@ -361,6 +365,7 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 		if cur.Attrs == nil {
 			return nil, frontmatter, fmt.Errorf("%s: req %s: missing attr block", sourcePath, cur.ID)
 		}
+		cur.Body = bodyBuf.String()
 		reqs = append(reqs, *cur)
 	}
 

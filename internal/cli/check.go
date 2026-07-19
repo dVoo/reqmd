@@ -13,12 +13,14 @@ import (
 	"reqmd/internal/parser"
 	"reqmd/internal/reporter"
 	"reqmd/internal/schema"
+	"reqmd/internal/verify"
 )
 
 func newCheckCmd() *cobra.Command {
 	var schemaPath string
 	var jsonOutput bool
 	var relaxedVersions bool
+	var resultsPaths []string
 
 	cmd := &cobra.Command{
 		Use:     "check <dir>",
@@ -29,9 +31,16 @@ func newCheckCmd() *cobra.Command {
 Given a directory, recursively finds all schema.yaml files and
 validates every .md file with requirement attr blocks against the
 corresponding schema. In single-file mode (-s), validates a single
-.md file against an explicit schema.`,
+.md file against an explicit schema.
+
+With --results, loads ephemeral verification results (CTRF reports
+and/or manual markdown results from outside the spec root) and runs
+outcome-gated checks (missing-verdict, failing-verdict) in addition to
+the standard trace checks. Results are not persisted; they live for the
+duration of this run.`,
 		Example: `  reqmd check example/
-  reqmd check path/to/file.md -s path/to/schema.yaml`,
+  reqmd check path/to/file.md -s path/to/schema.yaml
+  reqmd check spec/ --results ./ci-out/ --results ./reviews/`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			path := args[0]
@@ -44,8 +53,7 @@ corresponding schema. In single-file mode (-s), validates a single
 				}
 				return err
 			}
-
-			output, err := validateDir(path, jsonOutput, relaxedVersions)
+			output, err := validateDir(path, jsonOutput, relaxedVersions, resultsPaths)
 			if output != "" {
 				fmt.Fprint(cmd.OutOrStdout(), output)
 			}
@@ -56,6 +64,7 @@ corresponding schema. In single-file mode (-s), validates a single
 	cmd.Flags().StringVarP(&schemaPath, "schema", "s", "", "Schema file for single-file validation")
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	cmd.Flags().BoolVar(&relaxedVersions, "relaxed-versions", false, "Demote outdated version-pin findings from ERROR to WARNING. Predated (pin ahead of upstream) stays ERROR.")
+	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF .ctrf.json or manual-results dirs with schema.yaml) and run outcome-gated checks. Repeatable. May be a dir (walked, auto-detected) or a single CTRF file.")
 	return cmd
 }
 
@@ -66,10 +75,26 @@ corresponding schema. In single-file mode (-s), validates a single
 // relaxedVersions, when true, demotes "outdated" version-pin findings from
 // ERROR to WARNING. Predated findings (pin ahead of upstream) stay ERROR
 // because they are a data integrity issue, not a process issue.
-func runValidationPipeline(docs []model.Document, root string, jsonOutput, relaxedVersions bool) (string, error) {
+func runValidationPipeline(docs []model.Document, root string, jsonOutput, relaxedVersions bool, resultsPaths []string) (string, error) {
 	report := &reporter.Report{}
 
-	// Build doc headers
+	// Load ephemeral verification results (CTRF / manual) when --results
+	// is supplied. Results are synthesized into a pseudo-document and
+	// appended before graph build so the existing trace machinery and
+	// the outcome-gated checks (missing-verdict, failing-verdict) apply.
+	var resultDoc model.Document
+	var resultWarnings []string
+	if len(resultsPaths) > 0 {
+		merged, _, warnings, err := verify.LoadVerdicts(resultsPaths)
+		if err != nil {
+			return "", err
+		}
+		resultWarnings = warnings
+		resultDoc = verify.Synthesize(merged)
+	}
+
+	// Build doc headers (skip the synthetic results doc — it has no
+	// schema and is not a user-facing document).
 	for _, doc := range docs {
 		title := schema.SchemaTitle(doc.Schema)
 		ids := make([]string, 0, len(doc.Requirements))
@@ -84,7 +109,7 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 		})
 	}
 
-	// Pass 1: JSON Schema validation
+	// Pass 1: JSON Schema validation (spec docs only; result doc has no schema)
 	for _, doc := range docs {
 		compiled, err := schema.Compile(doc.Schema, doc.Path)
 		if err != nil {
@@ -108,9 +133,15 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 		}
 	}
 
-	// Pass 2: Graph build + trace validation (root is non-empty only for dir mode)
+	// Pass 2: Graph build + trace validation (root is non-empty only for dir mode).
+	// When results were loaded, the synthesized result doc is appended so
+	// outcome-gated checks run.
 	if root != "" {
-		g, err := graph.New(docs)
+		graphDocs := docs
+		if len(resultsPaths) > 0 {
+			graphDocs = append(graphDocs, resultDoc)
+		}
+		g, err := graph.New(graphDocs)
 		if err != nil {
 			report.ParseErrors = append(report.ParseErrors, reporter.ParseError{
 				File:    root,
@@ -120,6 +151,14 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 			report.GraphChecks = g.CheckResults()
 			if relaxedVersions {
 				demoteOutdatedVersionPins(report.GraphChecks)
+			}
+			// Surface unmapped-CTRF-test warnings as WARNING graph
+			// checks so they appear in both text and JSON output.
+			for _, w := range resultWarnings {
+				report.GraphChecks = append(report.GraphChecks, graph.CheckResult{
+					Level:   graph.LevelWarning,
+					Message: w,
+				})
 			}
 		}
 	}
@@ -138,18 +177,18 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 func demoteOutdatedVersionPins(checks []graph.CheckResult) {
 	for i := range checks {
 		c := &checks[i]
-		if c.Code == "version-pin" && c.Direction == "outdated" && c.Level == graph.LevelError {
+		if c.Code == graph.CodeVersionPin && c.Direction == graph.DirOutdated && c.Level == graph.LevelError {
 			c.Level = graph.LevelWarning
 		}
 	}
 }
 
-func validateDir(root string, jsonOutput, relaxedVersions bool) (string, error) {
+func validateDir(root string, jsonOutput, relaxedVersions bool, resultsPaths []string) (string, error) {
 	docs, err := parser.Discover(root)
 	if err != nil {
 		return "", fmt.Errorf("discovering documents: %w", err)
 	}
-	return runValidationPipeline(docs, root, jsonOutput, relaxedVersions)
+	return runValidationPipeline(docs, root, jsonOutput, relaxedVersions, resultsPaths)
 }
 
 func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions bool) (string, error) {
@@ -174,7 +213,7 @@ func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions
 		Requirements: reqs,
 	}
 
-	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions)
+	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions, nil)
 }
 
 // formatReport conditionally returns the report in text or JSON format.

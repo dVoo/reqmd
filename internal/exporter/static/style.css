@@ -189,6 +189,44 @@ main {
   color: var(--accent);
 }
 
+/* ── Verification verdict badge ─────────────────── */
+.verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+.verdict-badge--child {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+}
+.verdict-badge--pass {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.verdict-badge--fail {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.verdict-badge--skipped {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+.verdict-badge--inconclusive {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
 /* ── Attributes grid ────────────────────────────── */
 
 .req-attrs {

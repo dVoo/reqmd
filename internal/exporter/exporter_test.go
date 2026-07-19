@@ -52,7 +52,7 @@ func TestCSVExport(t *testing.T) {
 	}
 
 	var buf strings.Builder
-	err := CSV{}.Export(&buf, doc, propOrder)
+	err := (&CSV{}).Export(&buf, doc, propOrder)
 	if err != nil {
 		t.Fatalf("CSV export failed: %v", err)
 	}
@@ -104,7 +104,7 @@ func TestCSVExportSpecialTypes(t *testing.T) {
 	}
 
 	var buf strings.Builder
-	err := CSV{}.Export(&buf, doc, propOrder)
+	err := (&CSV{}).Export(&buf, doc, propOrder)
 	if err != nil {
 		t.Fatalf("CSV export failed: %v", err)
 	}

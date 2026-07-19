@@ -1,7 +1,9 @@
 // Package graph builds a pure Go in-memory adjacency graph from parsed
-// requirement documents and runs Pass 2 trace validation checks (broken
-// references, circular dependencies, requires-trace-from coverage, etc.)
-// per the reqmd validation pipeline.
+// requirement documents and runs Pass 2 trace validation checks: broken
+// references, circular dependencies, requires-trace-from coverage,
+// disposition, ID prefix, version-pin staleness, and outcome-gated
+// checks (missing-verdict, failing-verdict) per the reqmd validation
+// pipeline.
 //
 // The graph lives only for the duration of a single CLI invocation — no
 // persistent database or temp files are used.
@@ -16,7 +18,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"sort"
-	"strconv"
 	"strings"
 
 	"reqmd/internal/model"
@@ -26,16 +27,46 @@ import (
 const (
 	LevelError   = "ERROR"
 	LevelWarning = "WARNING"
+	LevelInfo    = "INFO"
+)
+
+// Machine-readable check codes and direction values for version-pin findings.
+const (
+	CodeVersionPin     = "version-pin"
+	CodeMissingVerdict  = "missing-verdict"
+	CodeFailingVerdict  = "failing-verdict"
+	CodeVerdict         = "verdict"
+	DirOutdated         = "outdated"
+	DirPredated         = "predated"
 )
 
 // CheckResult describes a single Pass 2 trace validation finding.
 type CheckResult struct {
-	Level     string // one of LevelError, LevelWarning
+	Level     string // one of LevelError, LevelWarning, LevelInfo
 	Code      string // machine-readable check identifier (e.g. "version-pin"); empty for findings that don't need one
 	Direction string // "outdated" | "predated" — only set for version-pin findings
+	Outcome   string // verification verdict (pass|fail|skipped|inconclusive); only set for CodeVerdict
 	ReqID     string
 	File      string
 	Message   string
+}
+
+// RepinDelta describes a single version-pin change that the repin
+// command proposes or applies. One delta corresponds to one
+// requirement's one trace ref. DeltaKind distinguishes "outdated"
+// (pin < upstream.version) from "unpinned" (no pin against a
+// versioned upstream) when promoteUnpinned is true. Predated
+// findings (pin > upstream.version) are surfaced as DeltaPredated
+// and never auto-fixed by repin.
+type RepinDelta struct {
+	Kind       string `json:"kind"`              // "outdated" | "unpinned" | "predated"
+	ReqID      string `json:"req_id"`            // downstream requirement ID
+	File       string `json:"file"`              // source file of the downstream requirement
+	TargetID   string `json:"target_id"`         // upstream requirement ID being repinned
+	SourceRef  string `json:"source_ref"`        // full ref as it appears in the source (e.g. "doc-id/ID~3" or "ID")
+	OldPin     int    `json:"old_pin"`           // previous pin (0 for unpinned, also 0 for "~0")
+	NewPin     int    `json:"new_pin"`           // new pin (== upstream.version)
+	NewVersion int    `json:"new_version"`       // upstream version this delta repins to
 }
 
 // CachedNode is an in-memory typed representation of a requirement node,
@@ -54,11 +85,30 @@ type CachedNode struct {
 	Inbound              []string
 	Outbound             []string
 	OutboundPins         map[string]int // target ID → ~N pin; key absence = no pin
+	// OutboundRefs is the full source form of every outbound trace ref
+	// (e.g. "doc-id/ID~3" or "ID~3" or "ID"), keyed by target ID. Populated
+	// in the same Pass 2 loop as OutboundPins; consumed by the repin
+	// command. Existing checks ignore this field — it carries no
+	// semantics for traceability.
+	OutboundRefs         map[string]string
 	Suppressions         []string
+	suppressionsSet      map[string]struct{} // precomputed from Suppressions for O(1) isSuppressed
 	// Status is the raw value of the built-in `status` attribute.
 	// Empty means the attribute was not declared — effectiveStatus()
 	// falls back to model.StatusDefault in that case.
 	Status string
+	// Outcome is the verification-result verdict (pass|fail|skipped|
+	// inconclusive) carried by synthesized result pseudo-requirements.
+	// Empty for authored requirements (not a result node).
+	Outcome string
+	// Verify is the raw value of the user-defined `verify` attribute
+	// (e.g. "Test", "Review", "Inspection"). A non-empty value marks the
+	// requirement as a verification measure — the target that
+	// verification results trace to.
+	Verify string
+	// IsResult marks nodes synthesized from ephemeral verification
+	// results (internal/verify). Authored requirements have IsResult=false.
+	IsResult bool
 	// Dir is the directory path of the requirement's source file.
 	// Precomputed to avoid repeated filepath.Dir(node.File) calls.
 	Dir string
@@ -77,6 +127,10 @@ type Graph struct {
 	dangling         []CheckResult
 	duplicateIDs     []CheckResult   // duplicate requirement IDs across documents
 	ignoreStatusDirs map[string]bool // dir path → true if document opts out of status lifecycle
+	// Cached boundary maps computed once in CheckResults; RootDirs/LeafDirs
+	// return these instead of recomputing inferBoundaries on every call.
+	cachedRootDirs map[string]bool
+	cachedLeafDirs map[string]bool
 }
 
 // New builds a pure Go in-memory adjacency graph from all parsed documents.
@@ -126,18 +180,28 @@ func New(docs []model.Document) (*Graph, error) {
 			xr = doc.XReqmd
 		}
 		for _, req := range doc.Requirements {
-			node := &CachedNode{
-				ReqID:             req.ID,
-				File:              req.Source,
-				Dir:               filepath.Dir(req.Source),
-				IsChild:           req.ParentID != "",
-				Disposition:       getString(req.Attrs, model.AttrDisposition),
-				DispositionReason: getString(req.Attrs, model.AttrDispositionReason),
-				Version:           getIntFromAttrs(req.Attrs, model.AttrVersion),
-				RequiresTraceFrom: getStringSlice(req.Attrs, model.AttrRequiresTraceFrom),
-				OutboundPins:      make(map[string]int),
-				Suppressions:      req.Suppressions,
-				Status:            getString(req.Attrs, model.AttrStatus),
+		node := &CachedNode{
+			ReqID:             req.ID,
+			File:              req.Source,
+			Dir:               filepath.Dir(req.Source),
+			IsChild:           req.ParentID != "",
+			Disposition:       getString(req.Attrs, model.AttrDisposition),
+			DispositionReason: getString(req.Attrs, model.AttrDispositionReason),
+			Version:           getIntFromAttrs(req.Attrs, model.AttrVersion),
+			RequiresTraceFrom: getStringSlice(req.Attrs, model.AttrRequiresTraceFrom),
+			OutboundPins:      make(map[string]int),
+			OutboundRefs:      make(map[string]string),
+			Suppressions:      req.Suppressions,
+			Status:            getString(req.Attrs, model.AttrStatus),
+			Outcome:           getString(req.Attrs, "outcome"),
+			Verify:            getString(req.Attrs, "verify"),
+			IsResult:          strings.HasPrefix(req.ID, "RESULT:"),
+		}
+			if len(req.Suppressions) > 0 {
+				node.suppressionsSet = make(map[string]struct{}, len(req.Suppressions))
+				for _, s := range req.Suppressions {
+					node.suppressionsSet[s] = struct{}{}
+				}
 			}
 			if xr != nil {
 				node.External = xr.External
@@ -183,18 +247,16 @@ func New(docs []model.Document) (*Graph, error) {
 				if !ok {
 					continue
 				}
+				// originalRef is the source-form ref exactly as written in
+				// the attr block (e.g. "doc-id/ID~3" or "ID~3" or "ID").
+				// We strip the pin below; the repin command needs the
+				// unmutated form to drive text edits.
+				originalRef := refStr
 
-				// Strip optional version pin: "doc-id/ID~N" or "ID~N" → "doc-id/ID" / "ID", pin=N
-				// A successful Atoi means the user wrote a pin (even if N == 0).
-				pin := 0
-				pinned := false
-				if idx := strings.LastIndex(refStr, "~"); idx >= 0 {
-					if n, err := strconv.Atoi(refStr[idx+1:]); err == nil {
-						pin = n
-						pinned = true
-						refStr = refStr[:idx]
-					}
-				}
+				// Strip optional version pin via the shared helper.
+				var pin int
+				var pinned bool
+				refStr, pin, pinned = model.StripPin(refStr)
 
 				var target *CachedNode
 				var targetID string
@@ -253,6 +315,11 @@ func New(docs []model.Document) (*Graph, error) {
 				if pinned {
 					node.OutboundPins[targetID] = pin
 				}
+				// Record the original ref string for the repin command. Only
+				// stored when the ref resolved to a real target (so dangling/
+				// ambiguous refs don't pollute the map). First-wins semantics:
+				// duplicate targetIDs in the same trace list keep the first form.
+				node.OutboundRefs[targetID] = originalRef
 			}
 		}
 	}
@@ -393,13 +460,16 @@ func (g *Graph) CheckResults() []CheckResult {
 	}
 	results = append(results, g.checkCircular()...)
 
-	rootDirs, leafDirs := g.inferBoundaries(g.docs)
-	results = append(results, g.checkRequiresTraceFromCoverage(g.docs, rootDirs, leafDirs)...)
+	g.cachedRootDirs, g.cachedLeafDirs = g.inferBoundaries(g.docs)
+	results = append(results, g.checkRequiresTraceFromCoverage(g.docs, g.cachedRootDirs, g.cachedLeafDirs)...)
 
 	results = append(results, g.checkDispositionReason()...)
 	results = append(results, g.checkMandatoryDisposition()...)
 	results = append(results, g.checkVersionPins()...)
 	results = append(results, g.checkIDPrefixes()...)
+	results = append(results, g.checkMissingVerdict()...)
+	results = append(results, g.checkFailingVerdict()...)
+	results = append(results, g.checkVerdicts()...)
 	return results
 }
 
@@ -486,6 +556,11 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 					})
 					continue
 				}
+				// Build a set for O(1) membership testing in the inbound loop.
+				dirSet := make(map[string]bool, len(dirs))
+				for _, d := range dirs {
+					dirSet[d] = true
+				}
 				covered := false
 				draftCount := 0
 				for _, inboundID := range node.Inbound {
@@ -504,13 +579,8 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 					if !ok {
 						continue
 					}
-					for _, dir := range dirs {
-						if inboundDir == dir {
-							covered = true
-							break
-						}
-					}
-					if covered {
+					if dirSet[inboundDir] {
+						covered = true
 						break
 					}
 				}
@@ -569,7 +639,7 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 func (g *Graph) checkDispositionReason() []CheckResult {
 	var results []CheckResult
 	for _, node := range g.nodes {
-		if node.isSuppressed("disposition-reason") {
+		if node.isSuppressed(model.AttrDispositionReason) {
 			continue
 		}
 		if node.Disposition == "" || node.Disposition == "implemented" {
@@ -653,6 +723,34 @@ func (g *Graph) checkIDPrefixes() []CheckResult {
 	return results
 }
 
+// pinStatus classifies a single version pin against its target's
+// current version. Shared by checkVersionPins (which emits findings)
+// and RepinDeltas (which proposes edits). Returns the direction
+// ("outdated", "predated", or "" for current) and ok=true when the
+// pin is comparable to the target. Returns ok=false when the pin
+// should be skipped (target missing, external, unversioned, or
+// the node suppresses the version-pin check).
+func (g *Graph) pinStatus(node *CachedNode, targetID string, pin int, pinned bool) (direction string, ok bool) {
+	if node.isSuppressed(CodeVersionPin) {
+		return "", false
+	}
+	target := g.nodes[targetID]
+	if target == nil || target.External || target.Version == 0 {
+		return "", false
+	}
+	if !pinned {
+		return "", false
+	}
+	current := target.Version
+	if pin == current {
+		return "", false
+	}
+	if pin < current {
+		return DirOutdated, true
+	}
+	return DirPredated, true
+}
+
 // checkVersionPins compares each downstream requirement's `~N` version pin
 // on a trace reference against the upstream requirement's `version`.
 // Findings:
@@ -664,45 +762,30 @@ func (g *Graph) checkIDPrefixes() []CheckResult {
 // Code="version-pin" + Direction="outdated" and can be demoted to WARNING
 // by the cmd layer when --relaxed-versions is set. Predated stays ERROR.
 //
-// Rules:
-//   - Skip if the node has `reqmd-suppress: [version-pin]`.
-//   - Skip if the target is external (versions are out of our control).
-//   - Skip if the upstream has no `version` (Version == 0): we have no
-//     ground truth to compare against, so a pin to an unversioned upstream
-//     is harmless. The pin is still recorded for inspection.
-//   - A pin of 0 against a versioned upstream is reported as outdated:
-//     the user wrote "~0" and the upstream has since been bumped.
+// Skip rules are shared with RepinDeltas via pinStatus.
 func (g *Graph) checkVersionPins() []CheckResult {
 	var results []CheckResult
 	for _, node := range g.nodes {
-		if node.isSuppressed("version-pin") {
-			continue
-		}
 		for targetID, pin := range node.OutboundPins {
-			target := g.nodes[targetID]
-			if target == nil || target.External {
+			direction, ok := g.pinStatus(node, targetID, pin, true)
+			if !ok {
 				continue
 			}
-			if target.Version == 0 {
-				continue
-			}
-			current := target.Version
-			if pin == current {
-				continue
-			}
-			if pin < current {
+			current := g.nodes[targetID].Version
+			switch direction {
+			case DirOutdated:
 				results = append(results, CheckResult{
-					Code:      "version-pin",
-					Direction: "outdated",
+					Code:      CodeVersionPin,
+					Direction: DirOutdated,
 					Level:     LevelError,
 					ReqID:     node.ReqID,
 					File:      node.File,
 					Message:   fmt.Sprintf("outdated version pin: upstream %s is at v%d, this requirement still pins ~%d", targetID, current, pin),
 				})
-			} else {
+			case DirPredated:
 				results = append(results, CheckResult{
-					Code:      "version-pin",
-					Direction: "predated",
+					Code:      CodeVersionPin,
+					Direction: DirPredated,
 					Level:     LevelError,
 					ReqID:     node.ReqID,
 					File:      node.File,
@@ -714,24 +797,212 @@ func (g *Graph) checkVersionPins() []CheckResult {
 	return results
 }
 
-// ---------------------------------------------------------------------------
-// Boundary inference accessors — used by HTML export to drive visual
-// root/leaf styling without re-computing topology.
-// ---------------------------------------------------------------------------
+// checkMissingVerdict flags approved verification measures that have no
+// verification result tracing to them. A "measure" is any non-result node
+// that is the target of at least one inbound result edge — i.e. a
+// requirement that verification results trace to. Draft measures are
+// skipped (a draft measure is not expected to have results yet).
+//
+// The check runs only when result pseudo-requirements are present in the
+// graph (loaded via `check --results`). With no results loaded, no node
+// has IsResult=true and the check is a no-op.
+//
+// Severity: WARNING. Suppress per-node with
+// `reqmd-suppress: [missing-verdict]`. Code: "missing-verdict".
+func (g *Graph) checkMissingVerdict() []CheckResult {
+	var results []CheckResult
+	// Short-circuit when no result nodes exist: the check is meaningful
+	// only when results have been loaded.
+	if !g.hasResultNodes() {
+		return nil
+	}
+	for _, node := range g.nodes {
+		if node.IsResult {
+			continue
+		}
+		if node.isSuppressed(CodeMissingVerdict) {
+			continue
+		}
+		// Only measures (nodes that results trace to) are checked. A
+		// node is a measure if at least one result traces to it.
+		if !g.isMeasure(node) {
+			continue
+		}
+		// Draft measures are not expected to have results.
+		if !g.isCoverageProvider(node.ReqID) {
+			continue
+		}
+		if g.hasVerdictFor(node.ReqID) {
+			continue
+		}
+		results = append(results, CheckResult{
+			Code:    CodeMissingVerdict,
+			Level:   LevelWarning,
+			ReqID:   node.ReqID,
+			File:    node.File,
+			Message: "missing verdict: no verification result traces to this measure",
+		})
+	}
+	return results
+}
 
+// checkFailingVerdict flags measures whose latest verification result is a
+// fail. Like checkMissingVerdict, it is a no-op when no result nodes are
+// present. A measure with a failing result that has a later non-failing
+// result does not trigger (latest verdict wins, computed at the result
+// layer; here we observe the single merged result node per measure).
+//
+// Severity: ERROR. Suppress per-node with
+// `reqmd-suppress: [failing-verdict]`. Code: "failing-verdict".
+func (g *Graph) checkFailingVerdict() []CheckResult {
+	var results []CheckResult
+	if !g.hasResultNodes() {
+		return nil
+	}
+	for _, node := range g.nodes {
+		if node.IsResult {
+			continue
+		}
+		if node.isSuppressed(CodeFailingVerdict) {
+			continue
+		}
+		if !g.isMeasure(node) {
+			continue
+		}
+		// Find the latest result tracing to this measure.
+	latestOutcome, _, found := g.latestOutcomeFor(node.ReqID)
+		if !found {
+			continue // missing-verdict handles the no-result case.
+		}
+		if latestOutcome != "fail" {
+			continue
+		}
+		results = append(results, CheckResult{
+			Code:    CodeFailingVerdict,
+			Level:   LevelError,
+			ReqID:   node.ReqID,
+			File:    node.File,
+			Message: "failing verdict: latest verification result for this measure is fail",
+		})
+	}
+	return results
+}
+
+// hasResultNodes reports whether any synthesized result pseudo-requirement
+// is present in the graph.
+func (g *Graph) hasResultNodes() bool {
+	for _, n := range g.nodes {
+		if n.IsResult {
+			return true
+		}
+	}
+	return false
+}
+
+// isMeasure reports whether a node is a verification measure — a
+// requirement authored with a `verify` attribute (e.g. verify: Test,
+// verify: Review) that verification results trace to. Result nodes are
+// not measures.
+func (g *Graph) isMeasure(node *CachedNode) bool {
+	if node.IsResult {
+		return false
+	}
+	return node.Verify != ""
+}
+
+// hasVerdictFor reports whether any result node traces to the given
+// measure ID.
+func (g *Graph) hasVerdictFor(measureID string) bool {
+	for _, inID := range g.nodes[measureID].Inbound {
+		if in, ok := g.nodes[inID]; ok && in.IsResult {
+			return true
+		}
+	}
+	return false
+}
+
+// latestOutcomeFor returns the outcome and source file of the result node
+// tracing to the given measure. Since the result layer
+// (internal/verify.MergeLatest) already collapses to one result per
+// measure, there is at most one result node per measure. Returns
+// ("", "", false) if no result traces to the measure.
+func (g *Graph) latestOutcomeFor(measureID string) (string, string, bool) {
+	node := g.nodes[measureID]
+	if node == nil {
+		return "", "", false
+	}
+	for _, inID := range node.Inbound {
+		if in, ok := g.nodes[inID]; ok && in.IsResult {
+			return in.Outcome, in.File, true
+		}
+	}
+	return "", "", false
+}
+
+// checkVerdicts emits an INFO-level result for each measure that has a
+// verification result, showing the latest outcome. This makes passing
+// verdicts visible in the output — without it, a clean run with --results
+// looks identical to a run without --results. Measures without results are
+// covered by checkMissingVerdict and emit no verdict line here.
+//
+// Severity: INFO (never affects exit code). Code: "verdict".
+func (g *Graph) checkVerdicts() []CheckResult {
+	var results []CheckResult
+	if !g.hasResultNodes() {
+		return nil
+	}
+	for _, node := range g.nodes {
+		if node.IsResult {
+			continue
+		}
+		if !g.isMeasure(node) {
+			continue
+		}
+		outcome, sourceFile, found := g.latestOutcomeFor(node.ReqID)
+		if !found {
+			continue
+		}
+		results = append(results, CheckResult{
+			Code:    CodeVerdict,
+			Level:   LevelInfo,
+			Outcome: outcome,
+			ReqID:   node.ReqID,
+			File:    sourceFile,
+			Message: fmt.Sprintf("verified: %s", outcome),
+		})
+	}
+	return results
+}
+
+// MeasureOutcome returns the latest verification outcome for a measure
+// (pass, fail, skipped, inconclusive) and whether a result exists. Returns
+// ("", false) if the measure has no result or is not a measure.
+func (g *Graph) MeasureOutcome(measureID string) (string, string, bool) {
+	return g.latestOutcomeFor(measureID)
+}
+
+// HasResults reports whether the graph contains any synthesized result
+// pseudo-requirements (i.e. `--results` was supplied).
+func (g *Graph) HasResults() bool {
+	return g.hasResultNodes()
+}
+
+// ---------------------------------------------------------------------------
 // RootDirs returns a sorted slice of document directory paths that are at
 // the top of the V-model (no upstream sources declared, or external).
-func (g *Graph) RootDirs(docs []model.Document) []string {
-	rootDirs, _ := g.inferBoundaries(docs)
-	return mapKeysSorted(rootDirs)
+// Uses the cached boundaries from CheckResults; returns empty if CheckResults
+// has not been called.
+func (g *Graph) RootDirs() []string {
+	return mapKeysSorted(g.cachedRootDirs)
 }
 
 // LeafDirs returns a sorted slice of document directory paths that are at
 // the bottom of the V-model (not referenced as upstream sources by any
 // other document).
-func (g *Graph) LeafDirs(docs []model.Document) []string {
-	_, leafDirs := g.inferBoundaries(docs)
-	return mapKeysSorted(leafDirs)
+// Uses the cached boundaries from CheckResults; returns empty if CheckResults
+// has not been called.
+func (g *Graph) LeafDirs() []string {
+	return mapKeysSorted(g.cachedLeafDirs)
 }
 
 func mapKeysSorted(m map[string]bool) []string {
@@ -834,8 +1105,14 @@ func getIntFromAttrs(props map[string]any, key string) int {
 	return 0
 }
 
-// isSuppressed returns true if the given check name is in this node's suppression list.
+// isSuppressed returns true if the given check name is in this node's
+// suppression set. O(1) via the precomputed map; falls back to the
+// linear scan only if the set was not built (defensive).
 func (n *CachedNode) isSuppressed(check string) bool {
+	if n.suppressionsSet != nil {
+		_, ok := n.suppressionsSet[check]
+		return ok
+	}
 	for _, s := range n.Suppressions {
 		if s == check {
 			return true
@@ -856,12 +1133,94 @@ func (n *CachedNode) effectiveStatus() string {
 // isCoverageProvider reports whether a node counts as a valid upstream
 // coverage source for downstream requirements. A node is a coverage
 // provider when:
-//   - it lives in a directory that opts out of the status lifecycle
-//     (x-reqmd.ignore-status: true), OR
-//   - its status (case-insensitive) is "approved".
+
+// RepinDeltas computes the list of version-pin changes the repin
+// command would propose (or apply) against this graph.
 //
-// All other values (draft, additions, or anything unrecognised) are NOT
-// coverage providers — they remain visible but do not satisfy traceability.
+// Without promoteUnpinned, only outdated findings are returned —
+// refs whose pin is strictly below the upstream's current version.
+// Predated findings (pin strictly above upstream version) are
+// surfaced separately so the user can see them; repin never
+// auto-fixes a predated pin because it is a data integrity error,
+// not a process error.
+//
+// With promoteUnpinned=true, refs that have no pin at all
+// (`~N` not present in the source) against a versioned upstream
+// also produce a delta. This converts "no claim" into "claimed at
+// current version" — the caller is expected to opt in deliberately.
+//
+// Rules shared with checkVersionPins:
+//   - Skip result pseudo-requirements (synthesized in-memory only).
+//   - Skip nodes that suppress the version-pin check.
+//   - Skip refs whose target is external (versions out of our control).
+//   - Skip refs whose target has no version (no ground truth).
+//
+// Returns deltas sorted for stable output: by source file, then
+// requirement ID, then source ref.
+func (g *Graph) RepinDeltas(promoteUnpinned bool) []RepinDelta {
+	var deltas []RepinDelta
+	for _, node := range g.nodes {
+		if node.IsResult {
+			continue
+		}
+		for targetID, originalRef := range node.OutboundRefs {
+			pin, pinned := node.OutboundPins[targetID]
+
+			// Unpinned promote path: opt-in only.
+			if !pinned {
+				if !promoteUnpinned {
+					continue
+				}
+				target := g.nodes[targetID]
+				if target == nil || target.External || target.Version == 0 {
+					continue
+				}
+				if node.isSuppressed(CodeVersionPin) {
+					continue
+				}
+				deltas = append(deltas, RepinDelta{
+					Kind:       "unpinned",
+					ReqID:      node.ReqID,
+					File:       node.File,
+					TargetID:   targetID,
+					SourceRef:  originalRef,
+					NewPin:     target.Version,
+					NewVersion: target.Version,
+				})
+				continue
+			}
+
+			// Pinned path: use the shared pinStatus predicate so the
+			// skip rules and direction logic stay in sync with
+			// checkVersionPins.
+			direction, ok := g.pinStatus(node, targetID, pin, true)
+			if !ok {
+				continue
+			}
+			current := g.nodes[targetID].Version
+			deltas = append(deltas, RepinDelta{
+				Kind:       direction,
+				ReqID:      node.ReqID,
+				File:       node.File,
+				TargetID:   targetID,
+				SourceRef:  originalRef,
+				OldPin:     pin,
+				NewPin:     current,
+				NewVersion: current,
+			})
+		}
+	}
+	sort.Slice(deltas, func(i, j int) bool {
+		if deltas[i].File != deltas[j].File {
+			return deltas[i].File < deltas[j].File
+		}
+		if deltas[i].ReqID != deltas[j].ReqID {
+			return deltas[i].ReqID < deltas[j].ReqID
+		}
+		return deltas[i].SourceRef < deltas[j].SourceRef
+	})
+	return deltas
+}
 func (g *Graph) isCoverageProvider(reqID string) bool {
 	node, ok := g.nodes[reqID]
 	if !ok {

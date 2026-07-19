@@ -9,10 +9,12 @@ import (
 
 	"reqmd/internal/exporter"
 	"reqmd/internal/parser"
+	"reqmd/internal/verify"
 )
 
 func newCsvCmd() *cobra.Command {
 	var outputDir string
+	var resultsPaths []string
 
 	cmd := &cobra.Command{
 		Use:   "csv <dir>",
@@ -26,7 +28,18 @@ func newCsvCmd() *cobra.Command {
 				return fmt.Errorf("discovering documents: %w", err)
 			}
 
+		// Load ephemeral verification results when --results is supplied.
+		_, vVerdicts, _, err := verify.LoadVerdicts(resultsPaths)
+		if err != nil {
+			return err
+		}
+		verdicts := make(map[string]exporter.VerdictInfo, len(vVerdicts))
+		for id, v := range vVerdicts {
+			verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
+		}
+
 			var exp exporter.CSV
+			exp.SetVerdicts(verdicts)
 
 			for _, doc := range docs {
 				props := doc.Properties
@@ -56,5 +69,6 @@ func newCsvCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&outputDir, "output", "o", "", "Output directory for CSV files")
+	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF or manual) to add Verdict and Verdict Source columns. Repeatable.")
 	return cmd
 }

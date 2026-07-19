@@ -1,0 +1,35 @@
+# ReqMD manual verification results schema. This document holds ephemeral
+# verification results (review, inspection, analysis, demonstration) loaded
+# via `reqmd check --results`. The built-in `id`, `title`, `trace`, and
+# `status` attributes are injected automatically.
+x-reqmd:
+  level: verify-results             # Fixed: marks this as a results document
+{{- if .IDPrefix }}
+  id-prefix: {{ .IDPrefix }}         # Prefix prepended to all result IDs
+{{- end }}
+  # Optional x-reqmd fields (uncomment as needed):
+  # document-id: my-results           # Stable identifier for this results document
+  # url: https://example.com/results  # Link to authoritative source
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "{{ .ID }}"
+title: "{{ .Title }}"
+type: object
+required:
+  - outcome
+  - verifier
+  - verified-at
+properties:
+  outcome:
+    type: string
+    enum: [pass, fail, skipped, inconclusive]
+    description: "Verification verdict for this result"
+  verifier:
+    type: string
+    description: "Person or tool that produced this result"
+  evidence:
+    type: string
+    description: "URI/path to review minutes, inspection record, or analysis report"
+  verified-at:
+    type: string
+    description: "Date the verification was performed (YYYY-MM-DD)"
+additionalProperties: false

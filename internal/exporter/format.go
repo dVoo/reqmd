@@ -2,29 +2,16 @@ package exporter
 
 import (
 	"encoding/json"
-	"strconv"
+
+	"reqmd/internal/model"
 )
 
 func formatAttr(v any) string {
-	switch val := v.(type) {
-	case string:
-		return val
-	case bool:
-		return strconv.FormatBool(val)
-	case int:
-		return strconv.Itoa(val)
-	case int64:
-		return strconv.FormatInt(val, 10)
-	case float64:
-		return strconv.FormatFloat(val, 'f', -1, 64)
-	case []any:
-		b, _ := json.Marshal(val)
-		return string(b)
-	case []string:
-		b, _ := json.Marshal(val)
-		return string(b)
-	case map[string]any:
-		b, _ := json.Marshal(val)
+	switch v.(type) {
+	case string, bool, int, int64, float64:
+		return model.FormatScalar(v)
+	case []any, []string, map[string]any:
+		b, _ := json.Marshal(v)
 		return string(b)
 	default:
 		return ""

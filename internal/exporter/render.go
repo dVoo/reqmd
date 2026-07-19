@@ -175,11 +175,34 @@ func buildRenderData(doc model.Document) *renderData {
 		}
 	}
 
-	// Filter set: per-attribute unique values across all requirements.
+	filters := buildFilters(doc.Requirements, doc)
+	statusCounts := countStatuses(doc.Requirements)
+
+	index := make([]indexEntry, 0, len(doc.Requirements))
+	for _, req := range doc.Requirements {
+		index = append(index, buildIndexEntry(req, childrenOf))
+	}
+
+	return &renderData{
+		Index:      index,
+		Filters:    filters,
+		TopLevel:   topLevel,
+		ChildrenOf: childrenOf,
+		StatusCnt:  statusCounts,
+	}
+}
+
+// buildFilters collects per-attribute unique values across all requirements
+// into a filterSet. The `status` filter is special-cased so built-in values
+// (draft, approved) appear first in canonical order, followed by declared
+// additions A→Z, then any unrecognized values A→Z. All other attrs are emitted
+// sorted A→Z. Attributes with fewer than two distinct values are omitted
+// (single-value filters are not useful). Status values are skipped when the
+// document opts out of the status lifecycle.
+func buildFilters(reqs []model.Requirement, doc model.Document) filterSet {
 	ignoreStatus := doc.XReqmd != nil && doc.XReqmd.IgnoreStatus
 	raw := make(map[string]map[string]struct{})
-	statusCounts := make(map[string]int)
-	for _, req := range doc.Requirements {
+	for _, req := range reqs {
 		for k, v := range req.Attrs {
 			if k == model.AttrTrace {
 				continue
@@ -194,14 +217,6 @@ func buildRenderData(doc model.Document) *renderData {
 				raw[k][s] = struct{}{}
 			}
 		}
-		// Status counts are tallied independently of filter-set
-		// visibility: the header breakdown is always rendered (unless
-		// the document opts out of the lifecycle).
-		sv, ok := req.Attrs[model.AttrStatus].(string)
-		if !ok || sv == "" {
-			sv = model.StatusDefault
-		}
-		statusCounts[sv]++
 	}
 
 	filters := make(filterSet, len(raw))
@@ -223,19 +238,23 @@ func buildRenderData(doc model.Document) *renderData {
 		sort.Strings(vals)
 		filters[k] = vals
 	}
+	return filters
+}
 
-	index := make([]indexEntry, 0, len(doc.Requirements))
-	for _, req := range doc.Requirements {
-		index = append(index, buildIndexEntry(req, childrenOf))
+// countStatuses tallies status values across all requirements. Requirements
+// without a recognized status string count as model.StatusDefault. The tally
+// is independent of filter-set visibility: the header breakdown is always
+// rendered unless the document opts out of the lifecycle.
+func countStatuses(reqs []model.Requirement) map[string]int {
+	statusCounts := make(map[string]int)
+	for _, req := range reqs {
+		sv, ok := req.Attrs[model.AttrStatus].(string)
+		if !ok || sv == "" {
+			sv = model.StatusDefault
+		}
+		statusCounts[sv]++
 	}
-
-	return &renderData{
-		Index:      index,
-		Filters:    filters,
-		TopLevel:   topLevel,
-		ChildrenOf: childrenOf,
-		StatusCnt:  statusCounts,
-	}
+	return statusCounts
 }
 
 // sortedStatusValues returns the given status values in canonical order:
@@ -518,19 +537,9 @@ func renderToolbar(b *bufio.Writer, doc model.Document, ignoreStatus bool) {
 // "req-card-child") and the heading level (h2 vs h3). The trace
 // section is rendered only when the requirement has at least one
 // upstream or downstream link and tc is non-nil.
-func renderCard(b *bufio.Writer, req model.Requirement, propOrder []string, traceCache map[string]tracePair, tc *TraceResolver, ignoreStatus, isChild bool) {
+func renderCard(b *bufio.Writer, req model.Requirement, propOrder []string, traceCache map[string]tracePair, tc *TraceResolver, ignoreStatus, isChild bool, verdicts map[string]VerdictInfo) {
 	escID := html.EscapeString(req.ID)
-	escTitle := html.EscapeString(req.Title)
 	renderedBody := renderMarkdown(req.Body)
-	renderedRationale := renderMarkdown(req.Rationale)
-
-	// Determine trace visibility
-	var pair tracePair
-	hasTraces := false
-	if traceCache != nil {
-		pair = traceCache[req.ID]
-		hasTraces = len(pair.up)+len(pair.down) > 0
-	}
 
 	cardClass := "req-card"
 	if isChild {
@@ -553,7 +562,32 @@ func renderCard(b *bufio.Writer, req model.Requirement, propOrder []string, trac
 	// first time (avoids a flash of unfiltered content).
 	fmt.Fprintf(b, "<article class=\"%s\" id=\"%s\" x-show=\"isCardVisible('%s')\" x-cloak>\n", cardClass, escID, escID)
 
-	// Header row: ID (+ title if present) + anchor link
+	renderCardHeader(b, req, isChild)
+	renderVerdictBadge(b, req, verdicts, isChild)
+	renderAttrGrid(b, req, propOrder, isChild)
+
+	// Body
+	bodyClass := "req-body"
+	if isChild {
+		bodyClass = "req-body req-body--child"
+	}
+	if req.Body != "" {
+		fmt.Fprintf(b, "<div class=\"%s\">\n%s\n</div>\n", bodyClass, renderedBody)
+	}
+
+	renderRationale(b, req, isChild)
+	renderTraceLinks(b, req, traceCache, tc, isChild)
+
+	b.WriteString("</article>\n")
+}
+
+// renderCardHeader writes the header row: the ID (+ title if present)
+// heading and the anchor link. The heading level (h2 vs h3) and the
+// req-id--child modifier are selected by isChild.
+func renderCardHeader(b *bufio.Writer, req model.Requirement, isChild bool) {
+	escID := html.EscapeString(req.ID)
+	escTitle := html.EscapeString(req.Title)
+
 	b.WriteString("<div class=\"req-header\">\n")
 	headingTag := "h2"
 	headingExtra := ""
@@ -572,13 +606,53 @@ func renderCard(b *bufio.Writer, req model.Requirement, propOrder []string, trac
 	}
 	fmt.Fprintf(b, "<a class=\"req-anchor\" href=\"#%s\" title=\"Link to this requirement\"%s>#</a>\n", escID, ariaLabel)
 	b.WriteString("</div>\n")
+}
 
-	// Attributes grid
-	hasAttrs := false
+
+// renderVerdictBadge writes a verification verdict badge next to the
+// requirement header when verification results were loaded (--results).
+// Measures without results show nothing (missing-verdict is a check
+// output, not a badge). The badge is color-coded: green for pass, red
+// for fail, orange for inconclusive, gray for skipped.
+func renderVerdictBadge(b *bufio.Writer, req model.Requirement, verdicts map[string]VerdictInfo, isChild bool) {
+	if verdicts == nil {
+		return
+	}
+	v, ok := verdicts[req.ID]
+	if !ok {
+		return
+	}
+	class := "verdict-badge"
+	if isChild {
+		class += " verdict-badge--child"
+	}
+	switch v.Outcome {
+	case "pass":
+		class += " verdict-badge--pass"
+	case "fail":
+		class += " verdict-badge--fail"
+	case "skipped":
+		class += " verdict-badge--skipped"
+	case "inconclusive":
+		class += " verdict-badge--inconclusive"
+	}
+	title := fmt.Sprintf("verified: %s", v.Outcome)
+	if v.Source != "" {
+		title += fmt.Sprintf(" — %s", v.Source)
+	}
+	fmt.Fprintf(b, "<span class=\"%s\" title=\"%s\">%s</span>\n",
+		class, html.EscapeString(title), html.EscapeString(v.Outcome))
+}
+// renderAttrGrid writes the <dl class="req-attrs"> attribute grid,
+// iterating propOrder and emitting one <div class="attr"> per present
+// attribute. The trace attribute is skipped (shown in the traces
+// section). The req-attrs--child modifier is selected by isChild.
+func renderAttrGrid(b *bufio.Writer, req model.Requirement, propOrder []string, isChild bool) {
 	dlClass := "req-attrs"
 	if isChild {
 		dlClass = "req-attrs req-attrs--child"
 	}
+	hasAttrs := false
 	for _, prop := range propOrder {
 		if prop == model.AttrTrace {
 			continue // trace shown in traces section
@@ -596,35 +670,39 @@ func renderCard(b *bufio.Writer, req model.Requirement, propOrder []string, trac
 	if hasAttrs {
 		b.WriteString("</dl>\n")
 	}
+}
 
-	// Body
-	bodyClass := "req-body"
-	if isChild {
-		bodyClass = "req-body req-body--child"
+// renderRationale writes the rationale block when the requirement has
+// rationale text. The req-rationale--child modifier is selected by
+// isChild.
+func renderRationale(b *bufio.Writer, req model.Requirement, isChild bool) {
+	if req.Rationale == "" {
+		return
 	}
-	if req.Body != "" {
-		fmt.Fprintf(b, "<div class=\"%s\">\n%s\n</div>\n", bodyClass, renderedBody)
-	}
-
-	// Rationale
 	rationaleClass := "req-rationale"
 	if isChild {
 		rationaleClass = "req-rationale req-rationale--child"
 	}
-	if req.Rationale != "" {
-		fmt.Fprintf(b, "<div class=\"%s\">\n<strong>Rationale:</strong> %s\n</div>\n", rationaleClass, renderedRationale)
-	}
+	renderedRationale := renderMarkdown(req.Rationale)
+	fmt.Fprintf(b, "<div class=\"%s\">\n<strong>Rationale:</strong> %s\n</div>\n", rationaleClass, renderedRationale)
+}
 
-	// Traces
-	if hasTraces {
-		linkClass := "trace-link"
-		if isChild {
-			linkClass = "trace-link trace-link--child"
-		}
-		renderTraces(b, pair.up, pair.down, tc, linkClass)
+// renderTraceLinks writes the upstream/downstream trace section when
+// the requirement has at least one link and tc is non-nil. The
+// trace-link--child modifier is selected by isChild.
+func renderTraceLinks(b *bufio.Writer, req model.Requirement, traceCache map[string]tracePair, tc *TraceResolver, isChild bool) {
+	if traceCache == nil {
+		return
 	}
-
-	b.WriteString("</article>\n")
+	pair := traceCache[req.ID]
+	if len(pair.up)+len(pair.down) == 0 {
+		return
+	}
+	linkClass := "trace-link"
+	if isChild {
+		linkClass = "trace-link trace-link--child"
+	}
+	renderTraces(b, pair.up, pair.down, tc, linkClass)
 }
 
 // renderTraces writes the upstream/downstream trace columns. The link
@@ -668,7 +746,7 @@ func renderTraces(b *bufio.Writer, up, down []traceLink, tc *TraceResolver, link
 
 // renderChildren writes the <div class="req-children"> section for a
 // parent requirement, then renders each child card inline.
-func renderChildren(b *bufio.Writer, parentID string, rd *renderData, propOrder []string, traceCache map[string]tracePair, tc *TraceResolver, ignoreStatus bool) {
+func renderChildren(b *bufio.Writer, parentID string, rd *renderData, propOrder []string, traceCache map[string]tracePair, tc *TraceResolver, ignoreStatus bool, verdicts map[string]VerdictInfo) {
 	kids, ok := rd.ChildrenOf[parentID]
 	if !ok || len(kids) == 0 {
 		return
@@ -676,7 +754,7 @@ func renderChildren(b *bufio.Writer, parentID string, rd *renderData, propOrder 
 	b.WriteString("<div class=\"req-children\">\n")
 	b.WriteString("<div class=\"req-children-header\">Sub-Requirements</div>\n")
 	for _, child := range kids {
-		renderCard(b, child, propOrder, traceCache, tc, ignoreStatus, true)
+		renderCard(b, child, propOrder, traceCache, tc, ignoreStatus, true, verdicts)
 	}
 	b.WriteString("</div>\n")
 }

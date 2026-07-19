@@ -2,6 +2,7 @@ package exporter
 
 import (
 	"path/filepath"
+	"strconv"
 
 	"reqmd/internal/model"
 )
@@ -55,7 +56,7 @@ func NewRenderContext(docs []model.Document, root string) (*RenderContext, error
 	for _, doc := range docs {
 		dirName := filepath.Base(doc.Path)
 		htmlName := dirName + "-requirements.html"
-		htmlPath := filepath.Join(doc.Path, htmlName)
+		htmlPath := htmlName
 
 		for _, req := range doc.Requirements {
 			rctx.reqToHTML[req.ID] = htmlPath
@@ -99,19 +100,20 @@ func NewRenderContext(docs []model.Document, root string) (*RenderContext, error
 	return rctx, nil
 }
 
-// ResolveLink returns a function that maps a requirement ID to an HTML anchor link
-// relative to the given output path.
+// ResolveLink returns a function that maps a requirement ID to an HTML
+// anchor link relative to the given output path. Since all HTML files
+// are written as flat siblings in the output directory, the relative
+// path between any two files is just the target filename. The current
+// file is detected by comparing basenames so absolute vs relative path
+// mismatches don't cause false negatives.
 func (r *RenderContext) ResolveLink(currentOutPath string) func(string) string {
+	currentBase := filepath.Base(currentOutPath)
 	return func(reqID string) string {
 		targetPath, ok := r.reqToHTML[reqID]
-		if !ok || targetPath == currentOutPath {
+		if !ok || targetPath == currentBase {
 			return "#" + reqID
 		}
-		rel, err := filepath.Rel(filepath.Dir(currentOutPath), targetPath)
-		if err != nil {
-			return "#" + reqID
-		}
-		return rel + "#" + reqID
+		return targetPath + "#" + reqID
 	}
 }
 
@@ -285,7 +287,7 @@ func upstreamTierPlural(n int) string {
 		return "Upstream · 3 levels above"
 	default:
 		// fallback for deeper graphs
-		return "Upstream · " + itoa(n) + " levels above"
+		return "Upstream · " + strconv.Itoa(n) + " levels above"
 	}
 }
 
@@ -299,31 +301,8 @@ func downstreamTierLabel(level int) string {
 	case 3:
 		return "Downstream · 3 levels below"
 	default:
-		return "Downstream · " + itoa(level) + " levels below"
+		return "Downstream · " + strconv.Itoa(level) + " levels below"
 	}
-}
-
-// itoa is a tiny int-to-string helper to avoid pulling strconv into the label path.
-func itoa(n int) string {
-	if n == 0 {
-		return "0"
-	}
-	neg := n < 0
-	if neg {
-		n = -n
-	}
-	var buf [20]byte
-	i := len(buf)
-	for n > 0 {
-		i--
-		buf[i] = byte('0' + n%10)
-		n /= 10
-	}
-	if neg {
-		i--
-		buf[i] = '-'
-	}
-	return string(buf[i:])
 }
 
 // RelativizeChainGraph rewrites every non-current card's Path to be

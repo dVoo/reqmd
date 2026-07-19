@@ -50,21 +50,34 @@ func ExportGraph(docs []model.Document, outDir string) error {
 	defer conn.Close()
 
 	// Create node and relationship tables.
-	if _, err := conn.Query("CREATE NODE TABLE IF NOT EXISTS Requirement(id STRING PRIMARY KEY, file STRING)"); err != nil {
+	// Create node table with optional verification result properties.
+	// outcome and source are only set on RESULT: pseudo-requirements;
+	// authored requirements have NULL for these columns.
+	if _, err := conn.Query("CREATE NODE TABLE IF NOT EXISTS Requirement(id STRING PRIMARY KEY, file STRING, outcome STRING, source STRING)"); err != nil {
 		return fmt.Errorf("creating node table: %w", err)
-	}
-	if _, err := conn.Query("CREATE REL TABLE IF NOT EXISTS TracesTo(FROM Requirement TO Requirement)"); err != nil {
-		return fmt.Errorf("creating rel table: %w", err)
 	}
 
 	// Pass 1: insert one node per requirement across all documents.
+	// Result pseudo-requirements (RESULT:<id>) carry outcome and source
+	// properties; authored requirements leave them NULL.
 	for _, doc := range docs {
 		for _, req := range doc.Requirements {
 			escID := escapeCypherString(req.ID)
 			escFile := escapeCypherString(req.Source)
-			q := fmt.Sprintf("CREATE (n:Requirement {id: '%s', file: '%s'})", escID, escFile)
-			if _, err := conn.Query(q); err != nil {
-				return fmt.Errorf("inserting node for %s: %w", req.ID, err)
+			outcome, _ := req.Attrs["outcome"].(string)
+			source := req.Source
+			if outcome != "" {
+				escOutcome := escapeCypherString(outcome)
+				escSource := escapeCypherString(source)
+				q := fmt.Sprintf("CREATE (n:Requirement {id: '%s', file: '%s', outcome: '%s', source: '%s'})", escID, escFile, escOutcome, escSource)
+				if _, err := conn.Query(q); err != nil {
+					return fmt.Errorf("inserting node for %s: %w", req.ID, err)
+				}
+			} else {
+				q := fmt.Sprintf("CREATE (n:Requirement {id: '%s', file: '%s'})", escID, escFile)
+				if _, err := conn.Query(q); err != nil {
+					return fmt.Errorf("inserting node for %s: %w", req.ID, err)
+				}
 			}
 		}
 	}
@@ -72,7 +85,7 @@ func ExportGraph(docs []model.Document, outDir string) error {
 	// Pass 2: create TracesTo edges for every trace attribute entry.
 	for _, doc := range docs {
 		for _, req := range doc.Requirements {
-			traceVal, ok := req.Attrs["trace"]
+			traceVal, ok := req.Attrs[model.AttrTrace]
 			if !ok {
 				continue
 			}

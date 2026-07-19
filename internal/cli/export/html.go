@@ -10,10 +10,12 @@ import (
 	"reqmd/internal/exporter"
 	"reqmd/internal/graph"
 	"reqmd/internal/parser"
+	"reqmd/internal/verify"
 )
 
 func newHtmlCmd() *cobra.Command {
 	var outputDir string
+	var resultsPaths []string
 
 	cmd := &cobra.Command{
 		Use:   "html <dir>",
@@ -27,8 +29,28 @@ func newHtmlCmd() *cobra.Command {
 				return fmt.Errorf("discovering documents: %w", err)
 			}
 
+			// Load ephemeral verification results when --results is supplied.
+			// Results are synthesized into pseudo-requirements appended to
+			// the doc slice so the graph builds result→measure edges and
+			// outcome-gated checks run. The verdicts map is extracted for
+			// rendering badges on measure cards.
+		var verdicts map[string]exporter.VerdictInfo
+		graphDocs := docs
+		if len(resultsPaths) > 0 {
+			merged, vVerdicts, _, err := verify.LoadVerdicts(resultsPaths)
+			if err != nil {
+				return fmt.Errorf("loading results: %w", err)
+			}
+			resultDoc := verify.Synthesize(merged)
+			graphDocs = append(graphDocs, resultDoc)
+			verdicts = make(map[string]exporter.VerdictInfo, len(vVerdicts))
+			for id, v := range vVerdicts {
+				verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
+			}
+		}
+
 			// Build the trace graph for upstream/downstream links
-			g, err := graph.New(docs)
+			g, err := graph.New(graphDocs)
 			if err != nil {
 				return fmt.Errorf("building trace graph: %w", err)
 			}
@@ -44,6 +66,7 @@ func newHtmlCmd() *cobra.Command {
 			boundaries := exporter.ComputeDocBoundaries(docs)
 
 			var exp exporter.HTML
+			exp.SetVerdicts(verdicts)
 
 			// Ensure output directory exists.
 			if outputDir != "" {
@@ -85,7 +108,7 @@ func newHtmlCmd() *cobra.Command {
 				err = exp.ExportWithTraces(f, doc, props, tc)
 				if err != nil {
 					f.Close()
-					return fmt.Errorf("exporting %s: %w", doc.Path, err)
+					return fmt.Errorf("exporting %s: %w", outPath, err)
 				}
 				f.Close()
 				fmt.Fprintf(os.Stderr, "Wrote %s\n", outPath)
@@ -95,5 +118,6 @@ func newHtmlCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&outputDir, "output", "o", "", "Output directory for HTML files")
+	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF .ctrf.json or manual-results dirs) to render verdict badges on measure cards. Repeatable.")
 	return cmd
 }
