@@ -106,7 +106,7 @@ If your team does this work, reqmd can store the *requirements that result from 
 ## See also
 
 - [Quickstart](/quickstart/) — try the workflow in 10 minutes.
-- [Benchmarks](/benchmarks/) — performance on a real 833-requirement spec and on synthetic 35-doc corpora up to 720k reqs.
+- [Benchmarks](/benchmarks/) — performance on a real 249-requirement spec and on synthetic 35-doc corpora up to 720k reqs.
 - [reqmd-import](/import/) — the source-code traceability tool that closes the gap from code to spec.
 - [Compare](/compare/) — how reqmd stacks up against other requirements tools.
 - [AI &amp; agents](/ai/) — why reqmd's plain-text format is the right substrate for AI-assisted spec workflows.

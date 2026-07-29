@@ -971,4 +971,3 @@ stakeholder goals (`01-stakeholder`) have no upstream traces (untraced warnings
 suppressed by boundary inference and `external: true`). The ASPICE proxy layer
 (`01a-aspice-stakeholder`) is the first fully-traced tier.
 
->>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> conflict 1 of 1 ends
