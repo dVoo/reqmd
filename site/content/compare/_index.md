@@ -29,11 +29,11 @@ Both are git-native, text-first, no-database tools for spec authoring with trace
 | **Schema** | JSON Schema 2020-12 in YAML | Sphinx-config-driven type system, per-type schema |
 | **Storage** | Files on disk | Sphinx doctree pickle (`.doctree/`) + JSON |
 | **Runtime** | Single Go binary, no dependencies | Python 3 + Sphinx + a dozen plugins |
-| **Parse time** | 50 ms / 8k reqs (12 cores) | Seconds at 8k reqs (single-threaded, includes Sphinx's full pipeline) |
+| **Parse time** | 16 ms / 249 reqs (16 cores) | Seconds at 8k reqs (single-threaded, includes Sphinx's full pipeline) |
 | **Web UI** | Static HTML export + `reqmd serve` for live preview | needsbuild built-in (read-only viewer) |
 | **Trace graph** | Built in memory on every `check`; ephemeral | Stored in doctree; queryable via `needflow` and `needtable` directives |
 | **Verification results** | `check --results` reads CTRF + manual-results markdown; 13 graph checks | `test_impact` reads junit XML; older, less coverage of CTRF |
-| **CI loop** | `reqmd check` exits 0/1/2; 50 ms | `sphinx-build -W` exits non-zero on broken ref; seconds |
+| **CI loop** | `reqmd check` exits 0/1/2; 16 ms | `sphinx-build -W` exits non-zero on broken ref; seconds |
 | **Type system** | JSON Schema enums (e.g. `status: [draft, approved]`) | Sphinx type plugins (`req`, `spec`, `test`, `story`, …) — extensible in Python |
 | **Custom types** | Edit `schema.yaml`, add an enum | Write a Python Sphinx extension, register a directive |
 | **AI agent readability** | One `cat`, plain text | Sphinx doctree pickle is opaque; `cat` shows the RST but tracing requires a build |
@@ -62,7 +62,7 @@ OpenFastTrace (OFT) is the closest analog. Both tools are designed for "spec cov
 | **Verification results** | CTRF + manual-results markdown | junit XML |
 | **Spec coverage** | Inline within `.md` files (heading + attr + prose) | Separate XML files per spec item |
 | **Lock-in** | None (Markdown is universal) | Low (XML is parseable, but you need the OFT convention) |
-| **AI agent** | Same loop, 50 ms | XML spec items; no prose context in the spec file |
+| **AI agent** | Same loop, 16 ms | XML spec items; no prose context in the spec file |
 | **Best fit** | Spec is documentation, the prose matters | Spec is structured data, coverage matrix matters |
 
 **Pick reqmd when** the spec is documentation — the prose is part of the deliverable, and reviewers read the requirements as paragraphs. **Pick OFT when** the spec is structured data — you want a coverage matrix output, and the prose lives in a separate doc that OFT links to.
@@ -71,7 +71,7 @@ OpenFastTrace (OFT) is the closest analog. Both tools are designed for "spec cov
 
 These tools have been the default in regulated industries for 20 years. They solve a real problem — managed workflows, audit trails, role-based access — but they come with a set of structural problems that get worse as your team gets more agile and your code moves faster:
 
-**Slow.** Every interaction is a web UI round-trip. Opening a requirement, editing a field, checking a trace link, running a coverage report — each is a click, a page load, and a wait. A spec review that takes 10 minutes in a Git diff takes an hour in a web UI. `reqmd check` validates 8,000 requirements in 50 ms; a DOORS coverage report on the same tree takes minutes.
+**Slow.** Every interaction is a web UI round-trip. Opening a requirement, editing a field, checking a trace link, running a coverage report — each is a click, a page load, and a wait. A spec review that takes 10 minutes in a Git diff takes an hour in a web UI. `reqmd check` validates 249 requirements in 16 ms; a DOORS coverage report on the same tree takes minutes.
 
 **Disconnected from the code.** The spec lives in a database. The code lives in Git. There is no native connection. "Traceability to code" means a link field that someone manually maintains, or a third-party integration that syncs on a schedule. When a developer renames a function, the spec doesn't know. With reqmd, the spec and the code live in the same Git repo (or linked submodules), and the companion `reqmd-import` tool extracts code symbols into the same ID space — so a rename becomes a broken trace link that CI catches.
 
@@ -79,7 +79,7 @@ These tools have been the default in regulated industries for 20 years. They sol
 
 **No developer-friendly configuration management.** In DOORS and Jama, a multi-team spec is one big database with no native way to split it into per-team repos and compose them. The baseline concept is a server-side snapshot, not a Git tag. With reqmd, configuration management is built on Git submodules: each team owns their spec repo, a top-level repo assembles them, and `baseline diff` compares the assembled tree across tags. The submodule pins are the baseline. A configuration change is a PR that bumps a pin. This is `git submodule add` — developer-friendly, reviewable, and CI-gated.
 
-**Not CI-native.** Running "does the spec validate?" in a CI pipeline requires a REST API call, authentication, and a custom script. With reqmd, it's `reqmd check spec/` — one binary, one command, 50 ms, exit code 0/1/2. No API, no auth, no network.
+**Not CI-native.** Running "does the spec validate?" in a CI pipeline requires a REST API call, authentication, and a custom script. With reqmd, it's `reqmd check spec/` — one binary, one command, 16 ms, exit code 0/1/2. No API, no auth, no network.
 
 **Not developer-friendly.** Developers don't open DOORS. They open their editor. If the spec is in a database, the developer never reads it, never edits it, and the spec drifts from the code. If the spec is in Markdown next to the code, the developer sees it in every pull request, reviews the diff, and keeps it honest.
 
@@ -88,11 +88,11 @@ These tools have been the default in regulated industries for 20 years. They sol
 | | reqmd | DOORS / Jama / Polarion / Teamcenter / codeBeamer |
 |---|---|---|
 | **Where the spec lives** | Git repo, plain files | Proprietary database |
-| **Speed** | 50 ms for 8k reqs | Seconds to minutes per operation |
+| **Speed** | 16 ms for 249 reqs | Seconds to minutes per operation |
 | **Branching** | Native Git branches, merges, rebase | Baselines (snapshots, no merge) |
 | **Configuration management** | Git submodules — per-team repos composed at top level; submodule pins are the baseline | One monolithic database; baselines are server-side snapshots |
 | **Connection to code** | Same repo or submodules; `reqmd-import` links to code symbols | Manual link fields or scheduled sync |
-| **CI integration** | `reqmd check` — one binary, 50 ms | REST API + auth + custom script |
+| **CI integration** | `reqmd check` — one binary, 16 ms | REST API + auth + custom script |
 | **Developer workflow** | Edit in any editor, review in PR, merge in Git | Log into web UI, click, wait |
 | **Review** | Git diff in a pull request | Web UI review threads |
 | **Audit trail** | Git log (who changed what, when, why) | First-class audit log in the database |
@@ -121,7 +121,7 @@ A third category: tools that look like an issue tracker (Jira, Azure DevOps Boar
 | **Branching** | Native Git branches | Not supported — work items live in one project |
 | **Configuration management** | Git submodules — per-team repos composed at top level | Not possible — work items live in one project |
 | **Connection to code** | Same repo or submodules; `reqmd-import` | Manual link fields or git-branch references |
-| **Speed** | 50 ms / 8k reqs | Web UI round-trips; API calls |
+| **Speed** | 16 ms / 249 reqs | Web UI round-trips; API calls |
 | **CI integration** | `reqmd check` exits 0/1/2 | Native to the ALM platform, but requires the platform |
 | **Review** | Git PR diff | Built-in review workflow with state transitions |
 | **Lock-in** | None — plain text | Vendor work-item schema |
@@ -139,7 +139,7 @@ A more compact version of the above, ordered by what you'll feel first.
 | Branching, merging, pull-request review | ✅ native Git | ❌ no branching | ❌ no branching | ❌ baselines only, no merge |
 | Configuration management via git submodules | ✅ git submodules | ❌ | ❌ | ❌ monolithic database |
 | Spec connected to code | ✅ same repo or submodules + `reqmd-import` | ⚠ separate repo | ⚠ separate | ❌ manual links |
-| Validation in CI, fast (50 ms) | ✅ | ❌ seconds | ⚠ seconds | ❌ server round-trip |
+| Validation in CI, fast (16 ms) | ✅ | ❌ seconds | ⚠ seconds | ❌ server round-trip |
 | Developer-friendly (editor, not web UI) | ✅ Markdown in any editor | ⚠ RST in editor | ⚠ XML in editor | ❌ web UI only |
 | AI agent reads, edits, validates specs | ✅ designed for this | ❌ RST + opaque doctree | ⚠ XML is verbose | ❌ API is the only path |
 | Plain text, no vendor lock-in | ✅ Markdown | ⚠ RST, plugin-dependent | ⚠ XML | ❌ vendor schema |

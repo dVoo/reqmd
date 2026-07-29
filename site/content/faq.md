@@ -77,7 +77,7 @@ Questions about reqmd, grouped by topic: what it is, how to use it, and how it f
   <li><strong>Disconnected from the code.</strong> The spec is in a database; the code is in Git. There is no native connection. When a developer renames a function, the spec doesn't know.</li>
   <li><strong>No real branching.</strong> "Baselines" are snapshots, not branches. You can't <code>git checkout -b</code>, try a change, and merge it. Two teams working on the spec simultaneously means lock-then-edit.</li>
   <li><strong>No submodules.</strong> A multi-team spec is one monolithic database. You can't split it into per-team repos and compose them.</li>
-  <li><strong>Not CI-native.</strong> Running "does the spec validate?" in CI requires a REST API call, authentication, and a custom script. With reqmd it's <code>reqmd check spec/</code> — one binary, 50 ms, exit code 0/1/2.</li>
+  <li><strong>Not CI-native.</strong> Running "does the spec validate?" in CI requires a REST API call, authentication, and a custom script. With reqmd it's <code>reqmd check spec/</code> — one binary, 16 ms, exit code 0/1/2.</li>
   <li><strong>Not developer-friendly.</strong> Developers don't open DOORS. They open their editor. If the spec is in a database, the developer never reads it, and the spec drifts from the code.</li>
   <li><strong>Vendor lock-in.</strong> Your spec is in a proprietary database schema. Exporting it is a project. With reqmd, your data is plain text — diffable, portable, yours.</li>
 </ul>
