@@ -98,7 +98,7 @@ These tools have been the default in regulated industries for 20 years. They sol
 | **Audit trail** | Git log (who changed what, when, why) | First-class audit log in the database |
 | **Access control** | Git permissions (repo-level) | Per-object ACLs, role-based |
 | **Named approvers / sign-off** | Via Git review (approve PR) | Built-in workflow engine |
-| **Cost** | Free, MIT | Per-seat licensing, often 6-figure annual cost |
+| **Cost** | Free, GPL-3.0 | Per-seat licensing, often 6-figure annual cost |
 | **Setup time** | 30 seconds (`go install`) | Days to weeks (install, integrate, configure, train) |
 | **Lock-in** | None — plain text | Vendor-specific DB schema; export is a project |
 | **AI agent fit** | `cat` files, `reqmd check --json` — designed for the loop | REST API, OAuth, hundreds of endpoints — the prose is hidden behind the API |
@@ -147,7 +147,7 @@ A more compact version of the above, ordered by what you'll feel first.
 | Audit-ready, named approvers, sign-off records | ❌ not its job | ❌ not its job | ❌ not its job | ✅ |
 | Built-in compliance process workflows | ❌ not its job | ❌ not its job | ❌ not its job | ✅ |
 | Per-seat licensing is fine | – | – | – | ✅ |
-| Free, MIT, self-hosted | ✅ | ✅ | ✅ | ❌ |
+| Free, GPL-3.0, self-hosted | ✅ | ✅ | ✅ | ❌ |
 
 ## What reqmd is not
 

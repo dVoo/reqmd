@@ -49,7 +49,7 @@ trace: []
 BenchmarkRunValidationPipeline measures the cost of the full
 validation pipeline (Pass 1 schema compile + per-req validation,
 plus Pass 2 graph build + trace checks) against the spec/ fixture
-(6 documents, 232 requirements).
+(6 documents, 249 requirements).
 ```
 
 The ID format is `IMP-<package>-<symbol>-<7charhash>`. The hash is computed over `(package, symbol name)` so IDs survive line-number shifts — a refactor that moves code around does not invalidate the trace.
@@ -179,4 +179,4 @@ Each stage is independently testable; the writer's idempotency guarantee (byte-i
 - [Quickstart](/quickstart/) — the rest of the workflow, from `reqmd init` to verification roll-up.
 - [Use cases](/use-cases/) — where `reqmd-import` sits in the engineering workflow.
 - [Compare](/compare/) — how reqmd + reqmd-import compares to other tools.
-- [The reqmd-import source](https://github.com/dVoo/reqmd/tree/main/reqmd-import) — see `cmd/extract.go`, `internal/lang/`, and `internal/writer/` for the implementation.
+- [The reqmd-import source](https://github.com/dVoo/reqmd/tree/main/reqmd-import) — see `internal/cli/extract.go`, `internal/lang/`, and `internal/extractor/` for the implementation.
