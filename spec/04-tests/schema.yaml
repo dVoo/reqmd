@@ -8,10 +8,12 @@ required:
 properties:
   verify:
     type: string
-    enum: [Test]
+    enum: [Test, Review, Inspection, Analysis, Demonstration]
+    description: "Verification method. Test = automated; Review/Inspection/Analysis/Demonstration = manual methods. Each measure traces to the requirement(s) it verifies."
   test-type:
     type: string
     enum: [unit, integration, end-to-end, build]
+    description: "Test classification for verify: Test measures. Ignored for other methods."
 additionalProperties: false
 
 x-reqmd:
