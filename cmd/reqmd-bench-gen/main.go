@@ -5,8 +5,9 @@
 // unique IDs (with a per-copy id-prefix) and rewritten trace references.
 //
 // Flags:
-//   -copies N       emit N copies of the source (each is a separate root)
-//   -reqsperdoc K  replicate per-doc content to reach ~K reqs per doc
+//
+//	-copies N       emit N copies of the source (each is a separate root)
+//	-reqsperdoc K  replicate per-doc content to reach ~K reqs per doc
 //
 // When -reqsperdoc is set, each .md file in each copy is appended with
 // (K / source_per_doc) copies of the file's own requirement blocks, each
@@ -26,7 +27,7 @@ import (
 )
 
 var (
-	headingIDRe   = regexp.MustCompile(`(?m)^##\s+([A-Z][A-Z0-9-]+)(\b|:)`)
+	headingIDRe  = regexp.MustCompile(`(?m)^##\s+([A-Z][A-Z0-9-]+)(\b|:)`)
 	idPrefixRe   = regexp.MustCompile(`(?m)^(\s*id-prefix:\s*)([A-Z][A-Z0-9-]+)\s*$`)
 	qualifiedRe  = regexp.MustCompile(`\b([A-Za-z][A-Za-z0-9_-]+)/([A-Z][A-Z0-9-]+)(~\d+)?\b`)
 	plainIDRe    = regexp.MustCompile(`\b([A-Z][A-Z0-9-]+)(~\d+)?\b`)
@@ -46,6 +47,9 @@ func main() {
 		fmt.Fprintln(os.Stderr, "usage: -src <dir> -dst <dir> [-copies N] [-reqsperdoc K]")
 		os.Exit(2)
 	}
+
+	*src = filepath.Clean(*src)
+	*dst = filepath.Clean(*dst)
 
 	if err := os.MkdirAll(*dst, 0o755); err != nil {
 		panic(err)

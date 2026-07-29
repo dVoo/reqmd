@@ -43,6 +43,8 @@ external_docs/
 
 # Build
 reqmd
+reqmd-bench-gen
+reqmd-bench-run
 
 # prebuilt extraction-tool binary
 reqmd-import/reqmd-import
@@ -62,3 +64,4 @@ site/.hugo_build.lock
 
 # Hugo build output
 site/public/
+bench-results/

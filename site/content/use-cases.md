@@ -62,7 +62,7 @@ You write requirements the way you already write documentation: in a text editor
 </article>
 <article class="usecase">
 <h3>AI-assisted spec authoring</h3>
-<p>An agent reads <code>llms.txt</code>, edits <code>*.md</code> in the same tool-call budget as code, runs <code>reqmd check</code>, parses the JSON verdict, and iterates. The check is 50 ms even on 8k-req trees. Drop in a copy-pasteable <code>AGENTS.md</code> and you're done.</p>
+<p>An agent reads <code>llms.txt</code>, edits <code>*.md</code> in the same tool-call budget as code, runs <code>reqmd check</code>, parses the JSON verdict, and iterates. The check is 16 ms even on the bundled 249-req spec. Drop in a copy-pasteable <code>AGENTS.md</code> and you're done.</p>
 <a href="/ai/">AI &amp; agents →</a>
 </article>
 </div>
