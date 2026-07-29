@@ -1,0 +1,30 @@
+# {{ .Title }}
+
+This is a sample safety-critical requirements document. The built-in `status`,
+`id`, `title`, and `trace` attributes are injected automatically; `safety-level`
+and `verification-method` are declared in the schema.
+
+## {{ .IDPrefix }}-001: Emergency Stop
+```attr
+status: draft
+safety-level: ASIL-D
+verification-method: test
+owner: Safety Team
+```
+The system shall provide an emergency stop function that halts all motion
+within 100 ms of activation.
+
+*Rationale: ASIL-D classification requires the highest level of safety integrity. The emergency stop must be verified by testing under worst-case load conditions.*
+
+## {{ .IDPrefix }}-002: Brake Light Indication
+```attr
+status: draft
+safety-level: ASIL-B
+verification-method: inspection
+trace:
+  - {{ .IDPrefix }}-001
+```
+The system shall illuminate brake lights within 50 ms of brake pedal
+depression.
+
+*Rationale: Brake light response time is safety-relevant (ASIL-B) and verified by inspection of the signal propagation chain.*

@@ -1,0 +1,20 @@
+x-reqmd:
+  level: verify-results
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "verify-results"
+title: "Manual Verification Results"
+type: object
+required: [outcome, verifier, verified-at]
+properties:
+  outcome:
+    type: string
+    enum: [pass, fail, skipped, inconclusive]
+  verifier:
+    type: string
+  evidence:
+    type: string
+    description: "URI/path to review minutes, inspection record, or analysis report"
+  verified-at:
+    type: string
+additionalProperties: false
