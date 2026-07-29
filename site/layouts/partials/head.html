@@ -1,0 +1,88 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+
+{{- with .Site.Params.description -}}
+<meta name="description" content="{{ . | htmlEscape }}">
+{{- end -}}
+
+{{- with .Site.Params.keywords -}}
+<meta name="keywords" content="{{ range . }}{{ . | htmlEscape }},{{ end }}">
+{{- end -}}
+
+{{- with .Site.Params.author -}}
+<meta name="author" content="{{ . | htmlEscape }}">
+{{- end -}}
+
+<link rel="canonical" href="{{ .Permalink }}">
+
+<link rel="preload" as="fetch" href="/index.json" crossorigin>
+{{- $title := cond (eq .Kind "home") .Site.Title (printf "%s — %s" .Title .Site.Title) -}}
+<title>{{ $title }}</title>
+
+<link rel="icon" href="/img/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js" defer></script>
+<link rel="preconnect" href="https://rsms.me/" crossorigin>
+<link rel="stylesheet" href="https://rsms.me/inter/inter.css">
+<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap">
+<link rel="preload" as="style" href="/css/site.css">
+<link rel="stylesheet" href="/css/site.css">
+
+{{- range .AlternativeOutputFormats -}}
+<link rel="{{ .Rel }}" type="{{ .MediaType.Type }}" href="{{ .Permalink | safeURL }}" title="{{ $title }}">
+{{- end -}}
+
+{{- if .IsHome -}}
+<meta property="og:type" content="website">
+<meta property="og:title" content="{{ .Site.Title }}">
+<meta property="og:description" content="{{ .Site.Params.description }}">
+<meta property="og:url" content="{{ .Site.BaseURL }}">
+{{- else -}}
+<meta property="og:type" content="article">
+<meta property="og:title" content="{{ .Title }}">
+<meta property="og:description" content="{{ with .Description }}{{ . }}{{ else }}{{ .Site.Params.description }}{{ end }}">
+<meta property="og:url" content="{{ .Permalink }}">
+{{- end -}}
+<meta property="og:image" content="{{ .Site.BaseURL }}img/og.svg">
+<meta property="og:site_name" content="reqmd">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="{{ .Site.BaseURL }}img/og.svg">
+
+{{- template "_internal/opengraph.html" . -}}
+{{- template "_internal/twitter_cards.html" . -}}
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "reqmd",
+  "description": {{ .Site.Params.description | jsonify }},
+  "url": {{ .Site.BaseURL | jsonify }},
+  "license": "https://github.com/dVoo/reqmd/blob/main/LICENSE",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "Linux, macOS, Windows",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  }
+}
+</script>
+
+<script>
+  // No-flash theme bootstrap. Reads localStorage or falls back to prefers-color-scheme.
+  (function() {
+    try {
+      var t = localStorage.getItem('reqmd-theme') || 'system';
+      if (t === 'system') {
+        t = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = t;
+    } catch (e) {}
+  })();
+</script>

@@ -1,0 +1,12 @@
+{{- $title := .Get "title" | default "" -}}
+<div class="terminal">
+  {{- if $title -}}
+  <div class="terminal-chrome">
+    <span class="terminal-dot terminal-dot-red" aria-hidden="true"></span>
+    <span class="terminal-dot terminal-dot-yellow" aria-hidden="true"></span>
+    <span class="terminal-dot terminal-dot-green" aria-hidden="true"></span>
+    <span class="terminal-title">{{ $title }}</span>
+  </div>
+  {{- end -}}
+  <pre class="terminal-body"><code>{{ .Inner | safeHTML }}</code></pre>
+</div>

@@ -1,0 +1,132 @@
+# --- Site identity ---
+baseURL: "https://reqmd.xyz/"
+title: "reqmd"
+titleCaseStyle: "none"
+
+params:
+  description: "Lightweight CLI for requirements-as-Markdown with trace checks. Git-native, text-first, no database. Validates 8k+ requirements in under 200ms."
+  keywords:
+    - requirements
+    - traceability
+    - aspice
+    - markdown
+    - cli
+    - iso26262
+  author: "reqmd authors"
+  github: "https://github.com/dVoo/reqmd"
+  defaultTheme: "system"
+  sidebar: true
+  version: "0.4.x"
+# --- Languages ---
+defaultContentLanguage: "en"
+disableLanguages: []
+
+# --- Markup ---
+markup:
+  goldmark:
+    renderer:
+      unsafe: true
+  highlight:
+    noClasses: false
+    codeFences: true
+    guessSyntax: false
+    lineNos: false
+    style: "github-dark"
+  extensions:
+    passthrough:
+      enable: true
+      titles: true
+      extensions: ["mermaid"]
+    attributes:
+      block: true
+      title: true
+    defaultExtensions:
+      - table
+      - strikethrough
+      - autolink
+      - taskList
+      - definitionList
+      - footnote
+      - typographer
+
+# --- Output formats ---
+# Custom `llms` format for /llms.txt and /llms-full.txt.
+# Reuses Hugo's built-in `text` media type; the URL suffix is set in the template name.
+outputFormats:
+  llms:
+    name: llms
+    baseName: llms
+    mediaType: text/plain
+    isPlainText: true
+    notAlternative: true
+  llmsFull:
+    name: llmsFull
+    baseName: llms-full
+    mediaType: text/plain
+    isPlainText: true
+    notAlternative: true
+
+# --- Outputs ---
+outputs:
+  home: ["html", "rss", "json", "llms", "llmsFull"]
+  page: ["html"]
+  section: ["html", "rss"]
+  taxonomy: ["html"]
+  term: ["html"]
+
+# --- Permalinks ---
+permalinks:
+  page: "/:slug/"
+  section: "/:slug/"
+
+# --- Menus ---
+
+# Disable unused built-in taxonomies.
+disableKinds:
+  - taxonomy
+  - term
+menu:
+  main:
+    - name: "Use cases"
+      pageRef: "/use-cases"
+      weight: 10
+    - name: "Quickstart"
+      pageRef: "/quickstart"
+      weight: 20
+    - name: "Cheat sheet"
+      pageRef: "/cheat-sheet"
+      weight: 30
+    - name: "Compare"
+      pageRef: "/compare"
+      weight: 40
+    - name: "Benchmarks"
+      pageRef: "/benchmarks"
+      weight: 50
+    - name: "FAQ"
+      pageRef: "/faq"
+      weight: 60
+    - name: "AI"
+      pageRef: "/ai"
+      weight: 70
+    - name: "About"
+      pageRef: "/about"
+      weight: 80
+  footer:
+    - name: "Source"
+      url: "https://github.com/dVoo/reqmd"
+      weight: 1
+    - name: "reqmd-import"
+      pageRef: "/import"
+      weight: 2
+    - name: "License"
+      pageRef: "/about"
+      weight: 3
+
+# --- Build / module ---
+build:
+  noJSConfigInAssets: true
+  useResourceCacheWhen: "never"
+module:
+  hugoVersion:
+    extended: true
+    min: "0.164.0"

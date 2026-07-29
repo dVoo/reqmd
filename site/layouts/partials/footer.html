@@ -1,0 +1,42 @@
+<footer class="site-footer" role="contentinfo">
+  <div class="container footer-inner">
+    <div class="footer-col">
+      <div class="brand brand-sm">
+        <span class="brand-mark" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4h6v6H4z"/><path d="M14 4h6v6h-6z"/><path d="M4 14h6v6H4z"/>
+            <path d="M14 14h6v6h-6z"/><path d="M10 7h4"/><path d="M7 10v4"/><path d="M14 17h4"/><path d="M17 14v4"/>
+          </svg>
+        </span>
+        <span class="brand-text">reqmd</span>
+      </div>
+      <p class="footer-tag">Lightweight CLI for requirements-as-Markdown.</p>
+    </div>
+    <div class="footer-col">
+      <h4>Product</h4>
+      <ul class="footer-list">
+        {{- range slice "Use cases" "Quickstart" "Cheat sheet" "Compare" "Benchmarks" "FAQ" "AI" "About" -}}
+        <li><a href="/{{ . | urlize }}/">{{ . }}</a></li>
+        {{- end -}}
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Resources</h4>
+      <ul class="footer-list">
+        <li><a href="{{ .Site.Params.github }}" target="_blank" rel="noopener">Source on GitHub</a></li>
+        <li><a href="/import/">reqmd-import</a></li>
+        <li><a href="/llms.txt" rel="alternate">llms.txt</a></li>
+      </ul>
+    </div>
+    <div class="footer-col">
+      <h4>Legal</h4>
+      <ul class="footer-list">
+        <li><a href="/about/#license">License (MIT)</a></li>
+        <li><span class="muted">v{{ .Site.Params.version }}</span></li>
+      </ul>
+    </div>
+  </div>
+  <div class="container footer-bottom">
+    <span>&copy; {{ now.Year }} reqmd authors. Built with Hugo.</span>
+  </div>
+</footer>

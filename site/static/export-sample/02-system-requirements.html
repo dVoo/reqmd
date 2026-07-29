@@ -1,0 +1,2426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>reqmd System Requirements</title>
+<style>
+
+:root {
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-subtle: #eef2ff;
+  --border: #d1d5db;
+  --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-hover: 0 4px 8px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", ui-monospace, monospace;
+  --status-draft: #94a3b8;
+  --status-approved: #22c55e;
+}
+
+html.dark {
+  --bg: #0d1017;
+  --card-bg: #121620;
+  --text: #e2e1db;
+  --text-secondary: #a8a7a0;
+  --text-muted: #7c8399;
+  --accent: #8f9cfa;
+  --accent-hover: #bac2fd;
+  --accent-subtle: #1e2440;
+  --border: #282d3a;
+  --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-hover: 0 4px 8px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  --status-draft: #64748b;
+  --status-approved: #4ade80;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Alpine: hide elements until Alpine has fully initialized */
+[x-cloak] {
+  display: none !important;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+  display: flex;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* ── Header ─────────────────────────────────────── */
+
+.doc-header {
+  max-width: 900px;
+  margin: 0 auto 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.doc-count {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.boundary-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.boundary-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+
+.boundary-badge--root {
+  background: rgba(76, 191, 153, 0.15);
+  color: #2a9d6e;
+  border: 1px solid rgba(76, 191, 153, 0.35);
+}
+
+.boundary-badge--leaf {
+  background: rgba(57, 186, 230, 0.15);
+  color: #1a8bb5;
+  border: 1px solid rgba(57, 186, 230, 0.35);
+}
+
+.doc-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-top: 0.75rem;
+  max-width: 720px;
+}
+
+.doc-description p {
+  margin-bottom: 0.5rem;
+}
+
+.doc-description p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Main / Cards ───────────────────────────────── */
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.req-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  padding: 1.5rem;
+  scroll-margin-top: 1rem;
+}
+
+.req-card:hover {
+  box-shadow: var(--shadow-hover);
+  border-color: var(--accent);
+}
+
+.req-card--hidden {
+  display: none;
+}
+
+/* ── Card header ────────────────────────────────── */
+
+.req-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.req-id {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.req-anchor {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.req-card:hover .req-anchor,
+.req-anchor:focus {
+  opacity: 1;
+}
+
+.req-anchor:hover {
+  color: var(--accent);
+}
+
+/* ── Verification verdict badge ─────────────────── */
+.verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+.verdict-badge--child {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+}
+.verdict-badge--pass {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.verdict-badge--fail {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.verdict-badge--skipped {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+.verdict-badge--inconclusive {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+/* ── Attributes grid ────────────────────────────── */
+
+.req-attrs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.attr {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.attr dt {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.attr dd {
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  color: var(--text);
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.attr-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.attr-pill {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  padding: 0.15rem 0.45rem;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.attr-pill-null {
+  font-style: italic;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 0.75rem;
+}
+
+.attr-nested {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  margin: 0;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* ── Body ───────────────────────────────────────── */
+
+.req-body {
+  margin-bottom: 0.75rem;
+}
+
+.req-body p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+/* ── Rationale ──────────────────────────────────── */
+
+.req-rationale {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding: 0.75rem 1rem;
+  background: var(--accent-subtle);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.req-rationale strong {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ── Trace tabs ─────────────────────────────────── */
+
+.req-traces {
+  margin-top: 0.25rem;
+}
+
+.trace-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.trace-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.trace-column-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .trace-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.trace-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.25rem 0.6rem;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-radius: 6px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.trace-link:hover {
+  background: transparent;
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+.trace-link-id {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.trace-link-title {
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trace-link--child .trace-link-title {
+  font-size: 0.71rem;
+}
+
+/* ── Doc Chain (Document Stack) ─────────────────── */
+
+.doc-chain {
+  font-family: var(--font);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 1080px;
+  margin: 0 auto 1.75rem;
+  padding: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* ── Folding: Details / Summary ─────────────────────── */
+
+.chain-details {
+  interpolate-size: allow-keywords;
+}
+
+.chain-details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size 0.35s ease, content-visibility 0.35s ease allow-discrete;
+}
+
+.chain-details[open]::details-content {
+  block-size: auto;
+}
+
+@starting-style {
+  .chain-details[open]::details-content {
+    block-size: 0;
+  }
+}
+
+.chain-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.chain-summary::-webkit-details-marker {
+  display: none;
+}
+
+.chain-summary::marker {
+  display: none;
+}
+
+.chain-summary:hover,
+.chain-summary:focus-visible {
+  background: var(--accent-subtle);
+  outline: none;
+}
+
+.chain-summary__label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+/* Chevron indicator */
+.chain-summary__label::before {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(-45deg);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+  margin-bottom: 1px;
+}
+
+.chain-details[open] .chain-summary__label::before {
+  transform: rotate(45deg);
+}
+
+.chain-summary__count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+/* ── Stack Container ────────────────────────────────── */
+
+.chain-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 1.25rem 1.25rem;
+}
+
+/* ── Zones ────────────────────────────────────────── */
+
+.chain-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+
+.chain-zone--upstream {
+  padding-bottom: 0.5rem;
+}
+
+.chain-zone--downstream {
+  padding-top: 0.5rem;
+}
+
+.chain-zone--current {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.75rem 0;
+  background: var(--accent-subtle);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.chain-zone-header {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+/* ── Zone Separators ──────────────────────────────── */
+
+.chain-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0 2rem;
+}
+
+.chain-separator-line {
+  flex: 1;
+  max-width: 120px;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.4;
+}
+
+.chain-separator-chevron {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ── Tiers ────────────────────────────────────────── */
+
+.chain-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chain-tier-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Tier Cards (CSS Grid) ────────────────────────── */
+
+.chain-tier-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* ── Cards ────────────────────────────────────────── */
+
+.chain-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0;
+}
+
+.chain-card:hover,
+.chain-card:focus {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-hover);
+  outline: none;
+}
+
+.chain-card-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.chain-card-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-top: auto;
+}
+
+.chain-card-glyph {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+/* Current card */
+.chain-card--current {
+  max-width: 340px;
+  width: 100%;
+  border: 2px solid var(--accent);
+  background: var(--card-bg);
+  box-shadow: 0 0 0 3px var(--accent-subtle), var(--shadow-hover);
+  text-align: center;
+  padding: 1.1rem 1.5rem;
+  cursor: default;
+}
+
+.chain-card--current:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle), var(--shadow-hover);
+}
+
+.chain-card--current .chain-card-title {
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+.chain-card--current .chain-card-meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+/* External cards */
+.chain-card--external {
+  border-style: dashed;
+  background: transparent;
+}
+
+.chain-card--external:hover {
+  border-color: var(--accent);
+}
+
+.chain-card--external .chain-card-title {
+  color: var(--text-secondary);
+}
+
+/* ── Deep chain compaction ──────────────────────────── */
+
+.doc-chain--deep .chain-stack {
+  padding: 0 1rem 1rem;
+}
+
+.doc-chain--deep .chain-zone {
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+}
+
+.doc-chain--deep .chain-zone--current {
+  padding: 0.5rem 0;
+}
+
+.doc-chain--deep .chain-card {
+  padding: 0.65rem;
+}
+
+.doc-chain--deep .chain-card-title {
+  font-size: 0.82rem;
+}
+
+.doc-chain--deep .chain-tier-label {
+  font-size: 0.68rem;
+}
+
+.doc-chain--deep .chain-zone-header {
+  font-size: 0.625rem;
+}
+
+/* ── Dark mode ──────────────────────────────────────── */
+
+html.dark .chain-zone--current {
+  background: rgba(143, 156, 250, 0.06);
+}
+
+html.dark .chain-summary:hover,
+html.dark .chain-summary:focus-visible {
+  background: rgba(143, 156, 250, 0.08);
+}
+
+html.dark .chain-card--current {
+  background: var(--card-bg);
+}
+
+/* ── Responsive (≤720px) ────────────────────────────── */
+
+@media (max-width: 720px) {
+  .doc-chain {
+    margin-bottom: 1.25rem;
+  }
+
+  .chain-summary {
+    padding: 0.75rem 1rem;
+  }
+
+  .chain-summary__label {
+    font-size: 0.88rem;
+  }
+
+  .chain-stack {
+    padding: 0 1rem 1rem;
+  }
+
+  .chain-zone {
+    padding: 1rem 0;
+  }
+
+  .chain-tier-cards {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.625rem;
+  }
+
+  .chain-card {
+    padding: 0.75rem;
+  }
+
+  .chain-card--current {
+    max-width: 280px;
+    padding: 0.9rem 1.25rem;
+  }
+
+  .chain-card--current .chain-card-title {
+    font-size: 1rem;
+  }
+
+  .chain-separator {
+    padding: 0 1rem;
+  }
+}
+
+/* ── Responsive (≤480px) ───────────────────────────── */
+
+@media (max-width: 480px) {
+  .chain-summary__count {
+    display: none;
+  }
+
+  .chain-tier-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .chain-card {
+    padding: 0.65rem;
+  }
+
+  .chain-card--current {
+    max-width: 100%;
+    padding: 0.85rem;
+  }
+
+  .chain-zone-header {
+    font-size: 0.625rem;
+  }
+
+  .chain-tier-label {
+    font-size: 0.6875rem;
+  }
+
+  .chain-separator-line {
+    max-width: 60px;
+  }
+}
+
+/* ── Search & Filter Toolbar ─────────────────────── */
+
+.search-toolbar {
+  max-width: 900px;
+  margin: 0 auto 1.25rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-input {
+  flex: 1;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.filter-group {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-toggle {
+  font-family: var(--font);
+  font-size: 0.78rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+  outline: none;
+}
+
+.filter-toggle:hover,
+.filter-toggle:focus {
+  border-color: var(--accent);
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  line-height: 1;
+}
+
+.filter-arrow {
+  font-size: 0.6rem;
+  opacity: 0.6;
+}
+
+.filter-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 160px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  padding: 0.3rem 0;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.1s;
+}
+
+.filter-option:hover {
+  background: var(--accent-subtle);
+}
+
+.filter-option input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem 0.2rem 0.65rem;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font);
+  line-height: 1.2;
+}
+
+.filter-chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.filter-chip button:hover {
+  background: var(--accent);
+  color: var(--card-bg);
+}
+
+.clear-btn {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  font-family: var(--font);
+}
+
+.clear-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Sidebar TOC ─────────────────────────────────── */
+
+.req-toc {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 100vh;
+  z-index: 200;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.req-toc-header {
+  padding: 1rem 0.85rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.req-toc-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.req-toc-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.req-toc-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.35rem 0;
+}
+
+.req-toc-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.35rem 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.1s ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.req-toc-item:hover {
+  background: var(--accent-subtle);
+}
+
+.req-toc-item--active {
+  background: var(--accent-subtle);
+  border-left: 3px solid var(--accent);
+}
+
+.req-toc-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.req-toc-item-id {
+  font-family: var(--font-mono);
+  font-size: 0.77rem;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1.4;
+}
+
+.req-toc-item-title {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.35;
+  display: block;
+}
+
+.req-toc-item-body {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+  display: block;
+}
+
+/* ── Content Wrapper ────────────────────────────── */
+
+.content-wrapper {
+  flex: 1;
+  margin-left: 320px;
+  padding: 2rem 2rem 2rem 2.5rem;
+  min-width: 0;
+}
+
+/* ── Mobile TOC toggle ──────────────────────────── */
+
+.toc-toggle-btn {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 250;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.toc-toggle-btn:hover {
+  transform: scale(1.1);
+}
+
+/* ── Theme Toggle ───────────────────────────────── */
+
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 300;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* ── Responsive ─────────────────────────────────── */
+
+@media (max-width: 860px) {
+  .req-toc {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 250;
+  }
+
+  .req-toc--open {
+    transform: translateX(0);
+  }
+
+  .content-wrapper {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .toc-toggle-btn {
+    display: flex;
+  }
+
+  /* When TOC is open, dim rest of page */
+  .req-toc--open + .toc-toggle-btn + .content-wrapper {
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+}
+
+@media (max-width: 640px) {
+  .req-card {
+    padding: 1rem;
+  }
+
+  .req-attrs {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .doc-header h1 {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .req-attrs {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Parent card with children ──────────────────── */
+.req-card--has-children {
+  padding-bottom: 0;
+}
+
+/* ── Children section within parent card ────────── */
+.req-children {
+  margin-top: 1.25rem;
+  padding-top: 0.25rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border);
+  position: relative;
+}
+
+.req-children-header {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Child cards ────────────────────────────────── */
+.req-card-child {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-subtle);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.9rem 1rem;
+  scroll-margin-top: 1rem;
+  margin-bottom: 0.75rem;
+  transition: border-left-color 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+
+.req-card-child:hover {
+  border-left-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.req-card-child:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Child card ID (h3) ─────────────────────────── */
+.req-id--child {
+  font-size: 0.92rem;
+}
+
+/* ── Child attrs (more compact) ─────────────────── */
+.req-attrs--child {
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.req-attrs--child .attr dt {
+  font-size: 0.65rem;
+}
+
+.req-attrs--child .attr dd {
+  font-size: 0.8rem;
+}
+
+/* ── Child body ─────────────────────────────────── */
+.req-body--child p {
+  font-size: 0.88rem;
+}
+
+/* ── Child rationale ────────────────────────────── */
+.req-rationale--child {
+  font-size: 0.82rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Child trace tabs ───────────────────────────── */
+.req-card-child .trace-column-header {
+  font-size: 0.7rem;
+}
+
+.trace-link--child {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+}
+
+/* ── Tree TOC ───────────────────────────────────── */
+.req-toc-item--parent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.85rem;
+}
+
+.req-toc-toggle {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
+  user-select: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font);
+  line-height: 1;
+}
+
+.req-toc-toggle:hover {
+  color: var(--accent);
+}
+
+.req-toc-toggle--expanded {
+  transform: rotate(90deg);
+}
+
+.req-toc-child-count {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  background: var(--accent-subtle);
+  border-radius: 8px;
+  padding: 0.05rem 0.4rem;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.req-toc-children {
+  overflow: hidden;
+  max-height: 0;
+}
+
+.req-toc-children--expanded {
+  max-height: none;
+}
+
+.req-toc-item--child {
+  padding-left: 1.8rem;
+  font-size: 0.78rem;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+
+.req-toc-item--child .req-toc-item-id {
+  font-size: 0.72rem;
+}
+
+.req-toc-item--child .req-toc-item-title {
+  font-size: 0.71rem;
+}
+
+.req-toc-item--child .req-toc-item-body {
+  display: none;
+}
+
+.req-toc-item--active-parent {
+  border-left: 3px solid var(--accent-subtle);
+}
+
+/* ── Status lifecycle ─────────────────────────────── */
+
+.req-card--status-draft {
+  border-left: 3px solid var(--status-draft, #94a3b8);
+  opacity: 0.92;
+}
+
+/* Specificity fix: child cards override border-left-color via their
+   own border-left shorthand, so we re-apply the status border with a
+   more specific selector. */
+.req-card-child.req-card--status-draft {
+  border-left-color: var(--status-draft, #94a3b8);
+}
+
+/* Leaf docs already have a strong bottom border, so don't dim them. */
+.req-card--status-draft:not(.req-card--leaf) {
+  opacity: 0.92;
+}
+
+.status-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.status-breakdown__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.status-breakdown__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-breakdown__label {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.status-breakdown__count {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+html.dark .status-breakdown__count {
+  color: var(--text);
+}
+
+html.dark .boundary-badge--root {
+  color: #6ec9a8;
+  border-color: rgba(76, 191, 153, 0.5);
+}
+
+html.dark .boundary-badge--leaf {
+  color: #6dc8e5;
+  border-color: rgba(57, 186, 230, 0.5);
+}
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+</head>
+<body x-data="reqmdApp()" x-init="initApp()" @keydown.escape.window="tocOpen = false">
+<aside class="req-toc" id="req-toc" :class="{'req-toc--open': tocOpen}" @click.away="tocOpen = false">
+  <div class="req-toc-header">
+    <div class="req-toc-title">Requirements</div>
+    <div class="req-toc-count" id="req-toc-count"></div>
+  </div>
+  <div class="req-toc-list" id="req-toc-list">
+  </div>
+</aside>
+<button id="toc-toggle-btn" class="toc-toggle-btn" aria-label="Toggle requirements list" @click="tocOpen = !tocOpen">&#9776;</button>
+<div class="content-wrapper">
+<button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark mode"
+  @click="toggleTheme()" x-text="theme === 'dark' ? '☀️' : '🌙'">🌙</button>
+<nav class="doc-chain" aria-label="Requirement traceability chain">
+  <details class="chain-details" open>
+    <summary class="chain-summary">
+      <span class="chain-summary__label">Traceability Chain</span>
+      <span class="chain-summary__count">3 upstream · 2 downstream</span>
+    </summary>
+  <div class="chain-stack">
+    <div class="chain-zone chain-zone--upstream">
+      <div class="chain-zone-header">Upstream Sources</div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Upstream · 2 levels above</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card chain-card--external" href="00-aspice-requirements.html">
+        <span class="chain-card-glyph" aria-hidden="true">&#8599;</span>
+        <span class="chain-card-title">Automotive SPICE v4.0 — Base Practices</span>
+        <span class="chain-card-meta">00-aspice</span>
+      </a>
+        </div>
+      </div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Upstream</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card" href="01-stakeholder-requirements.html">
+        <span class="chain-card-title">reqmd Stakeholder Goals</span>
+        <span class="chain-card-meta">01-stakeholder</span>
+      </a>
+      <a class="chain-card" href="01a-aspice-stakeholder-requirements.html">
+        <span class="chain-card-title">ASPICE v4.0 Stakeholder Requirements for reqmd</span>
+        <span class="chain-card-meta">01a-aspice-stakeholder</span>
+      </a>
+        </div>
+      </div>
+    </div>
+    <div class="chain-separator" aria-hidden="true">
+      <div class="chain-separator-line"></div>
+      <div class="chain-separator-chevron">&#9662;</div>
+      <div class="chain-separator-line"></div>
+    </div>
+    <div class="chain-zone chain-zone--current">
+      <span class="chain-card chain-card--current" aria-current="page">
+        <span class="chain-card-title">reqmd System Requirements</span>
+        <span class="chain-card-meta">02-system</span>
+      </span>
+    </div>
+    <div class="chain-separator" aria-hidden="true">
+      <div class="chain-separator-line"></div>
+      <div class="chain-separator-chevron">&#9662;</div>
+      <div class="chain-separator-line"></div>
+    </div>
+    <div class="chain-zone chain-zone--downstream">
+      <div class="chain-zone-header">Downstream Consumers</div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Downstream</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card" href="03-software-requirements.html">
+        <span class="chain-card-title">reqmd Software Requirements</span>
+        <span class="chain-card-meta">03-software</span>
+      </a>
+        </div>
+      </div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Downstream · 2 levels below</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card" href="04-tests-requirements.html">
+        <span class="chain-card-title">reqmd Test Specifications</span>
+        <span class="chain-card-meta">04-tests</span>
+      </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  </details>
+</nav>
+<header class="doc-header">
+<h1>reqmd System Requirements</h1>
+<p class="doc-count">11 requirements (11 parents, 0 children)</p>
+<div class="status-breakdown"><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-approved)"></span><span class="status-breakdown__label">approved</span><span class="status-breakdown__count">11</span></span></div></header>
+<div class="search-toolbar" data-default-status="approved" data-additional-status-values="null">
+  <div class="search-row">
+    <input type="search" class="search-input" placeholder="Search ID, body, rationale, attributes..." autocomplete="off"
+      x-model.debounce.150ms="searchTerm">
+    <span class="search-count" x-text="visibleCount + '/' + totalCount"></span>
+  </div>
+  <div class="filter-row">
+    <template x-for="(values, attr) in activeFiltersByAttr" :key="attr">
+      <template x-for="v in values" :key="attr + ':' + v">
+        <span class="filter-chip">
+          <span x-text="prettyName(attr) + ': ' + v"></span>
+          <button @click="removeFilter(attr, v)" aria-label="Remove filter">×</button>
+        </span>
+      </template>
+    </template>
+    <template x-if="Object.keys(activeFiltersByAttr).length > 0">
+      <button class="clear-btn" @click="clearAll()">× Clear all</button>
+    </template>
+  </div>
+  <div class="filter-row" id="filter-row">
+    <template x-for="(values, attr) in filterOptions" :key="attr">
+      <div class="filter-group"
+           x-data="{ open: false, closeMenu() { if (this.open) { this.open = false; this.$nextTick(() => { if (this.$refs.toggleBtn) this.$refs.toggleBtn.focus(); }); } } }"
+           @click.outside="closeMenu()"
+           @keydown.escape.window="closeMenu()">
+        <button class="filter-toggle" type="button" @click.prevent="open = !open" :aria-expanded="open" :aria-controls="'filter-menu-' + attr" x-ref="toggleBtn">
+          <span x-text="prettyName(attr)"></span>
+          <span class="filter-badge" x-show="activeFiltersByAttr[attr] && activeFiltersByAttr[attr].length" x-text="(activeFiltersByAttr[attr] || []).length"></span>
+          <span class="filter-arrow" x-text="open ? '▲' : '▾'"></span>
+        </button>
+        <div class="filter-menu" :id="'filter-menu-' + attr" x-show="open" x-cloak x-transition x-ref="menu" x-effect="if (open) { $nextTick(() => { const cb = $refs.menu.querySelector('input'); if (cb) cb.focus(); }); }">
+          <template x-for="v in values" :key="v">
+            <label class="filter-option">
+              <input type="checkbox" :checked="(activeFiltersByAttr[attr] || []).indexOf(v) !== -1"
+                     @change="toggleFilter(attr, v)">
+              <span x-text="v"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+<main>
+<article class="req-card" id="SYS-FMT-001" x-show="isCardVisible('SYS-FMT-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-FMT-001</code>: Markdown requirement format</h2>
+<a class="req-anchor" href="#SYS-FMT-001" title="Link to this requirement" aria-label="Link to SYS-FMT-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Critical</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Each requirement shall be authored as a Markdown heading of any level (e.g., <code>#</code>, <code>##</code>, <code>###</code>) followed immediately by a fenced <code>```attr ```</code> YAML block, then free-form prose. The heading text is the requirement ID; an optional human-readable title may follow the ID after a colon and space (e.g., <code>## REQ-001: Login requirement</code>). The first heading+attr pair encountered in a document determines the requirement level (<code>reqLevel</code>). Headings at <code>reqLevel</code> with adjacent attr blocks are top-level requirements; headings at <code>reqLevel+1</code> with adjacent attr blocks are sub-requirements automatically linked to the preceding <code>reqLevel</code> parent. An optional <code>*Rationale:*</code> paragraph may follow the prose statement.</p>
+<p>Headings without an adjacent attr block are treated as body text, enabling section dividers and annotations between requirements.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Dynamic level discovery decouples requirement hierarchy from hardcoded heading depths, making documents easier to generate programmatically. The <code>isNextAttrBlock</code> lookahead provides a universal detection mechanism — a heading is a requirement iff its next AST sibling is an attr fence. Sub-requirements express V-model decomposition naturally via Markdown's native heading hierarchy.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (4)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-001"><span class="trace-link-id">STK-GOAL-001</span><span class="trace-link-title">Text-first Git-native authoring</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-001"><span class="trace-link-id">ASP-SR-001</span><span class="trace-link-title">Structured requirement organization</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-003"><span class="trace-link-id">ASP-SR-003</span><span class="trace-link-title">Heading-level hierarchy decomposition</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-020"><span class="trace-link-id">ASP-SR-020</span><span class="trace-link-title">V-model refinement levels</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (2)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-PAR-001"><span class="trace-link-id">SW-PAR-001</span><span class="trace-link-title">Goldmark-based markdown parser</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-ERR-001"><span class="trace-link-id">SW-ERR-001</span><span class="trace-link-title">Parser discovery error handling</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-FMT-002" x-show="isCardVisible('SYS-FMT-002')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-FMT-002</code>: Built-in attribute system</h2>
+<a class="req-anchor" href="#SYS-FMT-002" title="Link to this requirement" aria-label="Link to SYS-FMT-002">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Critical</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The <code>attr</code> block shall support six built-in attributes — <code>trace</code>, <code>status</code>, <code>disposition</code>, <code>disposition-reason</code>, <code>version</code>, and <code>requires-trace-from</code> — that carry tool-level semantics in Pass 2 validation. Built-in attributes are injected automatically and must not be declared in <code>schema.yaml</code>. The parent-child relationship between requirements is structural (derived from heading level in the parser), not an attribute — no <code>parent</code> built-in is needed.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Separation of concerns: project-specific attributes go in <code>schema.yaml</code>; tool-level attributes are always available without schema boilerplate. Blocking redefinition prevents ambiguity. Keeping the parent relationship structural avoids redundant data — the heading hierarchy is the source of truth.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (3)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-002"><span class="trace-link-id">STK-GOAL-002</span><span class="trace-link-title">Human-readable machine-parsable specs</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-007"><span class="trace-link-id">ASP-SR-007</span><span class="trace-link-title">Change tracking for requirements</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-013"><span class="trace-link-id">ASP-SR-013</span><span class="trace-link-title">Issue and change tracking</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (2)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-SCH-001"><span class="trace-link-id">SW-SCH-001</span><span class="trace-link-title">JSON Schema compilation</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-CHK-001"><span class="trace-link-id">SW-CHK-001</span><span class="trace-link-title">Ten trace integrity checks</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-FMT-003" x-show="isCardVisible('SYS-FMT-003')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-FMT-003</code>: Schema.yaml document configuration</h2>
+<a class="req-anchor" href="#SYS-FMT-003" title="Link to this requirement" aria-label="Link to SYS-FMT-003">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Critical</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Each document directory shall contain exactly one <code>schema.yaml</code> that defines project-specific attributes using JSON Schema 2020-12 (YAML-serialized). An optional <code>x-reqmd</code> extension block provides directory-level metadata (level, upstream, id-prefix, external, mandatory-disposition, url, source).</p>
+<p>The <code>external: true</code> flag marks a directory as a proxy for artefacts originating outside authored reqmd specs (standards, architecture tools, test frameworks). Proxy directories suppress the untraced WARNING globally. The <code>url</code> field provides a human-readable link; the <code>source</code> block (path + format) drives planned reqmd-scan generation.</p>
+<p>Export output filenames follow the convention <code>&lt;dirname&gt;-requirements.&lt;ext&gt;</code>, written alongside each document directory or into <code>-o &lt;dir&gt;</code> if specified.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>JSON Schema 2020-12 is a widely-supported standard with validators in every language. The <code>x-reqmd</code> block keeps reqmd-specific configuration in the same file without breaking standard JSON Schema validators.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (4)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-003"><span class="trace-link-id">STK-GOAL-003</span><span class="trace-link-title">Schema-driven validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-002"><span class="trace-link-id">ASP-SR-002</span><span class="trace-link-title">Schema-based requirement validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-009"><span class="trace-link-id">ASP-SR-009</span><span class="trace-link-title">Configuration management support</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-015"><span class="trace-link-id">ASP-SR-015</span><span class="trace-link-title">External standard referencing</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-SCH-001"><span class="trace-link-id">SW-SCH-001</span><span class="trace-link-title">JSON Schema compilation</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-CLI-001" x-show="isCardVisible('SYS-CLI-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-CLI-001</code>: CLI subcommands</h2>
+<a class="req-anchor" href="#SYS-CLI-001" title="Link to this requirement" aria-label="Link to SYS-CLI-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Critical</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The <code>reqmd</code> binary shall provide CLI subcommands: <code>check</code> (validate), <code>ls</code> (list), <code>stats</code> (attribute-value breakdown), <code>export</code> (csv, html, graph), <code>init</code> (scaffold), <code>serve</code> (live-reloading HTML preview), <code>baseline diff</code> (compare git tags), and <code>repin</code> (bulk-update version pins). All commands accept a root directory for recursive document discovery. Exit codes distinguish success (0), validation errors (1), and parse errors (2).</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>A single binary that walks the directory tree and handles all document directories in one pass minimizes CI complexity. Distinct exit codes enable pipeline branching (fail build on errors, warn on warnings).</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (5)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-001"><span class="trace-link-id">STK-GOAL-001</span><span class="trace-link-title">Text-first Git-native authoring</span></a>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-004"><span class="trace-link-id">STK-GOAL-004</span><span class="trace-link-title">Multi-format export</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-008"><span class="trace-link-id">ASP-SR-008</span><span class="trace-link-title">Automated quality validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-016"><span class="trace-link-id">ASP-SR-016</span><span class="trace-link-title">Portable export distribution</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-018"><span class="trace-link-id">ASP-SR-018</span><span class="trace-link-title">Requirement metrics and measurement</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (3)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-EXP-001"><span class="trace-link-id">SW-EXP-001</span><span class="trace-link-title">CSV, HTML, and graph export</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-CLI-001"><span class="trace-link-id">SW-CLI-001</span><span class="trace-link-title">Cobra command dispatch</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-SRV-001"><span class="trace-link-id">SW-SRV-001</span><span class="trace-link-title">Live-reload serve subcommand</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-VAL-001" x-show="isCardVisible('SYS-VAL-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-VAL-001</code>: Multi-pass validation pipeline</h2>
+<a class="req-anchor" href="#SYS-VAL-001" title="Link to this requirement" aria-label="Link to SYS-VAL-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Critical</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The validation pipeline shall execute four sequential passes: Parse (goldmark AST), Pass 1 (JSON Schema validation with built-in injection), Graph build (pure Go in-memory adjacency with three sub-passes: node creation, trace-edge building, parent-child edge building), and Pass 2 (thirteen trace checks: broken reference, circular, untraced, no-downstream, disposition without reason, mandatory disposition, ID prefix mismatch, ID prefix collision [ERROR], duplicate ID [ERROR], ambiguous reference [ERROR], version-pin [ERROR], missing-verdict [WARNING], failing-verdict [ERROR]).</p>
+<p>Document discovery follows a recursive tree walk: every directory containing a <code>schema.yaml</code> is a document directory; all <code>*.md</code> files in that directory (non-recursive) are parsed against that directory's schema.</p>
+<p>Properties are ordered in <code>ls</code> and CSV export as: required attributes first (in schema's <code>required</code> order), then optional attributes (in schema definition order), then built-in attributes.</p>
+<p>The untraced check is suppressed for sub-requirements (<code>IsChild</code> flag set during graph construction), as their parent relationship provides the necessary trace context. Broken parent references discovered during Pass 3 produce ERROR-level results.</p>
+<p>The disposition workflow is defined as:No <code>disposition</code> set → downstream traces expected (no-downstream is WARNING)<code>disposition: implemented</code> → downstream traces expected; no-downstream is WARNING<code>disposition: deferred</code> → no downstream traces expected; <code>disposition-reason</code> is REQUIRED<code>disposition: rejected</code> → no downstream traces expected; <code>disposition-reason</code> is REQUIRED</p>
+<p>Defining a reserved built-in attribute in <code>schema.yaml</code> produces a compile-time error.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Sequential passes ensure each stage has complete information. Parse must finish before validation; graph must be built before trace checks; all results are collected before reporting. Three sub-passes within graph construction guarantee deterministic node initialization before edges are wired.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (7)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-003"><span class="trace-link-id">STK-GOAL-003</span><span class="trace-link-title">Schema-driven validation</span></a>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-005"><span class="trace-link-id">STK-GOAL-005</span><span class="trace-link-title">V-model traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-004"><span class="trace-link-id">ASP-SR-004</span><span class="trace-link-title">Cross-document traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-005"><span class="trace-link-id">ASP-SR-005</span><span class="trace-link-title">Trace chain validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-006"><span class="trace-link-id">ASP-SR-006</span><span class="trace-link-title">Requirement-to-verification traceability and result recording</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-008"><span class="trace-link-id">ASP-SR-008</span><span class="trace-link-title">Automated quality validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-011"><span class="trace-link-id">ASP-SR-011</span><span class="trace-link-title">Interdependency analysis</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (4)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-GRA-001"><span class="trace-link-id">SW-GRA-001</span><span class="trace-link-title">In-memory directed graph</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-SAF-001"><span class="trace-link-id">SW-SAF-001</span><span class="trace-link-title">Version-pin demotion in check</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-SAF-002"><span class="trace-link-id">SW-SAF-002</span><span class="trace-link-title">Graph construction safety</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-CHK-002"><span class="trace-link-id">SW-CHK-002</span><span class="trace-link-title">Scoped check pipeline</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-TRC-001" x-show="isCardVisible('SYS-TRC-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-TRC-001</code>: Upstream-only trace model</h2>
+<a class="req-anchor" href="#SYS-TRC-001" title="Link to this requirement" aria-label="Link to SYS-TRC-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Critical</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The trace model shall be upstream-only: each requirement declares its parent(s) via the <code>trace</code> attribute. Downstream links are derived automatically when the graph is built across all documents. The tool shall also support trace pinning via a <code>version</code> integer attribute and an optional <code>~N</code> suffix on trace values (e.g., <code>SYS-042~3</code> means &quot;fulfills SYS-042 version 3&quot;). Additionally, sub-requirements receive an automatic parent-child edge from heading hierarchy during graph Pass 3 — no manual <code>trace</code> attribute is needed for the parent link. V-model boundaries are inferred from document topology: directories with no upstream traces suppress untraced warnings; directories not referenced as upstream suppress no-downstream warnings.</p>
+<p>When multiple documents share the same ID prefix (e.g., two teams both use <code>STK-</code>), path-qualified trace references disambiguate: <code>stakeholder-a/STK-001</code> resolves to STK-001 in the <code>stakeholder-a/</code> directory. Unqualified references (<code>STK-001</code>) work when the ID is globally unique. An unqualified reference that matches IDs in multiple documents produces an ERROR suggesting the qualified form.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Upstream-only declarations avoid redundancy — if every child names its parent, the full chain is determined without any requirement also listing its children. Version pinning lets PR reviewers detect upstream changes since the trace was last validated. Auto-edges for sub-requirements ensure decomposition hierarchy is always present without manual attribute maintenance. V-model boundaries are inferred from directory topology (upstream.sources), eliminating per-requirement boilerplate.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (8)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-005"><span class="trace-link-id">STK-GOAL-005</span><span class="trace-link-title">V-model traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-004"><span class="trace-link-id">ASP-SR-004</span><span class="trace-link-title">Cross-document traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-007"><span class="trace-link-id">ASP-SR-007</span><span class="trace-link-title">Change tracking for requirements</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-009"><span class="trace-link-id">ASP-SR-009</span><span class="trace-link-title">Configuration management support</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-011"><span class="trace-link-id">ASP-SR-011</span><span class="trace-link-title">Interdependency analysis</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-013"><span class="trace-link-id">ASP-SR-013</span><span class="trace-link-title">Issue and change tracking</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-017"><span class="trace-link-id">ASP-SR-017</span><span class="trace-link-title">Impact analysis support</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-020"><span class="trace-link-id">ASP-SR-020</span><span class="trace-link-title">V-model refinement levels</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (2)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-SCH-001"><span class="trace-link-id">SW-SCH-001</span><span class="trace-link-title">JSON Schema compilation</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-CHK-001"><span class="trace-link-id">SW-CHK-001</span><span class="trace-link-title">Ten trace integrity checks</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-FMT-004" x-show="isCardVisible('SYS-FMT-004')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-FMT-004</code>: YAML frontmatter support</h2>
+<a class="req-anchor" href="#SYS-FMT-004" title="Link to this requirement" aria-label="Link to SYS-FMT-004">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Documents SHOULD support YAML frontmatter (<code>---</code>-delimited) parsed via goldmark-meta. If present, the <code>description</code> key provides document-level prose rendered in the HTML export below the document header. Frontmatter parsing must not interfere with requirement <code>attr</code>-block parsing within the same file.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>YAML frontmatter is a standard convention across Markdown toolchains (Jekyll, Hugo, GitHub Pages). Supporting it lets authors add document-level context — like an abstract or navigation hint — without requiring a separate file.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-002"><span class="trace-link-id">STK-GOAL-002</span><span class="trace-link-title">Human-readable machine-parsable specs</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-PAR-001"><span class="trace-link-id">SW-PAR-001</span><span class="trace-link-title">Goldmark-based markdown parser</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-HTM-001" x-show="isCardVisible('SYS-HTM-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-HTM-001</code>: Standalone HTML export</h2>
+<a class="req-anchor" href="#SYS-HTM-001" title="Link to this requirement" aria-label="Link to SYS-HTM-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The HTML exporter SHALL produce a standalone <code>.html</code> page per document directory suitable for human traceability review, with all requirement attributes, rendered prose, trace navigation, hierarchical document structure, and theme customization — without requiring network access after generation.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The HTML export is the primary human-reviewable output for non-technical stakeholders. A self-contained page eliminates server dependencies for distribution.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (3)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-004"><span class="trace-link-id">STK-GOAL-004</span><span class="trace-link-title">Multi-format export</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-010"><span class="trace-link-id">ASP-SR-010</span><span class="trace-link-title">Readable requirement documentation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-016"><span class="trace-link-id">ASP-SR-016</span><span class="trace-link-title">Portable export distribution</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (3)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-EXP-001"><span class="trace-link-id">SW-EXP-001</span><span class="trace-link-title">CSV, HTML, and graph export</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-SEC-001"><span class="trace-link-id">SW-SEC-001</span><span class="trace-link-title">Exporter trace-link resolution</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-SRV-001"><span class="trace-link-id">SW-SRV-001</span><span class="trace-link-title">Live-reload serve subcommand</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-BAS-001" x-show="isCardVisible('SYS-BAS-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-BAS-001</code>: Baseline comparison via git tags</h2>
+<a class="req-anchor" href="#SYS-BAS-001" title="Link to this requirement" aria-label="Link to SYS-BAS-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The tool shall provide a <code>reqmd baseline diff &lt;tag1&gt; &lt;tag2&gt;</code> subcommand that compares requirement specifications between two git tags without requiring a working-tree checkout. The command shall extract the repository at each tag using <code>git archive | tar</code>, parse both versions with the standard pipeline, and produce a semantic diff showing added, removed, and modified requirements with attribute-level detail, plus schema changes (new/removed properties, changed required fields). Output shall be colored text by default with a <code>--json</code> flag for structured output.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Requirement-level diffs enable change-impact analysis and release notes generation. Using git tags as baseline anchors means the diff inherits the team's existing version-control workflow — no separate baseline store to maintain. <code>git archive</code> avoids the need to check out tags in separate worktrees, keeping the operation fast and side-effect-free.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-002"><span class="trace-link-id">STK-GOAL-002</span><span class="trace-link-title">Human-readable machine-parsable specs</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-BAS-001"><span class="trace-link-id">SW-BAS-001</span><span class="trace-link-title">Baseline diff via git tags</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-REPIN-001" x-show="isCardVisible('SYS-REPIN-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-REPIN-001</code>: Bulk version-pin update via reqmd repin</h2>
+<a class="req-anchor" href="#SYS-REPIN-001" title="Link to this requirement" aria-label="Link to SYS-REPIN-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">system-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The tool shall provide a <code>reqmd repin &lt;root&gt;</code> subcommand that scans the spec tree for trace refs whose <code>~N</code> version pin is below the upstream's current <code>version</code> and either lists the proposed changes (dry-run, default) or rewrites the affected <code>```attr</code> blocks in place (<code>--yes</code>). Predated findings (pin ahead of upstream) shall be surfaced in the change list but never auto-fixed, because they are data-integrity errors. The subcommand shall accept a <code>--promote-unpinned</code> flag that additionally proposes pins for trace refs without any <code>~N</code> against a versioned upstream, and a <code>--json</code> flag that emits a stable JSON contract (<code>deltas[]</code> with <code>kind</code> ∈ {<code>outdated</code>, <code>unpinned</code>, <code>predated</code>}, <code>req_id</code>, <code>file</code>, <code>target_id</code>, <code>source_ref</code>, <code>old_pin</code>, <code>new_pin</code>, <code>new_version</code>; plus <code>outdated</code>/<code>unpinned</code>/<code>predated</code> counts and a <code>by_file</code> map). Without <code>--yes</code>, the command shall run by default in dry-run mode; in an interactive TTY it shall prompt for confirmation before applying. The rewrite shall be scoped to <code>```attr</code> blocks only, leaving surrounding Markdown prose verbatim.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The version-pin check (SYS-VAL-001) reports every outdated pin individually; without an apply path users have to hand-edit each <code>trace:</code> line. <code>repin</code> is the bulk-update counterpart to the check, with a mandatory dry-run/confirm step so the change set is reviewable before files are written. Whole-ref matching (not substring) prevents an unpinned promote from corrupting an already-pinned sibling, e.g. rewriting <code>UP-001</code> inside <code>UP-001~3</code> to <code>UP-001~3~3</code>. Predated findings are excluded from the apply set because they indicate that the upstream itself needs attention (a newer version was rolled back, or the pin is wrong), not that the pin should be lowered.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-002"><span class="trace-link-id">STK-GOAL-002</span><span class="trace-link-title">Human-readable machine-parsable specs</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (0)</div>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-VAL-002" x-show="isCardVisible('SYS-VAL-002')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-VAL-002</code>: Verification result ingestion and outcome-gated checks</h2>
+<a class="req-anchor" href="#SYS-VAL-002" title="Link to this requirement" aria-label="Link to SYS-VAL-002">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The <code>check</code> and <code>serve</code> commands shall accept a repeatable <code>--results &lt;path&gt;</code> flag that loads ephemeral verification results from CTRF JSON reports (automated tests) and manual-results markdown directories (review, inspection, analysis). Each path is auto-detected: directories are walked, <code>.ctrf.json</code> and CTRF-shaped <code>.json</code> files are parsed as CTRF, subdirectories with a <code>schema.yaml</code> are loaded as manual results via the standard document pipeline, and non-CTRF files are skipped silently. Single files are parsed as CTRF.</p>
+<p>Results are loaded per invocation and are not persisted in the spec repo. CTRF test entries map to verification measures via the <code>x-reqmd.id</code> extra field (with optional <code>~N</code> version pin). CTRF <code>status</code> maps to a reqmd <code>outcome</code> (<code>passed→pass</code>, <code>failed→fail</code>, <code>skipped→skipped</code>, <code>pending|other|flaky→inconclusive</code>). Manual results carry <code>outcome</code>, <code>verifier</code>, <code>evidence</code>, <code>verified-at</code>, and <code>trace: [MEASURE-ID]</code>. Across all inputs, the latest verdict per measure wins by timestamp.</p>
+<p>Each merged result is synthesized as a pseudo-requirement (<code>RESULT:&lt;id&gt;</code>, <code>trace: [MEASURE-ID~N]</code>, <code>outcome: &lt;verdict&gt;</code>) appended to the document slice before graph build. Two outcome-gated checks run when result nodes are present: <code>missing-verdict</code> (approved measure with no result, WARNING, suppressible) and <code>failing-verdict</code> (latest result is fail, ERROR, suppressible). The existing <code>version-pin</code> check applies to result→measure traces, reusing stale-verdict detection with no new logic. Draft measures are skipped by <code>missing-verdict</code>.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>reqmd traces the left side of the V-model (stakeholder → system → software → test specs) but could not represent the right side: verification <em>results</em>. Every ASPICE BP that says &quot;record the verification results including pass/fail status and evaluate&quot; was unrepresentable. The <code>status: draft|approved</code> axis is a lifecycle gate, not a verdict — an approved, implemented test can still fail. Ephemeral results keep CI run-to-run churn out of git and <code>baseline diff</code>, while the outcome-gated checks close the V-model right side by enforcing that every approved measure has a passing latest verdict.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (2)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-005"><span class="trace-link-id">STK-GOAL-005</span><span class="trace-link-title">V-model traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-006"><span class="trace-link-id">ASP-SR-006</span><span class="trace-link-title">Requirement-to-verification traceability and result recording</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (4)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-VER-001"><span class="trace-link-id">SW-VER-001</span><span class="trace-link-title">CTRF report parser</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-VER-002"><span class="trace-link-id">SW-VER-002</span><span class="trace-link-title">Manual-results markdown loader</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-VER-003"><span class="trace-link-id">SW-VER-003</span><span class="trace-link-title">Result merge and synthesis</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-VER-004"><span class="trace-link-id">SW-VER-004</span><span class="trace-link-title">Outcome-gated graph checks</span></a>
+</div>
+</div>
+</div>
+</article>
+</main>
+<script>
+
+// ── Alpine component ──
+// Owns: theme, mobile-sidebar open state, search term, active filter
+// chips, the parsed requirement index, and per-card visibility logic.
+function reqmdApp() {
+  return {
+    theme: (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) || 'light',
+    tocOpen: false,
+    searchTerm: '',
+    totalCount: 0,
+    visibleCount: 0,
+    activeFiltersByAttr: {},
+    filterOptions: {},
+    reqIndex: [],
+    reqMap: new Map(),
+
+    initApp() {
+      // Apply the stored theme to <html> before paint to avoid a flash.
+      this.theme = (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) || 'light';
+      if (this.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      // Parse the requirement index (used by isCardVisible and the count).
+      var indexEl = document.getElementById('req-index');
+      if (indexEl) {
+        try { this.reqIndex = JSON.parse(indexEl.textContent); } catch (e) { this.reqIndex = []; }
+      }
+      var self = this;
+      this.reqMap = new Map(this.reqIndex.map(function (r) { return [r.id, r]; }));
+      this.totalCount = this.reqIndex.length;
+      this.visibleCount = this.totalCount;
+
+      // Parse the filter options (built in Go from the same data the
+      // old vanilla-JS code computed; Alpine renders the <select>s from
+      // this declaratively).
+      var filterEl = document.getElementById('req-filter-index');
+      if (filterEl) {
+        try { this.filterOptions = JSON.parse(filterEl.textContent); } catch (e) { this.filterOptions = {}; }
+      }
+
+      // F1: pre-check the default status filter (declared on the toolbar
+      // as data-default-status. An empty value skips this entirely
+      // (used for ignore-status documents where the lifecycle is
+      // bypassed).
+      var toolbar = document.querySelector('.search-toolbar');
+      var defaultStatus = toolbar ? toolbar.getAttribute('data-default-status') : '';
+      if (defaultStatus && this.filterOptions && this.filterOptions.status && this.filterOptions.status.indexOf(defaultStatus) !== -1) {
+        this.activeFiltersByAttr.status = [defaultStatus];
+      }
+
+      // Re-derive visibleCount whenever any input changes. Alpine's
+      // $watch is the canonical way to subscribe to reactive state.
+      this.$watch('searchTerm', function () { self.recomputeCounts(); });
+      this.$watch('activeFiltersByAttr', function () { self.recomputeCounts(); }, { deep: true });
+
+      // Initial count.
+      this.recomputeCounts();
+    },
+
+    toggleTheme() {
+      this.theme = this.theme === 'dark' ? 'light' : 'dark';
+      if (this.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      try { localStorage.setItem('theme', this.theme); } catch (e) { /* private mode */ }
+    },
+
+    toggleFilter(attr, value) {
+      if (!this.activeFiltersByAttr[attr]) {
+        this.activeFiltersByAttr[attr] = [];
+      }
+      var idx = this.activeFiltersByAttr[attr].indexOf(value);
+      if (idx === -1) {
+        this.activeFiltersByAttr[attr].push(value);
+      } else {
+        this.activeFiltersByAttr[attr].splice(idx, 1);
+        if (this.activeFiltersByAttr[attr].length === 0) {
+          delete this.activeFiltersByAttr[attr];
+        }
+      }
+      // Force reactivity: reassign the outer object
+      this.activeFiltersByAttr = Object.assign({}, this.activeFiltersByAttr);
+    },
+
+    removeFilter(attr, value) {
+      var arr = this.activeFiltersByAttr[attr];
+      if (!arr) return;
+      this.activeFiltersByAttr[attr] = arr.filter(function (v) { return v !== value; });
+      if (this.activeFiltersByAttr[attr].length === 0) {
+        delete this.activeFiltersByAttr[attr];
+      }
+      // Trigger reactivity by reassigning
+      this.activeFiltersByAttr = Object.assign({}, this.activeFiltersByAttr);
+    },
+
+    clearAll() {
+      this.activeFiltersByAttr = {};
+      this.searchTerm = '';
+    },
+
+    prettyName(attr) {
+      if (!attr) return '';
+      return attr.charAt(0).toUpperCase() + attr.slice(1).replace(/[-_]/g, ' ');
+    },
+
+    // Per-card visibility. Used by x-show on every requirement article.
+    // Returns true when the card matches the current search term AND
+    // every active filter (AND semantics across filters).
+    isCardVisible(cardId) {
+      var entry = this.reqMap.get(cardId);
+      if (!entry) return true;
+
+      var match = true;
+
+      // Text search across id, body, rationale, and all scalar attribute values.
+      if (this.searchTerm && this.searchTerm.trim()) {
+        var term = this.searchTerm.toLowerCase().trim();
+        var attrTexts = [];
+        if (entry.attrs) {
+          Object.keys(entry.attrs).forEach(function (k) {
+            var v = entry.attrs[k];
+            if (Array.isArray(v)) {
+              v.forEach(function (item) {
+                if (item !== null && typeof item !== 'object') attrTexts.push(String(item));
+              });
+            } else if (v !== null && typeof v !== 'object') {
+              attrTexts.push(String(v));
+            }
+          });
+        }
+        var searchText = (entry.id + ' ' + (entry.body || '') + ' ' + (entry.rationale || '') + ' ' + attrTexts.join(' ')).toLowerCase();
+        if (searchText.indexOf(term) === -1) match = false;
+      }
+
+      // Attribute filters: OR within each attr, AND across attrs.
+      if (match && Object.keys(this.activeFiltersByAttr).length > 0 && entry.attrs) {
+        var attrNames = Object.keys(this.activeFiltersByAttr);
+        for (var a = 0; a < attrNames.length; a++) {
+          var attr = attrNames[a];
+          var selectedValues = this.activeFiltersByAttr[attr];
+          if (!selectedValues || selectedValues.length === 0) continue;
+          var attrVal = entry.attrs[attr];
+          var hasMatch = false;
+          if (attrVal !== null && attrVal !== undefined) {
+            if (Array.isArray(attrVal)) {
+              for (var si = 0; si < selectedValues.length; si++) {
+                if (attrVal.some(function (v) { return String(v) === selectedValues[si]; })) {
+                  hasMatch = true;
+                  break;
+                }
+              }
+            } else {
+              var strVal = String(attrVal);
+              for (var si = 0; si < selectedValues.length; si++) {
+                if (strVal === selectedValues[si]) { hasMatch = true; break; }
+              }
+            }
+          }
+          if (!hasMatch) { match = false; break; }
+        }
+      }
+
+      return match;
+    },
+
+    // Recompute visibleCount by walking the index. Triggered by $watch on
+    // searchTerm and activeFilters. x-text binds visibleCount + '/' +
+    // totalCount into the search-count span.
+    recomputeCounts() {
+      var n = 0;
+      for (var i = 0; i < this.reqIndex.length; i++) {
+        if (this.isCardVisible(this.reqIndex[i].id)) n++;
+      }
+      this.visibleCount = n;
+    }
+  };
+}
+
+// ── Vanilla JS: TOC tree + scroll-spy ──
+// Runs on DOMContentLoaded. By this point Alpine's <script defer> has
+// parsed but the Alpine component may not have booted yet — the TOC
+// tree is built from #req-index independently of Alpine.
+document.addEventListener('DOMContentLoaded', function () {
+  // ── Build Tree TOC Sidebar ──
+  var tocList = document.getElementById('req-toc-list');
+  var tocCount = document.getElementById('req-toc-count');
+  var indexEl = document.getElementById('req-index');
+
+  if (tocList && indexEl) {
+    var reqs;
+    try { reqs = JSON.parse(indexEl.textContent); } catch (e) { reqs = []; }
+
+    if (reqs && reqs.length) {
+      var topLevel = [];
+      var childMap = {};
+      var entryMap = {};
+
+      reqs.forEach(function (r) {
+        entryMap[r.id] = r;
+        if (r.parentId) {
+          if (!childMap[r.parentId]) childMap[r.parentId] = [];
+          childMap[r.parentId].push(r);
+        } else {
+          topLevel.push(r);
+        }
+      });
+
+      var childCount = 0;
+      for (var pid in childMap) childCount += childMap[pid].length;
+
+      if (tocCount) {
+        tocCount.textContent = reqs.length + ' requirements (' + topLevel.length + ' parents \u00B7 ' + childCount + ' children)';
+      }
+
+      function createTreeItem(r, isChild) {
+        var wrapper = document.createElement('div');
+        wrapper.className = isChild ? 'req-toc-item req-toc-item--child' : 'req-toc-item req-toc-item--parent';
+        wrapper.setAttribute('data-id', r.id);
+
+        var hasKids = r.children && r.children.length > 0;
+
+        if (hasKids) {
+          var toggle = document.createElement('button');
+          toggle.className = 'req-toc-toggle';
+          toggle.textContent = '\u25B6';
+          toggle.setAttribute('aria-label', 'Expand ' + r.id);
+          toggle.setAttribute('aria-expanded', 'false');
+          wrapper.appendChild(toggle);
+        }
+
+        var mainDiv = document.createElement('div');
+        mainDiv.className = 'req-toc-item-main';
+
+        var idSpan = document.createElement('span');
+        idSpan.className = 'req-toc-item-id';
+        idSpan.innerHTML = '<code>' + r.id + '</code>';
+        mainDiv.appendChild(idSpan);
+
+        if (r.title) {
+          var titleSpan = document.createElement('span');
+          titleSpan.className = 'req-toc-item-title';
+          titleSpan.textContent = r.title;
+          mainDiv.appendChild(titleSpan);
+        }
+
+        var bodySpan = document.createElement('span');
+        bodySpan.className = 'req-toc-item-body';
+        bodySpan.textContent = r.body || '(no description)';
+        mainDiv.appendChild(bodySpan);
+
+        wrapper.appendChild(mainDiv);
+
+        if (hasKids) {
+          var badge = document.createElement('span');
+          badge.className = 'req-toc-child-count';
+          badge.textContent = r.children.length;
+          wrapper.appendChild(badge);
+        }
+
+        wrapper.addEventListener('click', function (e) {
+          if (e.target.classList.contains('req-toc-toggle')) return;
+          var target = document.getElementById(r.id);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            target.style.transition = 'border-color 0.3s ease';
+            target.style.borderColor = 'var(--accent)';
+            setTimeout(function () { target.style.borderColor = ''; }, 2000);
+          }
+        });
+
+        if (hasKids) {
+          var childrenWrap = document.createElement('div');
+          childrenWrap.className = 'req-toc-children';
+          wrapper.appendChild(childrenWrap);
+
+          var kids = r.children || [];
+          kids.forEach(function (kidId) {
+            var kidEntry = entryMap[kidId];
+            if (kidEntry) {
+              childrenWrap.appendChild(createTreeItem(kidEntry, true));
+            }
+          });
+
+          toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var isExpanded = childrenWrap.classList.toggle('req-toc-children--expanded');
+            toggle.classList.toggle('req-toc-toggle--expanded', isExpanded);
+            toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+          });
+        }
+
+        return wrapper;
+      }
+
+      topLevel.forEach(function (r) {
+        tocList.appendChild(createTreeItem(r, false));
+      });
+    }
+  }
+
+  // ── Scroll-spy: highlight active TOC item ──
+  var tocItems = document.querySelectorAll('.req-toc-item');
+  var cards = document.querySelectorAll('.req-card, .req-card-child');
+  if (tocItems.length && cards.length) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          tocItems.forEach(function (item) {
+            item.classList.remove('req-toc-item--active');
+            item.classList.remove('req-toc-item--active-parent');
+          });
+          var activeItem = document.querySelector('.req-toc-item[data-id="' + entry.target.id + '"]');
+          if (activeItem) {
+            activeItem.classList.add('req-toc-item--active');
+            var parent = activeItem.parentElement;
+            while (parent) {
+              if (parent.classList.contains('req-toc-item--parent')) {
+                parent.classList.add('req-toc-item--active-parent');
+                break;
+              }
+              parent = parent.parentElement;
+            }
+          }
+        }
+      });
+    }, { rootMargin: '-80px 0px -60% 0px' });
+    cards.forEach(function (c) { observer.observe(c); });
+  }
+
+  // ── No additional vanilla JS needed for the mobile sidebar ──
+  // Alpine owns the open/close state via @click on the toggle button,
+  // @click.away on the sidebar, and @keydown.escape.window on <body>.
+});
+</script>
+<script type="application/json" id="req-index">[{"id":"SYS-FMT-001","title":"Markdown requirement format","body":"Each requirement shall be authored as a Markdown heading of any level (e.g., `#`...","rationale":"Dynamic level discovery decouples requirement hierarchy from hardcoded heading depths, making documents easier to generate programmatically. The `isNextAttrBlock` lookahead provides a universal detection mechanism — a heading is a requirement iff its next AST sibling is an attr fence. Sub-requirements express V-model decomposition naturally via Markdown's native heading hierarchy.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-FMT-002","title":"Built-in attribute system","body":"The `attr` block shall support six built-in attributes — `trace`, `status`, `dis...","rationale":"Separation of concerns: project-specific attributes go in `schema.yaml`; tool-level attributes are always available without schema boilerplate. Blocking redefinition prevents ambiguity. Keeping the parent relationship structural avoids redundant data — the heading hierarchy is the source of truth.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-FMT-003","title":"Schema.yaml document configuration","body":"Each document directory shall contain exactly one `schema.yaml` that defines pro...","rationale":"JSON Schema 2020-12 is a widely-supported standard with validators in every language. The `x-reqmd` block keeps reqmd-specific configuration in the same file without breaking standard JSON Schema validators.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-CLI-001","title":"CLI subcommands","body":"The `reqmd` binary shall provide CLI subcommands: `check` (validate), `ls` (list...","rationale":"A single binary that walks the directory tree and handles all document directories in one pass minimizes CI complexity. Distinct exit codes enable pipeline branching (fail build on errors, warn on warnings).","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-VAL-001","title":"Multi-pass validation pipeline","body":"The validation pipeline shall execute four sequential passes: Parse (goldmark AS...","rationale":"Sequential passes ensure each stage has complete information. Parse must finish before validation; graph must be built before trace checks; all results are collected before reporting. Three sub-passes within graph construction guarantee deterministic node initialization before edges are wired.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-TRC-001","title":"Upstream-only trace model","body":"The trace model shall be upstream-only: each requirement declares its parent(s) ...","rationale":"Upstream-only declarations avoid redundancy — if every child names its parent, the full chain is determined without any requirement also listing its children. Version pinning lets PR reviewers detect upstream changes since the trace was last validated. Auto-edges for sub-requirements ensure decomposition hierarchy is always present without manual attribute maintenance. V-model boundaries are inferred from directory topology (upstream.sources), eliminating per-requirement boilerplate.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-FMT-004","title":"YAML frontmatter support","body":"Documents SHOULD support YAML frontmatter (`---`-delimited) parsed via goldmark-...","rationale":"YAML frontmatter is a standard convention across Markdown toolchains (Jekyll, Hugo, GitHub Pages). Supporting it lets authors add document-level context — like an abstract or navigation hint — without requiring a separate file.","attrs":{"priority":"High","status":"approved"}},{"id":"SYS-HTM-001","title":"Standalone HTML export","body":"The HTML exporter SHALL produce a standalone `.html` page per document directory...","rationale":"The HTML export is the primary human-reviewable output for non-technical stakeholders. A self-contained page eliminates server dependencies for distribution.","attrs":{"priority":"High","status":"approved"}},{"id":"SYS-BAS-001","title":"Baseline comparison via git tags","body":"The tool shall provide a `reqmd baseline diff \u003ctag1\u003e \u003ctag2\u003e` subcommand that com...","rationale":"Requirement-level diffs enable change-impact analysis and release notes generation. Using git tags as baseline anchors means the diff inherits the team's existing version-control workflow — no separate baseline store to maintain. `git archive` avoids the need to check out tags in separate worktrees, keeping the operation fast and side-effect-free.","attrs":{"priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-REPIN-001","title":"Bulk version-pin update via reqmd repin","body":"The tool shall provide a `reqmd repin \u003croot\u003e` subcommand that scans the spec tre...","rationale":"The version-pin check (SYS-VAL-001) reports every outdated pin individually; without an apply path users have to hand-edit each `trace:` line. `repin` is the bulk-update counterpart to the check, with a mandatory dry-run/confirm step so the change set is reviewable before files are written. Whole-ref matching (not substring) prevents an unpinned promote from corrupting an already-pinned sibling, e.g. rewriting `UP-001` inside `UP-001~3` to `UP-001~3~3`. Predated findings are excluded from the apply set because they indicate that the upstream itself needs attention (a newer version was rolled back, or the pin is wrong), not that the pin should be lowered.","attrs":{"priority":"High","requires-trace-from":["system-requirements"],"status":"approved"}},{"id":"SYS-VAL-002","title":"Verification result ingestion and outcome-gated checks","body":"The `check` and `serve` commands shall accept a repeatable `--results \u003cpath\u003e` fl...","rationale":"reqmd traces the left side of the V-model (stakeholder → system → software → test specs) but could not represent the right side: verification *results*. Every ASPICE BP that says \"record the verification results including pass/fail status and evaluate\" was unrepresentable. The `status: draft|approved` axis is a lifecycle gate, not a verdict — an approved, implemented test can still fail. Ephemeral results keep CI run-to-run churn out of git and `baseline diff`, while the outcome-gated checks close the V-model right side by enforcing that every approved measure has a passing latest verdict.","attrs":{"priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}}]</script>
+<script type="application/json" id="req-filter-index">{"priority":["Critical","High"],"requires-trace-from":["software-requirements","system-requirements"]}</script>
+</div>
+</body>
+</html>
