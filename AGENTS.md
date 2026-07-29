@@ -10,7 +10,7 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `SPEC.md` — authoritative design spec (if absent, the spec tree under `spec/` is the source of truth)
 - `spec/workspace.dsl` — C4 model (Structurizr DSL) for architecture visualization
 - `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 doc dirs, 233 total reqs, V-model dogfood fixture
-- `quickstart/` — three-document tutorial tree (stakeholder → system → software [+ tests])
+- `quickstart/` — step-by-step tutorial (01-get-started, 01a-ci-integration, 02-trace-your-spec, 02a-status-disposition, 02b-version-pins, 03-export, 03a-live-preview, 03b-baseline-diff, 04-custom-templates, 05-verification-results-ctrf, 06-review-documentation)
 - `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
 - `go.mod` / `go.sum` — Go module (1.25)
@@ -32,8 +32,15 @@ go run ./cmd/reqmd ls <root>          # list all requirements
 go run ./cmd/reqmd stats <root>       # stats breakdown per doc
 go run ./cmd/reqmd export csv <root>  # CSV export
 go run ./cmd/reqmd export html <root> # HTML export
+go run ./cmd/reqmd check --results <path> <root> # check with ephemeral V&V results
+go run ./cmd/reqmd export html <root> --results <path> -o docs/ # HTML with verdict badges
+go run ./cmd/reqmd init <dir> --preset results    # scaffold manual results dir
+go run ./cmd/reqmd init <dir> --preset ./my-preset/ # scaffold with custom preset
 go run ./cmd/reqmd check --json <root>   # JSON output
 go run ./cmd/reqmd check <file> -s <schema>  # single-file mode
+go run ./cmd/reqmd repin <root>           # dry-run: list version-pin changes
+go run ./cmd/reqmd repin <root> --yes     # apply version-pin changes in place
+go run ./cmd/reqmd repin <root> --json    # machine-readable change list
 ```
 
 ## Commands (implemented)
@@ -43,12 +50,16 @@ go run ./cmd/reqmd check <file> -s <schema>  # single-file mode
 | `reqmd check <root>` | Recursive walk for `schema.yaml`, check all `.md` |
 | `reqmd ls <root>` | Table of all requirements with all schema attributes |
 | `reqmd stats <root>` | Attribute-value breakdown per document directory |
-| `reqmd export csv <root> [-o <dir>]` | CSV export (`<dirname>-requirements.csv`) |
-| `reqmd export html <root> [-o <dir>]` | HTML export with water.css CDN |
+| `reqmd export csv <root> [-o <dir>] [--results <path>...]` | CSV export (`<dirname>-requirements.csv`). `--results` adds `Verdict` and `Verdict Source` columns from ephemeral verification results. |
+| `reqmd export html <root> [-o <dir>] [--results <path>...]` | HTML export with water.css CDN. `--results` renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. |
+| `reqmd export graph <root> [-o <dir>] [--results <path>...]` | LadybugDB graph export (requires `-tags ladybug`). `--results` includes `RESULT:` nodes with `outcome`/`source` properties for graph traversal from requirements to verification results. |
 | `reqmd check --json <root>` | JSON validation report with requirements, pass/fail, trace checks |
+| `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs with `schema.yaml`) and run outcome-gated checks (`missing-verdict`, `failing-verdict`). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. |
 | `reqmd ls --json <root>` | JSON list of requirement IDs with all attributes |
+| `reqmd repin <root> [-y/--yes] [--json] [--promote-unpinned]` | Update version-pin (~N) trace refs to the upstream's current version. Dry-run by default; `--yes` applies. `--promote-unpinned` also pins refs that have no ~N suffix against a versioned upstream. Predated findings (pin > upstream) are surfaced but never auto-fixed. |
 | `reqmd stats --json <root>` | JSON attribute-value breakdown per document |
 | `reqmd baseline diff <tag1> <tag2>` | Compare requirements between two git tags; also reports added/removed/updated submodules (flags: `--json`) |
+| `reqmd init <dir>` | Scaffold a new requirements directory. Presets: `generic` (default), `aspice`, `results` (manual verification results), or a custom preset directory path. Flags: `--preset`, `--id-prefix`, `--id`, `--title`, `--level`, `--force` |
 
 Exit codes: 0 (all valid), 1 (validation errors), 2 (parse error).
 
@@ -91,6 +102,31 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   `--relaxed-versions` CLI flag; `direction: "predated"` (pin ahead of upstream)
   is always ERROR. Unpinned refs and external/unversioned upstreams skip the
   check. Suppression: `reqmd-suppress: [version-pin]`.
+- **Repin (`reqmd repin`)**: Proposes/applies `~N` version-pin updates against upstream
+  versions. Pure-`graph.RepinDeltas` computes a sorted list of `RepinDelta`
+  (kind: `outdated` | `unpinned` | `predated`); `internal/repin.Apply` rewrites the
+  source files in place, scoped to ```attr blocks so surrounding Markdown prose is
+  preserved verbatim. The Pass 2 `OutboundPins` cache is augmented with
+  `OutboundRefs` (the full source-form ref) so deltas round-trip without re-parsing
+  YAML. Predated findings are surfaced but never auto-fixed — they are data-
+  integrity errors. `--promote-unpinned` adds `unpinned` deltas for refs without
+  any `~N` against a versioned upstream (opt-in because it converts "no claim" into
+  "claimed at current version"). Default behavior is dry-run; `--yes` applies.
+- **Verification results (`reqmd check --results`)**: Ephemeral verification
+  results close the right side of the V-model. Results are loaded per
+  invocation (never persisted in the spec repo) from CTRF JSON reports
+  (automated tests) or manual-results markdown dirs (review/inspection/
+  analysis). `internal/verify` parses both into a `measureID → latestResult`
+  map (latest by CTRF `tests[].stop` or manual `verified-at`), synthesizes
+  one pseudo-requirement per result (`RESULT:<id>`, `trace: [MEASURE-ID~N]`,
+  `outcome: pass|fail|skipped|inconclusive`), and appends them to the doc
+  slice before `graph.New`. Two new graph checks fire when result nodes are
+  present: `missing-verdict` (approved measure with no result, WARNING) and
+  `failing-verdict` (latest result is fail, ERROR). The existing
+  `version-pin` check applies to result→measure traces via `~N` pins,
+  reusing stale-verdict detection with no new logic. CTRF→measure mapping
+  via the `x-reqmd.id` extra field per test. Suppression:
+  `reqmd-suppress: [missing-verdict]`, `[failing-verdict]`.
 - **Baseline diff (`reqmd baseline diff`)**: Loads the spec tree at two git tags
   via `git archive | tar` (no checkout), parses both with the standard pipeline,
   and produces a semantic diff of requirements (added/removed/modified with
@@ -102,28 +138,22 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   No new dependencies; pure stdlib `os/exec`. Output: short hashes in text,
   full SHA in JSON. Section is hidden when no submodules exist.
 
-## Testing
+
 
 ```sh
-go test ./internal/...          # all unit tests (167 tests across 7 packages: diff, exporter, graph, model, parser, reporter, schema)
+go test ./internal/...          # all unit tests (across 10 packages: diff, exporter, graph, model, parser, repin, reporter, schema, verify + cli [no test files])
 go test -v ./internal/parser/   # parser tests (most complex)
 go test -v ./internal/schema/   # schema tests (Compile, Validate, Properties)
 go test ./internal/reporter/    # reporter tests (ExitCode, Format, FormatList, FormatStats, Warnings, FormatJSON, FormatListJSON, FormatStatsJSON)
 go test ./internal/exporter/    # exporter tests (CSV + HTML format)
 go test ./internal/model/       # model tests (struct construction)
 go test ./internal/diff/        # baseline diff tests
+go test ./internal/verify/      # CTRF parser, manual-results loader, merge, synth
+go test ./internal/repin/        # repin tests (Build, Apply, format, whole-ref match safety)
 ```
 
 Tests use inline fixtures (no external files). No integration prerequisites.
 Parser tests use `t.TempDir()` for file-based test cases.
-
-## Test fixture
-
-```sh
-go run ./cmd/reqmd check spec/example/
-# Expects: 3 requirements, IVI-FUN-003 missing required "asil"
-# Exit code 1
-```
 
 ## Go dependencies
 
@@ -134,6 +164,9 @@ go run ./cmd/reqmd check spec/example/
 | `gopkg.in/yaml.v3` | YAML parsing |
 | `github.com/google/jsonschema-go/jsonschema` | JSON Schema 2020-12 validation |
 | `github.com/r3labs/diff/v3` | Structured diffing for baseline comparison |
+| `github.com/mattn/go-isatty` | TTY detection for interactive `repin` prompt |
+| `github.com/fsnotify/fsnotify` | Filesystem watching for `serve` live-reload |
+| `golang.org/x/sync` | Parallel document loading via `errgroup` |
 
 ## Important gotchas
 
@@ -160,6 +193,7 @@ Always comply to common best-practices and coding standards whenever possible
 
 Whenever larger functionality is added, make sure to add unit-tests for
 testing the functionality.
+
 ## Version control
 
 This project uses Jujutsu (jj) as its own VCS. For each new feature create a new changeset.

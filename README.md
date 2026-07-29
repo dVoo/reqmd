@@ -51,11 +51,14 @@ go run ./cmd/reqmd export csv example/ -o /tmp/out/
 go run ./cmd/reqmd export html example/ -o /tmp/out/
 ```
 
-Scaffold a new requirements project:
+Scaffold a new requirements project — choose a built-in preset or use your own template directory:
 
 ```sh
-go run ./cmd/reqmd init my-requirements/
-go run ./cmd/reqmd check my-requirements/
+reqmd init my-requirements/                              # generic preset (default)
+reqmd init my-requirements/ --preset aspice               # automotive SPICE template
+reqmd init my-results/ --preset results --id-prefix VR    # manual verification results
+reqmd init my-project/ --preset ./my-preset/              # custom preset directory
+reqmd check my-requirements/
 ```
 
 Watch for changes and serve a live-reloading HTML preview:
@@ -368,16 +371,18 @@ in both parsing and HTML export, with these extensions enabled:
 | `reqmd check <file> -s <schema>` | Validate a single file against an explicit schema |
 | `reqmd check --json <root>` | JSON validation report |
 | `reqmd check --relaxed-versions <root>` | Demote outdated version-pin findings from ERROR to WARNING (predated stays ERROR) |
-| `reqmd init <dir>` | Scaffold a new requirements directory with schema.yaml and example (flags: `--preset`, `--id-prefix`, `--force`) |
+| `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs) and run outcome-gated checks (missing-verdict, failing-verdict). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. |
+| `reqmd init <dir>` | Scaffold a new requirements directory with schema.yaml and example file. Presets: `generic` (default), `aspice`, `results` (manual verification results), or a custom preset directory path. Flags: `--preset`, `--id-prefix`, `--id`, `--title`, `--level`, `--force` |
 | `reqmd ls <root>` | Table of all requirements with attribute values |
 | `reqmd ls --json <root>` | JSON list |
 | `reqmd stats <root>` | Attribute-value breakdown per document |
 | `reqmd stats --json <root>` | JSON stats |
-| `reqmd export csv <root> -o <dir>` | CSV export with Body and Rationale columns |
-| `reqmd export html <root> -o <dir>` | Standalone HTML: card layout, goldmark-rendered body, trace columns, doc chain tab strip, search/filter, theme toggle |
-| `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build) |
-| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`) |
+| `reqmd export csv <root> -o <dir>` | CSV export with Body and Rationale columns. `--results <path>` (repeatable) adds Verdict and Verdict Source columns from ephemeral verification results. |
+| `reqmd export html <root> -o <dir>` | Standalone HTML: card layout, goldmark-rendered body, trace columns, doc chain tab strip, search/filter, theme toggle. `--results <path>` (repeatable) renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. |
+| `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build). `--results <path>` (repeatable) includes `RESULT:` nodes with `outcome` and `source` properties, enabling graph traversal from requirements through measures to verification results. |
+| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`) |
 | `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`) |
+| `reqmd repin <root> [-y/--yes] [--json] [--promote-unpinned]` | Propose or apply `~N` version-pin updates so trace refs match the upstream's current `version`. Dry-run by default; `--yes` applies. `--promote-unpinned` also pins refs that have no `~N` against a versioned upstream. Predated findings (pin > upstream) are surfaced but never auto-fixed. |
 
 Aliases: `check` = `validate` or `v`; `ls` = `list` or `l`.
 
@@ -596,6 +601,10 @@ Findings:
 
 Suppression per-requirement: `reqmd-suppress: [version-pin]`.
 
+Bulk-fix all outdated pins in a tree with `reqmd repin <root> --yes`
+(prints a dry-run change list by default; safe to re-run after
+applying).
+
 When multiple documents share the same ID prefix (e.g., two teams both use `STK-`),
 you can disambiguate with a **path-qualified reference** using the document directory:
 
@@ -625,8 +634,9 @@ runs these checks:
 | **ID prefix collision** | ERROR | Two directories declare the same `id-prefix` | **Yes** |
 | **Duplicate ID** | ERROR | Same requirement ID defined in two different documents | **Yes** |
 | **Ambiguous reference** | ERROR | Unqualified trace reference matches IDs in multiple documents | **Yes** |
-| **Version pin outdated** | ERROR (or WARNING with `--relaxed-versions`) | `trace: [UP-001~3]` but `UP-001` is at `version: 5` — downstream must be re-verified | **Yes** (strict) |
 | **Version pin predated** | ERROR | `trace: [UP-001~5]` but `UP-001` is at `version: 2` — downstream claims a version that doesn't exist | **Yes** |
+| **Missing verdict** | WARNING | An approved verification measure (a requirement with a `verify` attribute) has no verification result tracing to it. Only fires when `--results` is supplied. | No |
+| **Failing verdict** | ERROR | A verification measure's latest result has outcome `fail`. Only fires when `--results` is supplied. | **Yes** |
 
 Boundary inference: Directories with no `upstream.sources` are
 **top-boundary** (generic untraced suppressed). Directories not referenced by
@@ -649,7 +659,9 @@ Supported suppression names: `broken-ref`, `circular`, `untraced`, `no-downstrea
 Only **ERROR** level checks affect the exit code. WARNING and INFO are
 informational.
 
----
+Supported suppression names: `broken-ref`, `circular`, `untraced`, `no-downstream`,
+`disposition-reason`, `mandatory-disposition`, `id-prefix`, `version-pin`,
+`requires-trace-from-coverage`, `missing-verdict`, `failing-verdict`.
 
 ## Disposition workflow
 
@@ -697,6 +709,159 @@ The system shall support wireless charging.
 **Result:** ⚠ WARNING — `disposition: rejected` but no `disposition-reason` provided.
 
 ---
+## Verification & validation results
+
+reqmd traces the left side of the V-model (stakeholder → system → software →
+test specs). The `--results` flag closes the right side by loading ephemeral
+verification results and running outcome-gated checks against the
+verification measures (requirements with a `verify` attribute).
+
+Results are **ephemeral**: they are loaded per `check` invocation, never
+written to the spec repo. This keeps CI run-to-run churn out of git and
+out of `baseline diff`.
+
+### Two ingestion paths, one flag
+
+```
+reqmd check <root> --results ./ci-out/ --results ./reviews/
+```
+
+Each `--results` path is auto-detected:
+
+- **Directory** (walked):
+  - `.ctrf.json` → parsed as a [CTRF](https://ctrf.io/) report.
+  - Plain `.json` with a CTRF top-level `results` object → parsed as CTRF.
+  - Other `.json` (coverage.json, junit exports) → skipped silently.
+  - Subdirectories with a `schema.yaml` → loaded as **manual results**
+    (markdown `attr` blocks with `outcome`, `verifier`, `evidence`,
+    `verified-at`, `trace: [MEASURE-ID]`).
+- **File**: parsed as CTRF (`.ctrf.json` or CTRF-shaped `.json`).
+
+### CTRF mapping (automated tests)
+
+Each CTRF `results.tests[]` entry maps to a measure via the `x-reqmd.id`
+extra field. The test framework's reporter emits this field per test; it
+carries the reqmd measure requirement ID (with optional `~N` version pin).
+
+CTRF `status` → reqmd `outcome`:
+
+| CTRF status | reqmd outcome |
+|---|---|
+| `passed` | `pass` |
+| `failed` | `fail` |
+| `skipped` | `skipped` |
+| `pending` / `other` / unknown | `inconclusive` |
+| any status + `flaky: true` | `inconclusive` |
+
+The CTRF file itself (duration, logs, extra fields) is the "corresponding
+verification measure data" every ASPICE record BP requires; it is linked
+from the result's `evidence` field.
+
+Unmapped tests (no `x-reqmd.id` in `extra`) are skipped with a WARNING.
+
+### Manual results (review / inspection / analysis)
+
+For non-test methods, author results as markdown with a user-supplied
+`schema.yaml` in a directory outside the spec root:
+
+```yaml
+# example manual-results schema.yaml
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "verify-results"
+title: "Verification Results"
+type: object
+required: [outcome, verifier, verified-at]
+properties:
+  outcome: { enum: [pass, fail, skipped, inconclusive] }
+  verifier: { type: string }
+  evidence: { type: string, description: "URI/path to minutes, record, or CTRF file" }
+  verified-at: { type: string, format: date }
+additionalProperties: false
+x-reqmd:
+  level: verify-results
+```
+
+```markdown
+## VR-001: Parser review result
+```attr
+outcome: pass
+verifier: "D. Author"
+verified-at: 2026-07-15
+trace: [TST-FIX-001]
+```
+Parser review passed.
+```
+
+### Outcome-gated checks
+
+When `--results` is supplied, two new checks run alongside the existing
+trace checks:
+
+| Check | Level | Condition | Suppression |
+|---|---|---|---|
+| **missing-verdict** | WARNING | An approved verification measure has no result tracing to it. Draft measures are skipped. | `reqmd-suppress: [missing-verdict]` |
+| **failing-verdict** | ERROR | A measure's latest result has outcome `fail`. | `reqmd-suppress: [failing-verdict]` |
+
+The existing **version-pin** check also applies to result→measure traces:
+pin a result with `MEASURE-ID~3` against a measure now at `version: 4` and
+the `outdated` finding fires (demotable via `--relaxed-versions`). This is
+how stale-verdict is detected — no new check, just the existing one on a
+new edge type.
+
+### History
+
+Result history is not stored in-file. Each run loads the latest CTRF /
+manual results; the previous run's results are discarded. Across all
+`--results` inputs, the latest verdict per measure wins by CTRF
+`tests[].stop` (ms-epoch) or manual `verified-at`. Run-to-run history lives
+in CI artifacts, not in reqmd.
+
+### Exporting results
+
+All export formats support `--results`:
+
+| Format | What `--results` adds |
+|--------|----------------------|
+| **CSV** | Two extra columns: `Verdict` (pass/fail/skipped/inconclusive) and `Verdict Source` (file path) |
+| **HTML** | Color-coded verdict badges on measure cards — green (pass), red (fail), orange (inconclusive), gray (skipped). Tooltip shows outcome + source file. |
+| **Graph** | `RESULT:` pseudo-nodes with `outcome` and `source` properties, connected via `TracesTo` edges to their measures. Enables Cypher traversal from requirements through measures to verification results. |
+
+```sh
+reqmd export csv requirements/ --results ci-out/ -o docs/
+reqmd export html requirements/ --results ci-out/ -o docs/
+reqmd export graph requirements/ --results ci-out/ -o graph/
+```
+
+Without `--results`, all export formats are unchanged — no verdict columns, badges, or result nodes.
+
+### Scaffolding a results directory
+
+Use `reqmd init` with the `results` preset to scaffold a manual verification
+results directory (review, inspection, analysis, demonstration):
+
+```sh
+reqmd init my-results/ --preset results
+reqmd init my-results/ --preset results --id-prefix REV
+```
+
+This creates `schema.yaml` (with `level: verify-results`, required `outcome`/`verifier`/`verified-at` attributes) and `results.md` (one example result). See the [Commands](#commands) table for all `init` flags.
+
+### Custom presets
+
+`reqmd init` accepts a directory path for `--preset` in addition to the
+built-in names. A custom preset is a directory containing:
+
+- `schema.yaml.tmpl` + `example.md.tmpl` (Go template files, preferred), or
+- `schema.yaml` + any `.md` file (plain files, used verbatim)
+
+Templates support Go `text/template` syntax with four variables:
+`{{ .ID }}`, `{{ .Title }}`, `{{ .Level }}`, `{{ .IDPrefix }}`.
+
+```sh
+reqmd init my-project/ --preset ./my-preset/ --id-prefix MY
+```
+
+---
 
 ## Exit codes
 
@@ -732,9 +897,20 @@ reqmd export csv requirements/ -o docs/
 # JSON for CI scripting
 reqmd check --json requirements/
 
+# Load ephemeral V&V results and run outcome-gated checks
+reqmd check requirements/ --results ci-out/ --results reviews/
+
+# Export with verification verdicts (badges in HTML, columns in CSV)
+reqmd export html requirements/ --results ci-out/ -o docs/
+reqmd export csv requirements/ --results ci-out/ -o docs/
+
+# Scaffold a manual verification results directory
+reqmd init reviews/ --preset results --id-prefix VR
+
 # Live preview while editing
 reqmd serve requirements/          # browser auto-opens
 reqmd serve requirements/ --headless  # terminal-only
+reqmd serve requirements/ --results tests/  # with verdict badges
 ```
 
 Wire `reqmd check requirements/` into CI (GitHub Actions, GitLab CI, etc.)
