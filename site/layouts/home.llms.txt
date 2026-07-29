@@ -5,7 +5,7 @@
 # {{ .Site.Title }}
 
 > {{ .Site.Params.description }}
-> Lightweight CLI for requirements-as-Markdown with trace checks. Git-native, text-first, no database. Validates 8,000+ requirements in under 200 ms.
+> Lightweight CLI for requirements-as-Markdown with trace checks. Git-native, text-first, no database. Validates 249 requirements in 16 ms; scales to 720k in 7 seconds.
 > Full content available at: {{ .Site.BaseURL }}llms-full.txt
 
 ## Optional
@@ -43,7 +43,7 @@
 ## Reference
 
 - [Cheat sheet]({{ "cheat-sheet/" | absURL }}): Full command reference with example outputs and schema.yaml options — every command, every flag, every x-reqmd option.
-- [Benchmarks]({{ "benchmarks/" | absURL }}): How fast is reqmd? Real numbers from a real run — from 833 requirements in 50 ms to 720,000 requirements in 10 seconds.
+- [Benchmarks]({{ "benchmarks/" | absURL }}): How fast is reqmd? Real numbers from a real run — from 249 requirements in 16 ms to 720,000 requirements in 7 seconds.
 - [Compare]({{ "compare/" | absURL }}): How reqmd compares to sphinx-needs, OpenFastTrace, DOORS, Jama, Polarion — and why git-native beats database-backed.
 - [FAQ]({{ "faq/" | absURL }}): What reqmd does, how the GitHub review workflow works, schema, CI, submodules, reqmd-import, and more.
 - [About]({{ "about/" | absURL }}): Design principles (no lock-in, no database, per-directory schemas, dogfooding) and the self-hosting story.

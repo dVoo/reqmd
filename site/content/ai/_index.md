@@ -16,7 +16,7 @@ A spec-writing agent drives a tight four-step loop. Each step is fast enough to 
    ┌─────────────────────────────────────────────────────┐
    │  1. READ  cat spec/02-system/features.md           │
    │  2. EDIT  write the new SYS-007 heading + attr     │
-   │  3. CHECK reqmd check spec/  (50 ms, exits 0/1/2)  │
+   │  3. CHECK reqmd check spec/  (16 ms, exits 0/1/2)  │
    │  4. JSON  reqmd check --json spec/  (parse verdict)│
    └─────────────────────────────────────────────────────┘
                             ↓
@@ -37,7 +37,7 @@ All four exit with one of three codes: `0` clean, `1` validation errors, `2` par
 UI-based ALM tools — Jama, Polarion, Siemens Teamcenter, IBM DOORS, codeBeamer — model requirements as rows in a relational schema. The agent doesn't see those rows; it sees a REST API and a web UI. Three things go wrong:
 
 1. **The prose is hidden.** A requirement is `id`, `title`, `description`, `priority`, `status`, `parent_id`, and a foreign-key chain to a hundred other tables. The actual *content* of the requirement — the prose, the rationale, the body — is a single text column the agent has to fetch and re-format every time.
-2. **The trace graph is opaque.** "Where does SYS-007 trace to?" requires either a UI session or a paginated REST call that returns IDs but not context. The agent has to follow references by hand, across multiple round-trips, to recover what reqmd makes a single 50 ms read.
+2. **The trace graph is opaque.** "Where does SYS-007 trace to?" requires either a UI session or a paginated REST call that returns IDs but not context. The agent has to follow references by hand, across multiple round-trips, to recover what reqmd makes a single 16 ms read.
 3. **Review is impossible.** When the agent writes a new requirement through the API, the change shows up in the UI but the diff is unreadable. A reviewer looking at the agent's PR sees a JSON blob in the audit log, not a Markdown paragraph they can mark up in GitHub.
 
 reqmd's model is the opposite. A requirement is a level-2 heading, a YAML `attr` block, and free-form prose. The agent edits text. The diff is text. The review is text. The check is a binary that returns text. The whole pipeline is in text.
@@ -142,7 +142,7 @@ for a machine-readable index of the docs.
 2. **Edit, don't rewrite.** A change to a requirement is a heading-level
    edit, never a file rewrite. Preserve the prose, the rationale, the
    history.
-3. **Run `reqmd check` after every edit.** It runs in 50 ms on this
+3. **Run `reqmd check` after every edit.** It runs in 16 ms on this
    repo. If it exits non-zero, read the JSON output and fix the
    findings before continuing. Don't batch edits.
 4. **Never touch `id` once it's set.** IDs are the trace target. If
@@ -160,7 +160,7 @@ for a machine-readable index of the docs.
 ```
   read   spec/<doc>/<file>.md          # the current state
   edit   write the change (heading + attr + prose)
-  check  reqmd check spec/             # ~50 ms, exits 0/1/2
+  check  reqmd check spec/             # ~16 ms, exits 0/1/2
   json   reqmd check --json spec/      # parse findings, fix ❌
 ```
 
