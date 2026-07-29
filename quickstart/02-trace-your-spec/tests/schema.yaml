@@ -1,0 +1,21 @@
+x-reqmd:
+  level: test-specs
+  document-id: tests
+  upstream:
+    level: software-requirements
+    sources:
+      - ../software/
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "test-specs"
+title: "Test Specifications"
+type: object
+required: [verify, test-type]
+properties:
+  verify:
+    type: string
+    enum: [Test, Review, Inspection, Analysis, Demonstration]
+  test-type:
+    type: string
+    enum: [unit, integration, end-to-end]
+additionalProperties: false

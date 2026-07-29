@@ -1,0 +1,26 @@
+{
+  "results": {
+    "tool": { "name": "boot-test-runner" },
+    "summary": {
+      "tests": 1,
+      "passed": 1,
+      "failed": 0,
+      "skipped": 0,
+      "pending": 0,
+      "other": 0,
+      "start": 1700000000000,
+      "stop": 1700000001000
+    },
+    "tests": [
+      {
+        "name": "Test_Boot_Time",
+        "status": "passed",
+        "duration": 3200,
+        "stop": 1700000001000,
+        "extra": {
+          "x-reqmd": { "id": "TEST-001" }
+        }
+      }
+    ]
+  }
+}

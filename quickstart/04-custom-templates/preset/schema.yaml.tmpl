@@ -1,0 +1,36 @@
+# Safety-critical requirements schema template.
+# Required built-in attributes (id, title, trace, status) are injected
+# automatically by the parser; only the custom properties below need to be
+# declared here.
+x-reqmd:
+  level: "{{ .Level }}"              # Requirement level (stakeholder-needs, system, software, ...)
+{{- if .IDPrefix }}
+  id-prefix: {{ .IDPrefix }}         # Prefix prepended to all requirement IDs
+{{- end }}
+  # Optional x-reqmd fields (uncomment as needed):
+  # document-id: safety-reqs          # Stable identifier for this document
+  # upstream:
+  #   sources:
+  #     - ../stakeholder/             # Path to upstream document directory
+  # mandatory-disposition: true      # Require disposition on every requirement
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "{{ .ID }}"
+title: "{{ .Title }}"
+type: object
+required:
+  - safety-level
+  - verification-method
+properties:
+  safety-level:
+    type: string
+    enum: [QM, ASIL-A, ASIL-B, ASIL-C, ASIL-D]
+    description: "ASIL safety classification (QM = quality-managed, ASIL-D = highest safety integrity)"
+  verification-method:
+    type: string
+    enum: [test, review, analysis, inspection, demonstration]
+    description: "Method used to verify this requirement is satisfied"
+  owner:
+    type: string
+    description: "Responsible person or team"
+additionalProperties: false
