@@ -113,26 +113,55 @@ The tool shall verify completeness and integrity of trace chains, detecting brok
 *Already fulfilled by:* Graph Pass 2 (10 checks), `checkUntraced()`, `checkCircular()`, `checkBrokenReference()`, etc.
 
 
-## ASP-SR-006: Requirement-to-verification traceability
+## ASP-SR-006: Requirement-to-verification traceability and result recording
 ```attr
 process: SYS
-aspice-bp: ["SYS4-BP4", "SYS5-BP4", "SWE4-BP4", "SWE5-BP6", "SWE6-BP4", "VAL1-BP3"]
+aspice-bp: ["SYS4-BP1", "SYS4-BP2", "SYS4-BP3", "SYS4-BP4", "SYS5-BP1", "SYS5-BP2", "SYS5-BP3", "SYS5-BP4", "SWE4-BP1", "SWE4-BP2", "SWE4-BP3", "SWE4-BP4", "SWE5-BP1", "SWE5-BP3", "SWE5-BP4", "SWE5-BP5", "SWE5-BP6", "SWE6-BP1", "SWE6-BP2", "SWE6-BP3", "SWE6-BP4", "VAL1-BP1", "VAL1-BP2", "VAL1-BP3", "HWE3-BP1", "HWE3-BP3", "HWE3-BP4", "HWE3-BP5", "HWE4-BP1", "HWE4-BP3", "HWE4-BP4", "HWE4-BP5", "MLE4-BP1", "MLE4-BP3", "MLE4-BP6"]
 status: approved
 disposition: implemented
 coverage: Full
 trace:
+  - ASP-SYS4-BP1
+  - ASP-SYS4-BP2
+  - ASP-SYS4-BP3
   - ASP-SYS4-BP4
+  - ASP-SYS5-BP1
+  - ASP-SYS5-BP2
+  - ASP-SYS5-BP3
   - ASP-SYS5-BP4
+  - ASP-SWE4-BP1
+  - ASP-SWE4-BP2
+  - ASP-SWE4-BP3
   - ASP-SWE4-BP4
+  - ASP-SWE5-BP1
+  - ASP-SWE5-BP3
+  - ASP-SWE5-BP4
+  - ASP-SWE5-BP5
   - ASP-SWE5-BP6
+  - ASP-SWE6-BP1
+  - ASP-SWE6-BP2
+  - ASP-SWE6-BP3
   - ASP-SWE6-BP4
+  - ASP-VAL1-BP1
+  - ASP-VAL1-BP2
   - ASP-VAL1-BP3
+  - ASP-HWE3-BP1
+  - ASP-HWE3-BP3
+  - ASP-HWE3-BP4
+  - ASP-HWE3-BP5
+  - ASP-HWE4-BP1
+  - ASP-HWE4-BP3
+  - ASP-HWE4-BP4
+  - ASP-HWE4-BP5
+  - ASP-MLE4-BP1
+  - ASP-MLE4-BP3
+  - ASP-MLE4-BP6
 ```
-The tool shall support traceability between requirements and their verification measures, enabling validation that each requirement is addressed by at least one test or verification specification.
+The tool shall support traceability between requirements and their verification measures, record verification results including pass/fail status, and evaluate the results by enforcing that every approved measure has a verdict and that no measure has a failing latest verdict.
 
-*Rationale:* ASPICE verification processes require bidirectional traceability between requirements and verification measures. reqmd's V-model document chain (stakeholder → system → software → tests) supports requirements tracing to test specifications. The graph's no-downstream check identifies requirements without outgoing traces (unless in a V-model bottom boundary or with `disposition:set`).
+*Rationale:* ASPICE verification processes require bidirectional traceability between requirements and verification measures (BP4), specification and selection of verification measures with sufficient coverage (BP1/BP2), and recording of verification results including pass/fail status with evaluation (BP3). reqmd's V-model document chain supports requirements tracing to verification measures (requirements with a `verify` attribute). The `--results` flag loads ephemeral verification results from CTRF JSON reports (automated tests) and manual-results markdown (review/inspection/analysis), synthesizes result pseudo-requirements that trace to their measures, and runs outcome-gated checks: `missing-verdict` (approved measure with no result, WARNING), `failing-verdict` (latest result is fail, ERROR), and `version-pin` (stale result pin via `~N`, reused from the existing check). Results are not persisted in the spec repo — they are loaded per invocation to keep CI run-to-run churn out of git.
 
-*Already fulfilled by:* Multi-level doc chain tab strip, no-downstream check, boundary inference suppression.
+*Already fulfilled by:* `verify` attribute for measure declaration, `--results` flag for ephemeral result loading on `check` and `serve`, CTRF parser (`internal/verify`), manual-results markdown loading, `missing-verdict` / `failing-verdict` / `version-pin` graph checks, `verified: pass` verdict annotation in check output, verdict badges in HTML export and live serve preview.
 
 
 ## ASP-SR-007: Change tracking for requirements

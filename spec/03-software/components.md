@@ -139,7 +139,9 @@ trace:
 ```
 The `serve` subcommand shall watch a requirements directory tree and serve a live-reloading HTML preview over HTTP. On any `.md` or `schema.yaml` change (create, write, remove, or rename) detected via fsnotify — or via polling fallback when fsnotify is unavailable — it re-parses, rebuilds the trace graph, re-checks graph-level invariants, re-exports all documents, and pushes a reload event to connected browsers via Server-Sent Events. `serve` runs graph-level checks (trace refs, cycles, coverage) but does not re-run JSON Schema validation; the status line reports graph-check counts, not per-requirement validity.
 
-*Rationale:* A live preview shortens the author→review feedback loop for the HTML output. fsnotify gives sub-second response on supported platforms; the polling fallback keeps `serve` usable on network filesystems and in containers. Separating graph checks from full validation keeps rebuilds fast enough for interactive use.
+The `serve` subcommand shall accept a repeatable `--results <path>` flag that loads ephemeral verification results (CTRF JSON or manual-results markdown) via the same pipeline as `check --results`. When results are loaded, verdict badges (pass/fail/skipped/inconclusive) are rendered on measure cards in the HTML output, and the `failing-verdict` and `missing-verdict` graph checks run on every rebuild. Result file paths (directories and individual `.ctrf.json`/`.json` files) shall also be watched for changes — alongside spec files — so that editing a CTRF JSON or manual-results markdown triggers an immediate rebuild and browser refresh.
+
+*Rationale:* A live preview shortens the author→review feedback loop for the HTML output. fsnotify gives sub-second response on supported platforms; the polling fallback keeps `serve` usable on network filesystems and in containers. Separating graph checks from full validation keeps rebuilds fast enough for interactive use. Extending `--results` to `serve` closes the V-model right side in the interactive authoring loop: a failing verdict turns the status line red immediately, without leaving the editor to run `check`.
 
 ## SW-BAS-001: Baseline diff via git tags
 ```attr
@@ -164,3 +166,51 @@ trace:
 The `check` command shall accept a `--scope` flag that restricts validation to a bounded subgraph around seed requirement IDs: a lightweight discovery pass collects IDs and traces across the whole tree, seeds are resolved, the bounded subgraph (seeds plus one hop upstream and downstream) is computed, only in-scope documents are full-parsed and Pass-1-validated, and the cheap global checks (duplicate ID, ID-prefix) run against the lightweight index. Expensive global checks (circular, requires-trace-from coverage, version-pin) are skipped in scoped mode and the omission is documented in a stderr preamble.
 
 *Rationale:* Scoped checks let developers validate only the requirements affected by a change, making incremental CI fast on large trees. Running the cheap global checks even in scoped mode preserves duplicate-ID and prefix-collision signal without the cost of the full graph build. This requirement is draft: the scoped pipeline is planned but not yet implemented.
+
+## SW-VER-001: CTRF report parser
+```attr
+status: approved
+package: verify
+priority: High
+trace:
+  - SYS-VAL-002
+```
+The `internal/verify` package shall parse CTRF JSON reports (top-level `results.tests[]`) and map each test to a measure ID via the `tests[].extra.x-reqmd.id` field. CTRF `status` shall map to reqmd `outcome` as: `passed→pass`, `failed→fail`, `skipped→skipped`, `pending|other→inconclusive`, and any status with `flaky: true→inconclusive`. Tests with no `x-reqmd.id` shall be skipped with a WARNING. The `~N` version pin in the measure ID shall be preserved.
+
+*Rationale:* CTRF is the open standard for JSON test reports. Using its `extra` extension point for the measure ID survives test renaming and avoids brittle name-parsing. Flaky tests are inconclusive because a pass-after-fail is not a clean pass.
+
+## SW-VER-002: Manual-results markdown loader
+```attr
+status: approved
+package: verify
+priority: High
+trace:
+  - SYS-VAL-002
+```
+The `internal/verify` package shall load manual-results markdown directories via `parser.Discover`, extracting `outcome`, `verifier`, `evidence`, `verified-at`, and `trace` from each requirement's attr block. Manual-results dirs live outside the spec root and carry their own user-supplied `schema.yaml`.
+
+*Rationale:* Reusing the existing document pipeline for manual results avoids a parallel parser and keeps schema validation uniform. Keeping results outside the spec root ensures a normal `check` never sees them.
+
+## SW-VER-003: Result merge and synthesis
+```attr
+status: approved
+package: verify
+priority: High
+trace:
+  - SYS-VAL-002
+```
+The `internal/verify` package shall merge all loaded results by measure ID (stripping `~N` pins from the key), keeping the latest verdict per measure by CTRF `tests[].stop` (ms-epoch) or manual `verified-at`. Each merged result shall be synthesized as a pseudo-requirement with ID `RESULT:<measure-id>`, `trace: [MEASURE-ID~N]` (pin preserved for version-pin checks), `outcome: <verdict>`, and `status: approved`, then appended to the document slice before `graph.New`.
+
+*Rationale:* Collapsing to one result per measure reflects "latest verdict wins" without storing history in-file. The synthetic `RESULT:` prefix lets graph checks distinguish result nodes from authored ones. Preserving the pin on the trace edge makes the existing `version-pin` check detect stale results with no new logic.
+
+## SW-VER-004: Outcome-gated graph checks
+```attr
+status: approved
+package: graph
+priority: High
+trace:
+  - SYS-VAL-002
+```
+The graph shall run two new checks when result pseudo-requirements are present: `missing-verdict` (WARNING — an approved verification measure, identified by a non-empty `verify` attribute, has no result tracing to it; draft measures are skipped) and `failing-verdict` (ERROR — a measure's latest result has outcome `fail`). Both checks are no-ops when no result nodes exist. Both are suppressible via `reqmd-suppress`.
+
+*Rationale:* A measure is defined by the `verify` attribute, not by inbound edges — a measure with no result has no inbound result edge, so the check must key on `verify`. Draft measures are skipped because a draft measure is not yet expected to have results.

@@ -16,7 +16,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
                 schemaFile = component "schema.yaml"   "JSON Schema 2020-12 in YAML + x-reqmd upstream" "YAML"
             }
 
-            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph), serve (live-reload), baseline diff, init — all with --json output" "Go 1.25" "CLI" {
+            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json output" "Go 1.25" "CLI" {
                 parser       = component "Markdown Parser"  "Discovers schema.yaml per dir and parses .md via goldmark AST with GFM and parallel worker pool" "Go / goldmark"
                 validator    = component "Schema Validator" "Injects built-in attrs and validates attr maps against JSON Schema 2020-12" "Go / google/jsonschema-go"
                 graphBuilder = component "Graph Builder"    "Builds in-memory adjacency from parsed requirements, resolves doc-id-qualified traces" "Go"
@@ -24,6 +24,8 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
                 exporter     = component "Exporter"        "Renders standalone HTML, CSV, and LadybugDB graph outputs" "Go"
                 reporter     = component "Reporter"        "Aggregates Pass 1/2/3 results, emits formatted or JSON output, sets exit code" "Go"
                 differ       = component "Baseline Differ" "Compares requirements and schemas between two git tags via git archive, using r3labs/diff for attribute-level changes" "Go / r3labs-diff"
+                verifyLoader = component "Verify Loader"   "Loads ephemeral verification results (CTRF JSON + manual markdown), synthesizes RESULT: pseudo-requirements, feeds them to the graph for outcome-gated checks" "Go / stdlib"
+                repinner     = component "Repinner"        "Computes version-pin deltas from the graph and rewrites ```attr blocks in place to update ~N pins to the upstream's current version" "Go / stdlib"
             }
         }
 
@@ -57,6 +59,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         supplier         = softwareSystem "Tier-1 Supplier Tool"     "(Planned) Receives CSV export" "External"
         sourceRepository = softwareSystem "Source Repository"        "Git repository containing Go, Python, Rust, Zig, and other source files with requirement references in comments or docstrings" "External"
         ci               = softwareSystem "CI Pipeline"              "Automated pipeline that runs extraction on changes and publishes trace artifacts" "External"
+        testArtifacts    = softwareSystem "Test Result Artifacts"     "Ephemeral CTRF JSON reports and manual review/inspection markdown produced by CI runs and reviewers; loaded per check --results invocation, never persisted in the spec repo" "External"
 
         // People → systems
         author    -> vscodeExt          "Authors specs in"
@@ -68,8 +71,9 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         // Editor → repo
         vscodeExt -> specRepo "Reads and writes"
 
-        // CI → extractionTool
         ci -> extractionTool "Runs on push / pull request"
+        ci -> testArtifacts   "Publishes CTRF reports to"
+        verifyLoader -> testArtifacts "Loads CTRF JSON and manual-results markdown from"
 
         // --- ReqMD CLI internal flow ---
         parser       -> mdFiles      "Reads and parses *.md via goldmark AST with frontmatter"
@@ -83,6 +87,11 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         exporter     -> graphBuilder "Queries upstream/downstream neighbours from graph"
         differ       -> parser       "Parses both tag snapshots via"
         differ       -> specRepo     "Extracts tags via git archive from"
+        verifyLoader -> graphBuilder  "Synthesizes RESULT: pseudo-requirements and appends to doc slice before graph build"
+        verifyLoader -> parser        "Reuses parser.Discover for manual-results markdown dirs"
+        repinner     -> graphBuilder "Reads OutboundPins and OutboundRefs from graph to compute version-pin deltas"
+        repinner     -> specRepo     "Rewrites ```attr blocks in .md files to update ~N pins"
+        traceChecker -> verifyLoader  "Runs missing-verdict / failing-verdict checks against result nodes"
 
         // --- Extraction tool internal flow ---
         extractionTool.scanner        -> extractionTool.cache          "Reads/writes file hashes and work state"

@@ -55,3 +55,46 @@ trace:
 Unit tests SHALL verify: frontmatter extraction via goldmark-meta with correct `Document.Meta` population; goldmark body rendering produces correct HTML for inline code, emoji, math, and fenced blocks; search-and-filter JS logic (debounce, AND-combined filters, card hide/show, count update, child card visibility); sub-requirement parsing (dynamic reqLevel, `ParentID` population, `isNextAttrBlock` backward compatibility); and the tree TOC sidebar renders with correct parent/child nesting, toggle expand/collapse, and scroll-spy highlights.
 
 *Rationale:* These features have distinct logic paths requiring dedicated test coverage. Frontmatter parsing touches the parser AST pipeline; sub-requirement parsing adds a new state machine with reqLevel discovery and parentID tracking; tree TOC and search/filter are client-side JS features tested via rendered HTML output.
+
+## TST-VER-001: Verify package tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-VER-001
+  - SW-VER-002
+  - SW-VER-003
+```
+Unit tests shall cover the `internal/verify` package: CTRF JSON parsing (status→outcome mapping, flaky→inconclusive, unmapped-test warnings, `~N` pin preservation), multi-file latest-wins merge by timestamp, manual-results loading via `parser.Discover`, non-CTRF JSON skip, and pseudo-requirement synthesis (ID, trace with pin, outcome attr).
+
+*Rationale:* The verify package is the entry point for the V&V results feature. Each parsing path (CTRF, manual, auto-detection) has distinct logic that must be exercised independently. The merge semantics (latest-wins, pin stripping) are load-bearing for correctness.
+
+## TST-VER-002: Outcome-gated graph checks tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-VER-004
+```
+Unit tests shall cover the `missing-verdict` and `failing-verdict` graph checks: no-op when no result nodes present, missing-verdict fires for approved measures without results, missing-verdict skips draft measures, failing-verdict fires for fail outcome at ERROR, failing-verdict does not fire for pass, and version-pin fires on stale result pins.
+
+*Rationale:* The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives.
+
+## TST-SRV-001: Serve with results integration tests
+```attr
+status: approved
+verify: Test
+test-type: integration
+disposition: implemented
+trace:
+  - SW-SRV-001
+  - SW-VER-003
+  - SW-VER-004
+```
+Integration tests shall verify that `serve --results <path>` loads verification results, renders verdict badges in the HTML output, watches result file paths for changes (both fsnotify and polling fallback), and triggers a rebuild when result files change. Tests shall confirm that CTRF JSON changes update verdict badges from pass to fail and that the `failing-verdict` check fires on rebuild.
+
+*Rationale:* The `serve --results` feature combines the live-reload watcher with the verify pipeline. Both the fsnotify and polling watcher paths must be exercised to ensure result-file changes trigger rebuilds in both modes. The verdict badge rendering must be verified in the HTML output, not just the graph checks.

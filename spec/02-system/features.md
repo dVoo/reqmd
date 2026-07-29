@@ -25,7 +25,7 @@ trace:
   - ASP-SR-007
   - ASP-SR-013
 ```
-The `attr` block shall support four built-in attributes — `trace`, `disposition`, `disposition-reason`, and `version` — that carry tool-level semantics in Pass 2 validation. Built-in attributes are injected automatically and must not be declared in `schema.yaml`. The parent-child relationship between requirements is structural (derived from heading level in the parser), not an attribute — no `parent` built-in is needed.
+The `attr` block shall support six built-in attributes — `trace`, `status`, `disposition`, `disposition-reason`, `version`, and `requires-trace-from` — that carry tool-level semantics in Pass 2 validation. Built-in attributes are injected automatically and must not be declared in `schema.yaml`. The parent-child relationship between requirements is structural (derived from heading level in the parser), not an attribute — no `parent` built-in is needed.
 
 *Rationale:* Separation of concerns: project-specific attributes go in `schema.yaml`; tool-level attributes are always available without schema boilerplate. Blocking redefinition prevents ambiguity. Keeping the parent relationship structural avoids redundant data — the heading hierarchy is the source of truth.
 
@@ -58,7 +58,7 @@ trace:
   - ASP-SR-016
   - ASP-SR-018
 ```
-The `reqmd` binary shall provide CLI subcommands: `check` (validate), `ls` (list), `stats` (attribute-value breakdown), and `export` (csv, html, graph). All commands accept a root directory for recursive document discovery. Exit codes distinguish success (0), validation errors (1), and parse errors (2).
+The `reqmd` binary shall provide CLI subcommands: `check` (validate), `ls` (list), `stats` (attribute-value breakdown), `export` (csv, html, graph), `init` (scaffold), `serve` (live-reloading HTML preview), `baseline diff` (compare git tags), and `repin` (bulk-update version pins). All commands accept a root directory for recursive document discovery. Exit codes distinguish success (0), validation errors (1), and parse errors (2).
 
 *Rationale:* A single binary that walks the directory tree and handles all document directories in one pass minimizes CI complexity. Distinct exit codes enable pipeline branching (fail build on errors, warn on warnings).
 
@@ -75,7 +75,7 @@ trace:
   - ASP-SR-008
   - ASP-SR-011
 ```
-The validation pipeline shall execute four sequential passes: Parse (goldmark AST), Pass 1 (JSON Schema validation with built-in injection), Graph build (pure Go in-memory adjacency with three sub-passes: node creation, trace-edge building, parent-child edge building), and Pass 2 (ten trace checks: broken reference, circular, untraced, no-downstream, disposition without reason, mandatory disposition, ID prefix mismatch, ID prefix collision [ERROR], duplicate ID [ERROR], ambiguous reference [ERROR]).
+The validation pipeline shall execute four sequential passes: Parse (goldmark AST), Pass 1 (JSON Schema validation with built-in injection), Graph build (pure Go in-memory adjacency with three sub-passes: node creation, trace-edge building, parent-child edge building), and Pass 2 (thirteen trace checks: broken reference, circular, untraced, no-downstream, disposition without reason, mandatory disposition, ID prefix mismatch, ID prefix collision [ERROR], duplicate ID [ERROR], ambiguous reference [ERROR], version-pin [ERROR], missing-verdict [WARNING], failing-verdict [ERROR]).
 
 Document discovery follows a recursive tree walk: every directory containing a `schema.yaml` is a document directory; all `*.md` files in that directory (non-recursive) are parsed against that directory's schema.
 
@@ -149,4 +149,33 @@ The tool shall provide a `reqmd baseline diff <tag1> <tag2>` subcommand that com
 
 *Rationale:* Requirement-level diffs enable change-impact analysis and release notes generation. Using git tags as baseline anchors means the diff inherits the team's existing version-control workflow — no separate baseline store to maintain. `git archive` avoids the need to check out tags in separate worktrees, keeping the operation fast and side-effect-free.
 
+## SYS-REPIN-001: Bulk version-pin update via `reqmd repin`
+```attr
+status: approved
+priority: High
+requires-trace-from: [system-requirements]
+trace:
+  - STK-GOAL-002
+```
+The tool shall provide a `reqmd repin <root>` subcommand that scans the spec tree for trace refs whose `~N` version pin is below the upstream's current `version` and either lists the proposed changes (dry-run, default) or rewrites the affected ` ```attr ` blocks in place (`--yes`). Predated findings (pin ahead of upstream) shall be surfaced in the change list but never auto-fixed, because they are data-integrity errors. The subcommand shall accept a `--promote-unpinned` flag that additionally proposes pins for trace refs without any `~N` against a versioned upstream, and a `--json` flag that emits a stable JSON contract (`deltas[]` with `kind` ∈ {`outdated`, `unpinned`, `predated`}, `req_id`, `file`, `target_id`, `source_ref`, `old_pin`, `new_pin`, `new_version`; plus `outdated`/`unpinned`/`predated` counts and a `by_file` map). Without `--yes`, the command shall run by default in dry-run mode; in an interactive TTY it shall prompt for confirmation before applying. The rewrite shall be scoped to ` ```attr ` blocks only, leaving surrounding Markdown prose verbatim.
+
+*Rationale:* The version-pin check (SYS-VAL-001) reports every outdated pin individually; without an apply path users have to hand-edit each `trace:` line. `repin` is the bulk-update counterpart to the check, with a mandatory dry-run/confirm step so the change set is reviewable before files are written. Whole-ref matching (not substring) prevents an unpinned promote from corrupting an already-pinned sibling, e.g. rewriting `UP-001` inside `UP-001~3` to `UP-001~3~3`. Predated findings are excluded from the apply set because they indicate that the upstream itself needs attention (a newer version was rolled back, or the pin is wrong), not that the pin should be lowered.
+
+
+## SYS-VAL-002: Verification result ingestion and outcome-gated checks
+```attr
+status: approved
+priority: High
+requires-trace-from: [software-requirements]
+trace:
+  - STK-GOAL-005
+  - ASP-SR-006
+```
+The `check` and `serve` commands shall accept a repeatable `--results <path>` flag that loads ephemeral verification results from CTRF JSON reports (automated tests) and manual-results markdown directories (review, inspection, analysis). Each path is auto-detected: directories are walked, `.ctrf.json` and CTRF-shaped `.json` files are parsed as CTRF, subdirectories with a `schema.yaml` are loaded as manual results via the standard document pipeline, and non-CTRF files are skipped silently. Single files are parsed as CTRF.
+
+Results are loaded per invocation and are not persisted in the spec repo. CTRF test entries map to verification measures via the `x-reqmd.id` extra field (with optional `~N` version pin). CTRF `status` maps to a reqmd `outcome` (`passed→pass`, `failed→fail`, `skipped→skipped`, `pending|other|flaky→inconclusive`). Manual results carry `outcome`, `verifier`, `evidence`, `verified-at`, and `trace: [MEASURE-ID]`. Across all inputs, the latest verdict per measure wins by timestamp.
+
+Each merged result is synthesized as a pseudo-requirement (`RESULT:<id>`, `trace: [MEASURE-ID~N]`, `outcome: <verdict>`) appended to the document slice before graph build. Two outcome-gated checks run when result nodes are present: `missing-verdict` (approved measure with no result, WARNING, suppressible) and `failing-verdict` (latest result is fail, ERROR, suppressible). The existing `version-pin` check applies to result→measure traces, reusing stale-verdict detection with no new logic. Draft measures are skipped by `missing-verdict`.
+
+*Rationale:* reqmd traces the left side of the V-model (stakeholder → system → software → test specs) but could not represent the right side: verification *results*. Every ASPICE BP that says "record the verification results including pass/fail status and evaluate" was unrepresentable. The `status: draft|approved` axis is a lifecycle gate, not a verdict — an approved, implemented test can still fail. Ephemeral results keep CI run-to-run churn out of git and `baseline diff`, while the outcome-gated checks close the V-model right side by enforcing that every approved measure has a passing latest verdict.
 
