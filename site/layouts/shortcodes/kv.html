@@ -1,0 +1,8 @@
+<div class="kv-grid">
+  {{- range .Params -}}
+  <div class="kv-row">
+    <span class="kv-key">{{ .key }}</span>
+    <span class="kv-val">{{ .value | safeHTML }}</span>
+  </div>
+  {{- end -}}
+</div>

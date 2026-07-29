@@ -1,0 +1,66 @@
+---
+title: "Step 4 — Custom templates"
+description: "Define your own requirement schema with a custom reqmd init preset."
+weight: 10
+---
+
+Define your own requirement schema with a custom `reqmd init` preset.
+
+## What's in this folder
+
+```
+04-custom-templates/
+  preset/                   # the custom preset directory
+    schema.yaml.tmpl        # Go template for schema.yaml
+    example.md.tmpl         # Go template for the example .md file
+```
+
+This preset defines a **custom requirements template** with:
+
+- `priority` (required) — low, medium, high, critical
+- `verification-method` (required) — test, review, analysis, inspection, demonstration
+- `owner` (optional) — responsible team
+
+## Scaffold from the custom preset
+
+```sh
+reqmd init my-safety/ --preset 04-custom-templates/preset/ --id-prefix SC
+```
+
+This produces:
+
+```
+my-safety/
+  schema.yaml        # rendered from schema.yaml.tmpl
+  requirements.md   # rendered from example.md.tmpl
+```
+
+## Validate the scaffolded output
+
+```sh
+reqmd check my-safety/
+```
+
+Expected: two requirements (`SC-001`, `SC-002`) pass validation.
+
+## Template variables
+
+Both `.tmpl` files use Go `text/template` syntax with:
+
+| Variable | Source | Example |
+|----------|--------|---------|
+| `{{ .ID }}` | `--id` flag or dir basename | `my-safety` |
+| `{{ .Title }}` | `--title` flag or `<dir> Requirements` | `my-safety Requirements` |
+| `{{ .Level }}` | `--level` flag (default `requirements`) | `requirements` |
+| `{{ .IDPrefix }}` | `--id-prefix` flag | `SC` |
+
+## Create your own preset
+
+1. Create a directory with `schema.yaml.tmpl` + `example.md.tmpl`
+   (or plain `schema.yaml` + any `.md` file — no template syntax needed)
+2. Use `{{ .ID }}`, `{{ .Title }}`, `{{ .Level }}`, `{{ .IDPrefix }}` variables
+3. Scaffold with `reqmd init <dir> --preset <your-preset-dir>/`
+
+## What's next
+
+You can scaffold custom document types. Now load verification results — go to [Step 5](/quickstart/05-verification-results-ctrf/) for CTRF automated results or [Step 6](/quickstart/06-review-documentation/) for manual review results.

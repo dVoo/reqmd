@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="{{ .Site.Language.Lang | default "en" }}" data-theme="system">
+  <head>
+    {{- partial "head.html" . -}}
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    {{- partial "header.html" . -}}
+    <div class="layout{{ if and (ne .Kind "home") .Site.Params.sidebar }} has-sidebar{{ end }}">
+      {{- if and (ne .Kind "home") .Site.Params.sidebar -}}
+        {{- partial "sidebar.html" . -}}
+      {{- end -}}
+      <main id="main" class="main">
+        {{- block "main" . }}{{ end -}}
+      </main>
+    </div>
+    {{- partial "footer.html" . -}}
+    {{- partial "search.html" . -}}
+    {{- partial "scripts.html" . -}}
+  </body>
+</html>

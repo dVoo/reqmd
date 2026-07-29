@@ -1,0 +1,32 @@
+{{ define "main" }}
+<article class="page page-single">
+  <div class="container">
+    <header class="page-header">
+      {{- with .Parent -}}
+        {{- if ne .RelPermalink "/" -}}
+        <nav class="page-breadcrumb" aria-label="Breadcrumb">
+          <a href="/">Home</a>
+          <span class="bc-sep" aria-hidden="true">/</span>
+          <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+        </nav>
+        {{- end -}}
+      {{- end -}}
+      <h1 class="page-title">{{ .Title }}</h1>
+      {{- with .Description -}}
+        <p class="page-description">{{ . }}</p>
+      {{- end -}}
+    </header>
+    <div class="page-body">
+      <div class="page-content">
+        {{ .Content }}
+      </div>
+      {{- if and (.TableOfContents) (gt (len .TableOfContents) 50) -}}
+        <aside class="page-toc" aria-label="On this page">
+          <h2 class="toc-title">On this page</h2>
+          {{ .TableOfContents }}
+        </aside>
+      {{- end -}}
+    </div>
+  </div>
+</article>
+{{ end }}

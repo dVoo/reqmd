@@ -1,0 +1,53 @@
+{{- /*
+  llms-full.txt — full plain-text dump of every page on the site.
+  Preserves code block content (command examples, schema YAML, etc.)
+  by stripping only the wrapper HTML, not the <pre> content.
+*/ -}}
+# {{ .Site.Title }} — full content
+
+> {{ .Site.Params.description }}
+> Index available at: {{ .Site.BaseURL }}llms.txt
+> {{ len (where .Site.Pages "Kind" "page") }} pages in this dump.
+
+---
+
+{{- $codeblockHeader := `(?s)<div class="codeblock-header"[^>]*>.*?</div>` -}}
+{{- $btnRe := `(?s)<button[^>]*>.*?</button>` -}}
+{{- $codeblockOpen := `<div class="codeblock-wrapper"[^>]*>` -}}
+{{- $codeblockClose := `</pre>\s*</div>` -}}
+{{- $preIdRe := `(?s)<pre id="cb-\d+"><code class="language-[^"]*">` -}}
+{{- $headingAnchorRe := `<a class="heading-anchor"[^>]*>.*?</a>` -}}
+
+{{- $allPages := where .Site.Pages "Kind" "page" -}}
+{{- range $allPages.ByWeight }}
+{{- $html := .Content | safeHTML -}}
+{{- $cleaned := $html | replaceRE $codeblockHeader "" | replaceRE $btnRe "" | replaceRE $codeblockOpen "" | replaceRE $codeblockClose "</pre>" | replaceRE $preIdRe "<pre>" | replaceRE $headingAnchorRe "" -}}
+## {{ .Title }}
+
+URL: {{ .Permalink }}
+{{- with .Description }}
+Description: {{ . | plainify | chomp }}
+{{- end }}
+
+{{- $cleaned | htmlUnescape | plainify }}
+
+---
+
+{{- end -}}
+{{- /* Also include section landing pages */ -}}
+{{- $sections := where .Site.Pages "Kind" "section" -}}
+{{- range $sections.ByWeight }}
+{{- $html := .Content | safeHTML -}}
+{{- $cleaned := $html | replaceRE $codeblockHeader "" | replaceRE $btnRe "" | replaceRE $codeblockOpen "" | replaceRE $codeblockClose "</pre>" | replaceRE $preIdRe "<pre>" | replaceRE $headingAnchorRe "" -}}
+## {{ .Title }}
+
+URL: {{ .Permalink }}
+{{- with .Description }}
+Description: {{ . | plainify | chomp }}
+{{- end }}
+
+{{- $cleaned | htmlUnescape | plainify }}
+
+---
+
+{{- end -}}

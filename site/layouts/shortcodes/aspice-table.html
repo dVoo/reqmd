@@ -1,0 +1,21 @@
+{{- $name := .Get 0 -}}
+{{- $bps := hugo.Data.aspice.bps.bps -}}
+{{- $entry := index $bps $name -}}
+{{- if not $entry -}}<p><em>ASPICE table not found: {{ $name }}</em></p>{{- end -}}
+{{- if $entry -}}
+<div class="aspice-table">
+  <div class="aspice-table-head">
+    <h3>{{ $entry.title }}</h3>
+    {{- with $entry.summary -}}<p>{{ . | safeHTML }}</p>{{- end -}}
+  </div>
+  <div class="aspice-table-grid">
+    {{- range $entry.bps -}}
+    <div class="aspice-bp">
+      <div class="aspice-bp-id">{{ .id }}</div>
+      <div class="aspice-bp-title">{{ .title }}</div>
+      {{- with .note -}}<div class="aspice-bp-note">{{ . | safeHTML }}</div>{{- end -}}
+    </div>
+    {{- end -}}
+  </div>
+</div>
+{{- end -}}

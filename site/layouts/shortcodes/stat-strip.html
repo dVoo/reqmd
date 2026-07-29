@@ -1,0 +1,23 @@
+{{- $raw := trim .Inner "\n" -}}
+{{- $items := slice -}}
+{{- range (split $raw "\n") -}}
+  {{- $line := trim . " \t" -}}
+  {{- if eq (substr $line 0 1) "-" -}}
+    {{- $payload := trim (substr $line 1) " \t" -}}
+    {{- $parts := split $payload ":" -}}
+    {{- $value := trim (index $parts 0) " \t" -}}
+    {{- $label := "" -}}
+    {{- if gt (len $parts) 1 -}}
+      {{- $label = trim (index $parts 1) " \t" -}}
+    {{- end -}}
+    {{- $items = $items | append (dict "value" $value "label" $label) -}}
+  {{- end -}}
+{{- end -}}
+<div class="stat-strip">
+  {{- range $items -}}
+  <div class="stat-strip-item">
+    <span class="stat-strip-value">{{ .value }}</span>
+    <span class="stat-strip-label">{{ .label }}</span>
+  </div>
+  {{- end -}}
+</div>

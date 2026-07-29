@@ -1,0 +1,18 @@
+{{- $current := . -}}
+<aside class="sidebar" aria-label="Section navigation">
+  <nav class="sidebar-nav">
+    {{- range $.Site.Menus.main -}}
+      {{- $isActive := or ($current.IsMenuCurrent "main" .) ($current.HasMenuCurrent "main" .) -}}
+      <div class="sidebar-group{{ if $isActive }} is-active{{ end }}">
+        <a class="sidebar-link" href="{{ .URL }}">{{ .Name }}</a>
+        {{- if and $isActive (eq (lower .Name) "quickstart") -}}
+          <ul class="sidebar-subnav">
+            {{- range (where $.Site.RegularPages "Section" "quickstart").ByWeight -}}
+              <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+            {{- end -}}
+          </ul>
+        {{- end -}}
+      </div>
+    {{- end -}}
+  </nav>
+</aside>

@@ -1,0 +1,24 @@
+{{ define "main" }}
+<article class="page page-list">
+  <div class="container">
+    <header class="page-header">
+      <h1 class="page-title">{{ .Title }}</h1>
+      {{- with .Description -}}<p class="page-description">{{ . }}</p>{{- end -}}
+    </header>
+    <div class="page-content">
+      {{ .Content }}
+      {{- $pages := where .Pages "Kind" "page" -}}
+      {{- if $pages -}}
+        <ul class="page-list-items">
+          {{- range $pages.ByWeight -}}
+            <li>
+              <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+              {{- with .Description -}}<p>{{ . }}</p>{{- end -}}
+            </li>
+          {{- end -}}
+        </ul>
+      {{- end -}}
+    </div>
+  </div>
+</article>
+{{ end }}

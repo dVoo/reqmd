@@ -1,0 +1,53 @@
+{{- /*
+  llms.txt — AI-agent index of the reqmd site.
+  Spec: https://llmstxt.org
+*/ -}}
+# {{ .Site.Title }}
+
+> {{ .Site.Params.description }}
+> Lightweight CLI for requirements-as-Markdown with trace checks. Git-native, text-first, no database. Validates 8,000+ requirements in under 200 ms.
+> Full content available at: {{ .Site.BaseURL }}llms-full.txt
+
+## Optional
+
+- [Source on GitHub]({{ .Site.Params.github }}): MIT-licensed Go CLI, single binary, no runtime dependencies.
+
+## Docs
+
+{{- $pages := where .Site.Pages "Kind" "page" -}}
+{{- range $pages.ByWeight }}
+- [{{ .Title }}]({{ .Permalink }}): {{ with .Description }}{{ . | plainify | chomp }}{{ else }}{{ .Summary | plainify | chomp | truncate 180 }}{{ end }}
+{{- end }}
+
+## Use cases
+
+- [Use cases]({{ "use-cases/" | absURL }}): What reqmd is designed for, what it does well, and what is out of scope.
+
+## Quickstart
+
+- [Quickstart]({{ "quickstart/" | absURL }}): A seven-step tour from install to manual review results.
+- [Step 0 — Installation]({{ "quickstart/00-installation/" | absURL }})
+- [Step 1 — Get started]({{ "quickstart/01-get-started/" | absURL }})
+- [Step 1a — CI integration]({{ "quickstart/01a-ci-integration/" | absURL }})
+- [Step 2 — Trace your spec]({{ "quickstart/02-trace-your-spec/" | absURL }})
+- [Step 2a — Status & disposition]({{ "quickstart/02a-status-disposition/" | absURL }})
+- [Step 2b — Version pins]({{ "quickstart/02b-version-pins/" | absURL }})
+- [Step 2c — Repin]({{ "quickstart/02c-repin/" | absURL }})
+- [Step 3 — Export]({{ "quickstart/03-export/" | absURL }})
+- [Step 3a — Live preview]({{ "quickstart/03a-live-preview/" | absURL }})
+- [Step 3b — Baseline diff]({{ "quickstart/03b-baseline-diff/" | absURL }})
+- [Step 4 — Custom templates]({{ "quickstart/04-custom-templates/" | absURL }})
+- [Step 5 — Verification results (CTRF)]({{ "quickstart/05-verification-results-ctrf/" | absURL }})
+- [Step 6 — Review documentation]({{ "quickstart/06-review-documentation/" | absURL }})
+
+## Reference
+
+- [Cheat sheet]({{ "cheat-sheet/" | absURL }}): Full command reference with example outputs and schema.yaml options — every command, every flag, every x-reqmd option.
+- [Benchmarks]({{ "benchmarks/" | absURL }}): How fast is reqmd? Real numbers from a real run — from 833 requirements in 50 ms to 720,000 requirements in 10 seconds.
+- [Compare]({{ "compare/" | absURL }}): How reqmd compares to sphinx-needs, OpenFastTrace, DOORS, Jama, Polarion — and why git-native beats database-backed.
+- [FAQ]({{ "faq/" | absURL }}): What reqmd does, how the GitHub review workflow works, schema, CI, submodules, reqmd-import, and more.
+- [About]({{ "about/" | absURL }}): Design principles (no lock-in, no database, per-directory schemas, dogfooding) and the self-hosting story.
+
+## AI integration
+- [reqmd-import]({{ "import/" | absURL }}): Source-code traceability — extracts Go and Python symbols into reqmd .md requirement files, closing the gap from code to spec.
+- [AI & agents]({{ "ai/" | absURL }}): Why reqmd's plain-markdown + JSON format is the right substrate for AI-assisted spec workflows, the full command surface, schema reference, and a copy-pasteable AGENTS.md.

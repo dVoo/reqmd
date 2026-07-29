@@ -1,0 +1,21 @@
+{{- $index := slice -}}
+{{- range .Site.Pages -}}
+  {{- $isIndexable := or (eq .Kind "page") (and (eq .Kind "section") (ne .Type "quickstart")) -}}
+  {{- if and $isIndexable (not .Params.excludeFromSearch) (not .IsHome) -}}
+    {{- $section := .Section -}}
+    {{- if not $section -}}
+      {{- if eq .Type "page" -}}
+        {{- $section = "docs" -}}
+      {{- end -}}
+    {{- end -}}
+    {{- $entry := dict
+        "title"   .Title
+        "url"     .RelPermalink
+        "section" ($section | humanize | title)
+        "summary" (.Description | default (.Summary | plainify))
+        "content" (.Plain | plainify)
+    -}}
+    {{- $index = $index | append $entry -}}
+  {{- end -}}
+{{- end -}}
+{{- $index | jsonify -}}
