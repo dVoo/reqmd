@@ -10,7 +10,7 @@
 
 ## Optional
 
-- [Source on GitHub]({{ .Site.Params.github }}): MIT-licensed Go CLI, single binary, no runtime dependencies.
+- [Source on GitHub]({{ .Site.Params.github }}): GPL-3.0-licensed Go CLI, single binary, no runtime dependencies.
 
 ## Docs
 

@@ -222,11 +222,11 @@ reqmd serve spec/ --results tests/ --results reviews/
 reqmd serve spec/
   serving http://localhost:8080
   watching spec/ ...
-  initial build: 834 reqs, 17 docs, 542 warnings
+  initial build: 249 reqs, 6 docs
   file changed: spec/02-system/features.md
-  rebuilt: 834 reqs, 542 warnings (48ms)
+  rebuilt: 249 reqs (48ms)
   file changed: spec/02-system/schema.yaml
-  rebuilt: 834 reqs, 542 warnings (52ms)
+  rebuilt: 249 reqs (52ms)
 ```
 
 </details>
@@ -256,10 +256,10 @@ With `--results`, adds `Verdict` and `Verdict Source` columns.
 ```text
 exporting spec/ → csv-out/
   spec/02-system  → csv-out/system-requirements.csv   (11 rows)
-  spec/03-software → csv-out/software-requirements.csv (6 rows)
+  spec/03-software → csv-out/software-requirements.csv (17 rows)
   spec/04-tests   → csv-out/tests-requirements.csv     (7 rows)
   ...
-  17 documents, 834 requirements exported
+  6 documents, 249 requirements exported
 ```
 
 Each CSV has columns: `ID, Title, <schema attributes>, Body, Rationale`.
@@ -286,7 +286,7 @@ exporting spec/ → html-out/
   spec/03-software → html-out/software-requirements.html
   spec/04-tests   → html-out/tests-requirements.html
   ...
-  17 documents exported
+  6 documents exported
 ```
 
 Each HTML file is standalone (no external JS), with card-based layout, trace links, document chain, search, and theme toggle.
@@ -309,7 +309,7 @@ reqmd export graph spec/ -o graph-out/
 
 ```text
 exporting spec/ → graph-out/reqmd-graph.lbug
-  834 nodes, 1240 edges
+  249 nodes, 1240 edges
   done
 ```
 

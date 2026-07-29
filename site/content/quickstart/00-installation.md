@@ -1,6 +1,6 @@
 ---
 title: "Step 0 — Installation"
-description: "Install reqmd in 30 seconds with go install, build from source, or download a prebuilt binary. Then verify the install against the bundled 833-requirement spec."
+description: "Install reqmd in 30 seconds with go install, build from source, or download a prebuilt binary. Then verify the install against the bundled 249-requirement spec."
 weight: -1
 ---
 
@@ -50,10 +50,10 @@ Without the tag, `reqmd export graph` is not built. The rest of the CLI works ex
 
 ```sh
 reqmd --version         # shows the version
-reqmd check spec/       # validate the bundled dogfooded spec (833 requirements)
+reqmd check spec/       # validate the bundled dogfooded spec (249 requirements)
 ```
 
-If the second command prints `Summary: 833 total, 833 valid, 0 invalid, 0 parse errors`, you're good to go.
+If the second command prints `Summary: 249 total, 249 valid, 0 invalid, 0 parse errors`, you're good to go.
 
 ## What's next
 
