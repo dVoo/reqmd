@@ -21,9 +21,9 @@ profile.cov
 # Dependency directories (remove the comment below to include it)
 # vendor/
 
-# Go workspace file
-go.work
-go.work.sum
+# Go workspace file (committed: reqmd + reqmd-import share one workspace)
+# go.work / go.work.sum are tracked so a fresh clone builds both modules
+# with `go build ./...` and `go test ./...` from the repo root.
 
 # env file
 .env

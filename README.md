@@ -31,7 +31,19 @@ Summary: 3 total, 2 valid, 1 invalid, 0 parse errors, 6 warnings
 git clone <your-repo>
 cd mdreq
 go build -o reqmd ./cmd/reqmd
+go build -o reqmd-import ./reqmd-import/cmd/reqmd-import   # extraction tool
 ```
+
+The repo is a Go workspace (`go.work`) linking both modules, so `go build ./...`
+and `go test ./...` from the root cover reqmd and reqmd-import together:
+
+```sh
+go test ./...        # tests for both modules
+```
+
+Each module keeps its own `go.mod` and dependencies; install either
+independently with `go install ./cmd/reqmd` or
+`go install ./reqmd-import/cmd/reqmd-import`.
 
 Requires Go 1.25+. The graph export subcommand requires Cgo support;
 build with `go build -tags ladybug -o reqmd ./cmd/reqmd` to include it.
