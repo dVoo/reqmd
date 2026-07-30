@@ -13,8 +13,9 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `quickstart/` — step-by-step tutorial (01-get-started, 01a-ci-integration, 02-trace-your-spec, 02a-status-disposition, 02b-version-pins, 03-export, 03a-live-preview, 03b-baseline-diff, 04-custom-templates, 05-verification-results-ctrf, 06-review-documentation)
 - `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
-- `go.mod` / `go.sum` — Go module (1.25)
-- `reqmd-import/` — separate Go module (`reqmd-import`) for the extraction tool that imports source code as proxy requirements. Partial source tree (not all packages compile yet); ships a prebuilt binary. Modeled in `spec/workspace.dsl` as the "Extraction Tool" softwareSystem.
+- `go.mod` / `go.sum` — Go module `reqmd` (1.25)
+- `go.work` / `go.work.sum` — Go workspace linking `reqmd` (root) and `reqmd-import` so `go build ./...` and `go test ./...` from the repo root cover both modules. Both keep independent `go.mod` files and dependency sets.
+- `reqmd-import/` — separate Go module (`reqmd-import`) for the extraction tool that imports source code as proxy requirements. Independent toolchain (tree-sitter); shares the spec *format* with reqmd but no Go code. Build with `go build ./reqmd-import/cmd/reqmd-import`. Modeled in `spec/workspace.dsl` as the "Extraction Tool" softwareSystem.
 - `.opencode/` — OpenCode tooling install (not part of the project)
 
 ## Key facts
@@ -26,7 +27,8 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 ## Build and run
 
 ```sh
-go build -o reqmd ./cmd/reqmd          # build
+go build -o reqmd ./cmd/reqmd          # build reqmd CLI
+go build -o reqmd-import ./reqmd-import/cmd/reqmd-import  # build extraction CLI
 go run ./cmd/reqmd check <root>       # check all docs under root
 go run ./cmd/reqmd ls <root>          # list all requirements
 go run ./cmd/reqmd stats <root>       # stats breakdown per doc
@@ -141,7 +143,9 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
 
 
 ```sh
-go test ./internal/...          # all unit tests (across 10 packages: diff, exporter, graph, model, parser, repin, reporter, schema, verify + cli [no test files])
+go test ./...                         # all tests, both modules (via go.work)
+go test ./internal/...                # reqmd unit tests (10 packages)
+go test ./reqmd-import/...            # reqmd-import unit tests
 go test -v ./internal/parser/   # parser tests (most complex)
 go test -v ./internal/schema/   # schema tests (Compile, Validate, Properties)
 go test ./internal/reporter/    # reporter tests (ExitCode, Format, FormatList, FormatStats, Warnings, FormatJSON, FormatListJSON, FormatStatsJSON)

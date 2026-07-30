@@ -42,5 +42,3 @@ require (
 	modernc.org/memory v1.11.0 // indirect
 	modernc.org/quickjs v0.17.1 // indirect
 )
-
-replace github.com/LadybugDB/go-ladybug v0.13.1 => /home/daniel/projects/mdreq/.lbug/ladybug
