@@ -983,3 +983,22 @@ stakeholder goals (`01-stakeholder`) have no upstream traces (untraced warnings
 suppressed by boundary inference and `external: true`). The ASPICE proxy layer
 (`01a-aspice-stakeholder`) is the first fully-traced tier.
 
+### Documentation website
+
+The `site/` directory is a self-contained [Hugo](https://gohugo.io) project
+(no external theme) hosting the public docs at **<https://reqmd.dev>**. On
+every push to `main` that touches `site/**`, the
+[`.github/workflows/hugo.yml`](.github/workflows/hugo.yml) workflow installs
+Hugo extended, builds with `hugo --minify -s site`, and deploys `site/public/`
+to GitHub Pages via `actions/deploy-pages`.
+
+Build locally to preview:
+
+```sh
+hugo server -s site --buildDrafts --disableFastRender
+```
+
+One-time repo setup (web UI): **Settings → Pages → Build and deployment →
+Source = "GitHub Actions"**, and set the custom domain to `reqmd.dev` (a
+`CNAME` file is committed at `site/static/CNAME`). Point the apex domain's DNS
+A records at the [GitHub Pages IPs](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site).
