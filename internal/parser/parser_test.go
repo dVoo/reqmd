@@ -406,6 +406,137 @@ func TestParseMD_TitleWithColonInTitle(t *testing.T) {
 	}
 }
 
+// TestParseMD_ContainerBreaksChain verifies that a container heading
+// (no attr block) at the same or shallower level breaks the parent chain.
+// Requirements after a container start as top-level (parent=nil).
+func TestParseMD_ContainerBreaksChain(t *testing.T) {
+	src := []byte("## REQ-1\n```attr\nid: REQ-1\n```\nBody 1.\n\n## Container\n\n### REQ-2\n```attr\nid: REQ-2\n```\nBody 2.\n")
+	reqs, _, err := parseMD(src, "test.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reqs) != 2 {
+		t.Fatalf("expected 2 requirements, got %d", len(reqs))
+	}
+	if reqs[0].ID != "REQ-1" || reqs[0].ParentID != "" {
+		t.Errorf("req[0]: ID=%q ParentID=%q, want REQ-1/empty", reqs[0].ID, reqs[0].ParentID)
+	}
+	if reqs[1].ID != "REQ-2" || reqs[1].ParentID != "" {
+		t.Errorf("req[1]: ID=%q ParentID=%q, want REQ-2/empty (container broke chain)", reqs[1].ID, reqs[1].ParentID)
+	}
+}
+
+// TestParseMD_UserExample1 reproduces the exact scenario the user
+// described: 4 requirements across containers, all top-level.
+func TestParseMD_UserExample1(t *testing.T) {
+	src := []byte("## REQ-1\n```attr\nid: REQ-1\n```\n## Container\n\n### REQ-2\n```attr\nid: REQ-2\n```\n## REQ-3\n```attr\nid: REQ-3\n```\n## Another Container\n\n### Another Container 2\n\n#### REQ-4\n```attr\nid: REQ-4\n```\n")
+	reqs, _, err := parseMD(src, "test.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reqs) != 4 {
+		t.Fatalf("expected 4 requirements, got %d", len(reqs))
+	}
+	for i, want := range []string{"REQ-1", "REQ-2", "REQ-3", "REQ-4"} {
+		if reqs[i].ID != want {
+			t.Errorf("req[%d]: ID=%q, want %q", i, reqs[i].ID, want)
+		}
+		if reqs[i].ParentID != "" {
+			t.Errorf("req[%d]: ParentID=%q, want empty (all top-level)", i, reqs[i].ParentID)
+		}
+	}
+}
+
+// TestParseMD_DeepNesting verifies requirements at arbitrary depth
+// (3+ levels) chain correctly when no containers intervene.
+func TestParseMD_DeepNesting(t *testing.T) {
+	src := []byte("# R1\n```attr\nid: R1\n```\n## R1.1\n```attr\nid: R1.1\n```\n### R1.1.1\n```attr\nid: R1.1.1\n```\n")
+	reqs, _, err := parseMD(src, "test.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reqs) != 3 {
+		t.Fatalf("expected 3 requirements, got %d", len(reqs))
+	}
+	if reqs[0].ID != "R1" || reqs[0].ParentID != "" {
+		t.Errorf("req[0]: ID=%q ParentID=%q, want R1/empty", reqs[0].ID, reqs[0].ParentID)
+	}
+	if reqs[1].ID != "R1.1" || reqs[1].ParentID != "R1" {
+		t.Errorf("req[1]: ID=%q ParentID=%q, want R1.1/R1", reqs[1].ID, reqs[1].ParentID)
+	}
+	if reqs[2].ID != "R1.1.1" || reqs[2].ParentID != "R1.1" {
+		t.Errorf("req[2]: ID=%q ParentID=%q, want R1.1.1/R1.1", reqs[2].ID, reqs[2].ParentID)
+	}
+}
+
+// TestParseMD_ContainerDoesNotBreakDeeperChain verifies that a container
+// heading deeper than the current stack top does NOT break the chain.
+// Only containers at the same or shallower level break it.
+// Also verifies that an even deeper info heading (no attr) inside a
+// requirement's body doesn't break the chain either, so a subsequent
+// requirement at that deeper level still links to its parent.
+func TestParseMD_ContainerDoesNotBreakDeeperChain(t *testing.T) {
+	// ## Container is deeper than # R1 → doesn't break chain.
+	// ### R2 is deeper than R1 → parent=R1 (chain held).
+	// #### Info is deeper than R2 → body text, chain holds.
+	// #### R2.1 is deeper than R2 → parent=R2 (chain held).
+	src := []byte("# R1\n```attr\nid: R1\n```\n## Section\n\n### R2\n```attr\nid: R2\n```\n#### Info\n\n#### R2.1\n```attr\nid: R2.1\n```\n")
+	reqs, _, err := parseMD(src, "test.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reqs) != 3 {
+		t.Fatalf("expected 3 requirements, got %d", len(reqs))
+	}
+	if reqs[0].ID != "R1" || reqs[0].ParentID != "" {
+		t.Errorf("req[0]: ID=%q ParentID=%q, want R1/empty", reqs[0].ID, reqs[0].ParentID)
+	}
+	if reqs[1].ID != "R2" || reqs[1].ParentID != "R1" {
+		t.Errorf("req[1]: ID=%q ParentID=%q, want R2/R1 (## Section is deeper, doesn't break)", reqs[1].ID, reqs[1].ParentID)
+	}
+	if reqs[2].ID != "R2.1" || reqs[2].ParentID != "R2" {
+		t.Errorf("req[2]: ID=%q ParentID=%q, want R2.1/R2 (#### Info is deeper, doesn't break)", reqs[2].ID, reqs[2].ParentID)
+	}
+}
+
+// TestParseMD_LevelGapNoContainer verifies that a heading gap without a
+// container still links children to the nearest shallower requirement.
+func TestParseMD_LevelGapNoContainer(t *testing.T) {
+	src := []byte("## R-A\n```attr\nid: R-A\n```\n#### R-B\n```attr\nid: R-B\n```\n")
+	reqs, _, err := parseMD(src, "test.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reqs) != 2 {
+		t.Fatalf("expected 2 requirements, got %d", len(reqs))
+	}
+	if reqs[0].ID != "R-A" || reqs[0].ParentID != "" {
+		t.Errorf("req[0]: ID=%q ParentID=%q, want R-A/empty", reqs[0].ID, reqs[0].ParentID)
+	}
+	if reqs[1].ID != "R-B" || reqs[1].ParentID != "R-A" {
+		t.Errorf("req[1]: ID=%q ParentID=%q, want R-B/R-A (nearest shallower, no container)", reqs[1].ID, reqs[1].ParentID)
+	}
+}
+
+// TestParseMD_SiblingContainersBreakChain verifies that multiple containers
+// at successive levels all reset the stack, producing only top-level reqs.
+func TestParseMD_SiblingContainersBreakChain(t *testing.T) {
+	src := []byte("## R1\n```attr\nid: R1\n```\n## C1\n\n## C2\n\n#### R2\n```attr\nid: R2\n```\n")
+	reqs, _, err := parseMD(src, "test.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(reqs) != 2 {
+		t.Fatalf("expected 2 requirements, got %d", len(reqs))
+	}
+	if reqs[0].ID != "R1" || reqs[0].ParentID != "" {
+		t.Errorf("req[0]: ID=%q ParentID=%q, want R1/empty", reqs[0].ID, reqs[0].ParentID)
+	}
+	if reqs[1].ID != "R2" || reqs[1].ParentID != "" {
+		t.Errorf("req[1]: ID=%q ParentID=%q, want R2/empty (all containers broke chain)", reqs[1].ID, reqs[1].ParentID)
+	}
+}
+
 func TestParseLsTreeOutput_Empty(t *testing.T) {
 	result := parseLsTreeOutput("")
 	if len(result) != 0 {

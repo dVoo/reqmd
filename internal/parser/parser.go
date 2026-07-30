@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bytes"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -203,9 +204,95 @@ func parseFiles(files []string) ([]model.Requirement, map[string]any, []error) {
 	return allReqs, mergedMeta, errs
 }
 
+// reqStackEntry tracks an open requirement at a heading level.
+type reqStackEntry struct {
+	level int
+	id    string
+}
+
+// popStackToLevel removes entries whose level is >= targetLevel.
+// Used by both requirement and container headings to close requirements
+// at their level or deeper.
+func popStackToLevel(stack []reqStackEntry, targetLevel int) []reqStackEntry {
+	for len(stack) > 0 && stack[len(stack)-1].level >= targetLevel {
+		stack = stack[:len(stack)-1]
+	}
+	return stack
+}
+
 // parseMD uses goldmark to extract requirements from a single .md file
 // and returns any YAML frontmatter as a map.
+//
+// For files with multiple root-level requirements (parent=nil), the file
+// is split at root requirement boundaries and chunks are parsed in
+// parallel. Each chunk is self-contained: a root requirement and all its
+// descendants. The pre-scan to find split points is a cheap line scan
+// that replicates the stack logic without building a goldmark AST.
 func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any, error) {
+	splits, frontmatter := findRootSplits(src)
+
+	// No splits or a single root → parse the whole file serially.
+	nRoots := len(splits)
+	if nRoots <= 1 {
+		return parseMDChunk(src, sourcePath)
+	}
+
+	// Batch root requirements into ~NumCPU chunks to amortize goldmark
+	// init overhead (~490ns per parse) while still getting parallelism.
+	// Each chunk contains multiple consecutive root requirements + their
+	// descendants. Chunks are balanced by root count, not byte size.
+	nCPU := runtime.NumCPU()
+	nChunks := nRoots
+	if nChunks > nCPU {
+		nChunks = nCPU
+	}
+
+	// Compute chunk boundaries: which split indices start/end each chunk.
+	type chunkResult struct {
+		reqs []model.Requirement
+		err  error
+	}
+	results := make([]chunkResult, nChunks)
+	var wg sync.WaitGroup
+
+	for c := range nChunks {
+		// Root index range [rootStart, rootEnd) for this chunk.
+		rootStart := c * nRoots / nChunks
+		rootEnd := (c + 1) * nRoots / nChunks
+		if rootEnd > nRoots {
+			rootEnd = nRoots
+		}
+		// Byte range: from the start of the first root in this chunk
+		// to the start of the first root in the next chunk (or EOF).
+		byteStart := splits[rootStart]
+		byteEnd := len(src)
+		if rootEnd < nRoots {
+			byteEnd = splits[rootEnd]
+		}
+		chunk := src[byteStart:byteEnd]
+		idx := c
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			reqs, _, err := parseMDChunk(chunk, sourcePath)
+			results[idx] = chunkResult{reqs: reqs, err: err}
+		}()
+	}
+	wg.Wait()
+
+	var reqs []model.Requirement
+	for _, r := range results {
+		if r.err != nil {
+			return nil, frontmatter, r.err
+		}
+		reqs = append(reqs, r.reqs...)
+	}
+	return reqs, frontmatter, nil
+}
+
+// parseMDChunk parses a single chunk of markdown (possibly the whole file)
+// using goldmark and returns requirements and frontmatter.
+func parseMDChunk(src []byte, sourcePath string) ([]model.Requirement, map[string]any, error) {
 	p := mdParser.Parser()
 	parseCtx := parser.NewContext()
 	doc := p.Parse(text.NewReader(src), parser.WithContext(parseCtx))
@@ -218,88 +305,47 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 
 	var reqs []model.Requirement
 	var cur *model.Requirement
-	var reqLevel int // 0 = unknown, set on first heading+attr pair
-	var parentID string
 	var waitingForAttr bool
-	var bodyBuf strings.Builder // accumulates cur.Body efficiently (avoids O(n²) string concat)
+	var bodyBuf strings.Builder
+	var stack []reqStackEntry // open requirements by heading level
 	for n := doc.FirstChild(); n != nil; n = n.NextSibling() {
 		switch v := n.(type) {
 		case *ast.Heading:
 			level := v.Level
 			hasAdjacentAttr := isNextAttrBlock(n, src)
 
-			// Discover reqLevel from the first heading+attr pair.
-			if reqLevel == 0 && hasAdjacentAttr {
-				reqLevel = level
-			}
-
-			// Before reqLevel is known, all headings are body text.
-			if reqLevel == 0 {
+			if hasAdjacentAttr {
+				// ── Requirement heading ──
 				if cur != nil {
-					bodyBuf.WriteString(renderHeading(v, src))
+					if cur.Attrs == nil {
+						return nil, frontmatter, fmt.Errorf("%s: req %s: missing attr block", sourcePath, cur.ID)
+					}
+					cur.Body = bodyBuf.String()
+					reqs = append(reqs, *cur)
+					cur = nil
 				}
-				continue
-			}
-
-			switch {
-			case level == reqLevel:
-				// ── Top-level heading ──
-				if hasAdjacentAttr {
-					if cur != nil {
-						if cur.Attrs == nil {
-							return nil, frontmatter, fmt.Errorf("%s: req %s: missing attr block", sourcePath, cur.ID)
-						}
-						cur.Body = bodyBuf.String()
-						reqs = append(reqs, *cur)
-						cur = nil
-					}
-					heading := collectInlineText(v, src)
-					id, title := splitHeadingID(heading)
-					cur = &model.Requirement{
-						ID:     id,
-						Title:  title,
-						Source: sourcePath,
-					}
-					bodyBuf.Reset()
-					parentID = id
-					waitingForAttr = true
-				} else if cur != nil {
-					// reqLevel heading without attr → body text
-					bodyBuf.WriteString(renderHeading(v, src))
+				stack = popStackToLevel(stack, level)
+				parentID := ""
+				if len(stack) > 0 {
+					parentID = stack[len(stack)-1].id
 				}
-
-			case level == reqLevel+1:
-				// ── Sub-requirement level ──
-				if hasAdjacentAttr {
-					if cur != nil {
-						if cur.Attrs == nil {
-							return nil, frontmatter, fmt.Errorf("%s: req %s: missing attr block", sourcePath, cur.ID)
-						}
-						cur.Body = bodyBuf.String()
-						reqs = append(reqs, *cur)
-						cur = nil
-					}
-					heading := collectInlineText(v, src)
-					id, title := splitHeadingID(heading)
-					if parentID == "" {
-						return nil, frontmatter, fmt.Errorf("%s: ### heading %q without preceding %s requirement",
-							sourcePath, heading, headingName(reqLevel))
-					}
-					cur = &model.Requirement{
-						ID:       id,
-						Title:    title,
-						Source:   sourcePath,
-						ParentID: parentID,
-					}
-					bodyBuf.Reset()
-					waitingForAttr = true
-				} else if cur != nil {
-					// Sub-req-level heading without attr → body text
-					bodyBuf.WriteString(renderHeading(v, src))
+				heading := collectInlineText(v, src)
+				id, title := splitHeadingID(heading)
+				cur = &model.Requirement{
+					ID:       id,
+					Title:    title,
+					Source:   sourcePath,
+					ParentID: parentID,
 				}
-
-			default:
-				// Other heading levels → body text
+				bodyBuf.Reset()
+				stack = append(stack, reqStackEntry{level: level, id: id})
+				waitingForAttr = true
+			} else {
+				// ── Container heading (no attr) ──
+				// Pop requirements at this level or deeper, breaking the
+				// parent chain. Deeper headings (level > stack top) are
+				// body text and don't pop anything.
+				stack = popStackToLevel(stack, level)
 				if cur != nil {
 					bodyBuf.WriteString(renderHeading(v, src))
 				}
@@ -372,6 +418,121 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 	return reqs, frontmatter, nil
 }
 
+// findRootSplits scans src line-by-line to find byte offsets where root-level
+// requirements begin. A root requirement is one where the stack is empty when
+// the requirement heading is encountered. The scan replicates the same stack
+// logic as parseMDChunk but without building a goldmark AST.
+//
+// Returns the byte offsets of root requirement starts (including the heading
+// line) and any YAML frontmatter parsed from the file header.
+//
+// If only 0 or 1 roots are found, the caller parses the whole file serially.
+func findRootSplits(src []byte) (splits []int, frontmatter map[string]any) {
+	lines := splitLines(src)
+
+	// Parse frontmatter if present (--- delimited block at file start).
+	lineIdx := 0
+	if len(lines) > 0 && strings.TrimSpace(string(lines[0])) == "---" {
+		for lineIdx = 1; lineIdx < len(lines); lineIdx++ {
+			if strings.TrimSpace(string(lines[lineIdx])) == "---" {
+				if lineIdx > 1 {
+					fmText := string(bytes.Join(lines[1:lineIdx], []byte("\n")))
+					_ = yaml.Unmarshal([]byte(fmText), &frontmatter)
+				}
+				lineIdx++
+				break
+			}
+		}
+	}
+
+	// Track byte offset of the current line.
+	byteOffset := 0
+	for i := 0; i < lineIdx; i++ {
+		byteOffset += len(lines[i]) + 1 // +1 for the \n
+	}
+
+	var stack []reqStackEntry
+
+	for lineIdx < len(lines) {
+		line := string(lines[lineIdx])
+		// Detect heading lines: 1-6 '#' followed by a space.
+		if level, ok := headingLevel(line); ok {
+			hasAttr := nextNonBlankIsAttr(lines, lineIdx+1)
+
+			if hasAttr {
+				// Requirement heading: pop to this level, check if root.
+				stack = popStackToLevel(stack, level)
+				if len(stack) == 0 {
+					// Root requirement — record split point.
+					splits = append(splits, byteOffset)
+				}
+				// Extract ID from heading text (same as splitHeadingID).
+				headingText := strings.TrimSpace(line[level:])
+				id, _ := splitHeadingID(headingText)
+				stack = append(stack, reqStackEntry{level: level, id: id})
+			} else {
+				// Container heading: pop to this level (breaks chain).
+				stack = popStackToLevel(stack, level)
+			}
+		}
+
+		byteOffset += len(lines[lineIdx]) + 1
+		lineIdx++
+	}
+
+	return splits, frontmatter
+}
+
+// splitLines splits src on \n, returning each line without the trailing newline.
+// A trailing empty line (from a final \n) is not included.
+func splitLines(src []byte) [][]byte {
+	if len(src) == 0 {
+		return nil
+	}
+	var lines [][]byte
+	start := 0
+	for i, b := range src {
+		if b == '\n' {
+			lines = append(lines, src[start:i])
+			start = i + 1
+		}
+	}
+	if start < len(src) {
+		lines = append(lines, src[start:])
+	}
+	return lines
+}
+
+// headingLevel returns the heading level (1-6) and true if the line is a
+// markdown heading (e.g. "## Title"). Returns 0, false otherwise.
+func headingLevel(line string) (int, bool) {
+	if len(line) == 0 || line[0] != '#' {
+		return 0, false
+	}
+	level := 0
+	for level < 6 && level < len(line) && line[level] == '#' {
+		level++
+	}
+	if level < len(line) && line[level] == ' ' {
+		return level, true
+	}
+	return 0, false
+}
+
+// nextNonBlankIsAttr checks if the next non-blank line after lineIdx is a
+// ```attr fence. This mirrors isNextAttrBlock in the goldmark path.
+func nextNonBlankIsAttr(lines [][]byte, idx int) bool {
+	for idx < len(lines) {
+		trimmed := strings.TrimSpace(string(lines[idx]))
+		if trimmed == "" {
+			idx++
+			continue
+		}
+		return strings.HasPrefix(trimmed, "```attr")
+	}
+	return false
+}
+
 // isNextAttrBlock returns true if n's next sibling is a ```attr fence.
 // Blank lines between heading and fence are consumed by goldmark and don't
 // create AST nodes, so they don't affect this check.
@@ -385,17 +546,6 @@ func isNextAttrBlock(n ast.Node, src []byte) bool {
 		return false
 	}
 	return fenceInfo(fence, src) == attrFenceInfo
-}
-
-func headingName(level int) string {
-	switch level {
-	case 1:
-		return "#"
-	case 2:
-		return "##"
-	default:
-		return fmt.Sprintf("level %d", level)
-	}
 }
 
 // splitHeadingID splits a heading like "REQ-001: This is a title"
