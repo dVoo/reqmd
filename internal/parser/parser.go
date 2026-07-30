@@ -34,7 +34,9 @@ const attrFenceInfo = "attr"
 // Constructed once at package init to avoid re-running extension Init for every .md file.
 var mdParser = goldmark.New(
 	goldmark.WithExtensions(
-		extension.GFM,
+		extension.Table,
+		extension.Strikethrough,
+		extension.TaskList,
 		&mermaid.Extender{},
 		&fences.Extender{},
 		highlighting.Highlighting,
@@ -433,84 +435,77 @@ func parseMDChunk(src []byte, sourcePath string) ([]model.Requirement, map[strin
 //
 // If only 0 or 1 roots are found, the caller parses the whole file serially.
 func findRootSplits(src []byte) (splits []int, frontmatter map[string]any) {
-	lines := splitLines(src)
-
 	// Parse frontmatter if present (--- delimited block at file start).
-	lineIdx := 0
-	if len(lines) > 0 && strings.TrimSpace(string(lines[0])) == "---" {
-		for lineIdx = 1; lineIdx < len(lines); lineIdx++ {
-			if strings.TrimSpace(string(lines[lineIdx])) == "---" {
-				if lineIdx > 1 {
-					fmText := string(bytes.Join(lines[1:lineIdx], []byte("\n")))
-					_ = yaml.Unmarshal([]byte(fmText), &frontmatter)
+	pos := 0 // byte offset of current line start
+
+	// Check for frontmatter delimiter on the first line.
+	if firstLine, _ := nextLine(src, 0); bytes.Equal(bytes.TrimSpace(firstLine), []byte("---")) {
+		pos += len(firstLine) + 1 // skip the --- line
+		for pos < len(src) {
+			line, nl := nextLine(src, pos)
+			if bytes.Equal(bytes.TrimSpace(line), []byte("---")) {
+				// Found closing ---. Parse frontmatter between markers.
+				if pos > len(firstLine)+1 {
+					fmStart := len(firstLine) + 1
+					fmEnd := pos
+					_ = yaml.Unmarshal(src[fmStart:fmEnd], &frontmatter)
 				}
-				lineIdx++
+				pos += len(line) + 1 // skip closing ---
 				break
 			}
+			pos += len(line) + 1
+			_ = nl
 		}
-	}
-
-	// Track byte offset of the current line.
-	byteOffset := 0
-	for i := 0; i < lineIdx; i++ {
-		byteOffset += len(lines[i]) + 1 // +1 for the \n
 	}
 
 	var stack []reqStackEntry
 
-	for lineIdx < len(lines) {
-		line := string(lines[lineIdx])
-		// Detect heading lines: 1-6 '#' followed by a space.
-		if level, ok := headingLevel(line); ok {
-			hasAttr := nextNonBlankIsAttr(lines, lineIdx+1)
+	for pos < len(src) {
+		lineStart := pos
+		line, _ := nextLine(src, pos)
+		lineEnd := pos + len(line)
+
+		if level, ok := headingLevelBytes(line); ok {
+			hasAttr := nextNonBlankIsAttrBytes(src, lineEnd+1)
 
 			if hasAttr {
-				// Requirement heading: pop to this level, check if root.
 				stack = popStackToLevel(stack, level)
 				if len(stack) == 0 {
-					// Root requirement — record split point.
-					splits = append(splits, byteOffset)
+					splits = append(splits, lineStart)
 				}
-				// Extract ID from heading text (same as splitHeadingID).
-				headingText := strings.TrimSpace(line[level:])
-				id, _ := splitHeadingID(headingText)
+				headingText := bytes.TrimSpace(line[level:])
+				id, _ := splitHeadingIDBytes(headingText)
 				stack = append(stack, reqStackEntry{level: level, id: id})
 			} else {
-				// Container heading: pop to this level (breaks chain).
 				stack = popStackToLevel(stack, level)
 			}
 		}
 
-		byteOffset += len(lines[lineIdx]) + 1
-		lineIdx++
+		pos = lineEnd + 1 // skip \n
 	}
 
 	return splits, frontmatter
 }
 
-// splitLines splits src on \n, returning each line without the trailing newline.
-// A trailing empty line (from a final \n) is not included.
-func splitLines(src []byte) [][]byte {
-	if len(src) == 0 {
-		return nil
+// nextLine returns the line at byte offset pos (without the trailing \n)
+// and whether there was a newline. The returned slice references src —
+// no allocation.
+func nextLine(src []byte, pos int) (line []byte, hasNL bool) {
+	if pos >= len(src) {
+		return nil, false
 	}
-	var lines [][]byte
-	start := 0
-	for i, b := range src {
-		if b == '\n' {
-			lines = append(lines, src[start:i])
-			start = i + 1
-		}
+	rest := src[pos:]
+	idx := bytes.IndexByte(rest, '\n')
+	if idx < 0 {
+		return rest, false
 	}
-	if start < len(src) {
-		lines = append(lines, src[start:])
-	}
-	return lines
+	return rest[:idx], true
 }
 
-// headingLevel returns the heading level (1-6) and true if the line is a
-// markdown heading (e.g. "## Title"). Returns 0, false otherwise.
-func headingLevel(line string) (int, bool) {
+// headingLevelBytes returns the heading level (1-6) and true if the line
+// is a markdown heading (e.g. "## Title"). Returns 0, false otherwise.
+// Works on []byte to avoid string allocation.
+func headingLevelBytes(line []byte) (int, bool) {
 	if len(line) == 0 || line[0] != '#' {
 		return 0, false
 	}
@@ -524,20 +519,32 @@ func headingLevel(line string) (int, bool) {
 	return 0, false
 }
 
-// nextNonBlankIsAttr checks if the next non-blank line after lineIdx is a
-// ```attr fence. This mirrors isNextAttrBlock in the goldmark path.
-func nextNonBlankIsAttr(lines [][]byte, idx int) bool {
-	for idx < len(lines) {
-		trimmed := strings.TrimSpace(string(lines[idx]))
-		if trimmed == "" {
-			idx++
+// nextNonBlankIsAttrBytes checks if the next non-blank line after byte
+// offset pos is a ```attr fence. Scans src directly — no allocation.
+func nextNonBlankIsAttrBytes(src []byte, pos int) bool {
+	for pos < len(src) {
+		line, hasNL := nextLine(src, pos)
+		trimmed := bytes.TrimSpace(line)
+		if len(trimmed) == 0 {
+			pos += len(line) + 1
+			if !hasNL {
+				break
+			}
 			continue
 		}
-		return strings.HasPrefix(trimmed, "```attr")
+		return bytes.HasPrefix(trimmed, []byte("```attr"))
 	}
 	return false
 }
 
+// splitHeadingIDBytes splits a heading like "REQ-001: This is a title"
+// into ("REQ-001", "This is a title"). Works on []byte.
+func splitHeadingIDBytes(heading []byte) (id string, title string) {
+	if idx := bytes.Index(heading, []byte(": ")); idx >= 0 {
+		return string(bytes.TrimSpace(heading[:idx])), string(bytes.TrimSpace(heading[idx+2:]))
+	}
+	return string(bytes.TrimSpace(heading)), ""
+}
 // isNextAttrBlock returns true if n's next sibling is a ```attr fence.
 // Blank lines between heading and fence are consumed by goldmark and don't
 // create AST nodes, so they don't affect this check.

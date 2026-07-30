@@ -33,11 +33,11 @@ const (
 // Machine-readable check codes and direction values for version-pin findings.
 const (
 	CodeVersionPin     = "version-pin"
-	CodeMissingVerdict  = "missing-verdict"
-	CodeFailingVerdict  = "failing-verdict"
-	CodeVerdict         = "verdict"
-	DirOutdated         = "outdated"
-	DirPredated         = "predated"
+	CodeMissingVerdict = "missing-verdict"
+	CodeFailingVerdict = "failing-verdict"
+	CodeVerdict        = "verdict"
+	DirOutdated        = "outdated"
+	DirPredated        = "predated"
 )
 
 // CheckResult describes a single Pass 2 trace validation finding.
@@ -59,14 +59,14 @@ type CheckResult struct {
 // findings (pin > upstream.version) are surfaced as DeltaPredated
 // and never auto-fixed by repin.
 type RepinDelta struct {
-	Kind       string `json:"kind"`              // "outdated" | "unpinned" | "predated"
-	ReqID      string `json:"req_id"`            // downstream requirement ID
-	File       string `json:"file"`              // source file of the downstream requirement
-	TargetID   string `json:"target_id"`         // upstream requirement ID being repinned
-	SourceRef  string `json:"source_ref"`        // full ref as it appears in the source (e.g. "doc-id/ID~3" or "ID")
-	OldPin     int    `json:"old_pin"`           // previous pin (0 for unpinned, also 0 for "~0")
-	NewPin     int    `json:"new_pin"`           // new pin (== upstream.version)
-	NewVersion int    `json:"new_version"`       // upstream version this delta repins to
+	Kind       string `json:"kind"`        // "outdated" | "unpinned" | "predated"
+	ReqID      string `json:"req_id"`      // downstream requirement ID
+	File       string `json:"file"`        // source file of the downstream requirement
+	TargetID   string `json:"target_id"`   // upstream requirement ID being repinned
+	SourceRef  string `json:"source_ref"`  // full ref as it appears in the source (e.g. "doc-id/ID~3" or "ID")
+	OldPin     int    `json:"old_pin"`     // previous pin (0 for unpinned, also 0 for "~0")
+	NewPin     int    `json:"new_pin"`     // new pin (== upstream.version)
+	NewVersion int    `json:"new_version"` // upstream version this delta repins to
 }
 
 // CachedNode is an in-memory typed representation of a requirement node,
@@ -90,9 +90,9 @@ type CachedNode struct {
 	// in the same Pass 2 loop as OutboundPins; consumed by the repin
 	// command. Existing checks ignore this field — it carries no
 	// semantics for traceability.
-	OutboundRefs         map[string]string
-	Suppressions         []string
-	suppressionsSet      map[string]struct{} // precomputed from Suppressions for O(1) isSuppressed
+	OutboundRefs    map[string]string
+	Suppressions    []string
+	suppressionsSet map[string]struct{} // precomputed from Suppressions for O(1) isSuppressed
 	// Status is the raw value of the built-in `status` attribute.
 	// Empty means the attribute was not declared — effectiveStatus()
 	// falls back to model.StatusDefault in that case.
@@ -180,23 +180,23 @@ func New(docs []model.Document) (*Graph, error) {
 			xr = doc.XReqmd
 		}
 		for _, req := range doc.Requirements {
-		node := &CachedNode{
-			ReqID:             req.ID,
-			File:              req.Source,
-			Dir:               filepath.Dir(req.Source),
-			IsChild:           req.ParentID != "",
-			Disposition:       getString(req.Attrs, model.AttrDisposition),
-			DispositionReason: getString(req.Attrs, model.AttrDispositionReason),
-			Version:           getIntFromAttrs(req.Attrs, model.AttrVersion),
-			RequiresTraceFrom: getStringSlice(req.Attrs, model.AttrRequiresTraceFrom),
-			OutboundPins:      make(map[string]int),
-			OutboundRefs:      make(map[string]string),
-			Suppressions:      req.Suppressions,
-			Status:            getString(req.Attrs, model.AttrStatus),
-			Outcome:           getString(req.Attrs, "outcome"),
-			Verify:            getString(req.Attrs, "verify"),
-			IsResult:          strings.HasPrefix(req.ID, "RESULT:"),
-		}
+			node := &CachedNode{
+				ReqID:             req.ID,
+				File:              req.Source,
+				Dir:               filepath.Dir(req.Source),
+				IsChild:           req.ParentID != "",
+				Disposition:       getString(req.Attrs, model.AttrDisposition),
+				DispositionReason: getString(req.Attrs, model.AttrDispositionReason),
+				Version:           getIntFromAttrs(req.Attrs, model.AttrVersion),
+				RequiresTraceFrom: getStringSlice(req.Attrs, model.AttrRequiresTraceFrom),
+				OutboundPins:      nil, // lazily allocated in Pass 2
+				OutboundRefs:      nil, // lazily allocated in Pass 2
+				Suppressions:      req.Suppressions,
+				Status:            getString(req.Attrs, model.AttrStatus),
+				Outcome:           getString(req.Attrs, "outcome"),
+				Verify:            getString(req.Attrs, "verify"),
+				IsResult:          strings.HasPrefix(req.ID, "RESULT:"),
+			}
 			if len(req.Suppressions) > 0 {
 				node.suppressionsSet = make(map[string]struct{}, len(req.Suppressions))
 				for _, s := range req.Suppressions {
@@ -313,12 +313,18 @@ func New(docs []model.Document) (*Graph, error) {
 				node.Outbound = append(node.Outbound, targetID)
 				target.Inbound = append(target.Inbound, req.ID)
 				if pinned {
+					if node.OutboundPins == nil {
+						node.OutboundPins = make(map[string]int)
+					}
 					node.OutboundPins[targetID] = pin
 				}
 				// Record the original ref string for the repin command. Only
 				// stored when the ref resolved to a real target (so dangling/
 				// ambiguous refs don't pollute the map). First-wins semantics:
 				// duplicate targetIDs in the same trace list keep the first form.
+				if node.OutboundRefs == nil {
+					node.OutboundRefs = make(map[string]string)
+				}
 				node.OutboundRefs[targetID] = originalRef
 			}
 		}
@@ -870,7 +876,7 @@ func (g *Graph) checkFailingVerdict() []CheckResult {
 			continue
 		}
 		// Find the latest result tracing to this measure.
-	latestOutcome, _, found := g.latestOutcomeFor(node.ReqID)
+		latestOutcome, _, found := g.latestOutcomeFor(node.ReqID)
 		if !found {
 			continue // missing-verdict handles the no-result case.
 		}
