@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
+	"sync"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -110,26 +112,95 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 	}
 
 	// Pass 1: JSON Schema validation (spec docs only; result doc has no schema)
-	for _, doc := range docs {
-		compiled, err := schema.Compile(doc.Schema, doc.Path)
-		if err != nil {
+	// Schema compilation and per-requirement validation are both parallelized.
+	// Compile is per-doc-dir (independent schemas), validate is per-requirement
+	// (the compiled schema is read-only after construction).
+
+	// Phase A: compile all schemas in parallel.
+	type compileResult struct {
+		compiled *schema.Compiled
+		err      error
+	}
+	compiles := make([]compileResult, len(docs))
+	var compileWG sync.WaitGroup
+	compileSem := make(chan struct{}, runtime.NumCPU())
+	for i, doc := range docs {
+		i, doc := i, doc
+		compileSem <- struct{}{}
+		compileWG.Add(1)
+		go func() {
+			defer compileWG.Done()
+			defer func() { <-compileSem }()
+			c, err := schema.Compile(doc.Schema, doc.Path)
+			compiles[i] = compileResult{compiled: c, err: err}
+		}()
+	}
+	compileWG.Wait()
+
+	// Collect compile errors and count total reqs serially (cheap).
+	for i, cr := range compiles {
+		if cr.err != nil {
 			report.ParseErrors = append(report.ParseErrors, reporter.ParseError{
-				File:    doc.Path,
-				Message: fmt.Sprintf("compiling schema: %v", err),
+				File:    docs[i].Path,
+				Message: fmt.Sprintf("compiling schema: %v", cr.err),
 			})
 			continue
 		}
-		for _, req := range doc.Requirements {
-			report.TotalReqs++
-			if err := compiled.Validate(req.Attrs); err != nil {
-				report.ValErrors = append(report.ValErrors, reporter.ValidationError{
-					File:    req.Source,
-					ReqID:   req.ID,
-					Message: err.Error(),
-				})
-			} else {
-				report.ValidReqs++
-			}
+		report.TotalReqs += len(docs[i].Requirements)
+	}
+
+	// Phase B: validate all requirements in parallel across all docs
+	// that compiled successfully. Each Validate call is independent —
+	// the Compiled struct is read-only and each req's attrs map is separate.
+	type valResult struct {
+		err error
+		ok  bool
+	}
+
+	// Flatten the work list: (docIdx, reqIdx) pairs for docs with valid schemas.
+	type valJob struct {
+		docIdx int
+		reqIdx int
+	}
+	var jobs []valJob
+	for i, cr := range compiles {
+		if cr.err != nil || cr.compiled == nil {
+			continue
+		}
+		for j := range docs[i].Requirements {
+			jobs = append(jobs, valJob{docIdx: i, reqIdx: j})
+		}
+	}
+
+	valResults := make([]valResult, len(jobs))
+	var valWG sync.WaitGroup
+	valSem := make(chan struct{}, runtime.NumCPU())
+	for k, job := range jobs {
+		k, job := k, job
+		valSem <- struct{}{}
+		valWG.Add(1)
+		go func() {
+			defer valWG.Done()
+			defer func() { <-valSem }()
+			req := docs[job.docIdx].Requirements[job.reqIdx]
+			compiled := compiles[job.docIdx].compiled
+			err := compiled.Validate(req.Attrs)
+			valResults[k] = valResult{err: err, ok: err == nil}
+		}()
+	}
+	valWG.Wait()
+
+	// Collect validation results in order.
+	for k, job := range jobs {
+		req := docs[job.docIdx].Requirements[job.reqIdx]
+		if valResults[k].ok {
+			report.ValidReqs++
+		} else {
+			report.ValErrors = append(report.ValErrors, reporter.ValidationError{
+				File:    req.Source,
+				ReqID:   req.ID,
+				Message: valResults[k].err.Error(),
+			})
 		}
 	}
 

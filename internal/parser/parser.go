@@ -354,9 +354,14 @@ func parseMDChunk(src []byte, sourcePath string) ([]model.Requirement, map[strin
 		case *ast.FencedCodeBlock:
 			if cur != nil && waitingForAttr && fenceInfo(v, src) == attrFenceInfo {
 				yamlText := fenceLines(v, src)
-				var attrs map[string]any
-				if err := yaml.Unmarshal([]byte(yamlText), &attrs); err != nil {
-					return nil, frontmatter, fmt.Errorf("%s: req %s: invalid attr YAML: %w", sourcePath, cur.ID, err)
+				attrs, err := decodeAttrYAML(yamlText)
+				if err != nil {
+					// Fallback to yaml.v3 for complex syntax the scanner
+					// doesn't handle (nested maps, flow sequences, etc.).
+					attrs = make(map[string]any, 8)
+					if yamlErr := yaml.Unmarshal([]byte(yamlText), &attrs); yamlErr != nil {
+						return nil, frontmatter, fmt.Errorf("%s: req %s: invalid attr YAML: %w", sourcePath, cur.ID, yamlErr)
+					}
 				}
 				cur.Attrs = attrs
 				// Extract reqmd-suppress before it reaches schema validation
