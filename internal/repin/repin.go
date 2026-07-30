@@ -55,7 +55,7 @@ type ApplyReport struct {
 //
 // The returned Result is sorted (delegated to graph.RepinDeltas).
 func Build(root string, promoteUnpinned bool) (Result, error) {
-	docs, err := parser.Discover(root)
+	docs, err := parser.DiscoverMeta(root)
 	if err != nil {
 		return Result{}, fmt.Errorf("discovering docs: %w", err)
 	}

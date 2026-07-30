@@ -17,7 +17,7 @@ func newStatsCmd() *cobra.Command {
 		Short: "Show attribute-value statistics per document",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			docs, err := parser.Discover(args[0])
+			docs, err := parser.DiscoverMeta(args[0])
 			if err != nil {
 				return fmt.Errorf("discovering documents: %w", err)
 			}

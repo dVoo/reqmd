@@ -10,7 +10,7 @@ import (
 // prose body, and *Rationale: line.
 func TestParseMD_Full(t *testing.T) {
 	src := []byte("## REQ-001\n```attr\nid: REQ-001\nasil: ASIL D\n```\nThis requirement shall do something important.\n\n*Rationale: safety critical function\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -42,7 +42,7 @@ func TestParseMD_Full(t *testing.T) {
 // has an empty Rational field.
 func TestParseMD_NoRationale(t *testing.T) {
 	src := []byte("## REQ-002\n```attr\nid: REQ-002\nasil: ASIL B\n```\nThis requirement has no rationale.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +62,7 @@ func TestParseMD_NoRationale(t *testing.T) {
 // in one document are each parsed correctly.
 func TestParseMD_MultipleRequirements(t *testing.T) {
 	src := []byte("## REQ-A\n```attr\nid: REQ-A\n```\nBody A.\n\n## REQ-B\n```attr\nid: REQ-B\n```\nBody B.\n\n## REQ-C\n```attr\nid: REQ-C\n```\nBody C.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -88,7 +88,7 @@ func TestParseMD_MultipleRequirements(t *testing.T) {
 // block produces no requirements (treated as section divider / body text).
 func TestParseMD_MissingAttrBlock(t *testing.T) {
 	src := []byte("## REQ-NOATTR\nThis has no attr block.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatalf("expected no error for non-attr heading (section divider), got: %v", err)
 	}
@@ -101,7 +101,7 @@ func TestParseMD_MissingAttrBlock(t *testing.T) {
 // returns an error.
 func TestParseMD_BadYAML(t *testing.T) {
 	src := []byte("## REQ-BAD\n```attr\n: : invalid yaml\n```\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err == nil {
 		t.Fatal("expected error for invalid attr YAML, got nil")
 	}
@@ -114,7 +114,7 @@ func TestParseMD_BadYAML(t *testing.T) {
 // non-attr info string (e.g. ```json) inside a requirement body is preserved.
 func TestParseMD_NonAttrCodeBlock(t *testing.T) {
 	src := []byte("## REQ-001\n```attr\nid: REQ-001\n```\nSome text.\n\n```json\n{\"key\": \"value\"}\n```\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,7 +131,7 @@ func TestParseMD_NonAttrCodeBlock(t *testing.T) {
 // TestParseMD_EmptyFile verifies that parsing an empty source returns
 // nil requirements with no error.
 func TestParseMD_EmptyFile(t *testing.T) {
-	reqs, _, err := parseMD([]byte{}, "empty.md")
+	reqs, _, err := parseMD([]byte{}, "empty.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -144,7 +144,7 @@ func TestParseMD_EmptyFile(t *testing.T) {
 // a requirement body are ignored and don't disrupt body accumulation.
 func TestParseMD_ThematicBreak(t *testing.T) {
 	src := []byte("## REQ-001\n```attr\nid: REQ-001\n```\nBefore break.\n\n---\nAfter break.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -162,7 +162,7 @@ func TestParseMD_ThematicBreak(t *testing.T) {
 // is parsed into []interface{} with the correct elements.
 func TestParseMD_ArrayAttr(t *testing.T) {
 	src := []byte("## REQ-001\n```attr\ntrace: [SYS-001, SAFE-003]\n```\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +189,7 @@ func TestParseMD_ArrayAttr(t *testing.T) {
 // immediately following a ## heading creates a sub-requirement with ParentID set.
 func TestParseMD_SubReqUnderParent(t *testing.T) {
 	src := []byte("## PARENT-001\n```attr\nid: PARENT-001\n```\nParent body.\n\n### CHILD-001\n```attr\nid: CHILD-001\n```\nChild body.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +223,7 @@ func TestParseMD_SubReqUnderParent(t *testing.T) {
 // under the same ## parent all get the correct ParentID.
 func TestParseMD_MultipleSubReqs(t *testing.T) {
 	src := []byte("## PARENT\n```attr\nid: PARENT\n```\nP.\n\n### CHILD-A\n```attr\nid: CHILD-A\n```\nA.\n\n### CHILD-B\n```attr\nid: CHILD-B\n```\nB.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -246,7 +246,7 @@ func TestParseMD_MultipleSubReqs(t *testing.T) {
 // a top-level requirement, not an orphan child.
 func TestParseMD_SubReqDynamicLevel(t *testing.T) {
 	src := []byte("### ORPHAN\n```attr\nid: ORPHAN\n```\nNo parent.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatalf("expected no error, got: %v", err)
 	}
@@ -267,7 +267,7 @@ func TestParseMD_SubHeadingInBody(t *testing.T) {
 	// This test is the same as the existing one but confirms backward compat
 	// with the new parser: ### without attr → body text, not a sub-req.
 	src := []byte("## REQ-001\n```attr\nid: REQ-001\n```\n### Sub Heading\nSome text.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -288,7 +288,7 @@ func TestParseMD_SubHeadingInBody(t *testing.T) {
 // attr block defines the requirement level (e.g., # instead of ##).
 func TestParseMD_DynamicReqLevel(t *testing.T) {
 	src := []byte("# TOP\n```attr\nid: TOP\n```\nTop body.\n\n## CHILD\n```attr\nid: CHILD\n```\nChild body.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -351,7 +351,7 @@ func TestParseSingleFile(t *testing.T) {
 // splits the ID and Title correctly.
 func TestParseMD_Title(t *testing.T) {
 	src := []byte("## REQ-001: Login requirement\n```attr\nstatus: Approved\n```\nBody text.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -370,7 +370,7 @@ func TestParseMD_Title(t *testing.T) {
 // TestParseMD_NoTitle verifies that a heading without ": " has empty Title.
 func TestParseMD_NoTitle(t *testing.T) {
 	src := []byte("## REQ-002\n```attr\nstatus: Draft\n```\nNo title.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -390,7 +390,7 @@ func TestParseMD_NoTitle(t *testing.T) {
 // (IDs can't contain colons per the ID pattern, but titles may).
 func TestParseMD_TitleWithColonInTitle(t *testing.T) {
 	src := []byte("## REQ-003: Do this: then that\n```attr\nstatus: Approved\n```\nBody.\n")
-	reqs, _, err := parseMD(src, "test.md")
+	reqs, _, err := parseMD(src, "test.md", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -469,5 +469,53 @@ not enough fields here
 	}
 	if result["invalid"] != "abc123" {
 		t.Errorf("unexpected SHA: %s", result["invalid"])
+	}
+}
+
+// TestParseMDFast_Parity verifies the fast scanner produces the same
+// IDs, titles, attrs, parentIDs, and suppressions as the goldmark parser.
+func TestParseMDFast_Parity(t *testing.T) {
+	sources := []string{
+		// Basic requirement with title
+		"## REQ-001: Do something\n```attr\nstatus: approved\ntrace:\n  - STK-001\n```\nThe body.\n",
+		// Sub-requirement
+		"## REQ-001: Top\n```attr\nstatus: approved\n```\nBody.\n### REQ-001-1: Sub\n```attr\nstatus: draft\ntrace:\n  - REQ-001\n```\nSub body.\n",
+		// No title
+		"## SYS-001\n```attr\nstatus: approved\npriority: High\n```\nBody here.\n",
+		// With reqmd-suppress
+		"## SW-001: Suppressed\n```attr\nstatus: approved\nreqmd-suppress:\n  - version-pin\n  - missing-verdict\n```\nBody.\n",
+		// Frontmatter
+		"---\ndescription: Test doc\n---\n## REQ-001\n```attr\nstatus: approved\n```\nBody.\n",
+		// Multiple requirements
+		"## A-001\n```attr\nstatus: approved\n```\nBody A.\n## A-002: Second\n```attr\nstatus: draft\n```\nBody B.\n",
+	}
+
+	for i, src := range sources {
+		fullReqs, _, err := parseMD([]byte(src), "test.md", false)
+		if err != nil {
+			t.Fatalf("source %d: goldmark parse error: %v", i, err)
+		}
+		fastReqs, _, err := parseMD([]byte(src), "test.md", true)
+		if err != nil {
+			t.Fatalf("source %d: fast parse error: %v", i, err)
+		}
+		if len(fullReqs) != len(fastReqs) {
+			t.Fatalf("source %d: req count mismatch: goldmark=%d fast=%d", i, len(fullReqs), len(fastReqs))
+		}
+		for j, fr := range fullReqs {
+			exp := fastReqs[j]
+			if fr.ID != exp.ID {
+				t.Errorf("source %d req %d: ID mismatch: goldmark=%q fast=%q", i, j, fr.ID, exp.ID)
+			}
+			if fr.Title != exp.Title {
+				t.Errorf("source %d req %d: Title mismatch: goldmark=%q fast=%q", i, j, fr.Title, exp.Title)
+			}
+			if fr.ParentID != exp.ParentID {
+				t.Errorf("source %d req %d: ParentID mismatch: goldmark=%q fast=%q", i, j, fr.ParentID, exp.ParentID)
+			}
+			if len(fr.Suppressions) != len(exp.Suppressions) {
+				t.Errorf("source %d req %d: Suppressions mismatch: goldmark=%v fast=%v", i, j, fr.Suppressions, exp.Suppressions)
+			}
+		}
 	}
 }

@@ -240,7 +240,7 @@ func loadDir(dir string) ([]Result, []string, error) {
 // loadManualDir parses a manual-results document dir via the standard
 // parser pipeline and extracts result attrs from each requirement.
 func loadManualDir(dir string) ([]Result, error) {
-	docs, err := parser.Discover(dir)
+	docs, err := parser.DiscoverMeta(dir)
 	if err != nil {
 		return nil, err
 	}

@@ -184,7 +184,7 @@ func demoteOutdatedVersionPins(checks []graph.CheckResult) {
 }
 
 func validateDir(root string, jsonOutput, relaxedVersions bool, resultsPaths []string) (string, error) {
-	docs, err := parser.Discover(root)
+	docs, err := parser.DiscoverMeta(root)
 	if err != nil {
 		return "", fmt.Errorf("discovering documents: %w", err)
 	}
@@ -201,7 +201,7 @@ func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions
 		return "", fmt.Errorf("parsing schema: %w", err)
 	}
 
-	reqs, err := parser.ParseSingleFile(filePath)
+	reqs, err := parser.ParseSingleFileMeta(filePath)
 	if err != nil {
 		return "", fmt.Errorf("parsing %s: %w", filePath, err)
 	}
