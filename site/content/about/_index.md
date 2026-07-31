@@ -16,6 +16,8 @@ reqmd is a Go CLI for writing, validating, and exporting requirement specs in pl
 
 ## Self-hosted requirements
 
+| Level | Directory | Reqs | Description |
+|-------|-----------|:----:|-------------|
 | External | `spec/00-aspice/` | 191 | Reference base practices (`external: true`) |
 | Stakeholder | `spec/01-stakeholder/` | 5 | Stakeholder goals (top boundary, no upstream) |
 | Stakeholder mapping | `spec/01a-aspice-stakeholder/` | 18 | Stakeholder requirements mapped to reference practices |
@@ -34,6 +36,7 @@ $ reqmd export html spec/ -o /tmp/out/
 ```
 
 Stakeholder goals (`01-stakeholder`) have no upstream traces (untraced warnings suppressed by boundary inference); the ASPICE base practices (`00-aspice`) carry `external: true`. The stakeholder mapping layer (`01a-aspice-stakeholder`) is the first fully-traced tier.
+
 ## License
 
 GPL-3.0 — see [`LICENSE`](https://github.com/dVoo/reqmd/blob/main/LICENSE) on GitHub. The bundled Inter font is OFL-licensed; the chroma styles are MIT/BSD.

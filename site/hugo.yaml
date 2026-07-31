@@ -1,5 +1,5 @@
 # --- Site identity ---
-baseURL: "https://reqmd.xyz/"
+baseURL: "https://reqmd.dev/"
 title: "reqmd"
 titleCaseStyle: "none"
 

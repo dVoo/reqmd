@@ -126,13 +126,13 @@ Drop this into the root of a spec repo. The agent reads it once per session and 
 ````markdown
 # Spec workflow
 
-This repo is a [reqmd](https://reqmd.xyz) spec. The agent drives it as follows.
+This repo is a [reqmd](https://reqmd.dev) spec. The agent drives it as follows.
 
 ## What reqmd is
 
 Single-binary Go CLI. Validates a directory of `.md` files against per-directory
 JSON Schema (YAML) with bidirectional trace checks. Exit codes: 0 (clean),
-1 (validation errors), 2 (parse error). See <https://reqmd.xyz/llms.txt>
+1 (validation errors), 2 (parse error). See <https://reqmd.dev/llms.txt>
 for a machine-readable index of the docs.
 
 ## Hard rules
