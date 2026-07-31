@@ -10,21 +10,21 @@ Pin trace references to a specific upstream version and detect when the upstream
 
 A downstream requirement can pin the upstream version it was last verified against using the `~N` suffix:
 
-```markdown
+````markdown
 ## UP-001
 ```attr
 status: approved
 version: 3
 ```
-```
+````
 
-```markdown
+````markdown
 ## DN-001
 ```attr
 status: approved
 trace: [UP-001~2]   # verified against UP-001 v2, but UP-001 is now v3
 ```
-```
+````
 
 When the upstream `version` is bumped, the pin becomes stale and reqmd flags the downstream as needing re-verification.
 

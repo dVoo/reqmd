@@ -10,13 +10,13 @@ Two built-in attributes control how requirements behave in trace coverage and ho
 
 Every requirement has a `status` — either `draft` or `approved` (default when omitted). Only `approved` requirements count as upstream coverage providers.
 
-```markdown
+````markdown
 ## REQ-001: System boot
 ```attr
 status: approved
 trace: [STK-001]
 ```
-```
+````
 
 A `draft` requirement can be referenced by a `trace` but does **not** satisfy a `requires-trace-from:` expectation. This lets you stage work-in-progress without breaking coverage checks.
 
@@ -38,7 +38,7 @@ When a requirement can't be immediately implemented, use `disposition` + `dispos
 | `deferred` | Accepted, postponed | **Yes** |
 | `rejected` | Not accepted | **Yes** |
 
-```markdown
+````markdown
 ## STAKE-007
 ```attr
 status: approved
@@ -46,7 +46,7 @@ disposition: deferred
 disposition-reason: "Deferred to Phase 2 per steering committee 2025-03-14"
 ```
 The system shall support over-the-air firmware updates for all ECUs.
-```
+````
 
 Disposition is orthogonal to trace coverage. Use `requires-trace-from: []` to explicitly state that no downstream coverage is expected.
 

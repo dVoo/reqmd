@@ -29,7 +29,7 @@ The output is a normal reqmd document. It can be checked, listed, exported, and 
 
 Given `internal/cli/check_test.go`, the extractor emits a file like `spec/03-software/imported/cli/package.md`:
 
-```markdown
+````markdown
 # Package: cli
 
 <!-- reqmd-import: generated -->
@@ -50,7 +50,7 @@ BenchmarkRunValidationPipeline measures the cost of the full
 validation pipeline (Pass 1 schema compile + per-req validation,
 plus Pass 2 graph build + trace checks) against the spec/ fixture
 (6 documents, 249 requirements).
-```
+````
 
 The ID format is `IMP-<package>-<symbol>-<7charhash>`. The hash is computed over `(package, symbol name)` so IDs survive line-number shifts — a refactor that moves code around does not invalidate the trace.
 

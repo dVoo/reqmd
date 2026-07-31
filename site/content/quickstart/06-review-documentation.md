@@ -37,7 +37,7 @@ properties:
 
 Each result is a heading with an `attr` block:
 
-```markdown
+````markdown
 ## VR-001: Boot Sequence Design Review Result
 ```attr
 status: approved
@@ -47,7 +47,7 @@ evidence: minutes/2026-07-15-boot-review.md
 verified-at: "2026-07-15"
 trace: [TEST-002]
 ```
-```
+````
 
 The `trace` attribute links the result to the measure it verifies.
 
