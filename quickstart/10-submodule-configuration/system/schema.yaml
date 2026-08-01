@@ -1,0 +1,20 @@
+x-reqmd:
+  document-id: system
+  level: system-requirements
+  id-prefix: SYS-
+  upstream:
+    level: stakeholder-needs
+    # sources intentionally omitted; the integration repository chooses the path
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://example.com/reqmd/schema/system"
+title: "System Requirements"
+type: object
+required: [owner]
+properties:
+  owner:
+    type: string
+  verification-method:
+    type: string
+    enum: [Test, Analysis, Inspection, Review]
+additionalProperties: false

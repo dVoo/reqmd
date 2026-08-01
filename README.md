@@ -620,18 +620,18 @@ Bulk-fix all outdated pins in a tree with `reqmd repin <root> --yes`
 (prints a dry-run change list by default; safe to re-run after
 applying).
 
-When multiple documents share the same ID prefix (e.g., two teams both use `STK-`),
-you can disambiguate with a **path-qualified reference** using the document directory:
+When multiple documents share the same ID prefix (e.g., two teams both use `STK-`), use a stable `document-id` to qualify references:
 
 ```yaml
 trace:
-  - stakeholder-a/STK-001   # qualified: STK-001 in the stakeholder-a/ directory
-  - STK-002                  # unqualified: works when ID is globally unique
+  - stakeholder-a/STK-001   # `stakeholder-a` is x-reqmd.document-id, not a directory path
+  - STK-002                 # unqualified: works when ID is globally unique
 ```
 
 If an unqualified reference matches IDs in multiple documents, reqmd reports an
-ERROR suggesting the qualified form. Use qualified references when integrating
-independently-authored documents (e.g., git submodules).
+ERROR suggesting the qualified form. Use document-ID-qualified references when
+integrating independently-authored documents, including git submodules.
+
 
 ReqMD builds an **ephemeral graph** of all requirements and their traces, then
 runs these checks:
@@ -677,6 +677,44 @@ informational.
 Supported suppression names: `broken-ref`, `circular`, `untraced`, `no-downstream`,
 `disposition-reason`, `mandatory-disposition`, `id-prefix`, `version-pin`,
 `requires-trace-from-coverage`, `missing-verdict`, `failing-verdict`.
+
+## FAQ
+
+### How do I trace to a parent document when its path is unknown?
+
+Use a stable `x-reqmd.document-id` and omit `x-reqmd.upstream.sources`. Paths are
+not needed to resolve requirement traces. Give each independently maintained
+document a unique ID:
+
+```yaml
+# system/schema.yaml
+x-reqmd:
+  document-id: system
+  level: system-requirements
+  upstream:
+    level: stakeholder-needs
+    # sources intentionally omitted; the integration repository chooses the path
+```
+
+Reference the parent by document ID in Markdown attributes:
+
+```yaml
+trace:
+  - stakeholder/STK-001
+```
+
+Use the same stable IDs in `requires-trace-from`, for example
+`requires-trace-from: [software]`. When the documents are assembled, run
+`reqmd check` from a common root containing all submodules. ReqMD discovers all
+schemas below that root and resolves `document-id/requirement-id` references.
+
+`upstream.sources` remains optional but is still used for HTML document-chain
+navigation and path-based boundary inference. Add it only where the assembled
+repository has a stable layout. `external: true` is not a path workaround; it
+changes the document's validation and boundary semantics.
+
+See [`quickstart/10-submodule-configuration/`](quickstart/10-submodule-configuration/)
+for a complete three-level example.
 
 ## Disposition workflow
 

@@ -172,6 +172,27 @@ Questions about reqmd, grouped by topic: what it is, how to use it, and how it f
 </details>
 
 <details>
+<summary>How do I avoid hard-coded parent paths in submodule schemas?</summary>
+<div class="faq-body">
+<p>Use a stable <code>x-reqmd.document-id</code> for every independently maintained document and omit <code>upstream.sources</code> when the parent path is chosen by the integrating repository. The document ID stays stable even when a submodule is mounted at a different directory.</p>
+<pre><code># system/schema.yaml
+x-reqmd:
+  document-id: system
+  level: system-requirements
+  upstream:
+    level: stakeholder-needs
+    # sources intentionally omitted</code></pre>
+<p>Reference requirements by document ID in Markdown attributes:</p>
+<pre><code>trace:
+  - stakeholder/STK-001
+
+requires-trace-from: [software]</code></pre>
+<p>Run <code>reqmd check</code> from the assembled root containing all submodules. ReqMD discovers every schema below that root and resolves <code>document-id/requirement-id</code> references. A submodule validated by itself cannot resolve references to documents outside its checkout.</p>
+<p><code>upstream.sources</code> remains available for HTML document-chain navigation and path-based boundary inference; add it only when the assembled repository has a stable layout. See the <a href="/quickstart/10-submodule-configuration/"><code>document-id</code> quickstart example</a>.</p>
+</div>
+</details>
+
+<details>
 <summary>How do I link requirements down to the actual code?</summary>
 <div class="faq-body">
 <p>Use the companion <a href="/import/"><code>reqmd-import</code></a> tool. It walks your Go or Python source code with a tree-sitter grammar and writes per-package <code>.md</code> requirements into your spec tree. Every function, type, and method gets a requirement ID in the same namespace as your spec.</p>

@@ -1,0 +1,15 @@
+x-reqmd:
+  document-id: stakeholder
+  level: stakeholder-needs
+  id-prefix: STK-
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://example.com/reqmd/schema/stakeholder"
+title: "Stakeholder Needs"
+type: object
+required: [priority]
+properties:
+  priority:
+    type: string
+    enum: [Low, Medium, High, Critical]
+additionalProperties: false

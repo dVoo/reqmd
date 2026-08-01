@@ -1,0 +1,22 @@
+x-reqmd:
+  document-id: software
+  level: software-requirements
+  id-prefix: SW-
+  upstream:
+    level: system-requirements
+    # sources intentionally omitted; the integration repository chooses the path
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://example.com/reqmd/schema/software"
+title: "Software Requirements"
+type: object
+required: [owner, component]
+properties:
+  owner:
+    type: string
+  component:
+    type: string
+  verification-method:
+    type: string
+    enum: [Test, Analysis, Inspection, Review]
+additionalProperties: false
