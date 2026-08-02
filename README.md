@@ -384,16 +384,19 @@ in both parsing and HTML export, with these extensions enabled:
 | `reqmd check --json <root>` | JSON validation report |
 | `reqmd check --relaxed-versions <root>` | Demote outdated version-pin findings from ERROR to WARNING (predated stays ERROR) |
 | `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs) and run outcome-gated checks (missing-verdict, failing-verdict). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. |
+| `reqmd check --filter "<expr>" <root>` | Scope validation to requirements matching an [expr-lang](https://expr-lang.org) expression (e.g. `"Premium" in variant`). Coverage checking becomes filter-aware: filtered-out requirements cannot cause false coverage failures. `--json` adds a `"filter"` field to the summary. |
+| `reqmd check --disjoint-check <attr> <root>` | Check that trace-linked requirements have overlapping values for the named array-typed attribute (e.g. `variant`). Zero intersection → ERROR; empty/absent = "applies to all" (exempt). Repeatable. Also settable via `x-reqmd.disjoint-check` in `schema.yaml`. |
 | `reqmd init <dir>` | Scaffold a new requirements directory with schema.yaml and example file. Presets: `generic` (default), `aspice`, `results` (manual verification results), or a custom preset directory path. Flags: `--preset`, `--id-prefix`, `--id`, `--title`, `--level`, `--force` |
-| `reqmd ls <root>` | Table of all requirements with attribute values |
-| `reqmd ls --json <root>` | JSON list |
-| `reqmd stats <root>` | Attribute-value breakdown per document |
-| `reqmd stats --json <root>` | JSON stats |
-| `reqmd export csv <root> -o <dir>` | CSV export with Body and Rationale columns. `--results <path>` (repeatable) adds Verdict and Verdict Source columns from ephemeral verification results. |
-| `reqmd export html <root> -o <dir>` | Standalone HTML: card layout, goldmark-rendered body, trace columns, doc chain tab strip, search/filter, theme toggle. `--results <path>` (repeatable) renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. |
+| `reqmd ls <root>` | Table of all requirements with attribute values. `--filter "<expr>"` scopes to matching requirements. |
+| `reqmd ls --json <root>` | JSON list. `--filter` supported. |
+| `reqmd stats <root>` | Attribute-value breakdown per document. `--filter "<expr>"` scopes to matching requirements. |
+| `reqmd stats --json <root>` | JSON stats. `--filter` supported. |
+| `reqmd export csv <root> -o <dir>` | CSV export with Body and Rationale columns. `--results <path>` (repeatable) adds Verdict and Verdict Source columns. `--filter "<expr>"` exports only matching requirements. |
+| `reqmd export html <root> -o <dir>` | Standalone HTML: card layout, goldmark-rendered body, trace columns, doc chain tab strip, search/filter, theme toggle. `--results <path>` (repeatable) renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter "<expr>"` exports only matching requirements. |
 | `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build). `--results <path>` (repeatable) includes `RESULT:` nodes with `outcome` and `source` properties, enabling graph traversal from requirements through measures to verification results. |
-| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`) |
-| `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`) |
+| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`, `--filter`) |
+| `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`, `--filter "<expr>"` to scope both snapshots) |
+| `reqmd baseline diff --filter-a "<expr>" --filter-b "<expr>" [<ref>]` | Compare two filtered views of the same commit (default `HEAD`). Useful for "what does Premium add over Base" reports from a single commit. |
 | `reqmd repin <root> [-y/--yes] [--json] [--promote-unpinned]` | Propose or apply `~N` version-pin updates so trace refs match the upstream's current `version`. Dry-run by default; `--yes` applies. `--promote-unpinned` also pins refs that have no `~N` against a versioned upstream. Predated findings (pin > upstream) are surfaced but never auto-fixed. |
 
 Aliases: `check` = `validate` or `v`; `ls` = `list` or `l`.

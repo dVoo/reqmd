@@ -41,6 +41,11 @@ You write requirements the way you already write documentation: in a text editor
 <a href="/quickstart/05-verification-results-ctrf/">Step 5 — CTRF results →</a>
 </article>
 <article class="usecase">
+<h3>Product-line requirements with variants</h3>
+<p>One spec tree, many configurations. Tag requirements with a <code>variant</code> attribute and scope every command — <code>check</code>, <code>ls</code>, <code>stats</code>, <code>export</code>, <code>baseline diff</code>, <code>serve</code> — with <code>--filter</code>. Coverage is evaluated within the view, cross-configuration trace mistakes fail via <code>--disjoint-check</code>, and a CI matrix validates every configuration on every pull request.</p>
+<a href="/quickstart/07-variant-management/">Step 7 — Variant management →</a>
+</article>
+<article class="usecase">
 <h3>Live stakeholder review</h3>
 <p>Run <code>reqmd serve</code> while editing. The browser refreshes on every save, with trace links resolved and verdict badges color-coded. Reviewers read the spec as a website — with search, filters, and a light/dark toggle. No server framework, no SPA build.</p>
 <a href="/quickstart/03a-live-preview/">Step 3a — Live preview →</a>

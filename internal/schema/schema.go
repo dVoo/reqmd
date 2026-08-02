@@ -338,6 +338,24 @@ func ExtractXReqmd(schema any) *model.XReqmd {
 		return nil
 	}
 
+	// Normalize disjoint-check: accept both string and array forms.
+	// A bare string is converted to a single-element array so the
+	// yaml.Unmarshal into []string succeeds.
+	if xrMap, ok := raw.(map[string]any); ok {
+		if dc, ok := xrMap["disjoint-check"]; ok {
+			switch v := dc.(type) {
+			case string:
+				if v != "" {
+					xrMap["disjoint-check"] = []string{v}
+				} else {
+					delete(xrMap, "disjoint-check")
+				}
+			case []any:
+				// Already array form — keep as-is.
+			}
+		}
+	}
+
 	// Marshal the nested map to YAML bytes, then unmarshal into model.XReqmd.
 	// This approach handles all field types cleanly via yaml struct tags.
 	b, err := yaml.Marshal(raw)

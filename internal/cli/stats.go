@@ -5,12 +5,14 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"reqmd/internal/filter"
 	"reqmd/internal/parser"
 	"reqmd/internal/reporter"
 )
 
 func newStatsCmd() *cobra.Command {
 	var jsonOutput bool
+	var filterExpr string
 
 	cmd := &cobra.Command{
 		Use:   "stats <dir>",
@@ -20,6 +22,17 @@ func newStatsCmd() *cobra.Command {
 			docs, err := parser.Discover(args[0])
 			if err != nil {
 				return fmt.Errorf("discovering documents: %w", err)
+			}
+
+			if filterExpr != "" {
+				f, err := filter.Compile(filterExpr, filter.BuildValidAttrs(docs))
+				if err != nil {
+					return err
+				}
+				docs, err = f.FilterDocs(docs)
+				if err != nil {
+					return err
+				}
 			}
 
 			summaries := buildDocSummaries(docs)
@@ -38,5 +51,6 @@ func newStatsCmd() *cobra.Command {
 	}
 
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output as JSON")
+	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are counted in stats.")
 	return cmd
 }

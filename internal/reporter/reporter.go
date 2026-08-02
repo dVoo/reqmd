@@ -49,6 +49,9 @@ type Report struct {
 	ParseErrors []ParseError
 	GraphChecks []graph.CheckResult
 	DocHeaders  []DocHeader
+	// Filter is the active --filter expression, empty if no filter was applied.
+	// Surfaced in JSON output as the "filter" field in the summary object.
+	Filter string
 
 	// Pre-indexed maps (populated by NewIndex once at creation)
 	valErrorsByReq   map[string][]ValidationError   // reqID → errors
@@ -299,11 +302,12 @@ type jsonReport struct {
 }
 
 type jsonSummary struct {
-	Total       int `json:"total"`
-	Valid       int `json:"valid"`
-	Invalid     int `json:"invalid"`
-	ParseErrors int `json:"parse_errors"`
-	Warnings    int `json:"warnings"`
+	Total       int    `json:"total"`
+	Valid       int    `json:"valid"`
+	Invalid     int    `json:"invalid"`
+	ParseErrors int    `json:"parse_errors"`
+	Warnings    int    `json:"warnings"`
+	Filter      string `json:"filter,omitempty"`
 }
 
 type jsonDocSection struct {
@@ -382,6 +386,7 @@ func (r *Report) FormatJSON() string {
 			Invalid:     invalid,
 			ParseErrors: len(r.ParseErrors),
 			Warnings:    warnCount,
+			Filter:      r.Filter,
 		},
 		Documents:   make([]jsonDocSection, 0, len(r.DocHeaders)),
 		ParseErrors: make([]jsonParseErr, 0, len(r.ParseErrors)),

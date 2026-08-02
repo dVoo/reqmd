@@ -1,0 +1,15 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "system-requirements"
+title: "System Requirements"
+type: object
+properties:
+  variant:
+    type: array
+    items:
+      type: string
+      enum: [Base, Premium, Sport]
+additionalProperties: false
+x-reqmd:
+  level: system-requirements
+  document-id: system
+  disjoint-check: variant

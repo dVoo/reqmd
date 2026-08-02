@@ -251,6 +251,83 @@ x-reqmd:
 </details>
 </div>
 
+## Variants & configuration
+
+<div class="faq">
+<details>
+<summary>Can I manage multiple product variants in one spec tree?</summary>
+<div class="faq-body">
+<p>Yes. reqmd deliberately has no built-in "variants" feature — you declare a <code>variant</code> array attribute in <code>schema.yaml</code> like any other custom attribute, tag each requirement, and scope every command with <code>--filter "&lt;expr&gt;"</code>. One spec tree serves any number of configurations (Base, Premium, Sport — or platforms, regions, owners) with no extra files, branches, or vocabulary.</p>
+</div>
+</details>
+
+<details>
+<summary>How do I include requirements that apply to all variants?</summary>
+<div class="faq-body">
+<p>A requirement with no <code>variant</code> attribute is treated as "common to all" — but the bare filter <code>"X" in variant</code> matches only requirements explicitly tagged X. Use the <code>or variant == nil</code> pattern to build the whole configuration view:</p>
+<pre><code class="language-sh">reqmd check spec/ --filter '"Premium" in variant or variant == nil'</code></pre>
+<p>This matches Premium-specific requirements plus the common-to-all ones. Use bare <code>"X" in variant</code> when you want only that configuration's specific requirements.</p>
+</div>
+</details>
+
+<details>
+<summary>Is coverage checking variant-aware?</summary>
+<div class="faq-body">
+<p>Yes — when <code>--filter</code> is active, coverage (<code>requires-trace-from</code>) is evaluated within the filtered subset only. A requirement excluded by the filter can neither require nor provide coverage. This prevents false failures: a Base-only requirement isn't reported under-covered just because its only provider is a Premium test that was never meant to cover it. Without <code>--filter</code>, coverage is computed across the whole tree exactly as before.</p>
+</div>
+</details>
+
+<details>
+<summary>How do I catch a trace link between incompatible variants?</summary>
+<div class="faq-body">
+<p>Use <code>--disjoint-check &lt;attr&gt;</code> — generalized, not variant-specific:</p>
+<pre><code class="language-sh">reqmd check spec/ --disjoint-check variant</code></pre>
+<p>For every trace link it verifies the two requirements share at least one value of the named array attribute. Zero intersection is an ERROR, e.g. a <code>variant: [Sport]</code> requirement tracing to a <code>variant: [Base]</code> target — no real configuration contains both. Requirements with an empty or absent value are exempt ("applies to all"). Declare it once in <code>schema.yaml</code> via <code>x-reqmd.disjoint-check: variant</code> to enforce it on every check.</p>
+</div>
+</details>
+
+<details>
+<summary>How do I produce a "what Premium adds over Base" report?</summary>
+<div class="faq-body">
+<p><code>baseline diff</code> has a same-commit two-view mode that compares two filtered views of the same tree — no divergent branches or tags needed:</p>
+<pre><code class="language-sh">reqmd baseline diff \
+  --filter-a 'variant == nil or "Base" in variant' \
+  --filter-b '"Premium" in variant' \
+  HEAD</code></pre>
+<p>The output is a real semantic diff (added / removed / modified with attribute-level detail) — the configuration-management evidence artifact, generated from a single commit. You can also filter a normal two-tag diff: <code>reqmd baseline diff v1.0.0 v1.1.0 --filter '"Premium" in variant'</code>.</p>
+</div>
+</details>
+
+<details>
+<summary>Can I validate every variant in CI?</summary>
+<div class="faq-body">
+<p>Yes — run one <code>reqmd check</code> per configuration in a CI matrix. Each job validates its view with <code>--filter "${{ matrix.filter }}" --json</code>; the JSON summary records the exact filter in a <code>"filter"</code> field. Add a <code>--disjoint-check variant</code> job to catch cross-configuration trace mistakes. A complete example is in <a href="/quickstart/07-variant-management/">Step 7 — Variant management</a>.</p>
+</div>
+</details>
+
+<details>
+<summary>What does the filter expression language support?</summary>
+<div class="faq-body">
+<p><code>--filter</code> uses <code>expr-lang</code>, evaluated against each requirement's attribute map. Supported subset:</p>
+<ul>
+  <li><code>==</code>, <code>!=</code> — equality, e.g. <code>status == "approved"</code></li>
+  <li><code>in</code> — array membership, e.g. <code>"Premium" in variant</code></li>
+  <li><code>and</code>, <code>or</code>, <code>not</code> — boolean composition</li>
+  <li><code>contains</code>, <code>startsWith</code>, <code>endsWith</code> — string helpers, e.g. <code>id startsWith "SYS-"</code></li>
+  <li><code>variant == nil</code> — attribute absence / "common to all"</li>
+</ul>
+<p>Built-in variables are always available: <code>id</code>, <code>title</code>, <code>status</code>, <code>disposition</code>, <code>trace</code>, <code>version</code>. A filter referencing an attribute not declared in any <code>schema.yaml</code> is a compile-time ERROR — reqmd fails fast on typos instead of silently returning no matches.</p>
+</div>
+</details>
+
+<details>
+<summary>Do I need separate branches for each variant?</summary>
+<div class="faq-body">
+<p>No — that's the point. Variant differences live in the <code>variant</code> attribute of individual requirements, not in forked spec trees. The filter creates the views; <code>baseline diff --filter-a/--filter-b</code> creates the "variant A vs variant B" evidence; the CI matrix validates each view. One shared tree, one review process, no divergent branches to reconcile.</p>
+</div>
+</details>
+</div>
+
 ## CI & performance
 
 <div class="faq">

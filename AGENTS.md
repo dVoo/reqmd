@@ -10,8 +10,8 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `SPEC.md` — authoritative design spec (if absent, the spec tree under `spec/` is the source of truth)
 - `spec/workspace.dsl` — C4 model (Structurizr DSL) for architecture visualization
 - `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 doc dirs, 233 total reqs, V-model dogfood fixture
-- `quickstart/` — step-by-step tutorial (01-get-started, 01a-ci-integration, 02-trace-your-spec, 02a-status-disposition, 02b-version-pins, 03-export, 03a-live-preview, 03b-baseline-diff, 04-custom-templates, 05-verification-results-ctrf, 06-review-documentation)
-- `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli)
+- `quickstart/` — step-by-step tutorial (01-get-started, 01a-ci-integration, 02-trace-your-spec, 02a-status-disposition, 02b-version-pins, 03-export, 03a-live-preview, 03b-baseline-diff, 04-custom-templates, 05-verification-results-ctrf, 06-review-documentation, 07-variant-management)
+- `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli, filter)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
 - `go.mod` / `go.sum` — Go module `reqmd` (1.25)
 - `go.work` / `go.work.sum` — Go workspace linking `reqmd` (root) and `reqmd-import` so `go build ./...` and `go test ./...` from the repo root cover both modules. Both keep independent `go.mod` files and dependency sets.
@@ -50,17 +50,21 @@ go run ./cmd/reqmd repin <root> --json    # machine-readable change list
 | Command | Description |
 |---------|-------------|
 | `reqmd check <root>` | Recursive walk for `schema.yaml`, check all `.md` |
-| `reqmd ls <root>` | Table of all requirements with all schema attributes |
-| `reqmd stats <root>` | Attribute-value breakdown per document directory |
-| `reqmd export csv <root> [-o <dir>] [--results <path>...]` | CSV export (`<dirname>-requirements.csv`). `--results` adds `Verdict` and `Verdict Source` columns from ephemeral verification results. |
-| `reqmd export html <root> [-o <dir>] [--results <path>...]` | HTML export with water.css CDN. `--results` renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. |
+| `reqmd ls <root>` | Table of all requirements with all schema attributes. `--filter "<expr>"` scopes to matching requirements. |
+| `reqmd stats <root>` | Attribute-value breakdown per document directory. `--filter "<expr>"` scopes to matching requirements. |
+| `reqmd export csv <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | CSV export (`<dirname>-requirements.csv`). `--results` adds `Verdict` and `Verdict Source` columns from ephemeral verification results. `--filter` exports only matching requirements. |
+| `reqmd export html <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | HTML export with water.css CDN. `--results` renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter` exports only matching requirements. |
 | `reqmd export graph <root> [-o <dir>] [--results <path>...]` | LadybugDB graph export (requires `-tags ladybug`). `--results` includes `RESULT:` nodes with `outcome`/`source` properties for graph traversal from requirements to verification results. |
 | `reqmd check --json <root>` | JSON validation report with requirements, pass/fail, trace checks |
 | `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs with `schema.yaml`) and run outcome-gated checks (`missing-verdict`, `failing-verdict`). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. |
+| `reqmd check --filter "<expr>" <root>` | Scope validation to requirements matching an expr-lang expression (e.g. `"Premium" in variant`). Coverage checking is filter-aware (RFC §3.2): filtered-out requirements don't cause false coverage failures. `--json` adds `"filter"` to the summary. |
+| `reqmd check --disjoint-check <attr> <root>` | Check that trace-linked requirements have overlapping values for the named array attribute. Zero intersection → ERROR; empty/absent = exempt. Repeatable; also via `x-reqmd.disjoint-check` in `schema.yaml`. |
 | `reqmd ls --json <root>` | JSON list of requirement IDs with all attributes |
 | `reqmd repin <root> [-y/--yes] [--json] [--promote-unpinned]` | Update version-pin (~N) trace refs to the upstream's current version. Dry-run by default; `--yes` applies. `--promote-unpinned` also pins refs that have no ~N suffix against a versioned upstream. Predated findings (pin > upstream) are surfaced but never auto-fixed. |
 | `reqmd stats --json <root>` | JSON attribute-value breakdown per document |
-| `reqmd baseline diff <tag1> <tag2>` | Compare requirements between two git tags; also reports added/removed/updated submodules (flags: `--json`) |
+| `reqmd baseline diff <tag1> <tag2>` | Compare requirements between two git tags; also reports added/removed/updated submodules (flags: `--json`, `--filter "<expr>"` to scope both snapshots) |
+| `reqmd baseline diff --filter-a "<expr>" --filter-b "<expr>" [<ref>]` | Compare two filtered views of the same commit (default `HEAD`). "What does Premium add over Base" from a single commit. |
+| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML. Flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`, `--filter` |
 | `reqmd init <dir>` | Scaffold a new requirements directory. Presets: `generic` (default), `aspice`, `results` (manual verification results), or a custom preset directory path. Flags: `--preset`, `--id-prefix`, `--id`, `--title`, `--level`, `--force` |
 
 Exit codes: 0 (all valid), 1 (validation errors), 2 (parse error).
@@ -139,6 +143,27 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   diff reports added, removed, and updated submodules (same-commit skipped).
   No new dependencies; pure stdlib `os/exec`. Output: short hashes in text,
   full SHA in JSON. Section is hidden when no submodules exist.
+- **Attribute filtering (`--filter`)**: Generic attribute-based requirement
+  filtering using `expr-lang/expr` as the evaluation engine. A filter expression
+  is compiled once at startup into bytecode (`internal/filter.Compile`), then
+  evaluated against each requirement's attr map (plus built-in `id` and
+  `title` vars). Compile-time validation rejects expressions referencing
+  attributes not declared in any `schema.yaml` (global typo check).
+  `AllowUndefinedVariables` lets per-document attribute absence evaluate to nil.
+  The graph is always built from the full tree (trace refs to filtered-out reqs
+  still resolve); only per-req checks and coverage are filter-aware via
+  `Graph.SetFilter(map[string]struct{})`. Filter-aware coverage (RFC §3.2):
+  a filtered-out inbound cannot satisfy coverage for a filtered-in requirement.
+  Available on `check`, `ls`, `stats`, `export csv`, `export html`, `serve`, and
+  `baseline diff`. `baseline diff --filter-a/--filter-b` compares two views of
+  the same commit. `--json` adds `"filter"` to the summary object.
+- **Disjoint-attribute check (`--disjoint-check <attr>`)**: For every trace link,
+  verifies that source and target requirements have at least one overlapping
+  value for the named array-typed attribute. Zero intersection → ERROR
+  (`CodeDisjointAttribute`); empty/absent = "applies to all" (exempt). Enabled
+  via `--disjoint-check <attr>` CLI flag (repeatable) or
+  `x-reqmd.disjoint-check: <attr>` in `schema.yaml` (string or array).
+  Suppression: `reqmd-suppress: [disjoint-attribute]`.
 
 
 
@@ -154,6 +179,7 @@ go test ./internal/model/       # model tests (struct construction)
 go test ./internal/diff/        # baseline diff tests
 go test ./internal/verify/      # CTRF parser, manual-results loader, merge, synth
 go test ./internal/repin/        # repin tests (Build, Apply, format, whole-ref match safety)
+go test ./internal/filter/       # filter compilation, matching, FilterDocs, MatchingIDs
 ```
 
 Tests use inline fixtures (no external files). No integration prerequisites.
@@ -171,6 +197,7 @@ Parser tests use `t.TempDir()` for file-based test cases.
 | `github.com/mattn/go-isatty` | TTY detection for interactive `repin` prompt |
 | `github.com/fsnotify/fsnotify` | Filesystem watching for `serve` live-reload |
 | `golang.org/x/sync` | Parallel document loading via `errgroup` |
+| `github.com/expr-lang/expr` | Expression evaluation engine for `--filter` attribute filtering |
 
 ## Important gotchas
 

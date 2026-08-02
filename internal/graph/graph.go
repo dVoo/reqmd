@@ -131,6 +131,41 @@ type Graph struct {
 	// return these instead of recomputing inferBoundaries on every call.
 	cachedRootDirs map[string]bool
 	cachedLeafDirs map[string]bool
+	// filter is the set of requirement IDs that match the active --filter.
+	// nil means no filter is active (check everything — current behavior).
+	// non-nil means only requirements in this set are checked/reported.
+	filter map[string]struct{}
+	// disjointAttrs names array-typed attributes whose values must overlap
+	// between every trace-linked source and target. Empty = no disjoint check.
+	disjointAttrs []string
+}
+
+// SetFilter restricts per-requirement checks to the given set of requirement
+// IDs. nil means no filter (check everything — the default); an empty
+// non-nil set means "the filter matched nothing" — no requirement is
+// checked. The distinction matters: a --filter expression that matches no
+// requirements must scope the graph to the empty set, not reset to
+// check-everything. The graph is always built from the full document tree
+// so trace references to filtered-out requirements still resolve; only the
+// per-req check/report loop is scoped.
+func (g *Graph) SetFilter(ids map[string]struct{}) {
+	g.filter = ids
+}
+
+// SetDisjointAttrs enables the disjoint-attribute check for the named
+// array-typed attributes. Empty or nil disables it.
+func (g *Graph) SetDisjointAttrs(attrs []string) {
+	g.disjointAttrs = attrs
+}
+
+// inFilter reports whether a requirement ID is in the active filter set.
+// Returns true when no filter is active (nil filter = check everything).
+func (g *Graph) inFilter(reqID string) bool {
+	if g.filter == nil {
+		return true
+	}
+	_, ok := g.filter[reqID]
+	return ok
 }
 
 // New builds a pure Go in-memory adjacency graph from all parsed documents.
@@ -476,6 +511,7 @@ func (g *Graph) CheckResults() []CheckResult {
 	results = append(results, g.checkMissingVerdict()...)
 	results = append(results, g.checkFailingVerdict()...)
 	results = append(results, g.checkVerdicts()...)
+	results = append(results, g.checkDisjointAttribute()...)
 	return results
 }
 
@@ -542,6 +578,10 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 	}
 
 	for _, node := range g.nodes {
+		// Filter guard: only check requirements in the active filter set.
+		if !g.inFilter(node.ReqID) {
+			continue
+		}
 		// Case 1: explicit `requires-trace-from` declared (nil = not set; non-nil = set)
 		if node.RequiresTraceFrom != nil {
 			if node.isSuppressed("requires-trace-from-coverage") {
@@ -572,6 +612,11 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 				for _, inboundID := range node.Inbound {
 					inboundNode := g.nodes[inboundID]
 					if inboundNode == nil {
+						continue
+					}
+					// Filter guard: a filtered-out inbound cannot satisfy
+					// coverage for a filtered-in requirement.
+					if !g.inFilter(inboundID) {
 						continue
 					}
 					// Status gate: a draft inbound does not satisfy
@@ -612,10 +657,14 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 		isRoot := rootDirs[dir]
 		isLeaf := leafDirs[dir]
 
-		// Untraced: no inbound edges, not at root boundary, not a child req.
+		// Untraced: no inbound edges from the active view, not at root
+		// boundary, not a child req. Filter-aware: when a filter is active,
+		// only inbounds that also match the filter count — a filtered-out
+		// requirement cannot act as a coverage provider (RFC §3.2), so a
+		// node whose only inbounds are filtered out is untraced in view.
 		if node.isSuppressed("untraced") {
 			// skip — per-requirement opt-out
-		} else if len(node.Inbound) == 0 && !isRoot && !node.IsChild {
+		} else if !g.hasFilteredInbound(node) && !isRoot && !node.IsChild {
 			results = append(results, CheckResult{
 				Level:   LevelWarning,
 				ReqID:   node.ReqID,
@@ -624,9 +673,10 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 			})
 		}
 
-		// No downstream: no outbound edges, not at leaf boundary.
+		// No downstream: no outbound edges to the active view, not at leaf
+		// boundary. Filter-aware for the same reason as above.
 		if !node.isSuppressed("no-downstream") {
-			if len(node.Outbound) == 0 && !isLeaf {
+			if !g.hasFilteredOutbound(node) && !isLeaf {
 				results = append(results, CheckResult{
 					Level:   LevelWarning,
 					ReqID:   node.ReqID,
@@ -639,12 +689,46 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 	return results
 }
 
+// hasFilteredInbound reports whether any inbound edge originates from a
+// requirement in the active filter set. With no filter active (nil), it
+// degenerates to "has any inbound" — preserving the pre-filter behavior
+// exactly without iterating the inbound list.
+func (g *Graph) hasFilteredInbound(node *CachedNode) bool {
+	if g.filter == nil {
+		return len(node.Inbound) > 0
+	}
+	for _, inID := range node.Inbound {
+		if g.inFilter(inID) {
+			return true
+		}
+	}
+	return false
+}
+
+// hasFilteredOutbound reports whether any outbound edge targets a
+// requirement in the active filter set. With no filter active (nil), it
+// degenerates to "has any outbound" — preserving the pre-filter behavior.
+func (g *Graph) hasFilteredOutbound(node *CachedNode) bool {
+	if g.filter == nil {
+		return len(node.Outbound) > 0
+	}
+	for _, outID := range node.Outbound {
+		if g.inFilter(outID) {
+			return true
+		}
+	}
+	return false
+}
+
 // checkDispositionReason detects nodes where disposition is set to a value
 // other than "implemented" but disposition-reason is missing or empty.
 // Returns WARNING for each.
 func (g *Graph) checkDispositionReason() []CheckResult {
 	var results []CheckResult
 	for _, node := range g.nodes {
+		if !g.inFilter(node.ReqID) {
+			continue
+		}
 		if node.isSuppressed(model.AttrDispositionReason) {
 			continue
 		}
@@ -669,6 +753,9 @@ func (g *Graph) checkDispositionReason() []CheckResult {
 func (g *Graph) checkMandatoryDisposition() []CheckResult {
 	var results []CheckResult
 	for _, node := range g.nodes {
+		if !g.inFilter(node.ReqID) {
+			continue
+		}
 		if node.isSuppressed("mandatory-disposition") {
 			continue
 		}
@@ -696,6 +783,9 @@ func (g *Graph) checkIDPrefixes() []CheckResult {
 	prefixFiles := make(map[string]string) // prefix → first file seen for collision detection
 
 	for _, node := range g.nodes {
+		if !g.inFilter(node.ReqID) {
+			continue
+		}
 		if node.isSuppressed("id-prefix") {
 			continue
 		}
@@ -772,6 +862,9 @@ func (g *Graph) pinStatus(node *CachedNode, targetID string, pin int, pinned boo
 func (g *Graph) checkVersionPins() []CheckResult {
 	var results []CheckResult
 	for _, node := range g.nodes {
+		if !g.inFilter(node.ReqID) {
+			continue
+		}
 		for targetID, pin := range node.OutboundPins {
 			direction, ok := g.pinStatus(node, targetID, pin, true)
 			if !ok {
@@ -823,6 +916,9 @@ func (g *Graph) checkMissingVerdict() []CheckResult {
 		return nil
 	}
 	for _, node := range g.nodes {
+		if !g.inFilter(node.ReqID) {
+			continue
+		}
 		if node.IsResult {
 			continue
 		}
@@ -862,10 +958,10 @@ func (g *Graph) checkMissingVerdict() []CheckResult {
 // `reqmd-suppress: [failing-verdict]`. Code: "failing-verdict".
 func (g *Graph) checkFailingVerdict() []CheckResult {
 	var results []CheckResult
-	if !g.hasResultNodes() {
-		return nil
-	}
 	for _, node := range g.nodes {
+		if !g.inFilter(node.ReqID) {
+			continue
+		}
 		if node.IsResult {
 			continue
 		}
@@ -958,6 +1054,9 @@ func (g *Graph) checkVerdicts() []CheckResult {
 		return nil
 	}
 	for _, node := range g.nodes {
+		if !g.inFilter(node.ReqID) {
+			continue
+		}
 		if node.IsResult {
 			continue
 		}
@@ -1236,4 +1335,88 @@ func (g *Graph) isCoverageProvider(reqID string) bool {
 		return true
 	}
 	return strings.EqualFold(node.effectiveStatus(), model.StatusApproved)
+}
+
+// CodeDisjointAttribute is the check code for the disjoint-attribute check.
+const CodeDisjointAttribute = "disjoint-attribute"
+
+// checkDisjointAttribute verifies that for every trace link, the source and
+// target requirements have at least one overlapping value for each declared
+// disjoint-check attribute. Requirements with an empty/absent value for the
+// attribute are exempt ("applies to all"). Both non-empty with zero
+// intersection → ERROR. Filter-aware: only checks source reqs in the active
+// filter set.
+func (g *Graph) checkDisjointAttribute() []CheckResult {
+	if len(g.disjointAttrs) == 0 {
+		return nil
+	}
+	// Build reqID → attr → []string lookup once from g.docs.
+	type attrVals = map[string][]string
+	lookup := make(map[string]attrVals, len(g.nodes))
+	for _, doc := range g.docs {
+		for _, req := range doc.Requirements {
+			vals := make(attrVals, len(g.disjointAttrs))
+			for _, attr := range g.disjointAttrs {
+				s := getStringSlice(req.Attrs, attr)
+				if len(s) > 0 {
+					vals[attr] = s
+				}
+			}
+			lookup[req.ID] = vals
+		}
+	}
+
+	var results []CheckResult
+	for _, node := range g.nodes {
+		if node.IsResult {
+			continue
+		}
+		if !g.inFilter(node.ReqID) {
+			continue
+		}
+		if node.isSuppressed(CodeDisjointAttribute) {
+			continue
+		}
+		srcVals := lookup[node.ReqID]
+		for _, targetID := range node.Outbound {
+			target, ok := g.nodes[targetID]
+			if !ok || target.IsResult {
+				continue
+			}
+			tgtVals := lookup[targetID]
+			for _, attr := range g.disjointAttrs {
+				src := srcVals[attr]
+				tgt := tgtVals[attr]
+				// Empty/absent = "applies to all" → exempt.
+				if len(src) == 0 || len(tgt) == 0 {
+					continue
+				}
+				if !intersects(src, tgt) {
+					results = append(results, CheckResult{
+						Code:    CodeDisjointAttribute,
+						Level:   LevelError,
+						ReqID:   node.ReqID,
+						File:    node.File,
+						Message: fmt.Sprintf("disjoint-attribute: traces to %s (%s: %v) but %s's %s %v has no overlap — no valid configuration includes both", targetID, attr, tgt, node.ReqID, attr, src),
+					})
+				}
+			}
+		}
+	}
+	return results
+}
+
+// intersects reports whether two string slices have at least one element
+// in common. Both slices are assumed non-empty.
+func intersects(a, b []string) bool {
+	set := make(map[string]struct{}, len(a))
+	for _, s := range a {
+		set[s] = struct{}{}
+	}
+	for _, s := range b {
+		if _, ok := set[s]; ok {
+			return true
+		}
+	}
+	return false
 }

@@ -20,10 +20,11 @@ features.
 | 4 | [`04-custom-templates/`](04-custom-templates/) | Define your own requirement schema with a custom `reqmd init` preset |
 | 5 | [`05-verification-results-ctrf/`](05-verification-results-ctrf/) | Load automated test results (CTRF) and run outcome-gated checks |
 | 6 | [`06-review-documentation/`](06-review-documentation/) | Load manual review results (inspection, analysis, demonstration) |
+| 7 | [`07-variant-management/`](07-variant-management/) | One spec tree, many configurations with `--filter` |
 
 ## Suggested path
 
-**New users:** 1 → 2 → 3 → 4 → 5 → 6
+**New users:** 1 → 2 → 3 → 4 → 5 → 6 → 7
 
 **CI/automation focus:** 1 → 1a → 2 → 3b → 5
 

@@ -6,6 +6,7 @@ require (
 	github.com/FurqanSoftware/goldmark-katex v0.0.0-20260328091149-1897eb7a41e4
 	github.com/LadybugDB/go-ladybug v0.13.1
 	github.com/fsnotify/fsnotify v1.10.1
+	github.com/expr-lang/expr v1.17.8
 	github.com/google/jsonschema-go v0.4.3
 	github.com/mattn/go-isatty v0.0.20
 	github.com/r3labs/diff/v3 v3.0.2

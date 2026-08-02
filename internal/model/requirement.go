@@ -32,6 +32,11 @@ type XReqmd struct {
 	// requirements in an ignore-status directory count as coverage
 	// providers regardless of their `status` value.
 	IgnoreStatus bool `yaml:"ignore-status,omitempty" json:"ignore-status,omitempty"`
+	// DisjointCheck names one or more array-typed attributes whose values
+	// must overlap between every trace-linked source and target requirement.
+	// Populated from `x-reqmd.disjoint-check` in schema.yaml (string or
+	// array form). Empty means no disjoint check for this document.
+	DisjointCheck []string `yaml:"disjoint-check,omitempty" json:"disjoint-check,omitempty"`
 }
 
 // TraceUpstream declares the expected upstream layer and source directories.

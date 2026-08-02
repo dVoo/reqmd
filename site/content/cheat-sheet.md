@@ -19,11 +19,15 @@ reqmd check spec/ --results ci-out/        # load verification results
 reqmd check spec/ --results ci-out/ --results reviews/
 reqmd check file.md -s schema.yaml         # single-file mode
 reqmd check spec/ --relaxed-versions       # demote version-pin errors to warnings
+reqmd check spec/ --filter '"Premium" in variant'   # only matching requirements
+reqmd check spec/ --disjoint-check variant # error on cross-configuration trace links
 ```
 
 **Exit codes:** 0 = all valid, 1 = validation errors, 2 = parse error.
 
-**Checks run:** schema validation, broken references, circular dependencies, missing coverage (`requires-trace-from`), version-pin staleness, missing verdict, failing verdict.
+**Checks run:** schema validation, broken references, circular dependencies, missing coverage (`requires-trace-from`), version-pin staleness, missing verdict, failing verdict, disjoint attributes (`--disjoint-check`).
+
+**Filters:** `--filter "<expr>"` scopes the check to requirements matching an expr-lang expression (see [Filter expressions](#filter-expressions)). Coverage is computed within the filtered subset, so a filtered-out requirement can neither require nor provide coverage. `--disjoint-check <attr>` verifies that every trace link has at least one overlapping value for the named array attribute (zero intersection → ERROR). With `--json`, the summary gains a `"filter"` field recording the active expression.
 
 <details>
 <summary>Example output</summary>
@@ -93,6 +97,7 @@ Prints a table of every requirement with all schema attributes.
 ```sh
 reqmd ls spec/                # table output
 reqmd ls spec/ --json         # JSON output
+reqmd ls spec/ --filter '"Premium" in variant'   # only matching requirements
 ```
 
 <details>
@@ -118,6 +123,7 @@ Shows how many requirements have each attribute value, grouped by document direc
 ```sh
 reqmd stats spec/             # table output
 reqmd stats spec/ --json      # JSON output
+reqmd stats spec/ --filter 'priority == "Critical"'   # scope to matching requirements
 ```
 
 <details>
@@ -213,6 +219,7 @@ reqmd serve spec/ --addr :9090              # custom port
 reqmd serve spec/ --no-open                 # don't auto-open browser
 reqmd serve spec/ --headless                # terminal-only, no HTTP server
 reqmd serve spec/ --results tests/ --results reviews/
+reqmd serve spec/ --filter '"Sport" in variant'   # preview one configuration
 ```
 
 <details>
@@ -238,6 +245,7 @@ reqmd serve spec/
 | `--no-open` | Don't open a browser on start |
 | `--headless` | Terminal-only mode (no HTTP server) |
 | `--debounce <dur>` | Debounce window for file events (default: 500ms) |
+| `--filter <expr>` | Serve only requirements matching an expr-lang expression |
 
 ### `reqmd export csv` — export to CSV
 
@@ -246,6 +254,7 @@ One CSV file per document directory (`<dirname>-requirements.csv`).
 ```sh
 reqmd export csv spec/ -o csv-out/
 reqmd export csv spec/ -o csv-out/ --results ci-out/
+reqmd export csv spec/ -o csv-out/ --filter '"Premium" in variant'
 ```
 
 With `--results`, adds `Verdict` and `Verdict Source` columns.
@@ -273,6 +282,7 @@ Standalone HTML files with trace links, document chain, theme toggle, search.
 ```sh
 reqmd export html spec/ -o html-out/
 reqmd export html spec/ -o html-out/ --results ci-out/ --results reviews/
+reqmd export html spec/ -o html-out/ --filter '"Sport" in variant'
 ```
 
 With `--results`, renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards.
@@ -325,7 +335,12 @@ Extracts the spec tree at each tag (no checkout), parses both, and produces a se
 reqmd baseline diff v1.0 v2.0
 reqmd baseline diff v1.0 v2.0 --json
 reqmd baseline diff HEAD~10 HEAD
+reqmd baseline diff v1.0 v2.0 --filter '"Base" in variant'   # one configuration across two tags
+reqmd baseline diff --filter-a 'variant == nil or "Base" in variant' \
+                    --filter-b '"Premium" in variant' HEAD    # two views of one commit
 ```
+
+With `--filter`, both snapshots are scoped to matching requirements before diffing. With `--filter-a`/`--filter-b` (used together, mutually exclusive with `--filter`), a single snapshot at the given ref (default `HEAD`) is compared two ways — the "what does Premium add over Base" report from one commit. `--filter-a` and `--filter-b` are required together.
 
 Reports added, removed, and modified requirements (with attribute-level detail), schema changes, and submodule pin changes. Always exits 0.
 
@@ -401,19 +416,47 @@ no version-pin changes needed
 | `--promote-unpinned` | Also pin trace refs that have no `~N` against a versioned upstream |
 | `--dry-run` | Print the change list without applying (default; implicit when `--yes` is absent) |
 
+## Filter expressions
+
+`--filter "<expr>"` is available on `check`, `ls`, `stats`, `export csv`, `export html`, `serve`, and `baseline diff`. The expression is evaluated against each requirement's attributes (plus the built-ins `id`, `title`, `status`, `disposition`, `trace`, `version`), and the command runs only on matching requirements. It's the generic primitive behind variant management — the same flag slices by variant, platform, region, priority, or any other attribute.
+
+| Expression | Matches |
+|---|---|
+| `"Premium" in variant` | Requirements tagged Premium (array membership) |
+| `variant == nil` | Requirements with no `variant` attribute — "common to all" |
+| `"Premium" in variant or variant == nil` | The whole Premium configuration (Premium-specific plus common) |
+| `status == "approved"` | Approved requirements |
+| `version > 3` | Requirements with `version` greater than 3 |
+| `id startsWith "SYS-"` | Requirements whose ID starts with `SYS-` |
+| `title contains "boot"` | Requirements whose title contains "boot" |
+| `"Base" in variant and "Premium" in variant` | Multi-configuration requirements |
+| `not "Sport" in variant` | Everything except Sport-tagged |
+
+**Rules:**
+
+- The engine is [`expr-lang`](https://github.com/expr-lang/expr); supported operators include `==`, `!=`, `<`, `>`, `<=`, `>=`, `in`, `and`, `or`, `not`, `contains`, `startsWith`, `endsWith`.
+- A filter referencing an attribute not declared in any `schema.yaml` is a compile-time ERROR (fails fast on typos, before any requirement is evaluated).
+- A filter with invalid syntax is a compile-time ERROR, reported once.
+- A requirement lacking a referenced attribute evaluates that variable to `nil` and is excluded unless the expression handles absence (e.g. `variant == nil`).
+- The `--json` summary includes the active expression in a `"filter"` field.
+
+**Filter-aware coverage:** with `--filter`, coverage (`requires-trace-from`) is computed within the filtered subset — a filtered-out requirement can neither require nor provide coverage, so per-configuration checks don't produce false "missing coverage" failures.
+
+**Disjoint-attribute check:** `--disjoint-check <attr>` verifies that every trace link has at least one overlapping value for the named array attribute. Zero intersection → ERROR; empty/absent value = "applies to all" (exempt). Enable via CLI flag (repeatable) or `x-reqmd.disjoint-check` in `schema.yaml`.
+
 ## All commands at a glance
 
 | Command | What it does | Key flags |
 |---------|-------------|-----------|
-| `check <dir>` | Validate + trace checks | `--json`, `--results`, `--relaxed-versions`, `-s` |
-| `ls <dir>` | List all requirements | `--json` |
-| `stats <dir>` | Stats per document | `--json` |
+| `check <dir>` | Validate + trace checks | `--json`, `--results`, `--relaxed-versions`, `--filter`, `--disjoint-check`, `-s` |
+| `ls <dir>` | List all requirements | `--json`, `--filter` |
+| `stats <dir>` | Stats per document | `--json`, `--filter` |
 | `init <dir>` | Scaffold a new project | `--preset`, `--id-prefix`, `--force` |
-| `serve <dir>` | Live HTML preview | `--addr`, `--results`, `--headless` |
-| `export csv <dir>` | CSV export | `-o`, `--results` |
-| `export html <dir>` | HTML export | `-o`, `--results` |
+| `serve <dir>` | Live HTML preview | `--addr`, `--results`, `--headless`, `--filter` |
+| `export csv <dir>` | CSV export | `-o`, `--results`, `--filter` |
+| `export html <dir>` | HTML export | `-o`, `--results`, `--filter` |
 | `export graph <dir>` | Graph export (ladybug tag) | `-o` |
-| `baseline diff <t1> <t2>` | Compare two git tags | `--json` |
+| `baseline diff <t1> <t2>` | Compare two git tags | `--json`, `--filter`, `--filter-a`, `--filter-b` |
 | `repin <dir>` | Update version pins to upstream's current version | `--yes`, `--json`, `--promote-unpinned` |
 
 ## The `schema.yaml` file
@@ -474,6 +517,7 @@ x-reqmd:
 | `external` | boolean | If `true`, requirements in this directory are external reference requirements (imported, not authored). They can be traced *to* but don't need upstream traces. |
 | `additional-status-values` | array | Extend the built-in `status` enum (`[draft, approved]`) with custom values (e.g. `[review, withdrawn]`). Lowercase only, no built-in collision, no duplicates. |
 | `ignore-status` | boolean | If `true`, all requirements in this directory are treated as coverage providers regardless of status. The status filter is hidden in HTML export. |
+| `disjoint-check` | string \| array | Enables the disjoint-attribute check for the named array-typed attribute(s) (e.g. `variant`) on every `reqmd check`. Same effect as the `--disjoint-check <attr>` CLI flag. |
 
 ### Standard JSON Schema fields
 
@@ -488,6 +532,20 @@ These are the JSON Schema 2020-12 fields you'll use most:
 | `required` | Array of attribute names that must be present on every requirement. |
 | `properties` | Defines each attribute: its `type`, `enum`, `description`, etc. |
 | `additionalProperties` | Set to `false` to reject attributes not listed in `properties`. Recommended. |
+
+A custom classification attribute (the basis for variant management) is a plain JSON Schema property — an array with an `enum`:
+
+```yaml
+properties:
+  variant:
+    type: array
+    items:
+      type: string
+      enum: [Base, Premium, Sport]
+additionalProperties: false
+```
+
+The `enum` gives free validation (a typo like `variant: [Premuim]` fails `reqmd check`), and `"Premium" in variant` works as a `--filter` expression without any reqmd-specific declaration. To also reject trace links between incompatible variants, add `x-reqmd.disjoint-check: variant`. See [Step 7 — Variant management](/quickstart/07-variant-management/).
 
 ### Built-in attributes
 
@@ -530,5 +588,6 @@ The heading text is the requirement ID plus a title. The `attr` block holds the 
 ## See also
 
 - [Quickstart](/quickstart/) — a hands-on tour of every command.
+- [Step 7 — Variant management](/quickstart/07-variant-management/) — the `--filter` workflow end to end.
 - [FAQ](/faq/) — answers to common questions.
 - [Use cases](/use-cases/) — what reqmd is for, and what it's not.

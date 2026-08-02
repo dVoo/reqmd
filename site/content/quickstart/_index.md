@@ -23,14 +23,17 @@ In the next 10 minutes you can go from a fresh `reqmd` install to a fully traced
 | 4 | [Custom templates](/quickstart/04-custom-templates/) | Define your own schema with a custom `reqmd init` preset |
 | 5 | [Verification results (CTRF)](/quickstart/05-verification-results-ctrf/) | Load automated test results and run outcome-gated checks |
 | 6 | [Review documentation](/quickstart/06-review-documentation/) | Load manual review, inspection, and analysis results |
+| 7 | [Variant management](/quickstart/07-variant-management/) | One spec tree, many configurations with `--filter` |
 
 ## Suggested paths
 
-**New users:** `00` → `01` → `02` → `03` → `04` → `05` → `06`
+**New users:** `00` → `01` → `02` → `03` → `04` → `05` → `06` → `07`
 
 **CI/automation focus:** `00` → `01` → `01a` → `02` → `03b` → `05`
 
 **Status & lifecycle focus:** `00` → `01` → `02` → `02a` → `02b` → `05` → `06`
+
+**Product-line / variant focus:** `00` → `01` → `02` → `03` → `03b` → `07`
 
 ## Prerequisites
 

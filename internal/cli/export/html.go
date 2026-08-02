@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"reqmd/internal/exporter"
+	"reqmd/internal/filter"
 	"reqmd/internal/graph"
 	"reqmd/internal/parser"
 	"reqmd/internal/verify"
@@ -16,6 +17,7 @@ import (
 func newHtmlCmd() *cobra.Command {
 	var outputDir string
 	var resultsPaths []string
+	var filterExpr string
 
 	cmd := &cobra.Command{
 		Use:   "html <dir>",
@@ -29,25 +31,40 @@ func newHtmlCmd() *cobra.Command {
 				return fmt.Errorf("discovering documents: %w", err)
 			}
 
+			// exportDocs is the set of documents to export. When --filter
+			// is active, only matching requirements are exported; the graph
+			// is still built from the full docs so trace links resolve.
+			exportDocs := docs
+			if filterExpr != "" {
+				f, err := filter.Compile(filterExpr, filter.BuildValidAttrs(docs))
+				if err != nil {
+					return err
+				}
+				exportDocs, err = f.FilterDocs(docs)
+				if err != nil {
+					return err
+				}
+			}
+
 			// Load ephemeral verification results when --results is supplied.
 			// Results are synthesized into pseudo-requirements appended to
 			// the doc slice so the graph builds result→measure edges and
 			// outcome-gated checks run. The verdicts map is extracted for
 			// rendering badges on measure cards.
-		var verdicts map[string]exporter.VerdictInfo
-		graphDocs := docs
-		if len(resultsPaths) > 0 {
-			merged, vVerdicts, _, err := verify.LoadVerdicts(resultsPaths)
-			if err != nil {
-				return fmt.Errorf("loading results: %w", err)
+			var verdicts map[string]exporter.VerdictInfo
+			graphDocs := docs
+			if len(resultsPaths) > 0 {
+				merged, vVerdicts, _, err := verify.LoadVerdicts(resultsPaths)
+				if err != nil {
+					return fmt.Errorf("loading results: %w", err)
+				}
+				resultDoc := verify.Synthesize(merged)
+				graphDocs = append(graphDocs, resultDoc)
+				verdicts = make(map[string]exporter.VerdictInfo, len(vVerdicts))
+				for id, v := range vVerdicts {
+					verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
+				}
 			}
-			resultDoc := verify.Synthesize(merged)
-			graphDocs = append(graphDocs, resultDoc)
-			verdicts = make(map[string]exporter.VerdictInfo, len(vVerdicts))
-			for id, v := range vVerdicts {
-				verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
-			}
-		}
 
 			// Build the trace graph for upstream/downstream links
 			g, err := graph.New(graphDocs)
@@ -75,7 +92,7 @@ func newHtmlCmd() *cobra.Command {
 				}
 			}
 
-			for _, doc := range docs {
+			for _, doc := range exportDocs {
 				props := doc.Properties
 				dirName := filepath.Base(doc.Path)
 				outPath := dirName + "-requirements.html"
@@ -119,5 +136,6 @@ func newHtmlCmd() *cobra.Command {
 
 	cmd.Flags().StringVarP(&outputDir, "output", "o", "", "Output directory for HTML files")
 	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF .ctrf.json or manual-results dirs) to render verdict badges on measure cards. Repeatable.")
+	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are exported.")
 	return cmd
 }

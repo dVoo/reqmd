@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"reqmd/internal/exporter"
+	"reqmd/internal/filter"
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
 	"reqmd/internal/parser"
@@ -36,6 +37,7 @@ func newServeCmd() *cobra.Command {
 		headless     bool
 		noOpen       bool
 		resultsPaths []string
+		filterExpr   string
 	)
 
 	cmd := &cobra.Command{
@@ -62,7 +64,7 @@ Use --headless for terminal-only re-check output without the HTTP server.`,
   reqmd serve spec/ --results tests/ --results ci/ctrf.json`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runServe(args[0], addr, debounce, headless, noOpen, resultsPaths)
+			return runServe(args[0], addr, debounce, headless, noOpen, resultsPaths, filterExpr)
 		},
 	}
 
@@ -71,10 +73,11 @@ Use --headless for terminal-only re-check output without the HTTP server.`,
 	cmd.Flags().BoolVar(&headless, "headless", false, "Terminal-only mode (no HTTP server)")
 	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF .ctrf.json or manual-results dirs) and render verdict badges. Repeatable. Results paths are also watched for changes.")
 	cmd.Flags().BoolVar(&noOpen, "no-open", false, "Do not open a browser on start")
+	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are served.")
 	return cmd
 }
 
-func runServe(root string, addr string, debounce time.Duration, headless bool, noOpen bool, resultsPaths []string) error {
+func runServe(root string, addr string, debounce time.Duration, headless bool, noOpen bool, resultsPaths []string, filterExpr string) error {
 	root, err := filepath.Abs(root)
 	if err != nil {
 		return fmt.Errorf("resolving root: %w", err)
@@ -108,6 +111,7 @@ func runServe(root string, addr string, debounce time.Duration, headless bool, n
 		debounce:     debounce,
 		headless:     headless,
 		resultsPaths: absResults,
+		filterExpr:   filterExpr,
 	}
 
 	if err := srv.rebuild(ctx); err != nil {
@@ -158,6 +162,7 @@ type serveData struct {
 	debounce     time.Duration
 	headless     bool
 	resultsPaths []string
+	filterExpr   string
 
 	// Latest rendered HTML per output path (relative path → content)
 	mu    sync.RWMutex
@@ -169,7 +174,7 @@ type serveData struct {
 }
 
 func (s *serveData) rebuild(ctx context.Context) error {
-	docs, verdicts, g, err := discoverAndBuildGraph(s.root, s.resultsPaths)
+	docs, verdicts, g, err := discoverAndBuildGraph(s.root, s.resultsPaths, s.filterExpr)
 	if err != nil {
 		return err
 	}
@@ -221,7 +226,7 @@ func (s *serveData) rebuild(ctx context.Context) error {
 // and builds the requirement graph from the combined document set.
 // Returns the original docs (without synthesized results), the verdicts
 // map for badge rendering, and the graph.
-func discoverAndBuildGraph(root string, resultsPaths []string) ([]model.Document, map[string]exporter.VerdictInfo, *graph.Graph, error) {
+func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string) ([]model.Document, map[string]exporter.VerdictInfo, *graph.Graph, error) {
 	docs, err := parser.Discover(root)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("discovering documents: %w", err)
@@ -246,6 +251,24 @@ func discoverAndBuildGraph(root string, resultsPaths []string) ([]model.Document
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("building graph: %w", err)
 	}
+
+	// Apply filter to the graph (filter-aware checks) and to the exported docs.
+	if filterExpr != "" {
+		f, err := filter.Compile(filterExpr, filter.BuildValidAttrs(docs))
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		filterSet, err := f.MatchingIDs(docs)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+		g.SetFilter(filterSet)
+		docs, err = f.FilterDocs(docs)
+		if err != nil {
+			return nil, nil, nil, err
+		}
+	}
+
 	return docs, verdicts, g, nil
 }
 

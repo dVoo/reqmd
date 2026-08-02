@@ -10,6 +10,7 @@ import (
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
 
+	"reqmd/internal/filter"
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
 	"reqmd/internal/parser"
@@ -23,6 +24,8 @@ func newCheckCmd() *cobra.Command {
 	var jsonOutput bool
 	var relaxedVersions bool
 	var resultsPaths []string
+	var filterExpr string
+	var disjointChecks []string
 
 	cmd := &cobra.Command{
 		Use:     "check <dir>",
@@ -55,7 +58,7 @@ duration of this run.`,
 				}
 				return err
 			}
-			output, err := validateDir(path, jsonOutput, relaxedVersions, resultsPaths)
+			output, err := validateDir(path, jsonOutput, relaxedVersions, resultsPaths, filterExpr, disjointChecks)
 			if output != "" {
 				fmt.Fprint(cmd.OutOrStdout(), output)
 			}
@@ -67,6 +70,8 @@ duration of this run.`,
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	cmd.Flags().BoolVar(&relaxedVersions, "relaxed-versions", false, "Demote outdated version-pin findings from ERROR to WARNING. Predated (pin ahead of upstream) stays ERROR.")
 	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF .ctrf.json or manual-results dirs with schema.yaml) and run outcome-gated checks. Repeatable. May be a dir (walked, auto-detected) or a single CTRF file.")
+	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression (e.g. '\"Premium\" in variant'). Only matching requirements are checked and reported.")
+	cmd.Flags().StringArrayVar(&disjointChecks, "disjoint-check", nil, "Check that trace-linked requirements have overlapping values for the named array-typed attribute (e.g. variant). Repeatable. Also settable via x-reqmd.disjoint-check in schema.yaml.")
 	return cmd
 }
 
@@ -77,8 +82,29 @@ duration of this run.`,
 // relaxedVersions, when true, demotes "outdated" version-pin findings from
 // ERROR to WARNING. Predated findings (pin ahead of upstream) stay ERROR
 // because they are a data integrity issue, not a process issue.
-func runValidationPipeline(docs []model.Document, root string, jsonOutput, relaxedVersions bool, resultsPaths []string) (string, error) {
+func runValidationPipeline(docs []model.Document, root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, disjointChecks []string) (string, error) {
 	report := &reporter.Report{}
+
+	// Compile the filter expression (if any) once at startup.
+	// Fail fast on syntax errors or references to unknown attributes.
+	// The filter scopes authored requirements only: synthesized result
+	// pseudo-requirements (from --results) carry no schema attributes and
+	// are intentionally excluded from the matching set. Verdict checks
+	// read result→measure edges directly, so excluding result nodes here
+	// does not affect outcome-gated reporting.
+	var filterSet map[string]struct{}
+	if filterExpr != "" {
+		validAttrs := filter.BuildValidAttrs(docs)
+		f, err := filter.Compile(filterExpr, validAttrs)
+		if err != nil {
+			return "", err
+		}
+		filterSet, err = f.MatchingIDs(docs)
+		if err != nil {
+			return "", err
+		}
+		report.Filter = filterExpr
+	}
 
 	// Load ephemeral verification results (CTRF / manual) when --results
 	// is supplied. Results are synthesized into a pseudo-document and
@@ -101,12 +127,17 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 		title := schema.SchemaTitle(doc.Schema)
 		ids := make([]string, 0, len(doc.Requirements))
 		for _, req := range doc.Requirements {
+			if filterSet != nil {
+				if _, ok := filterSet[req.ID]; !ok {
+					continue
+				}
+			}
 			ids = append(ids, req.ID)
 		}
 		report.DocHeaders = append(report.DocHeaders, reporter.DocHeader{
 			Path:        doc.Path,
 			SchemaTitle: title,
-			ReqCount:    len(doc.Requirements),
+			ReqCount:    len(ids),
 			ReqIDs:      ids,
 		})
 	}
@@ -146,7 +177,14 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 			})
 			continue
 		}
-		report.TotalReqs += len(docs[i].Requirements)
+		for _, req := range docs[i].Requirements {
+			if filterSet != nil {
+				if _, ok := filterSet[req.ID]; !ok {
+					continue
+				}
+			}
+			report.TotalReqs++
+		}
 	}
 
 	// Phase B: validate all requirements in parallel across all docs
@@ -168,6 +206,11 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 			continue
 		}
 		for j := range docs[i].Requirements {
+			if filterSet != nil {
+				if _, ok := filterSet[docs[i].Requirements[j].ID]; !ok {
+					continue
+				}
+			}
 			jobs = append(jobs, valJob{docIdx: i, reqIdx: j})
 		}
 	}
@@ -219,6 +262,14 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 				Message: fmt.Sprintf("building trace graph: %v", err),
 			})
 		} else {
+			// Collect disjoint-check attrs from CLI flags + schema declarations.
+			allDisjointAttrs := collectDisjointAttrs(docs, disjointChecks)
+			if len(allDisjointAttrs) > 0 {
+				g.SetDisjointAttrs(allDisjointAttrs)
+			}
+			if filterSet != nil {
+				g.SetFilter(filterSet)
+			}
 			report.GraphChecks = g.CheckResults()
 			if relaxedVersions {
 				demoteOutdatedVersionPins(report.GraphChecks)
@@ -254,12 +305,12 @@ func demoteOutdatedVersionPins(checks []graph.CheckResult) {
 	}
 }
 
-func validateDir(root string, jsonOutput, relaxedVersions bool, resultsPaths []string) (string, error) {
+func validateDir(root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, disjointChecks []string) (string, error) {
 	docs, err := parser.Discover(root)
 	if err != nil {
 		return "", fmt.Errorf("discovering documents: %w", err)
 	}
-	return runValidationPipeline(docs, root, jsonOutput, relaxedVersions, resultsPaths)
+	return runValidationPipeline(docs, root, jsonOutput, relaxedVersions, resultsPaths, filterExpr, disjointChecks)
 }
 
 func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions bool) (string, error) {
@@ -284,7 +335,35 @@ func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions
 		Requirements: reqs,
 	}
 
-	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions, nil)
+	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions, nil, "", nil)
+}
+
+// collectDisjointAttrs merges disjoint-check attribute names from CLI flags
+// and x-reqmd.disjoint-check schema declarations into a deduplicated slice.
+func collectDisjointAttrs(docs []model.Document, cliFlags []string) []string {
+	seen := make(map[string]struct{})
+	for _, attr := range cliFlags {
+		if attr != "" {
+			seen[attr] = struct{}{}
+		}
+	}
+	for _, doc := range docs {
+		if doc.XReqmd != nil {
+			for _, attr := range doc.XReqmd.DisjointCheck {
+				if attr != "" {
+					seen[attr] = struct{}{}
+				}
+			}
+		}
+	}
+	if len(seen) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(seen))
+	for attr := range seen {
+		out = append(out, attr)
+	}
+	return out
 }
 
 // formatReport conditionally returns the report in text or JSON format.

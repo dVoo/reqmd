@@ -39,6 +39,7 @@
 - [Step 4 — Custom templates]({{ "quickstart/04-custom-templates/" | absURL }})
 - [Step 5 — Verification results (CTRF)]({{ "quickstart/05-verification-results-ctrf/" | absURL }})
 - [Step 6 — Review documentation]({{ "quickstart/06-review-documentation/" | absURL }})
+- [Step 7 — Variant management]({{ "quickstart/07-variant-management/" | absURL }})
 
 ## Reference
 
