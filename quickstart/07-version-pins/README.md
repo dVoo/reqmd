@@ -1,4 +1,4 @@
-# Step 2b — Version Pins
+# Step 7 — Version Pins
 
 Pin trace references to a specific upstream version and detect when the
 upstream changes.
@@ -66,8 +66,15 @@ reqmd-suppress:
 Version pins also apply to result→measure traces: pin a result with
 `MEASURE-ID~3` against a measure now at `version: 4` and the `outdated` finding
 fires. This is how stale-verdict is detected — no new check, just the
-existing version-pin check on a new edge type. See [Step 5](../05-verification-results-ctrf/).
+existing version-pin check on a new edge type. See [Step 11](../11-verification-results-ctrf/).
+
+## Bulk-update pins
+
+When you've bumped a spec version and a wave of `outdated` findings
+appear, `reqmd repin` rewrites the affected pins in place. See
+[Step 8](../08-repin/).
 
 ## What's next
 
-Now export your spec tree — go to [Step 3](../03-export/).
+Now update a wave of stale pins in one command — go to
+[Step 8](../08-repin/).

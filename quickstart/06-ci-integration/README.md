@@ -1,8 +1,4 @@
----
-title: "Step 1a — CI integration"
-description: "Run reqmd in CI for validation gates and structured reports."
-weight: 2
----
+# Step 6 — CI Integration
 
 Run reqmd in CI for validation gates and structured reports.
 
@@ -12,7 +8,8 @@ Run reqmd in CI for validation gates and structured reports.
 reqmd check --json 02-trace-your-spec/
 ```
 
-Produces a structured JSON report with per-requirement pass/fail and trace check results:
+Produces a structured JSON report with per-requirement pass/fail and trace
+check results:
 
 ```json
 {
@@ -30,7 +27,8 @@ Produces a structured JSON report with per-requirement pass/fail and trace check
 }
 ```
 
-The `exit_code` field mirrors the process exit code: `0` (all valid), `1` (validation errors), `2` (parse error).
+The `exit_code` field mirrors the process exit code: `0` (all valid), `1`
+(validation errors), `2` (parse error).
 
 ## GitHub Actions example
 
@@ -70,7 +68,7 @@ Only ERROR-level checks affect the exit code. WARNINGs are informational.
 
 ```sh
 reqmd ls --json 02-trace-your-spec/      # all requirements with attributes
-reqmd stats --json 02-trace-your-spec/   # attribute-value breakdown per doc
+reqmd stats --json 02-trace-your-spec/  # attribute-value breakdown per doc
 ```
 
 ## Check suppression in CI
@@ -85,4 +83,5 @@ reqmd-suppress:
 
 ## What's next
 
-You can integrate reqmd into CI. Now build a traced spec tree — go to [Step 2](/quickstart/02-trace-your-spec/).
+You can integrate reqmd into CI. Now pin the trace links so upstream changes
+don't silently invalidate the chain — go to [Step 7](../07-version-pins/).

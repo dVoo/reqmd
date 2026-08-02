@@ -25,21 +25,22 @@
 
 ## Quickstart
 
-- [Quickstart]({{ "quickstart/" | absURL }}): A seven-step tour from install to manual review results.
+- [Quickstart]({{ "quickstart/" | absURL }}): A step-by-step tour from install to a fully traced, verified, and exported spec tree, built around one continuous boot-sequence example.
 - [Step 0 — Installation]({{ "quickstart/00-installation/" | absURL }})
 - [Step 1 — Get started]({{ "quickstart/01-get-started/" | absURL }})
-- [Step 1a — CI integration]({{ "quickstart/01a-ci-integration/" | absURL }})
 - [Step 2 — Trace your spec]({{ "quickstart/02-trace-your-spec/" | absURL }})
-- [Step 2a — Status & disposition]({{ "quickstart/02a-status-disposition/" | absURL }})
-- [Step 2b — Version pins]({{ "quickstart/02b-version-pins/" | absURL }})
-- [Step 2c — Repin]({{ "quickstart/02c-repin/" | absURL }})
+- [Step 10 — Submodule-friendly configuration]({{ "quickstart/10-submodule-configuration/" | absURL }})
 - [Step 3 — Export]({{ "quickstart/03-export/" | absURL }})
-- [Step 3a — Live preview]({{ "quickstart/03a-live-preview/" | absURL }})
-- [Step 3b — Baseline diff]({{ "quickstart/03b-baseline-diff/" | absURL }})
-- [Step 4 — Custom templates]({{ "quickstart/04-custom-templates/" | absURL }})
-- [Step 5 — Verification results (CTRF)]({{ "quickstart/05-verification-results-ctrf/" | absURL }})
-- [Step 6 — Review documentation]({{ "quickstart/06-review-documentation/" | absURL }})
-- [Step 7 — Variant management]({{ "quickstart/07-variant-management/" | absURL }})
+- [Step 4 — Live preview]({{ "quickstart/04-live-preview/" | absURL }})
+- [Step 5 — Status & disposition]({{ "quickstart/05-status-disposition/" | absURL }})
+- [Step 6 — CI integration]({{ "quickstart/06-ci-integration/" | absURL }})
+- [Step 7 — Version pins]({{ "quickstart/07-version-pins/" | absURL }})
+- [Step 8 — Repin]({{ "quickstart/08-repin/" | absURL }})
+- [Step 9 — Baseline diff]({{ "quickstart/09-baseline-diff/" | absURL }})
+- [Step 11 — Verification results (CTRF)]({{ "quickstart/11-verification-results-ctrf/" | absURL }})
+- [Step 12 — Review documentation]({{ "quickstart/12-review-documentation/" | absURL }})
+- [Step 13 — Custom templates]({{ "quickstart/13-custom-templates/" | absURL }})
+- [Step 14 — Variant management]({{ "quickstart/14-variant-management/" | absURL }})
 
 ## Reference
 

@@ -1,15 +1,15 @@
 ---
-title: "Step 5 — Verification results (CTRF)"
-description: "Load automated test results in CTRF format and run outcome-gated checks against your spec tree."
+title: "Step 11 — Verification results (CTRF)"
+description: "Load automated test results in CTRF format and run outcome-gated checks against the boot-sequence spec."
 weight: 11
 ---
 
-Load automated test results in [CTRF format](https://ctrf.io/) and run outcome-gated checks against your spec tree.
+Load automated test results in [CTRF format](https://ctrf.io/) and run outcome-gated checks against the [boot-sequence spec](/quickstart/02-trace-your-spec/).
 
 ## What's in this folder
 
 ```
-05-verification-results-ctrf/
+11-verification-results-ctrf/
   boot-tests.ctrf.json    # CTRF report: TEST-001 passed
   coverage.json           # NOT a CTRF file; auto-skipped silently
 ```
@@ -39,7 +39,7 @@ CTRF `status` → reqmd `outcome`:
 ## Run outcome-gated checks
 
 ```sh
-reqmd check 02-trace-your-spec/ --results 05-verification-results-ctrf/
+reqmd check 02-trace-your-spec/ --results 11-verification-results-ctrf/
 ```
 
 When results are loaded, reqmd runs two additional checks:
@@ -55,12 +55,16 @@ The `coverage.json` file in this folder is silently skipped — reqmd auto-detec
 
 ```sh
 # HTML with color-coded verdict badges (green=pass, red=fail, etc.)
-reqmd export html 02-trace-your-spec/ --results 05-verification-results-ctrf/ -o html-out/
+reqmd export html 02-trace-your-spec/ --results 11-verification-results-ctrf/ -o html-out/
 
 # CSV with Verdict and Verdict Source columns
-reqmd export csv 02-trace-your-spec/ --results 05-verification-results-ctrf/ -o csv-out/
+reqmd export csv 02-trace-your-spec/ --results 11-verification-results-ctrf/ -o csv-out/
 ```
+
+## Where to look things up
+
+- The `--results` flag and the `missing-verdict` / `failing-verdict` checks: [`reqmd check` in the cheat sheet](/cheat-sheet/#reqmd-check--validate-requirements-and-trace-links)
 
 ## What's next
 
-CTRF covers automated tests. Manual verification methods (review, inspection, analysis) are documented as markdown — go to [Step 6](/quickstart/06-review-documentation/).
+CTRF covers automated tests. Manual verification methods (review, inspection, analysis) are documented as markdown — go to [Step 12](/quickstart/12-review-documentation/).

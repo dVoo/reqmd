@@ -322,7 +322,7 @@ x-reqmd:
 <details>
 <summary>Can I validate every variant in CI?</summary>
 <div class="faq-body">
-<p>Yes — run one <code>reqmd check</code> per configuration in a CI matrix. Each job validates its view with <code>--filter "${{ matrix.filter }}" --json</code>; the JSON summary records the exact filter in a <code>"filter"</code> field. Add a <code>--disjoint-check variant</code> job to catch cross-configuration trace mistakes. A complete example is in <a href="/quickstart/07-variant-management/">Step 7 — Variant management</a>.</p>
+<p>Yes — run one <code>reqmd check</code> per configuration in a CI matrix. Each job validates its view with <code>--filter "${{ matrix.filter }}" --json</code>; the JSON summary records the exact filter in a <code>"filter"</code> field. Add a <code>--disjoint-check variant</code> job to catch cross-configuration trace mistakes. A complete example is in <a href="/quickstart/14-variant-management/">Step 14 — Variant management</a>.</p>
 </div>
 </details>
 

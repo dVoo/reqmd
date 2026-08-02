@@ -1,4 +1,4 @@
-# Step 2c — Repin
+# Step 8 — Repin
 
 Bulk-update version-pin (`~N`) trace references to match the upstream's
 current version. The `reqmd repin` command proposes or applies the
@@ -6,7 +6,7 @@ changes for you.
 
 ## When to use
 
-After bumping a spec version (Step 2b) you'll see a wave of `version-pin:
+After bumping a spec version (Step 7) you'll see a wave of `version-pin:
 outdated` findings. `repin` rewrites the affected `trace:` lines in
 place so the pins catch up to the upstream — without you having to
 hand-edit every requirement.
@@ -103,10 +103,10 @@ the rewrite (files touched, deltas applied, deltas skipped).
 ## Suppression
 
 The per-requirement `reqmd-suppress: [version-pin]` opt-out
-(document in Step 2b) is respected by `repin` — suppressed nodes
+(document in Step 7) is respected by `repin` — suppressed nodes
 never appear in the change list.
 
 ## What's next
 
 Compare requirement baselines between git tags — go to
-[Step 3b](../03b-baseline-diff/).
+[Step 9](../09-baseline-diff/).

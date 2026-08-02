@@ -1,4 +1,4 @@
-# Step 6 — Review Documentation
+# Step 12 — Review Documentation
 
 Load manual verification results (review, inspection, analysis, demonstration)
 recorded as markdown with a user-supplied schema.
@@ -6,7 +6,7 @@ recorded as markdown with a user-supplied schema.
 ## What's in this folder
 
 ```
-06-review-documentation/
+12-review-documentation/
   schema.yaml                    ← schema for manual results
   design-review-results.md       ← VR-001: design review for TEST-002 (pass)
 ```
@@ -62,15 +62,15 @@ This creates `schema.yaml` + `results.md` with one example result.
 ## Run checks with manual results
 
 ```sh
-reqmd check 02-trace-your-spec/ --results 06-review-documentation/
+reqmd check 02-trace-your-spec/ --results 12-review-documentation/
 ```
 
 ## Combine automated + manual results
 
 ```sh
 reqmd check 02-trace-your-spec/ \
-  --results 05-verification-results-ctrf/ \
-  --results 06-review-documentation/
+  --results 11-verification-results-ctrf/ \
+  --results 12-review-documentation/
 ```
 
 Both result sources are merged — if a measure has results from both CTRF and
@@ -80,7 +80,7 @@ manual sources, the latest `verified-at` wins.
 
 ```sh
 reqmd export html 02-trace-your-spec/ \
-  --results 06-review-documentation/ -o html-out/
+  --results 12-review-documentation/ -o html-out/
 ```
 
 ## That's it
@@ -88,10 +88,15 @@ reqmd export html 02-trace-your-spec/ \
 You've worked through the full reqmd workflow:
 
 1. Scaffold a project
-2. Build a traced spec tree
-3. Export to CSV/HTML/graph
-4. Define custom templates
+2. Build a traced V-model spec tree
+3. Export, preview, and diff it
+4. Run it in CI with version pins
 5. Load automated test results (CTRF)
 6. Load manual review results
 
 For the full spec, see the [README](../../README.md) and [AGENTS.md](../../AGENTS.md).
+
+## What's next
+
+The V-model is fully verified. Now extend reqmd to your own document types —
+go to [Step 13](../13-custom-templates/).

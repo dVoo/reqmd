@@ -10,7 +10,7 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `SPEC.md` — authoritative design spec (if absent, the spec tree under `spec/` is the source of truth)
 - `spec/workspace.dsl` — C4 model (Structurizr DSL) for architecture visualization
 - `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 doc dirs, 233 total reqs, V-model dogfood fixture
-- `quickstart/` — step-by-step tutorial (01-get-started, 01a-ci-integration, 02-trace-your-spec, 02a-status-disposition, 02b-version-pins, 03-export, 03a-live-preview, 03b-baseline-diff, 04-custom-templates, 05-verification-results-ctrf, 06-review-documentation, 07-variant-management)
+- `quickstart/` — step-by-step tutorial (01-get-started, 02-trace-your-spec, 03-export, 04-live-preview, 05-status-disposition, 06-ci-integration, 07-version-pins, 08-repin, 09-baseline-diff, 10-submodule-configuration, 11-verification-results-ctrf, 12-review-documentation, 13-custom-templates, 14-variant-management)
 - `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli, filter)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
 - `go.mod` / `go.sum` — Go module `reqmd` (1.25)

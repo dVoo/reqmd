@@ -545,7 +545,7 @@ properties:
 additionalProperties: false
 ```
 
-The `enum` gives free validation (a typo like `variant: [Premuim]` fails `reqmd check`), and `"Premium" in variant` works as a `--filter` expression without any reqmd-specific declaration. To also reject trace links between incompatible variants, add `x-reqmd.disjoint-check: variant`. See [Step 7 — Variant management](/quickstart/07-variant-management/).
+The `enum` gives free validation (a typo like `variant: [Premuim]` fails `reqmd check`), and `"Premium" in variant` works as a `--filter` expression without any reqmd-specific declaration. To also reject trace links between incompatible variants, add `x-reqmd.disjoint-check: variant`. See [Step 14 — Variant management](/quickstart/14-variant-management/).
 
 ### Built-in attributes
 
@@ -588,6 +588,6 @@ The heading text is the requirement ID plus a title. The `attr` block holds the 
 ## See also
 
 - [Quickstart](/quickstart/) — a hands-on tour of every command.
-- [Step 7 — Variant management](/quickstart/07-variant-management/) — the `--filter` workflow end to end.
+- [Step 14 — Variant management](/quickstart/14-variant-management/) — the `--filter` workflow end to end.
 - [FAQ](/faq/) — answers to common questions.
 - [Use cases](/use-cases/) — what reqmd is for, and what it's not.

@@ -1,34 +1,38 @@
-# Step 4 — Custom Templates
+---
+title: "Step 13 — Custom templates"
+description: "Define your own requirement schema with a custom reqmd init preset."
+weight: 13
+---
 
 Define your own requirement schema with a custom `reqmd init` preset.
 
 ## What's in this folder
 
 ```
-04-custom-templates/
-  preset/                   ← the custom preset directory
-    schema.yaml.tmpl        ← Go template for schema.yaml
-    example.md.tmpl         ← Go template for the example .md file
+13-custom-templates/
+  preset/                   # the custom preset directory
+    schema.yaml.tmpl        # Go template for schema.yaml
+    example.md.tmpl         # Go template for the example .md file
 ```
 
-This preset defines a **safety-critical requirements template** with:
+This preset defines a **custom requirements template** with:
 
-- `safety-level` (required) — ASIL classification: QM, ASIL-A, ASIL-B, ASIL-C, ASIL-D
+- `priority` (required) — low, medium, high, critical
 - `verification-method` (required) — test, review, analysis, inspection, demonstration
 - `owner` (optional) — responsible team
 
 ## Scaffold from the custom preset
 
 ```sh
-reqmd init my-safety/ --preset 04-custom-templates/preset/ --id-prefix SC
+reqmd init my-safety/ --preset 13-custom-templates/preset/ --id-prefix SC
 ```
 
 This produces:
 
 ```
 my-safety/
-  schema.yaml        ← rendered from schema.yaml.tmpl
-  requirements.md   ← rendered from example.md.tmpl
+  schema.yaml        # rendered from schema.yaml.tmpl
+  requirements.md   # rendered from example.md.tmpl
 ```
 
 ## Validate the scaffolded output
@@ -57,8 +61,11 @@ Both `.tmpl` files use Go `text/template` syntax with:
 2. Use `{{ .ID }}`, `{{ .Title }}`, `{{ .Level }}`, `{{ .IDPrefix }}` variables
 3. Scaffold with `reqmd init <dir> --preset <your-preset-dir>/`
 
+## Where to look things up
+
+- `reqmd init` presets and flags: [`reqmd init` in the cheat sheet](/cheat-sheet/#reqmd-init--scaffold-a-new-project)
+- Writing your own `schema.yaml`: [the `schema.yaml` file in the cheat sheet](/cheat-sheet/#the-schemayaml-file)
+
 ## What's next
 
-You can scaffold custom document types. Now load verification results —
-go to [Step 5](../05-verification-results-ctrf/) for CTRF automated results
-or [Step 6](../06-review-documentation/) for manual review results.
+You can scaffold custom document types. Finally, scope one spec tree into many configurations — go to [Step 14](/quickstart/14-variant-management/).

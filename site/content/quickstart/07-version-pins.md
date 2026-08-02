@@ -1,7 +1,7 @@
 ---
-title: "Step 2b — Version pins"
+title: "Step 7 — Version pins"
 description: "Pin trace references to a specific upstream version and detect when the upstream changes."
-weight: 5
+weight: 7
 ---
 
 Pin trace references to a specific upstream version and detect when the upstream changes.
@@ -61,14 +61,16 @@ reqmd-suppress:
 
 ## Stale verdicts
 
-Version pins also apply to result→measure traces: pin a result with `MEASURE-ID~3` against a measure now at `version: 4` and the `outdated` finding fires. This is how stale-verdict is detected — no new check, just the existing version-pin check on a new edge type. See [Step 5](/quickstart/05-verification-results-ctrf/).
+Version pins also apply to result→measure traces: pin a result with `MEASURE-ID~3` against a measure now at `version: 4` and the `outdated` finding fires. This is how stale-verdict is detected — no new check, just the existing version-pin check on a new edge type. See [Step 11](/quickstart/11-verification-results-ctrf/).
 
 ## Bulk-update pins
 
-When you've bumped a spec version and a wave of `outdated` findings
-appear, `reqmd repin` rewrites the affected pins in place. See
-[Repin](/quickstart/02c-repin/).
+When you've bumped a spec version and a wave of `outdated` findings appear, `reqmd repin` rewrites the affected pins in place. See [Step 8](/quickstart/08-repin/).
+
+## Where to look things up
+
+- `--relaxed-versions` and version-pin behaviour: [`reqmd check` in the cheat sheet](/cheat-sheet/#reqmd-check--validate-requirements-and-trace-links)
 
 ## What's next
 
-Now export your spec tree — go to [Step 3](/quickstart/03-export/).
+Now update a wave of stale pins in one command — go to [Step 8](/quickstart/08-repin/).

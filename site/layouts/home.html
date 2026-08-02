@@ -127,7 +127,7 @@ sudden thermal events is a safety concern.</code></pre>
           <div class="step-content">
             <h3>Verify</h3>
             <p>Load test results from CI (CTRF JSON) or manual reviews (Markdown). reqmd runs <code>missing-verdict</code> and <code>failing-verdict</code> checks, and renders verdict badges on every measure in the HTML export.</p>
-            <a href="/quickstart/05-verification-results-ctrf/">Step 5 — CTRF results →</a>
+            <a href="/quickstart/11-verification-results-ctrf/">Step 11 — CTRF results →</a>
           </div>
         </div>
         <div class="step-item">
@@ -166,7 +166,7 @@ sudden thermal events is a safety concern.</code></pre>
           <h3>Live stakeholder review</h3>
         </div>
         <p>Run <code>reqmd serve</code> while editing. The browser refreshes on every save, with trace links resolved and verdict badges color-coded. Reviewers read the spec as a website — with search, filters, and a light/dark toggle. No server framework, no SPA build.</p>
-        <a href="/quickstart/03a-live-preview/">Live preview →</a>
+        <a href="/quickstart/04-live-preview/">Live preview →</a>
       </div>
 
       <div class="scenario">
@@ -175,7 +175,7 @@ sudden thermal events is a safety concern.</code></pre>
           <h3>Traceability in CI</h3>
         </div>
         <p>Drop <code>reqmd check</code> into GitHub Actions or GitLab CI. Exit code 0/1/2 maps to pass/fail/parse-error. JSON output is shaped for parsing. Per-check suppression and a <code>baseline diff</code> for comparing two tagged releases. Five lines of YAML, done.</p>
-        <a href="/quickstart/01a-ci-integration/">CI integration →</a>
+        <a href="/quickstart/06-ci-integration/">CI integration →</a>
       </div>
 
       <div class="scenario">

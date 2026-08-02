@@ -1,4 +1,4 @@
-# Step 3a — Live Preview
+# Step 4 — Live Preview
 
 Serve a live-reloading HTML preview while you edit your spec tree.
 
@@ -32,8 +32,8 @@ reqmd serve 02-trace-your-spec/
 reqmd serve 02-trace-your-spec/ --headless --addr 0.0.0.0:8080
 
 # With verification results — verdict badges on measure cards
-reqmd serve 02-trace-your-spec/ --results 05-verification-results-ctrf/
-reqmd serve 02-trace-your-spec/ --results 06-review-documentation/
+reqmd serve 02-trace-your-spec/ --results 11-verification-results-ctrf/
+reqmd serve 02-trace-your-spec/ --results 12-review-documentation/
 ```
 
 ## With verification results
@@ -44,7 +44,7 @@ Result files are watched alongside spec files — editing a CTRF JSON or
 manual-results markdown triggers an immediate rebuild and browser refresh.
 
 ```sh
-reqmd serve 02-trace-your-spec/ --results 05-verification-results-ctrf/
+reqmd serve 02-trace-your-spec/ --results 11-verification-results-ctrf/
 ```
 
 The `failing-verdict` graph check runs on every rebuild: a `fail` verdict
@@ -52,4 +52,5 @@ on a measure produces an ERROR-level finding, turning the status line red.
 
 ## What's next
 
-Now compare two baselines — go to [Step 3b](../03b-baseline-diff/).
+Now look at the status lifecycle that makes `SW-001` a draft — go to
+[Step 5](../05-status-disposition/).

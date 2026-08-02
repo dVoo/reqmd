@@ -1,7 +1,7 @@
 ---
 title: "Step 3 — Export"
-description: "Export the spec tree to CSV, HTML, and graph formats."
-weight: 7
+description: "Export the boot-sequence spec tree from Step 2 to CSV, HTML, and graph formats."
+weight: 3
 ---
 
 Export the spec tree from [Step 2](/quickstart/02-trace-your-spec/) to CSV, HTML, and graph formats.
@@ -27,6 +27,7 @@ Produces standalone HTML files with:
 - Document chain tab strip (V-model navigation)
 - Search and filter (Alpine.js)
 - Light/dark theme toggle
+
 Open `html-out/tests-requirements.html` in a browser to see trace links.
 
 <div class="callout">
@@ -55,17 +56,21 @@ lbug graph-out/reqmd-graph.lbug
 
 ## Export with verification results
 
-All export formats accept `--results` (see Steps 5 and 6):
+All export formats accept `--results` (see Steps 11 and 12):
 
 ```sh
 reqmd export html 02-trace-your-spec/ \
-  --results 05-verification-results-ctrf/ \
-  --results 06-review-documentation/ \
+  --results 11-verification-results-ctrf/ \
+  --results 12-review-documentation/ \
   -o html-out/
 ```
 
 HTML gets color-coded verdict badges on measure cards; CSV gets `Verdict` and `Verdict Source` columns; Graph gets `RESULT:` nodes with `outcome` properties.
 
+## Where to look things up
+
+- Export flags and column/section details: [`reqmd export csv`](/cheat-sheet/#reqmd-export-csv--export-to-csv), [`reqmd export html`](/cheat-sheet/#reqmd-export-html--export-to-html), [`reqmd export graph`](/cheat-sheet/#reqmd-export-graph--export-to-ladybugdb-graph)
+
 ## What's next
 
-You can export the standard spec tree. Now define your own schema — go to [Step 4](/quickstart/04-custom-templates/).
+You can export the standard spec tree. Now preview it live while you edit — go to [Step 4](/quickstart/04-live-preview/).

@@ -1,4 +1,4 @@
-# Step 3b — Baseline Diff
+# Step 9 — Baseline Diff
 
 Compare requirement baselines between two git tags — no checkout needed.
 
@@ -66,4 +66,5 @@ This section is hidden when no submodules exist.
 
 ## What's next
 
-Now define your own schema — go to [Step 4](../04-custom-templates/).
+Now close the right side of the V-model — load verification results for the
+boot tests. Go to [Step 11](../11-verification-results-ctrf/).

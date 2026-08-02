@@ -23,37 +23,37 @@ You write requirements the way you already write documentation: in a text editor
 <article class="usecase">
 <h3>Requirements with status and lifecycle</h3>
 <p>Every requirement is <code>draft</code> or <code>approved</code>, and carries a disposition: <code>implemented</code>, <code>deferred</code>, or <code>rejected</code> (with a mandatory reason). The schema enforces the lifecycle; the trace checks enforce that a <code>draft</code> requirement cannot satisfy an upstream coverage expectation.</p>
-<a href="/quickstart/02a-status-disposition/">Step 2a — Status &amp; disposition →</a>
+<a href="/quickstart/05-status-disposition/">Step 5 — Status &amp; disposition →</a>
 </article>
 <article class="usecase">
 <h3>Traceability in CI</h3>
 <p>Drop <code>reqmd check</code> into GitHub Actions or GitLab CI. Exit code 0/1/2 maps to pass/fail/parse-error. <code>--json</code> output is shaped for parsing. Per-check suppression and a <code>baseline diff</code> for comparing two tagged releases. Five lines of YAML, done.</p>
-<a href="/quickstart/01a-ci-integration/">Step 1a — CI integration →</a>
+<a href="/quickstart/06-ci-integration/">Step 6 — CI integration →</a>
 </article>
 <article class="usecase">
 <h3>Version pinning and impact tracking</h3>
 <p>A downstream requirement can pin the upstream version it was verified against (<code>SYS-001~3</code>). When the upstream <code>version</code> is bumped, the pin becomes stale and the downstream needs re-verification. This is the engineering work of tracking what a version bump actually breaks.</p>
-<a href="/quickstart/02b-version-pins/">Step 2b — Version pins →</a>
+<a href="/quickstart/07-version-pins/">Step 7 — Version pins →</a>
 </article>
 <article class="usecase">
 <h3>Verification result roll-up</h3>
 <p>Load test results from CI (CTRF JSON) or manual reviews (Markdown). The <code>--results</code> flag runs <code>missing-verdict</code> and <code>failing-verdict</code> checks — an approved measure with no result, or a latest result that is fail. HTML export shows color-coded verdict badges on every measure.</p>
-<a href="/quickstart/05-verification-results-ctrf/">Step 5 — CTRF results →</a>
+<a href="/quickstart/11-verification-results-ctrf/">Step 11 — CTRF results →</a>
 </article>
 <article class="usecase">
 <h3>Product-line requirements with variants</h3>
 <p>One spec tree, many configurations. Tag requirements with a <code>variant</code> attribute and scope every command — <code>check</code>, <code>ls</code>, <code>stats</code>, <code>export</code>, <code>baseline diff</code>, <code>serve</code> — with <code>--filter</code>. Coverage is evaluated within the view, cross-configuration trace mistakes fail via <code>--disjoint-check</code>, and a CI matrix validates every configuration on every pull request.</p>
-<a href="/quickstart/07-variant-management/">Step 7 — Variant management →</a>
+<a href="/quickstart/14-variant-management/">Step 14 — Variant management →</a>
 </article>
 <article class="usecase">
 <h3>Live stakeholder review</h3>
 <p>Run <code>reqmd serve</code> while editing. The browser refreshes on every save, with trace links resolved and verdict badges color-coded. Reviewers read the spec as a website — with search, filters, and a light/dark toggle. No server framework, no SPA build.</p>
-<a href="/quickstart/03a-live-preview/">Step 3a — Live preview →</a>
+<a href="/quickstart/04-live-preview/">Step 4 — Live preview →</a>
 </article>
 <article class="usecase">
 <h3>Submodule-based spec integration</h3>
 <p>Compose specs from multiple git submodules. Use <code>document-id/ID</code> qualified references and <code>baseline diff</code> to see what changed between tags. Merge specs across teams without losing provenance.</p>
-<a href="/quickstart/03b-baseline-diff/">Step 3b — Baseline diff →</a>
+<a href="/quickstart/09-baseline-diff/">Step 9 — Baseline diff →</a>
 </article>
 <article class="usecase">
 <h3>Source-code traceability</h3>
@@ -63,7 +63,7 @@ You write requirements the way you already write documentation: in a text editor
 <article class="usecase">
 <h3>Custom schemas per document</h3>
 <p>Each document directory carries its own <code>schema.yaml</code>. Define required fields, enums, ID prefixes, and per-directory metadata. Use <code>reqmd init</code> presets or build your own. The data model adapts to any V-model workflow.</p>
-<a href="/quickstart/04-custom-templates/">Step 4 — Custom templates →</a>
+<a href="/quickstart/13-custom-templates/">Step 13 — Custom templates →</a>
 </article>
 <article class="usecase">
 <h3>AI-assisted spec authoring</h3>

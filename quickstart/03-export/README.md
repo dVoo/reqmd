@@ -44,12 +44,12 @@ lbug graph-out/reqmd-graph.lbug
 
 ## Export with verification results
 
-All export formats accept `--results` (see Steps 5 and 6):
+All export formats accept `--results` (see Steps 11 and 12):
 
 ```sh
 reqmd export html 02-trace-your-spec/ \
-  --results 05-verification-results-ctrf/ \
-  --results 06-review-documentation/ \
+  --results 11-verification-results-ctrf/ \
+  --results 12-review-documentation/ \
   -o html-out/
 ```
 
@@ -58,5 +58,5 @@ HTML gets color-coded verdict badges on measure cards; CSV gets `Verdict` and
 
 ## What's next
 
-You can export the standard spec tree. Now define your own schema — go to
-[Step 4](../04-custom-templates/).
+You can export the standard spec tree. Now preview it live while you edit —
+go to [Step 4](../04-live-preview/).

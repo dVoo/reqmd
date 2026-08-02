@@ -1,4 +1,4 @@
-# Step 5 — Verification Results (CTRF)
+# Step 11 — Verification Results (CTRF)
 
 Load automated test results in [CTRF format](https://ctrf.io/) and run
 outcome-gated checks against your spec tree.
@@ -6,7 +6,7 @@ outcome-gated checks against your spec tree.
 ## What's in this folder
 
 ```
-05-verification-results-ctrf/
+11-verification-results-ctrf/
   boot-tests.ctrf.json    ← CTRF report: TEST-001 passed
   coverage.json           ← NOT a CTRF file; auto-skipped silently
 ```
@@ -37,7 +37,7 @@ CTRF `status` → reqmd `outcome`:
 ## Run outcome-gated checks
 
 ```sh
-reqmd check 02-trace-your-spec/ --results 05-verification-results-ctrf/
+reqmd check 02-trace-your-spec/ --results 11-verification-results-ctrf/
 ```
 
 When results are loaded, reqmd runs two additional checks:
@@ -54,13 +54,13 @@ auto-detects it's not a CTRF file (no `results.tests[]` object).
 
 ```sh
 # HTML with color-coded verdict badges (green=pass, red=fail, etc.)
-reqmd export html 02-trace-your-spec/ --results 05-verification-results-ctrf/ -o html-out/
+reqmd export html 02-trace-your-spec/ --results 11-verification-results-ctrf/ -o html-out/
 
 # CSV with Verdict and Verdict Source columns
-reqmd export csv 02-trace-your-spec/ --results 05-verification-results-ctrf/ -o csv-out/
+reqmd export csv 02-trace-your-spec/ --results 11-verification-results-ctrf/ -o csv-out/
 ```
 
 ## What's next
 
 CTRF covers automated tests. Manual verification methods (review, inspection,
-analysis) are documented as markdown — go to [Step 6](../06-review-documentation/).
+analysis) are documented as markdown — go to [Step 12](../12-review-documentation/).

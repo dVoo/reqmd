@@ -16,6 +16,49 @@ my-project/
   requirements.md   ← example file with two sample requirements
 ```
 
+## The requirement format
+
+A requirement is just a Markdown document — a heading, a YAML `attr` block,
+and free-form prose. Open `my-project/requirements.md` to see the format the
+scaffold generated:
+
+````markdown
+# Requirements
+
+## REQ-001
+```attr
+status: draft
+owner: Team Alpha
+```
+The system shall provide a login mechanism.
+
+*Rationale: Authentication is required for secure access.*
+
+## REQ-002
+```attr
+status: draft
+owner: Team Beta
+trace:
+  - REQ-001
+```
+The system shall enforce role-based access control.
+````
+
+Three parts make up each requirement:
+
+| Part | How it's written | Purpose |
+|------|------------------|---------|
+| **Heading** | `## REQ-001` — the ID, optionally followed by `: Title` | Gives the requirement its identity; reqmd reads the ID from the heading |
+| **Attributes** | A fenced code block tagged ```attr``` containing YAML | Structured data: `status`, `owner`, `trace`, and anything else your schema declares |
+| **Body** | Free-form Markdown prose after the `attr` block | The human-readable requirement statement |
+
+The *Rationale:* paragraph is optional but encouraged — it shows up in the
+HTML export and gives reviewers the *why*.
+
+The ID can also carry a title, e.g. `## REQ-001: Login`. Anything after the
+first `:` on the heading line is the requirement title. Every requirement ID
+must be unique across the whole spec tree — reqmd checks that for you.
+
 ## Validate
 
 ```sh

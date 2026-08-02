@@ -1,4 +1,4 @@
-# Step 2a — Status & Disposition
+# Step 5 — Status & Disposition
 
 Two built-in attributes control how requirements behave in trace coverage
 and how deferred work is tracked.
@@ -76,4 +76,4 @@ HTML export.
 
 ## What's next
 
-Now export your spec tree — go to [Step 3](../03-export/).
+Now gate this spec in CI — go to [Step 6](../06-ci-integration/).

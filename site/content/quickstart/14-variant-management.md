@@ -1,14 +1,14 @@
 ---
-title: "Step 7 — Variant management"
+title: "Step 14 — Variant management"
 description: "One spec tree, many configurations: tag requirements with a variant attribute and scope every reqmd command with --filter."
-weight: 13
+weight: 14
 ---
 
 One spec tree, many configurations. Tag requirements with a `variant` attribute and scope every reqmd command with `--filter`.
 
 reqmd doesn't have a built-in `variants` feature — it doesn't need one. You declare a `variant` attribute in your schema exactly like any other custom attribute, tag each requirement with the configurations it belongs to, and then use the generic `--filter` flag to turn one spec tree into any number of ad-hoc views. The same mechanism works for any classification attribute: platform, region, priority, owner.
 
-This step shows the full workflow on the `07-variant-management/` tree: three configurations (Base, Premium, Sport) across a two-level V-model.
+This step shows the full workflow on the `14-variant-management/` tree: three configurations (Base, Premium, Sport) across a two-level V-model.
 
 ## The pattern in 60 seconds
 
@@ -50,16 +50,16 @@ A requirement can belong to several configurations (`variant: [Base, Premium]`).
 
 ```sh
 # List only the Premium requirements
-reqmd ls 07-variant-management/ --filter '"Premium" in variant'
+reqmd ls 14-variant-management/ --filter '"Premium" in variant'
 
 # Check only the Base configuration — the check is scoped, not just the report
-reqmd check 07-variant-management/ --filter '"Base" in variant'
+reqmd check 14-variant-management/ --filter '"Base" in variant'
 
 # Per-configuration stats
-reqmd stats 07-variant-management/ --filter '"Sport" in variant'
+reqmd stats 14-variant-management/ --filter '"Sport" in variant'
 
 # Export only one configuration's HTML
-reqmd export html 07-variant-management/ --filter '"Premium" in variant' -o html-out/premium/
+reqmd export html 14-variant-management/ --filter '"Premium" in variant' -o html-out/premium/
 ```
 
 The expression language is `expr-lang`, evaluated against each requirement's attributes plus the built-ins `id`, `title`, `status`, `disposition`, `trace`, and `version`:
@@ -88,11 +88,11 @@ Coverage is evaluated *within* the filtered subset, not across the whole tree. A
 
 ```sh
 # Base view: SYS-002 (Base) is covered by SW-002 (Base) — passes
-reqmd check 07-variant-management/ --filter '"Base" in variant'
+reqmd check 14-variant-management/ --filter '"Base" in variant'
 
 # Premium view: SYS-003 is covered by SW-003 — passes, without the Base
 # requirements dragging in their own coverage expectations
-reqmd check 07-variant-management/ --filter '"Premium" in variant'
+reqmd check 14-variant-management/ --filter '"Premium" in variant'
 ```
 
 ## Catch cross-configuration trace mistakes
@@ -100,7 +100,7 @@ reqmd check 07-variant-management/ --filter '"Premium" in variant'
 A trace link between two requirements that share no common configuration is a modeling error — no real configuration contains both. reqmd can check this for any array attribute:
 
 ```sh
-reqmd check 07-variant-management/ --disjoint-check variant
+reqmd check 14-variant-management/ --disjoint-check variant
 ```
 
 Or declare it once in the schema so every `check` enforces it:
@@ -139,8 +139,8 @@ jobs:
       - uses: actions/setup-go@v5
         with: { go-version: '1.25' }
       - run: go build -o reqmd ./cmd/reqmd
-      - run: ./reqmd check 07-variant-management/ --filter "${{ matrix.filter }}" --json > report-${{ matrix.name }}.json
-      - run: ./reqmd check 07-variant-management/ --disjoint-check variant
+      - run: ./reqmd check 14-variant-management/ --filter "${{ matrix.filter }}" --json > report-${{ matrix.name }}.json
+      - run: ./reqmd check 14-variant-management/ --disjoint-check variant
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -172,11 +172,16 @@ The output is a real diff report (added / removed / modified with attribute-leve
 ## Preview a configuration while editing
 
 ```sh
-reqmd serve 07-variant-management/ --filter '"Sport" in variant or variant == nil'
+reqmd serve 14-variant-management/ --filter '"Sport" in variant or variant == nil'
 ```
 
 Reviewers preview exactly the Sport configuration locally — trace links, status, and verdicts all scoped to that view — before approving.
 
+## Where to look things up
+
+- The filter expression language and built-ins: [Filter expressions in the cheat sheet](/cheat-sheet/#filter-expressions)
+- `--filter` on every command: [`reqmd check`](/cheat-sheet/#reqmd-check--validate-requirements-and-trace-links), [`reqmd ls`](/cheat-sheet/#reqmd-ls--list-all-requirements), [`reqmd stats`](/cheat-sheet/#reqmd-stats--attribute-value-breakdown-per-document), [`reqmd export html`](/cheat-sheet/#reqmd-export-html--export-to-html)
+
 ## What's next
 
-You've seen the generic filtering primitive that makes variant management work. It's the same flag used for any attribute slice — owner, priority, platform. For verification per configuration, combine `--filter` with `--results` (see [Step 5](/quickstart/05-verification-results-ctrf/)); for the full command surface, see the [Cheat sheet](/cheat-sheet/).
+You've seen the generic filtering primitive that makes variant management work. It's the same flag used for any attribute slice — owner, priority, platform. For verification per configuration, combine `--filter` with `--results` (see [Step 11](/quickstart/11-verification-results-ctrf/)); for the full command surface, see the [Cheat sheet](/cheat-sheet/).

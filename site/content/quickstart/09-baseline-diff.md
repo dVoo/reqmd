@@ -1,5 +1,5 @@
 ---
-title: "Step 3b — Baseline diff"
+title: "Step 9 — Baseline diff"
 description: "Compare requirement baselines between two git tags — no checkout needed."
 weight: 9
 ---
@@ -18,7 +18,7 @@ The command always exits `0` — the diff is informational, not validation.
 
 ## Try it
 
-For a Git-backed spec repo:
+For a Git-backed spec repo (like the one holding your traced tree):
 
 ```sh
 # Compare two release tags
@@ -63,6 +63,10 @@ When the repo has git submodules, the diff also reports submodule pin changes:
 
 This section is hidden when no submodules exist.
 
+## Where to look things up
+
+- All `baseline diff` flags and output shapes: [`reqmd baseline diff` in the cheat sheet](/cheat-sheet/#reqmd-baseline-diff--compare-two-git-tags)
+
 ## What's next
 
-Now define your own schema — go to [Step 4](/quickstart/04-custom-templates/).
+Now close the right side of the V-model — load verification results for the boot tests. Go to [Step 11](/quickstart/11-verification-results-ctrf/).

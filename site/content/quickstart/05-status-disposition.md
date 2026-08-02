@@ -1,7 +1,7 @@
 ---
-title: "Step 2a — Status & disposition"
+title: "Step 5 — Status & disposition"
 description: "The status lifecycle and the disposition workflow for deferred and rejected requirements."
-weight: 4
+weight: 5
 ---
 
 Two built-in attributes control how requirements behave in trace coverage and how deferred work is tracked.
@@ -26,7 +26,7 @@ Try it: in [Step 2](/quickstart/02-trace-your-spec/), the `SYS-001` requirement 
 ⚠  SYS-001  no upstream trace: no approved requirement from "software" traces to this item (1 draft downstreams ignored)
 ```
 
-The `(1 draft downstreams ignored)` message means `SW-001` traces to `SYS-001` but `SW-001` is still `draft` — so the coverage chain is incomplete.
+The `(1 draft downstreams ignored)` message means `SW-001` traces to `SYS-001` but `SW-001` is still `draft` — so the coverage chain is incomplete. Setting `SW-001` to `status: approved` clears it.
 
 ## Disposition workflow
 
@@ -70,6 +70,10 @@ x-reqmd:
 
 All requirements count as coverage providers; the status filter is hidden in HTML export.
 
+## Where to look things up
+
+- Built-in status semantics and `x-reqmd` status options: [x-reqmd options in the cheat sheet](/cheat-sheet/#x-reqmd-options)
+
 ## What's next
 
-Now export your spec tree — go to [Step 3](/quickstart/03-export/).
+Now gate this spec in CI — go to [Step 6](/quickstart/06-ci-integration/).
