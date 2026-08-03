@@ -15,11 +15,17 @@ import (
 	_ "reqmd-import/internal/lang/python"
 )
 
+// version is overridden at release time via:
+//   go build -ldflags "-X main.version=v0.1.0"
+// When empty (dev builds), `reqmd-import --version` reports "(devel)".
+var version string
+
 func main() {
 	rootCmd := &cobra.Command{
 		Use:   "reqmd-import",
 		Short: "Extract source code into reqmd requirement files",
 		Long:  "reqmd-import scans source files (Go, Python) and generates ephemeral .md requirement files for downstream reqmd validation.",
+		Version: version,
 		// When invoked with no subcommand, print usage to stderr and exit non-zero.
 		// Without this, cobra would print nothing and exit 0, which is misleading:
 		// a user running `reqmd-import` with no args sees a silent success and may

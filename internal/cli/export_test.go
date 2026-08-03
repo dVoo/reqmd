@@ -11,7 +11,7 @@ func TestExportCSV_Filter(t *testing.T) {
 	root := writeVariantSpec(t)
 	outDir := t.TempDir()
 
-	if _, err := runCmd(t, NewRootCmd(), "export", "csv", root, "-o", outDir, "--filter", `"Base" in variant`); err != nil {
+	if _, err := runCmd(t, NewRootCmd(""), "export", "csv", root, "-o", outDir, "--filter", `"Base" in variant`); err != nil {
 		t.Fatalf("export csv --filter failed: %v", err)
 	}
 
@@ -32,7 +32,7 @@ func TestExportHTML_Filter(t *testing.T) {
 	root := writeVariantSpec(t)
 	outDir := t.TempDir()
 
-	if _, err := runCmd(t, NewRootCmd(), "export", "html", root, "-o", outDir, "--filter", `"Premium" in variant`); err != nil {
+	if _, err := runCmd(t, NewRootCmd(""), "export", "html", root, "-o", outDir, "--filter", `"Premium" in variant`); err != nil {
 		t.Fatalf("export html --filter failed: %v", err)
 	}
 

@@ -11,6 +11,11 @@ import (
 	"reqmd/internal/reporter"
 )
 
+// version is overridden at release time via:
+//   go build -ldflags "-X main.version=v0.1.0"
+// When empty (dev builds), `reqmd --version` reports "(devel)".
+var version string
+
 func main() {
 	// GOGC tuning: allow users to set a higher GC percent via the
 	// REQMD_GOGC env var. Default is Go's 100. Higher values (e.g. 200)
@@ -21,7 +26,7 @@ func main() {
 		}
 	}
 
-	root := cli.NewRootCmd()
+	root := cli.NewRootCmd(version)
 	err := root.Execute()
 	if err == nil {
 		return

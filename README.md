@@ -48,6 +48,28 @@ independently with `go install ./cmd/reqmd` or
 Requires Go 1.25+. The graph export subcommand requires Cgo support;
 build with `go build -tags ladybug -o reqmd ./cmd/reqmd` to include it.
 
+### Pre-built binaries
+
+Each tagged release publishes pre-built `reqmd` and `reqmd-import` binaries
+for Linux (amd64), Windows (amd64), and macOS (arm64) plus a `SHA256SUMS.txt`
+file. Download them from the [Releases page](../../releases) and verify with:
+
+```sh
+sha256sum -c SHA256SUMS.txt --ignore-missing
+```
+
+> Note: the released `reqmd` binaries are built with `-tags ladybug`, so
+> `reqmd export graph` is available. This links against the native `liblbug`
+> shared library; at runtime the library must be reachable via the system's
+> dynamic linker search path (e.g. `LD_LIBRARY_PATH` on Linux,
+> `DYLD_LIBRARY_PATH` on macOS, or `PATH` on Windows). Download the matching
+> `liblbug-*` archive from [LadybugDB/ladybug releases](https://github.com/LadybugDB/ladybug/releases)
+> and place the shared library on the appropriate path. On Linux, OpenSSL 3
+> (`libssl`/`libcrypto`) must also be installed system-wide.
+>
+> If you do not need `export graph`, build from source without the `ladybug`
+> tag for a pure-Go, dependency-free binary (see Installation above).
+
 ---
 
 ## Quick Start

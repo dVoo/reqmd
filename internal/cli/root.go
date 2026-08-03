@@ -6,9 +6,12 @@ import (
 	"reqmd/internal/cli/export"
 )
 
-func NewRootCmd() *cobra.Command {
+// NewRootCmd builds the root cobra command. version is injected at build time
+// via -ldflags "-X main.version=..."; when empty, --version is omitted.
+func NewRootCmd(version string) *cobra.Command {
 	cmd := &cobra.Command{
-		Short: "Requirement specification tool — check, ls, stats, export, serve, baseline, repin, init",
+		Use:           "reqmd",
+		Short:         "Requirement specification tool — check, ls, stats, export, serve, baseline, repin, init",
 		Long: `reqmd — requirement specification tool
 
 reqmd is a CLI tool for authoring, validating, and exporting
@@ -17,6 +20,7 @@ attr blocks validated against JSON Schema (YAML-serialized).`,
 		Example: `  reqmd check example/
   reqmd ls example/
   reqmd export csv example/`,
+		Version:       version,
 		SilenceErrors: true,
 		SilenceUsage:  true,
 	}

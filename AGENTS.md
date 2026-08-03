@@ -21,7 +21,9 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 ## Key facts
 
 - **Binary name is `reqmd`**, not `mdreq` (the repo name).
-- **No `opencode.json`, no Makefile, no CI** yet. Adding any is greenfield.
+- **No `opencode.json`, no Makefile** yet. CI lives in `.github/workflows/`:
+  `hugo.yml` (site deploy) and `release.yml` (tag-triggered cross-platform
+  binary build + GitHub Release). Adding a Makefile is greenfield.
 - The Python `validate.py` in `spec/example/` is a **legacy prototype** — the Go CLI replaces it. Now removed.
 
 ## Build and run
