@@ -208,46 +208,18 @@ requires-trace-from: [software]</code></pre>
 
 <div class="faq">
 <details>
-<summary>What does a schema.yaml file look like?</summary>
+<summary>What is the schema.yaml for?</summary>
 <div class="faq-body">
-<p>Each document directory has a <code>schema.yaml</code> that defines the required attributes, their types, and reqmd-specific options. A minimal example:</p>
-<pre><code class="language-yaml">$schema: "https://json-schema.org/draft/2020-12/schema"
-$id: "my-requirements"
-title: "My Requirements"
-type: object
-required:
-  - priority
-properties:
-  priority:
-    type: string
-    enum: [Critical, High, Medium, Low]
-additionalProperties: false
-
-x-reqmd:
-  level: system-requirements
-  document-id: system
-  id-prefix: SYS-
-  upstream:
-    level: stakeholder-needs
-    sources:
-      - ../01-stakeholder/</code></pre>
-<p>See the <a href="/cheat-sheet/">cheat sheet</a> for the full list of <code>x-reqmd</code> options and all commands.</p>
+<p>Each document directory has a <code>schema.yaml</code> that declares the attributes a requirement in that directory carries &mdash; their names, types, and which are required. It's a standard <a href="https://json-schema.org/draft/2020-12/schema">JSON Schema 2020-12</a> document written in YAML, so you get validation, enums, and type checking for free. The <code>x-reqmd</code> extension block adds reqmd-specific options: the document's <code>level</code> in the V-model, its <code>id-prefix</code>, the <code>upstream</code> level it traces from, and check toggles like <code>disjoint-check</code>.</p>
+<p>One schema per directory means each team or V-model layer can define its own attributes independently. See the <a href="/cheat-sheet/">cheat sheet</a> for the full <code>x-reqmd</code> reference and a complete example.</p>
 </div>
 </details>
 
 <details>
-<summary>Can I use JSON instead of YAML for the schema?</summary>
+<summary>Can reqmd import or export Excel, Word, or ReqIF?</summary>
 <div class="faq-body">
-<p>No, the format is fixed to YAML. The <code>schema.yaml</code> filename and the YAML dialect are hard-coded. You can hand-author the file in JSON-compatible YAML and it will round-trip fine; extensions like <code>x-reqmd</code> work the same.</p>
-<p>Why YAML? The data is small (a few hundred lines per directory at most), human-authored, and benefits from comments.</p>
-</div>
-</details>
-
-<details>
-<summary>What about Excel or Word import?</summary>
-<div class="faq-body">
-<p>Not built in. The recommended path is <code>reqmd init</code> with a custom preset and a one-time script that produces the Markdown files. For ongoing imports, write a small script that walks the Excel/Word file and emits one Markdown file per requirement.</p>
-<p>The <code>reqmd-import</code> source-code extraction tool is the closest existing project — it extracts requirement IDs from Go and Python source via tree-sitter.</p>
+<p>Not built in (yet). The data model &mdash; plain Markdown with a YAML <code>attr</code> block per requirement &mdash; is simple enough that a one-time script can convert from or to any of these formats. For imports, write a script that walks the source file and emits one <code>.md</code> per requirement; for exports, <code>reqmd ls --json</code> gives you a flat JSON list you can reshape into a spreadsheet or document.</p>
+<p>The companion <a href="/import/"><code>reqmd-import</code></a> tool is the closest existing roundtrip &mdash; it extracts requirement IDs from Go and Python source via tree-sitter. A future <code>reqmd-import reqif</code> subcommand is the most likely path for native ReqIF support.</p>
 </div>
 </details>
 
@@ -255,20 +227,6 @@ x-reqmd:
 <summary>Does reqmd work with my issue tracker (Jira, GitHub Issues, Linear)?</summary>
 <div class="faq-body">
 <p>No native integration. The common pattern is to put the issue-tracker key in a custom attribute (e.g. <code>jira: PROJ-123</code>) and search via <code>reqmd ls --json</code> or <code>reqmd stats --json</code>. The issue tracker is a downstream consumer of the spec, not a source.</p>
-</div>
-</details>
-
-<details>
-<summary>How does the trace check handle cycles?</summary>
-<div class="faq-body">
-<p><code>reqmd check</code> reports a cycle as an error (with the cycle path) and exits non-zero. There is no auto-resolution; cycles are a modeling problem to fix in the source.</p>
-</div>
-</details>
-
-<details>
-<summary>What about ReqIF?</summary>
-<div class="faq-body">
-<p>Not supported yet. The data model is compatible; the importer is what's missing. A future <code>reqmd-import reqif</code> subcommand is the most likely path.</p>
 </div>
 </details>
 </div>
@@ -430,7 +388,8 @@ x-reqmd:
 <details>
 <summary>What's the deal with the ladybug build tag?</summary>
 <div class="faq-body">
-<p><code>reqmd export graph</code> writes a LadybugDB database for Cypher queries. It pulls in a Cgo dependency, so it's gated behind a build tag:</p>
+<p><code>reqmd export graph</code> writes a <a href="https://ladybugdb.com/">LadybugDB</a> database from your spec tree &mdash; requirements, traces, and verification results become a graph you can query with Cypher. Load the database in the <a href="https://docs.ladybugdb.com/visualization/lbug-explorer/">Ladybug explorer</a> to run sophisticated trace checks that go beyond reqmd's built-in pass: multi-hop coverage paths, cross-V-model impact analysis, "which tests cover this stakeholder need through any chain of traces," and custom queries over the full traceability graph.</p>
+<p>The LadybugDB driver pulls in a Cgo dependency, so <code>export graph</code> is gated behind a build tag:</p>
 
 ```sh
 go build -tags ladybug -o reqmd ./cmd/reqmd
