@@ -126,9 +126,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: binaries-${{ matrix.goos }}-${{ matrix.goarch }}
+          # Pin the path to the exact built binary names (with -<os>-<arch>
+          # suffix) so the upload does NOT pick up the reqmd-import/ source
+          # directory in the workspace root, which would otherwise be
+          # uploaded as an artifact and break the sha256sum step.
           path: |
-            reqmd-*
-            reqmd-import-*
+            reqmd-${{ matrix.goos }}-${{ matrix.goarch }}*
+            reqmd-import-${{ matrix.goos }}-${{ matrix.goarch }}*
           retention-days: 7
 
   release:
@@ -147,7 +151,10 @@ jobs:
         working-directory: dist
         run: |
           set -euo pipefail
-          sha256sum reqmd-* reqmd-import-* | tee SHA256SUMS.txt
+          # Checksum only regular files (skip any stray directories) matching
+          # the reqmd-* / reqmd-import-* binary naming convention.
+          find . -maxdepth 1 -type f \( -name 'reqmd-*' -o -name 'reqmd-import-*' \) \
+            -exec sha256sum {} + | sed 's|  \./|  |' | tee SHA256SUMS.txt
           echo "--- checksums ---"
           cat SHA256SUMS.txt
 
