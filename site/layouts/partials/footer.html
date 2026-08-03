@@ -15,7 +15,7 @@
     <div class="footer-col">
       <h4>Product</h4>
       <ul class="footer-list">
-        {{- range slice "Use cases" "Quickstart" "Cheat sheet" "Compare" "Benchmarks" "FAQ" "AI" "About" -}}
+        {{- range slice "Use cases" "Quickstart" "Cheat sheet" "Compare" "Structure" "Benchmarks" "FAQ" "AI" "About" -}}
         <li><a href="/{{ . | urlize }}/">{{ . }}</a></li>
         {{- end -}}
       </ul>

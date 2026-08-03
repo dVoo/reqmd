@@ -99,8 +99,8 @@ menu:
     - name: "Compare"
       pageRef: "/compare"
       weight: 40
-    - name: "Benchmarks"
-      pageRef: "/benchmarks"
+    - name: "Structure"
+      pageRef: "/structure"
       weight: 50
     - name: "FAQ"
       pageRef: "/faq"
@@ -108,9 +108,6 @@ menu:
     - name: "AI"
       pageRef: "/ai"
       weight: 70
-    - name: "About"
-      pageRef: "/about"
-      weight: 80
   footer:
     - name: "Source"
       url: "https://github.com/dVoo/reqmd"

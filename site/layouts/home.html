@@ -189,6 +189,44 @@ sudden thermal events is a safety concern.</code></pre>
     </div>
   </section>
 
+  <!-- How to structure your spec: the axes of divergence -->
+  <section class="structure-section">
+    <div class="container">
+      <div class="section-head">
+        <div class="intro-eyebrow" style="margin-bottom: var(--s-3);">Structure</div>
+        <h2>Branches, variants, forks, submodules.</h2>
+        <p>Four mechanisms for structuring a spec that grows — when to use which.</p>
+      </div>
+      <div class="structure-cards">
+        <div class="structure-card">
+          <span class="scenario-tag">Temporal</span>
+          <h3>Branches</h3>
+          <p>Change-in-progress that reconciles — merges back or dies. <code>baseline diff</code> compares two points in time of one tree.</p>
+          <a href="/structure/#branches">Branches →</a>
+        </div>
+        <div class="structure-card">
+          <span class="scenario-tag">Coexistence</span>
+          <h3>Variant attributes</h3>
+          <p>Coexisting configurations in one tree, validated together with <code>--filter</code> and <code>--disjoint-check</code>. One shared review.</p>
+          <a href="/structure/#variant-attributes">Variant attributes →</a>
+        </div>
+        <div class="structure-card">
+          <span class="scenario-tag">Independence</span>
+          <h3>Forks</h3>
+          <p>Permanently independent repos, each with its own release and review. Track upstream, or consume at a pinned version.</p>
+          <a href="/structure/#forks">Forks →</a>
+        </div>
+        <div class="structure-card">
+          <span class="scenario-tag">Assembly</span>
+          <h3>Submodules</h3>
+          <p>Orthogonal ownership layer — team-owned spec repos assembled at a top level. Composes with all three axes.</p>
+          <a href="/structure/#submodules">Submodules →</a>
+        </div>
+      </div>
+      <p class="structure-cta">See the full decision guide and a life-like topology on the <a href="/structure/">Structure page →</a></p>
+    </div>
+  </section>
+
   <!-- Big stat: one number, editorial treatment -->
   <section class="bigstat-section">
     <div class="container">

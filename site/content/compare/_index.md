@@ -19,6 +19,10 @@ This page compares reqmd against the other tools teams reach for. Three groups: 
 | DOORS-class requirement management with deep links to engineering artifacts | **IBM DOORS Next** |
 | Issue-tracker-shaped requirements with ALM features built in | **codeBeamer, Azure DevOps** |
 
+### Choosing your structure
+
+Once you've picked reqmd, a second choice is how to structure your spec across axes of divergence: **branches** (change-in-progress that reconciles), **variant attributes** (coexisting configurations in one tree, validated together), and **forks** (permanently independent repos). **Submodules** are an orthogonal ownership/assembly mechanism that composes with all three. See the [Structure page](/structure/) for the full decision guide and a life-like topology.
+
 ## reqmd vs sphinx-needs
 
 Both are git-native, text-first, no-database tools for spec authoring with trace checks. The right pick depends on whether your spec lives inside a Sphinx docs site or a standalone repo.
@@ -160,6 +164,7 @@ Two things reqmd is intentionally not, and a few that it could become:
 
 ## See also
 
+- [Structure](/structure/) — how to use branches, variant attributes, forks, and submodules together.
 - [FAQ](/faq/) — has the older "vs OpenFastTrace" entry with more detail.
 - [Use cases](/use-cases/) — what reqmd is designed for, in detail.
 - [Benchmarks](/benchmarks/) — the performance numbers behind the claims in this page.

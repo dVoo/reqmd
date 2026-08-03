@@ -1005,6 +1005,11 @@ h1:hover .heading-anchor, h2:hover .heading-anchor, h3:hover .heading-anchor, h4
   overflow-x: auto;
 }
 .mermaid svg { max-width: 100%; height: auto; }
+.structure-diagram {
+  margin-inline: calc(50% - min(50vw, var(--max-w-wide)));
+  max-width: var(--max-w-wide);
+}
+.structure-diagram .mermaid { margin: 0; }
 
 /* ---------- editorial components (home page) ---------- */
 .intro-section { padding: var(--s-9) 0; border-bottom: 1px solid var(--border); }
@@ -1060,6 +1065,27 @@ h1:hover .heading-anchor, h2:hover .heading-anchor, h3:hover .heading-anchor, h4
 .scenario h3 { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 600; margin: 0; }
 .scenario p { color: var(--fg-muted); font-size: 1rem; line-height: 1.65; max-width: 64ch; margin: 0 0 var(--s-3); }
 .scenario a { font-size: 0.88rem; }
+
+/* ---------- structure section (home page) ---------- */
+.structure-section { padding: var(--s-9) 0; border-bottom: 1px solid var(--border); }
+.structure-cards {
+  display: grid; grid-template-columns: 1fr; gap: var(--s-5);
+  margin-top: var(--s-6);
+}
+@media (min-width: 720px) {
+  .structure-cards { grid-template-columns: 1fr 1fr; gap: var(--s-6); }
+}
+.structure-card {
+  padding: var(--s-6);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--bg);
+}
+.structure-card .scenario-tag { margin-bottom: var(--s-3); display: inline-block; }
+.structure-card h3 { font-family: var(--font-serif); font-size: 1.25rem; font-weight: 600; margin: 0 0 var(--s-3); }
+.structure-card p { color: var(--fg-muted); font-size: 0.98rem; line-height: 1.6; margin: 0 0 var(--s-4); }
+.structure-card a { font-size: 0.88rem; }
+.structure-cta { margin-top: var(--s-7); color: var(--fg-muted); font-size: 1rem; }
 
 .bigstat-section { padding: var(--s-10) 0; background: var(--bg-sunken); }
 .bigstat {

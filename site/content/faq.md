@@ -348,6 +348,45 @@ x-reqmd:
 <p>No — that's the point. Variant differences live in the <code>variant</code> attribute of individual requirements, not in forked spec trees. The filter creates the views; <code>baseline diff --filter-a/--filter-b</code> creates the "variant A vs variant B" evidence; the CI matrix validates each view. One shared tree, one review process, no divergent branches to reconcile.</p>
 </div>
 </details>
+
+<details>
+<summary>How do I choose between variant attributes, branches, submodules, and forks?</summary>
+<div class="faq-body">
+<p>Three axes of divergence, one decision flow:</p>
+<pre><code>Will the two things reconcile (merge or die)?
+  yes → branch
+  no → Do they release and review independently
+       (separate cadence, no shared check)?
+    yes → fork (separate repo)
+    no  → variant attribute (one tree, one check, one review)</code></pre>
+<p>The primary discriminator is the <strong>independence test</strong>: if the two things release and review independently (separate cadence, no shared <code>check</code>), they're a fork; if they must ship together from one commit and share one review, they're variants. The reqmd-native corollary is the <strong>validation test</strong>: if they must pass <code>check</code> against each other in one tree, they're variants. <strong>Submodules</strong> are orthogonal — an ownership/assembly mechanism that composes with all three, not a fourth axis.</p>
+<p>For the full decision guide, a life-like topology showing all four mechanisms at once, and the fork-vs-submodule comparison, see the <a href="/structure/">Structure page</a>.</p>
+</div>
+</details>
+
+<details>
+<summary>When should I use a branch, and when is it the wrong tool?</summary>
+<div class="faq-body">
+<p>A branch is for change-in-progress that reconciles — it merges back or is discarded. It's the wrong tool when the difference is permanent: long-lived branches for variants lose single-tree validation and review (see <a href="/faq/#do-i-need-separate-branches-for-each-variant">Do I need separate branches for each variant?</a>), and long-lived branches that are really a separate product bit-rot and can't release independently (that's a fork). The one-line rule: <strong>if your branch will never merge and never die, it isn't a branch.</strong></p>
+<p>See <a href="/structure/#branches">Branches</a> on the Structure page.</p>
+</div>
+</details>
+
+<details>
+<summary>When should I fork vs depend on a library at a pinned version?</summary>
+<div class="faq-body">
+<p>Discriminate by whether you intend to <em>modify</em> the library's requirements or <em>depend on</em> them at a version. <strong>Fork</strong> if you own and evolve a copy — you take the library's requirements as your starting point and change them, can track upstream (host fork or raw), and pay merge-conflict tax on local edits. <strong>Submodule</strong> if you consume the library at a pinned commit and don't modify its requirements — your system requirements <code>trace:</code> up with version pins (<code>LIB-001~2</code>), and <code>reqmd repin</code> updates the pins when you bump. No conflicts, because you never edited upstream.</p>
+<p>For the full comparison table and the fork-vs-submodule decision, see <a href="/structure/#forks">Forks</a> on the Structure page.</p>
+</div>
+</details>
+
+<details>
+<summary>What's the difference between a raw-git fork and a GitHub/GitLab fork?</summary>
+<div class="faq-body">
+<p>Same axis — a separate repo that releases and reviews independently. A host fork (GitHub/GitLab "Fork" button) records the parent-link metadata and gives a sync UI ("Sync fork" / "Update now") plus the contribute-back-via-PR flow. A raw <code>git clone</code> + upstream remote gives the same git capabilities without the host record. Under the hood both are <code>git fetch upstream &amp;&amp; git merge</code>; reqmd sees both as a repo to validate independently.</p>
+<p>See <a href="/structure/#forks">Forks</a> on the Structure page.</p>
+</div>
+</details>
 </div>
 
 ## CI & performance
