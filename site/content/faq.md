@@ -83,6 +83,7 @@ Questions about reqmd, grouped by topic: what it is, how to use it, and how it f
 </ul>
 <p><strong>Pick reqmd</strong> when you want the spec to live where the developers work — in Git, next to the code, with branching, submodules, CI, and pull-request review as the natural workflow. <strong>Pick an RM suite</strong> when you specifically need named approvers with electronic signatures and a regulated audit trail that an auditor reads from the tool. Some teams use both: reqmd for the engineering spec, the RM suite as the system of record. See the <a href="/compare/">compare page</a> for the full side-by-side.</p>
 </div>
+</details>
 
 ## How it works
 
