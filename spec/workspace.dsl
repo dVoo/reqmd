@@ -16,7 +16,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
                 schemaFile = component "schema.yaml"   "JSON Schema 2020-12 in YAML + x-reqmd upstream" "YAML"
             }
 
-            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json output" "Go 1.25" "CLI" {
+            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json output" "Go 1.26" "CLI" {
                 parser       = component "Markdown Parser"  "Discovers schema.yaml per dir and parses .md via goldmark AST with GFM and parallel worker pool" "Go / goldmark"
                 validator    = component "Schema Validator" "Injects built-in attrs and validates attr maps against JSON Schema 2020-12" "Go / google/jsonschema-go"
                 graphBuilder = component "Graph Builder"    "Builds in-memory adjacency from parsed requirements, resolves doc-id-qualified traces" "Go"

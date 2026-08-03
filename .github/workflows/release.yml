@@ -5,16 +5,22 @@
 #   - windows/amd64
 #   - darwin/arm64    (macOS Apple Silicon)
 #
-# reqmd is built with the `ladybug` build tag (enables `reqmd export graph`),
-# which pulls in github.com/LadybugDB/go-ladybug. That binding uses cgo and
-# links against a native liblbug shared library shipped per OS/arch by the
-# LadybugDB/ladybug GitHub releases. Each matrix job therefore runs on a
-# native runner for its target OS and downloads the matching lbug library
-# before building. reqmd-import uses cgo via github.com/smacker/go-tree-sitter
-# but does NOT need the lbug library, so it builds on the same runner with
-# just the host C toolchain.
+# reqmd is built as a pure-Go binary (CGO_ENABLED=0) WITHOUT the `ladybug`
+# build tag. This keeps the release binaries self-contained: no native
+# liblbug shared library to ship, no OpenSSL runtime dep, no rpath fixups.
+# The cost is that `reqmd export graph` is a stub in release builds — it
+# prints an error pointing users to rebuild from source with
+# `-tags ladybug` (which requires liblbug; see go-ladybug's docs). The
+# ladybug-enabled code path (internal/exporter/graph.go) is still compiled
+# and tested via `go vet -tags ladybug`/source builds; it is just not
+# included in the pre-built release artifacts.
 #
-# Artifacts (8 raw binaries + one SHA256SUMS.txt) are attached to a GitHub
+# reqmd-import uses cgo (github.com/smacker/go-tree-sitter) and therefore
+# builds natively on each runner with the host C toolchain. No native
+# runtime libraries are needed — tree-sitter's C parsers are statically
+# linked into the binary.
+#
+# Artifacts (6 raw binaries + one SHA256SUMS.txt) are attached to a GitHub
 # Release tied to the pushed tag via softprops/action-gh-release.
 #
 # Trigger: any tag matching v* (e.g. v0.1.0). Also runnable manually via
@@ -34,14 +40,6 @@ on:
 permissions:
   contents: write
 
-# Native liblbug version to link against. Bump explicitly when upgrading
-# go-ladybug in go.mod or when LadybugDB/ladybug ships a new ABI. The Go
-# binding (go-ladybug) and the native library (liblbug) have independent
-# release streams; this pin keeps the native lib version reproducible
-# across tag builds instead of floating with /releases/latest.
-env:
-  LADYBUG_VERSION: v0.19.0
-
 defaults:
   run:
     shell: bash
@@ -56,22 +54,12 @@ jobs:
           - goos: linux
             goarch: amd64
             runner: ubuntu-latest
-            asset: liblbug-linux-x86_64.tar.gz
-            asset_ext: tar.gz
-            lib_dir: lib/dynamic/linux-amd64
-            apt_deps: libssl-dev
           - goos: windows
             goarch: amd64
             runner: windows-latest
-            asset: liblbug-windows-x86_64.zip
-            asset_ext: zip
-            lib_dir: lib/dynamic/windows
           - goos: darwin
             goarch: arm64
             runner: macos-14
-            asset: liblbug-osx-universal.tar.gz
-            asset_ext: tar.gz
-            lib_dir: lib/dynamic/darwin
     runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout
@@ -80,76 +68,11 @@ jobs:
           # For workflow_dispatch, check out the requested tag explicitly.
           ref: ${{ github.event.inputs.tag || github.ref }}
 
-      - name: Install native build deps
-        if: matrix.apt_deps != ''
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends ${{ matrix.apt_deps }}
-
       - name: Setup Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.25.x'
+          go-version: '1.26.x'
           cache: true
-
-      - name: Restore lbug library cache
-        id: lbug-cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ github.workspace }}/${{ matrix.lib_dir }}
-          key: lbug-${{ matrix.goos }}-${{ matrix.goarch }}-${{ env.LADYBUG_VERSION }}
-
-      - name: Download and extract lbug library
-        if: steps.lbug-cache.outputs.cache-hit != 'true'
-        run: |
-          set -euo pipefail
-          url="https://github.com/LadybugDB/ladybug/releases/download/${LADYBUG_VERSION}/${{ matrix.asset }}"
-          echo "Downloading $url"
-          if [ "${{ matrix.asset_ext }}" = "zip" ]; then
-            curl -L -o lbug.zip "$url"
-            mkdir -p ${{ matrix.lib_dir }}
-            unzip -o lbug.zip -d extracted
-            # Windows archive ships lbug_shared.dll and lbug_shared.lib.
-            find extracted -name 'lbug_shared.dll' -exec cp {} ${{ matrix.lib_dir }}/ \;
-            find extracted -name 'lbug_shared.lib' -exec cp {} ${{ matrix.lib_dir }}/ \;
-            find extracted -name 'lbug.h' -exec cp {} ${{ matrix.lib_dir }}/ \;
-            find extracted -name 'lbug.h' -exec cp {} . \;
-          else
-            curl -L -o lbug.tar.gz "$url"
-            mkdir -p ${{ matrix.lib_dir }}
-            tar -xzf lbug.tar.gz
-            # Linux/macOS archives ship a liblbug.so symlink + versioned
-            # libs (liblbug.so.0, liblbug.so.0.19.0) + lbug.h header.
-            # Copy the whole family preserving symlinks so rpath lookup works.
-            cp -P liblbug.so* ${{ matrix.lib_dir }}/ 2>/dev/null || true
-            find . -maxdepth 1 -name 'liblbug.dylib*' -exec cp -P {} ${{ matrix.lib_dir }}/ \; 2>/dev/null || true
-            cp lbug.h . 2>/dev/null || true
-            cp lbug.h ${{ matrix.lib_dir }}/ 2>/dev/null || true
-          fi
-          echo "Library directory contents:"
-          ls -la ${{ matrix.lib_dir }}
-
-      - name: Set library search paths (Unix)
-        if: matrix.goos != 'windows'
-        run: |
-          echo "LIBRARY_PATH=${{ github.workspace }}/${{ matrix.lib_dir }}:$LIBRARY_PATH" >> "$GITHUB_ENV"
-          if [ "${{ matrix.goos }}" = "linux" ]; then
-            echo "LD_LIBRARY_PATH=${{ github.workspace }}/${{ matrix.lib_dir }}:$LD_LIBRARY_PATH" >> "$GITHUB_ENV"
-          elif [ "${{ matrix.goos }}" = "darwin" ]; then
-            echo "DYLD_LIBRARY_PATH=${{ github.workspace }}/${{ matrix.lib_dir }}:$DYLD_LIBRARY_PATH" >> "$GITHUB_ENV"
-          fi
-
-      - name: Set library search paths (Windows)
-        if: matrix.goos == 'windows'
-        shell: pwsh
-        run: |
-          # go-ladybug cgo LDFLAGS point at ${SRCDIR}/lib/dynamic/windows via
-          # rpath-relative lookup; put the DLL directory on PATH so the
-          # linker finds lbug_shared.lib at build time and the binary finds
-          # lbug_shared.dll at runtime.
-          $libPath = "${{ github.workspace }}\${{ matrix.lib_dir }}"
-          echo "LIBRARY_PATH=$libPath;$env:LIBRARY_PATH" >> $env:GITHUB_ENV
-          echo "$libPath" >> $env:GITHUB_PATH
 
       - name: Determine version string
         id: ver
@@ -168,13 +91,16 @@ jobs:
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
-          CGO_ENABLED: '1'
+          # Pure Go: no cgo, no ladybug tag. The resulting binary has no
+          # native runtime dependencies (no liblbug, no libssl). The
+          # `export graph` subcommand is a stub in this build.
+          CGO_ENABLED: '0'
         run: |
           set -euo pipefail
           ext=""
           if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
           out="reqmd-${{ matrix.goos }}-${{ matrix.goarch }}${ext}"
-          go build -tags ladybug -trimpath \
+          go build -trimpath \
             -ldflags "-X main.version=${{ steps.ver.outputs.version }}" \
             -o "$out" ./cmd/reqmd
           echo "Built $(ls -la "$out")"
@@ -184,6 +110,7 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           # tree-sitter needs cgo; the host C toolchain on each runner is enough.
+          # The C parser sources are statically linked — no runtime libs needed.
           CGO_ENABLED: '1'
         run: |
           set -euo pipefail

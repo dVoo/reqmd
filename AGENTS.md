@@ -13,7 +13,7 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `quickstart/` — step-by-step tutorial (01-get-started, 02-trace-your-spec, 03-export, 04-live-preview, 05-status-disposition, 06-ci-integration, 07-version-pins, 08-repin, 09-baseline-diff, 10-submodule-configuration, 11-verification-results-ctrf, 12-review-documentation, 13-custom-templates, 14-variant-management)
 - `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli, filter)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
-- `go.mod` / `go.sum` — Go module `reqmd` (1.25)
+- `go.mod` / `go.sum` — Go module `reqmd` (1.26)
 - `go.work` / `go.work.sum` — Go workspace linking `reqmd` (root) and `reqmd-import` so `go build ./...` and `go test ./...` from the repo root cover both modules. Both keep independent `go.mod` files and dependency sets.
 - `reqmd-import/` — separate Go module (`reqmd-import`) for the extraction tool that imports source code as proxy requirements. Independent toolchain (tree-sitter); shares the spec *format* with reqmd but no Go code. Build with `go build ./reqmd-import/cmd/reqmd-import`. Modeled in `spec/workspace.dsl` as the "Extraction Tool" softwareSystem.
 - `.opencode/` — OpenCode tooling install (not part of the project)
