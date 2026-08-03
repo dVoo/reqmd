@@ -26,21 +26,11 @@
 ## Quickstart
 
 - [Quickstart]({{ "quickstart/" | absURL }}): A step-by-step tour from install to a fully traced, verified, and exported spec tree, built around one continuous boot-sequence example.
-- [Step 0 — Installation]({{ "quickstart/00-installation/" | absURL }})
-- [Step 1 — Get started]({{ "quickstart/01-get-started/" | absURL }})
-- [Step 2 — Trace your spec]({{ "quickstart/02-trace-your-spec/" | absURL }})
-- [Step 10 — Submodule-friendly configuration]({{ "quickstart/10-submodule-configuration/" | absURL }})
-- [Step 3 — Export]({{ "quickstart/03-export/" | absURL }})
-- [Step 4 — Live preview]({{ "quickstart/04-live-preview/" | absURL }})
-- [Step 5 — Status & disposition]({{ "quickstart/05-status-disposition/" | absURL }})
-- [Step 6 — CI integration]({{ "quickstart/06-ci-integration/" | absURL }})
-- [Step 7 — Version pins]({{ "quickstart/07-version-pins/" | absURL }})
-- [Step 8 — Repin]({{ "quickstart/08-repin/" | absURL }})
-- [Step 9 — Baseline diff]({{ "quickstart/09-baseline-diff/" | absURL }})
-- [Step 11 — Verification results (CTRF)]({{ "quickstart/11-verification-results-ctrf/" | absURL }})
-- [Step 12 — Review documentation]({{ "quickstart/12-review-documentation/" | absURL }})
-- [Step 13 — Custom templates]({{ "quickstart/13-custom-templates/" | absURL }})
-- [Step 14 — Variant management]({{ "quickstart/14-variant-management/" | absURL }})
+{{- range (where .Site.Pages "Section" "quickstart").ByWeight }}
+{{- if eq .Kind "page" }}
+- [{{ .Title }}]({{ .Permalink }})
+{{- end }}
+{{- end }}
 
 ## Reference
 

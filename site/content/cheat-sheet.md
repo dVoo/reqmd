@@ -29,9 +29,7 @@ reqmd check spec/ --disjoint-check variant # error on cross-configuration trace 
 
 **Filters:** `--filter "<expr>"` scopes the check to requirements matching an expr-lang expression (see [Filter expressions](#filter-expressions)). Coverage is computed within the filtered subset, so a filtered-out requirement can neither require nor provide coverage. `--disjoint-check <attr>` verifies that every trace link has at least one overlapping value for the named array attribute (zero intersection → ERROR). With `--json`, the summary gains a `"filter"` field recording the active expression.
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 ```text
 Schema : reqmd-system-requirements — reqmd System Requirements
 File   : spec/02-system  (11 requirements)
@@ -48,12 +46,9 @@ File   : spec/02-system  (11 requirements)
 
 Summary: 11 total, 11 valid, 0 invalid, 0 parse errors, 50 warnings
 ```
+{{< /details >}}
 
-</details>
-
-<details>
-<summary>Example JSON output (<code>--json</code>)</summary>
-
+{{< details summary="Example JSON output (`--json`)" >}}
 ```json
 {
   "version": 1,
@@ -87,8 +82,7 @@ Summary: 11 total, 11 valid, 0 invalid, 0 parse errors, 50 warnings
   ]
 }
 ```
-
-</details>
+{{< /details >}}
 
 ### `reqmd ls` — list all requirements
 
@@ -100,9 +94,7 @@ reqmd ls spec/ --json         # JSON output
 reqmd ls spec/ --filter '"Premium" in variant'   # only matching requirements
 ```
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 ```text
 === spec/02-system ===
 ID                       | priority     | trace                                    | status       |
@@ -113,8 +105,7 @@ SYS-FMT-003: Schema.yaml document config | Critical     | ["STK-GOAL-003","ASP-S
 SYS-CLI-001: CLI subcommands | Critical     | ["STK-GOAL-001","STK-GOAL-004"]          | approved     |
 SYS-VAL-001: Multi-pass validation | Critical | ["STK-GOAL-003","STK-GOAL-005"]      | approved     |
 ```
-
-</details>
+{{< /details >}}
 
 ### `reqmd stats` — attribute-value breakdown per document
 
@@ -126,9 +117,7 @@ reqmd stats spec/ --json      # JSON output
 reqmd stats spec/ --filter 'priority == "Critical"'   # scope to matching requirements
 ```
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 ```text
 Requirements: 11
 Documents:    1
@@ -140,8 +129,7 @@ Documents:    1
   status:
     approved             11
 ```
-
-</details>
+{{< /details >}}
 
 ### `reqmd init` — scaffold a new project
 
@@ -158,9 +146,7 @@ reqmd init my-project/ --force                      # overwrite existing
 
 **Built-in presets:** `generic` (default), `aspice` (ASPICE-oriented with safety attributes), `results` (manual verification results).
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 ```text
 Initialized generic requirements in /tmp/my-project/
   /tmp/my-project/schema.yaml
@@ -187,16 +173,17 @@ additionalProperties: false
 
 Generated `requirements.md` (excerpt):
 
-<pre><code>## REQ-001
-&#96;&#96;&#96;attr
+````text
+## REQ-001
+```attr
 status: draft
 owner: Team Alpha
-&#96;&#96;&#96;
+```
 The system shall provide a login mechanism.
 
-*Rationale: Authentication is required for secure access.*</code></pre>
-
-</details>
+*Rationale: Authentication is required for secure access.*
+````
+{{< /details >}}
 
 **Flags:**
 
@@ -222,9 +209,7 @@ reqmd serve spec/ --results tests/ --results reviews/
 reqmd serve spec/ --filter '"Sport" in variant'   # preview one configuration
 ```
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 ```text
 reqmd serve spec/
   serving http://localhost:8080
@@ -235,8 +220,7 @@ reqmd serve spec/
   file changed: spec/02-system/schema.yaml
   rebuilt: 249 reqs (52ms)
 ```
-
-</details>
+{{< /details >}}
 
 | Flag | Description |
 |------|-------------|
@@ -259,9 +243,7 @@ reqmd export csv spec/ -o csv-out/ --filter '"Premium" in variant'
 
 With `--results`, adds `Verdict` and `Verdict Source` columns.
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 ```text
 exporting spec/ → csv-out/
   spec/02-system  → csv-out/system-requirements.csv   (11 rows)
@@ -272,8 +254,7 @@ exporting spec/ → csv-out/
 ```
 
 Each CSV has columns: `ID, Title, <schema attributes>, Body, Rationale`.
-
-</details>
+{{< /details >}}
 
 ### `reqmd export html` — export to HTML
 
@@ -287,9 +268,7 @@ reqmd export html spec/ -o html-out/ --filter '"Sport" in variant'
 
 With `--results`, renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards.
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 ```text
 exporting spec/ → html-out/
   spec/02-system  → html-out/system-requirements.html
@@ -301,9 +280,8 @@ exporting spec/ → html-out/
 
 Each HTML file is standalone (no external JS), with card-based layout, trace links, document chain, search, and theme toggle.
 
-<a href="/export-sample/02-system-requirements.html" target="_blank" rel="noopener"><strong>See a live HTML export →</strong></a> (from the reqmd project's own spec)
-
-</details>
+[**See a live HTML export →**](/export-sample/02-system-requirements.html) (from the reqmd project's own spec)
+{{< /details >}}
 
 ### `reqmd export graph` — export to LadybugDB graph
 
@@ -314,9 +292,7 @@ go build -tags ladybug -o reqmd ./cmd/reqmd
 reqmd export graph spec/ -o graph-out/
 ```
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 ```text
 exporting spec/ → graph-out/reqmd-graph.lbug
   249 nodes, 1240 edges
@@ -324,8 +300,7 @@ exporting spec/ → graph-out/reqmd-graph.lbug
 ```
 
 Query with the `lbug` CLI: `lbug graph-out/reqmd-graph.lbug`
-
-</details>
+{{< /details >}}
 
 ### `reqmd baseline diff` — compare two git tags
 
@@ -344,9 +319,7 @@ With `--filter`, both snapshots are scoped to matching requirements before diffi
 
 Reports added, removed, and modified requirements (with attribute-level detail), schema changes, and submodule pin changes. Always exits 0.
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 ```text
 Requirements
   + IVI-FUN-004  added in v2.0
@@ -364,8 +337,7 @@ Schemas
 --- Submodule Changes ---
   vendor/spec-a: a1b2c3d -> e4f5g6h (updated)
 ```
-
-</details>
+{{< /details >}}
 
 ### `reqmd repin` — update version pins
 
@@ -380,9 +352,7 @@ reqmd repin spec/ --json                             # machine-readable output
 
 Rewrites only the `attr` blocks; surrounding Markdown is preserved. Idempotent — a second run after the first reports no changes. Predated pins (pin > upstream version) are surfaced but never auto-fixed.
 
-<details>
-<summary>Example output</summary>
-
+{{< details summary="Example output" >}}
 Dry-run (default):
 
 ```text
@@ -406,8 +376,7 @@ No changes needed:
 ```text
 no version-pin changes needed
 ```
-
-</details>
+{{< /details >}}
 
 | Flag | Description |
 |------|-------------|
@@ -566,22 +535,24 @@ reqmd recognizes these attribute names automatically (they don't need to be in y
 
 Each requirement is a level-2 heading, a YAML `attr` block in a fenced code block, and free-form prose:
 
-<pre><code>## SYS-001  Temperature warning
+````text
+## SYS-001  Temperature warning
 
-&#96;&#96;&#96;attr
+```attr
 priority: High
 status: approved
 trace:
   - STK-003~2
 verify: Test
 version: 1
-&#96;&#96;&#96;
+```
 
 The system shall display a warning when cabin temperature
 exceeds 80°C for more than 5 seconds of continuous operation.
 
 *Rationale:* Driver distraction from sudden thermal events
-is a safety concern.</code></pre>
+is a safety concern.
+````
 
 The heading text is the requirement ID plus a title. The `attr` block holds the structured attributes. The prose is the requirement body. The `Rationale:` paragraph is optional but shown in the HTML export.
 

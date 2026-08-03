@@ -3,12 +3,19 @@
   <nav class="sidebar-nav">
     {{- range $.Site.Menus.main -}}
       {{- $isActive := or ($current.IsMenuCurrent "main" .) ($current.HasMenuCurrent "main" .) -}}
+      {{- $children := "" -}}
+      {{- with .Page -}}
+        {{- $children = where .Pages "Kind" "page" -}}
+      {{- end -}}
       <div class="sidebar-group{{ if $isActive }} is-active{{ end }}">
         <a class="sidebar-link" href="{{ .URL }}">{{ .Name }}</a>
-        {{- if and $isActive (eq (lower .Name) "quickstart") -}}
+        {{- if and $isActive $children -}}
           <ul class="sidebar-subnav">
-            {{- range (where $.Site.RegularPages "Section" "quickstart").ByWeight -}}
-              <li><a href="{{ .RelPermalink }}">{{ .Title }}</a></li>
+            {{- range $children.ByWeight -}}
+              {{- $stepActive := eq .RelPermalink $current.RelPermalink -}}
+              <li{{ if $stepActive }} class="is-active"{{ end }}>
+                <a href="{{ .RelPermalink }}"{{ if $stepActive }} class="is-active" aria-current="page"{{ end }}>{{ .Title }}</a>
+              </li>
             {{- end -}}
           </ul>
         {{- end -}}

@@ -1,7 +1,12 @@
 {{- /*
   llms-full.txt — full plain-text dump of every page on the site.
-  Preserves code block content (command examples, schema YAML, etc.)
-  by stripping only the wrapper HTML, not the <pre> content.
+  Uses .RawContent (the original Markdown source) so structure, code
+  blocks, and tables are preserved verbatim. The pass order matters:
+  details shortcodes are rewritten to headings first, then remaining
+  shortcode markers are stripped, then raw HTML wrapper tags are
+  stripped (a targeted alternation of actual HTML tag names so
+  angle-bracketed text inside code spans like `<expr>` or
+  `<pinned-version>` is preserved). HTML comments are also stripped.
 */ -}}
 # {{ .Site.Title }} — full content
 
@@ -11,25 +16,27 @@
 
 ---
 
-{{- $codeblockHeader := `(?s)<div class="codeblock-header"[^>]*>.*?</div>` -}}
-{{- $btnRe := `(?s)<button[^>]*>.*?</button>` -}}
-{{- $codeblockOpen := `<div class="codeblock-wrapper"[^>]*>` -}}
-{{- $codeblockClose := `</pre>\s*</div>` -}}
-{{- $preIdRe := `(?s)<pre id="cb-\d+"><code class="language-[^"]*">` -}}
-{{- $headingAnchorRe := `<a class="heading-anchor"[^>]*>.*?</a>` -}}
-
-{{- $allPages := where .Site.Pages "Kind" "page" -}}
-{{- range $allPages.ByWeight }}
-{{- $html := .Content | safeHTML -}}
-{{- $cleaned := $html | replaceRE $codeblockHeader "" | replaceRE $btnRe "" | replaceRE $codeblockOpen "" | replaceRE $codeblockClose "</pre>" | replaceRE $preIdRe "<pre>" | replaceRE $headingAnchorRe "" -}}
+{{- $detailsOpenRe := `\{\{< details summary="([^"]*)"[^>]*>\}\}` -}}
+{{- $detailsCloseRe := `\{\{< /details >\}\}` -}}
+{{- $shortcodeRe := `\{\{[<][^>]*[>]\}\}|\{\{%[^%]*%\}\}` -}}
+{{- $commentRe := `<!--[\s\S]*?-->` -}}
+{{- $htmlTagRe := `</?(?:div|span|svg|path|circle|rect|line|polyline|article|h3|p|a|strong|em|code|br|table|thead|tbody|tr|td|th|details|summary|pre|blockquote)(?:\s[^>]*)?>` -}}
+{{- $pages := where .Site.Pages "Kind" "page" -}}
+{{- range $pages.ByWeight }}
 ## {{ .Title }}
 
 URL: {{ .Permalink }}
 {{- with .Description }}
-Description: {{ . | plainify | chomp }}
+Description: {{ . | chomp }}
 {{- end }}
 
-{{- $cleaned | htmlUnescape | plainify }}
+{{ $text := .RawContent }}
+{{ $text = $text | replaceRE $detailsOpenRe "\n### $1\n" }}
+{{ $text = $text | replaceRE $detailsCloseRe "" }}
+{{ $text = $text | replaceRE $shortcodeRe "" }}
+{{ $text = $text | replaceRE $commentRe "" }}
+{{ $text = $text | replaceRE $htmlTagRe "" }}
+{{ $text }}
 
 ---
 
@@ -37,16 +44,20 @@ Description: {{ . | plainify | chomp }}
 {{- /* Also include section landing pages */ -}}
 {{- $sections := where .Site.Pages "Kind" "section" -}}
 {{- range $sections.ByWeight }}
-{{- $html := .Content | safeHTML -}}
-{{- $cleaned := $html | replaceRE $codeblockHeader "" | replaceRE $btnRe "" | replaceRE $codeblockOpen "" | replaceRE $codeblockClose "</pre>" | replaceRE $preIdRe "<pre>" | replaceRE $headingAnchorRe "" -}}
 ## {{ .Title }}
 
 URL: {{ .Permalink }}
 {{- with .Description }}
-Description: {{ . | plainify | chomp }}
+Description: {{ . | chomp }}
 {{- end }}
 
-{{- $cleaned | htmlUnescape | plainify }}
+{{ $text := .RawContent }}
+{{ $text = $text | replaceRE $detailsOpenRe "\n### $1\n" }}
+{{ $text = $text | replaceRE $detailsCloseRe "" }}
+{{ $text = $text | replaceRE $shortcodeRe "" }}
+{{ $text = $text | replaceRE $commentRe "" }}
+{{ $text = $text | replaceRE $htmlTagRe "" }}
+{{ $text }}
 
 ---
 

@@ -5,18 +5,26 @@
       <h1 class="page-title">{{ .Title }}</h1>
       {{- with .Description -}}<p class="page-description">{{ . }}</p>{{- end -}}
     </header>
-    <div class="page-content">
-      {{ .Content }}
-      {{- $pages := where .Pages "Kind" "page" -}}
-      {{- if $pages -}}
-        <ul class="page-list-items">
-          {{- range $pages.ByWeight -}}
-            <li>
-              <a href="{{ .RelPermalink }}">{{ .Title }}</a>
-              {{- with .Description -}}<p>{{ . }}</p>{{- end -}}
-            </li>
-          {{- end -}}
-        </ul>
+    <div class="page-body">
+      <div class="page-content">
+        {{ .Content }}
+        {{- $pages := where .Pages "Kind" "page" -}}
+        {{- if $pages -}}
+          <ul class="page-list-items">
+            {{- range $pages.ByWeight -}}
+              <li>
+                <a href="{{ .RelPermalink }}">{{ .Title }}</a>
+                {{- with .Description -}}<p>{{ . }}</p>{{- end -}}
+              </li>
+            {{- end -}}
+          </ul>
+        {{- end -}}
+      </div>
+      {{- if and (.TableOfContents) (gt (len .TableOfContents) 50) -}}
+        <aside class="page-toc" aria-label="On this page">
+          <h2 class="toc-title">On this page</h2>
+          {{ .TableOfContents }}
+        </aside>
       {{- end -}}
     </div>
   </div>

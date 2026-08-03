@@ -16,7 +16,7 @@ params:
   github: "https://github.com/dVoo/reqmd"
   defaultTheme: "system"
   sidebar: true
-  version: "0.4.x"
+  version: "0.1.x-alpha"
 # --- Languages ---
 defaultContentLanguage: "en"
 disableLanguages: []

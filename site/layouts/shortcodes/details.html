@@ -1,0 +1,9 @@
+{{- $summary := .Get "summary" -}}
+{{- $open := .Get "open" -}}
+{{- $card := .Get "card" -}}
+<details{{ if eq $open "true" }} open{{ end }}{{ if eq $card "true" }} class="faq-card"{{ end }}>
+<summary>{{ $summary | markdownify }}</summary>
+{{- if eq $card "true" }}<div class="faq-body">{{ end -}}
+{{ .Inner | markdownify }}
+{{- if eq $card "true" }}</div>{{ end -}}
+</details>
