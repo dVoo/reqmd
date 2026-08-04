@@ -12,7 +12,7 @@ In the next 10 minutes you will build a **three-document V-model trace chain** â
 
 ## Prerequisites
 
-- Go 1.25 or newer
+- Go 1.26 or newer (only if building from source)
 - Any text editor
 
 ---
@@ -22,6 +22,8 @@ In the next 10 minutes you will build a **three-document V-model trace chain** â
 ```sh
 go build -o reqmd ./cmd/reqmd
 ```
+
+Or download a pre-built binary from the [GitHub Releases page](https://github.com/dVoo/reqmd/releases) (Linux, macOS, Windows).
 
 Verify it works:
 

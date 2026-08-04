@@ -33,7 +33,7 @@ Download a release from [GitHub Releases](https://github.com/dVoo/reqmd/releases
 
 ## Prerequisites
 
-- **Go 1.25 or newer** — required for the source build.
+- **Go 1.26 or newer** — required for the source build.
 - **Cgo toolchain** (gcc or clang) — only if you build the optional `export graph` subcommand with the `ladybug` build tag.
 
 ## With graph export (optional)

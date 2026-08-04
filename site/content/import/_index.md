@@ -78,6 +78,9 @@ Plain Markdown traceability has a directional problem. A software requirement ca
 # Build
 go build -o reqmd-import ./cmd/reqmd-import
 
+# Or download a pre-built binary from
+# https://github.com/dVoo/reqmd/releases (Linux, macOS, Windows)
+
 # One-shot extraction
 reqmd-import extract ./internal ./spec/03-software/imported
 

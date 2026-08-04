@@ -137,7 +137,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
-        with: { go-version: '1.25' }
+        with: { go-version: '1.26' }
       - run: go build -o reqmd ./cmd/reqmd
       - run: ./reqmd check 14-variant-management/ --filter "${{ matrix.filter }}" --json > report-${{ matrix.name }}.json
       - run: ./reqmd check 14-variant-management/ --disjoint-check variant

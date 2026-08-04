@@ -43,7 +43,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-go@v5
         with:
-          go-version: '1.25'
+          go-version: '1.26'
       - run: go build -o reqmd ./cmd/reqmd
       - run: ./reqmd check --json requirements/ > report.json
       - run: ./reqmd check requirements/ --results ci-artifacts/
