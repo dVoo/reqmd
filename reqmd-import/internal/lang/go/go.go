@@ -4,8 +4,8 @@ import (
 	"embed"
 	"strings"
 
-	sitter "github.com/smacker/go-tree-sitter"
-	gotree "github.com/smacker/go-tree-sitter/golang"
+	sitter "github.com/tree-sitter/go-tree-sitter"
+	tree_sitter_go "github.com/tree-sitter/tree-sitter-go/bindings/go"
 
 	"reqmd-import/internal/lang"
 	"reqmd-import/internal/model"
@@ -27,7 +27,7 @@ func (l *GoLanguage) Name() string { return "go" }
 func (l *GoLanguage) Extensions() []string { return []string{".go"} }
 
 // Grammar returns the tree-sitter-go grammar language.
-func (l *GoLanguage) Grammar() *sitter.Language { return gotree.GetLanguage() }
+func (l *GoLanguage) Grammar() *sitter.Language { return sitter.NewLanguage(tree_sitter_go.Language()) }
 
 // Query returns the embedded tree-sitter query for symbol extraction.
 // If the query file is missing (a packaging error), it returns an empty
@@ -56,11 +56,11 @@ func (l *GoLanguage) BindDoc(node *sitter.Node, src []byte) string {
 	// non-comment sibling, which is the boundary to the previous
 	// declaration.
 	for prev != nil {
-		kind := prev.Type()
+		kind := prev.Kind()
 		if kind != "comment" && kind != "block_comment" {
 			break
 		}
-		text := prev.Content(src)
+		text := prev.Utf8Text(src)
 		parts = append(parts, cleanComment(text, kind))
 		prev = prev.PrevSibling()
 	}
@@ -118,10 +118,12 @@ func cleanComment(text, kind string) string {
 // file's parent directory if needed.
 func (l *GoLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 	parser := sitter.NewParser()
-	parser.SetLanguage(l.Grammar())
 	defer parser.Close()
+	if err := parser.SetLanguage(l.Grammar()); err != nil {
+		return nil, err
+	}
 
-	tree := parser.Parse(nil, src)
+	tree := parser.Parse(src, nil)
 	if tree == nil {
 		return nil, nil
 	}
@@ -129,33 +131,35 @@ func (l *GoLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 
 	root := tree.RootNode()
 
-	q, err := sitter.NewQuery([]byte(l.Query()), l.Grammar())
-	if err != nil {
-		return nil, err
+	q, qerr := sitter.NewQuery(l.Grammar(), l.Query())
+	if qerr != nil {
+		return nil, qerr
 	}
 	defer q.Close()
 
-	qc := sitter.NewQueryCursor()
-	defer qc.Close()
-	qc.Exec(q, root)
-
 	pkgName := ""
 	var out []model.Symbol
+
+	qc := sitter.NewQueryCursor()
+	defer qc.Close()
+	matches := qc.Matches(q, root, src)
+	captureNames := q.CaptureNames()
 	for {
-		m, ok := qc.NextMatch()
-		if !ok {
+		m := matches.Next()
+		if m == nil {
 			break
 		}
 		// Build a name->node map for this match.
 		captures := make(map[string]*sitter.Node, len(m.Captures))
 		for i := range m.Captures {
-			name := q.CaptureNameForId(m.Captures[i].Index)
-			captures[name] = m.Captures[i].Node
+			name := captureNames[m.Captures[i].Index]
+			captures[name] = &m.Captures[i].Node
 		}
 
 		// Package clause: capture the package name once and remember it.
 		if pkgNode := captures["pkg.name"]; pkgNode != nil && pkgName == "" {
-			pkgName = pkgNode.Content(src)
+			text := pkgNode.Utf8Text(src)
+			pkgName = text
 			continue
 		}
 		if captures["pkg.decl"] != nil {
@@ -227,15 +231,16 @@ func receiverType(methodNode *sitter.Node, src []byte) string {
 	if recvList == nil {
 		return ""
 	}
-	n := int(recvList.ChildCount())
-	for i := range n {
+	n := recvList.ChildCount()
+	for i := uint(0); i < n; i++ {
 		c := recvList.Child(i)
-		if c.Type() != "parameter_declaration" {
+		if c.Kind() != "parameter_declaration" {
 			continue
 		}
 		typeNode := c.ChildByFieldName("type")
 		if typeNode != nil {
-			return typeNode.Content(src)
+			text := typeNode.Utf8Text(src)
+			return text
 		}
 	}
 	return ""

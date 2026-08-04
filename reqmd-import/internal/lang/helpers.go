@@ -3,7 +3,7 @@ package lang
 import (
 	"sort"
 
-	sitter "github.com/smacker/go-tree-sitter"
+	sitter "github.com/tree-sitter/go-tree-sitter"
 
 	"reqmd-import/internal/model"
 )
@@ -17,7 +17,7 @@ func CaptureContent(node *sitter.Node, src []byte) string {
 	if node == nil {
 		return ""
 	}
-	return node.Content(src)
+	return node.Utf8Text(src)
 }
 
 // SortByStartLine sorts symbols in place by StartLine ascending.
@@ -40,7 +40,7 @@ func SymbolAt(node *sitter.Node, file, pkg string, kind model.SymbolKind, name, 
 		Name:      name,
 		Receiver:  receiver,
 		Doc:       l.BindDoc(node, src),
-		StartLine: int(node.StartPoint().Row) + 1,
-		EndLine:   int(node.EndPoint().Row) + 1,
+		StartLine: int(node.StartPosition().Row) + 1,
+		EndLine:   int(node.EndPosition().Row) + 1,
 	}
 }

@@ -3,8 +3,8 @@ package python
 import (
 	"testing"
 
-	sitter "github.com/smacker/go-tree-sitter"
-	pytree "github.com/smacker/go-tree-sitter/python"
+	sitter "github.com/tree-sitter/go-tree-sitter"
+	tree_sitter_python "github.com/tree-sitter/tree-sitter-python/bindings/go"
 
 	"reqmd-import/internal/lang"
 	"reqmd-import/internal/model"
@@ -226,17 +226,21 @@ class Foo:
 func parseFirstFuncDef(t *testing.T, src []byte) (*sitter.Node, func()) {
 	t.Helper()
 	parser := sitter.NewParser()
-	parser.SetLanguage(pytree.GetLanguage())
-	tree := parser.Parse(nil, src)
+	if err := parser.SetLanguage(sitter.NewLanguage(tree_sitter_python.Language())); err != nil {
+		parser.Close()
+		t.Fatalf("SetLanguage: %v", err)
+	}
+	tree := parser.Parse(src, nil)
 	if tree == nil {
 		parser.Close()
 		t.Fatal("tree is nil")
 	}
 	root := tree.RootNode()
 	// Walk top-level children looking for the first function_definition.
-	for i := 0; i < int(root.ChildCount()); i++ {
+	n := root.ChildCount()
+	for i := uint(0); i < n; i++ {
 		c := root.Child(i)
-		if c.Type() == "function_definition" {
+		if c.Kind() == "function_definition" {
 			return c, func() {
 				tree.Close()
 				parser.Close()

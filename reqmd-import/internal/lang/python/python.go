@@ -29,8 +29,8 @@ import (
 	"embed"
 	"strings"
 
-	sitter "github.com/smacker/go-tree-sitter"
-	pytree "github.com/smacker/go-tree-sitter/python"
+	sitter "github.com/tree-sitter/go-tree-sitter"
+	tree_sitter_python "github.com/tree-sitter/tree-sitter-python/bindings/go"
 
 	"reqmd-import/internal/lang"
 	"reqmd-import/internal/model"
@@ -52,7 +52,7 @@ func (l *PythonLanguage) Name() string { return "python" }
 func (l *PythonLanguage) Extensions() []string { return []string{".py"} }
 
 // Grammar returns the tree-sitter-python grammar language.
-func (l *PythonLanguage) Grammar() *sitter.Language { return pytree.GetLanguage() }
+func (l *PythonLanguage) Grammar() *sitter.Language { return sitter.NewLanguage(tree_sitter_python.Language()) }
 
 // Query returns the embedded tree-sitter query for symbol extraction.
 // If the query file is missing (a packaging error), it returns an empty
@@ -81,11 +81,11 @@ func (l *PythonLanguage) BindDoc(node *sitter.Node, src []byte) string {
 	// non-comment sibling, which is the boundary to the previous
 	// declaration.
 	for prev != nil {
-		kind := prev.Type()
+		kind := prev.Kind()
 		if kind != "comment" {
 			break
 		}
-		text := prev.Content(src)
+		text := prev.Utf8Text(src)
 		parts = append(parts, cleanPythonComment(text))
 		prev = prev.PrevSibling()
 	}
@@ -146,19 +146,20 @@ func extractDocstring(node *sitter.Node, src []byte) string {
 		return ""
 	}
 	body := node.ChildByFieldName("body")
-	if body == nil || body.Type() != "block" {
+	if body == nil || body.Kind() != "block" {
 		return ""
 	}
 	first := body.Child(0)
-	if first == nil || first.Type() != "expression_statement" {
+	if first == nil || first.Kind() != "expression_statement" {
 		return ""
 	}
 	// Walk expression_statement's children to find the string node.
 	// The string is a direct child of the expression_statement.
 	var stringNode *sitter.Node
-	for i := 0; i < int(first.ChildCount()); i++ {
+	n := first.ChildCount()
+	for i := uint(0); i < n; i++ {
 		c := first.Child(i)
-		if c.Type() == "string" {
+		if c.Kind() == "string" {
 			stringNode = c
 			break
 		}
@@ -166,7 +167,7 @@ func extractDocstring(node *sitter.Node, src []byte) string {
 	if stringNode == nil {
 		return ""
 	}
-	raw := stringNode.Content(src)
+	raw := stringNode.Utf8Text(src)
 	return stripDocstringDelimiters(raw)
 }
 
@@ -251,10 +252,12 @@ func stripDocstringDelimiters(raw string) string {
 // same node (methods take precedence over plain functions).
 func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 	parser := sitter.NewParser()
-	parser.SetLanguage(l.Grammar())
 	defer parser.Close()
+	if err := parser.SetLanguage(l.Grammar()); err != nil {
+		return nil, err
+	}
 
-	tree := parser.Parse(nil, src)
+	tree := parser.Parse(src, nil)
 	if tree == nil {
 		return nil, nil
 	}
@@ -262,54 +265,54 @@ func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) 
 
 	root := tree.RootNode()
 
-	q, err := sitter.NewQuery([]byte(l.Query()), l.Grammar())
-	if err != nil {
-		return nil, err
+	q, qerr := sitter.NewQuery(l.Grammar(), l.Query())
+	if qerr != nil {
+		return nil, qerr
 	}
 	defer q.Close()
-
-	qc := sitter.NewQueryCursor()
-	defer qc.Close()
-	qc.Exec(q, root)
 
 	// Python has no package clause; fall back to the file's basename
 	// without extension as the module/package name.
 	pkgName := moduleNameFromFile(file)
+	captureNames := q.CaptureNames()
 
 	// First pass: collect all method.decl nodes so we can later drop
 	// the bare @func.decl match that points at the same function_definition.
-	methodNodes := make(map[*sitter.Node]struct{})
+	methodNodes := make(map[uintptr]struct{})
+	qc := sitter.NewQueryCursor()
+	matches := qc.Matches(q, root, src)
 	for {
-		m, ok := qc.NextMatch()
-		if !ok {
+		m := matches.Next()
+		if m == nil {
 			break
 		}
-		captures := capturesByName(m, q)
+		captures := capturesByName(m, captureNames)
 		if n := captures["method.decl"]; n != nil {
-			methodNodes[n] = struct{}{}
+			methodNodes[n.Id()] = struct{}{}
 		}
 	}
+	qc.Close()
 
 	// Reset the cursor and walk the matches again, this time
 	// dispatching. Tree-sitter QueryCursor is single-pass, so we
 	// re-Exec rather than try to seek.
 	qc2 := sitter.NewQueryCursor()
 	defer qc2.Close()
-	qc2.Exec(q, root)
+	matches2 := qc2.Matches(q, root, src)
 
 	var out []model.Symbol
-	seen := make(map[*sitter.Node]struct{})
+	seen := make(map[uintptr]struct{})
 	for {
-		m, ok := qc2.NextMatch()
-		if !ok {
+		m := matches2.Next()
+		if m == nil {
 			break
 		}
-		captures := capturesByName(m, q)
+		captures := capturesByName(m, captureNames)
 
 		// Skip the bare @func.decl when the same node is also a
 		// method. Methods win.
 		if fn := captures["func.decl"]; fn != nil {
-			if _, isMethod := methodNodes[fn]; isMethod {
+			if _, isMethod := methodNodes[fn.Id()]; isMethod {
 				continue
 			}
 		}
@@ -331,10 +334,10 @@ func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) 
 			if primary == nil {
 				continue
 			}
-			if _, dup := seen[primary]; dup {
+			if _, dup := seen[primary.Id()]; dup {
 				continue
 			}
-			seen[primary] = struct{}{}
+			seen[primary.Id()] = struct{}{}
 			out = append(out, sym)
 		}
 	}
@@ -346,12 +349,13 @@ func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) 
 }
 
 // capturesByName returns a map from capture name to node for a single
-// query match. Capture names are resolved via q.CaptureNameForId.
-func capturesByName(m *sitter.QueryMatch, q *sitter.Query) map[string]*sitter.Node {
+// query match. Capture names are resolved via the pre-fetched
+// captureNames slice from q.CaptureNames().
+func capturesByName(m *sitter.QueryMatch, captureNames []string) map[string]*sitter.Node {
 	captures := make(map[string]*sitter.Node, len(m.Captures))
 	for i := range m.Captures {
-		name := q.CaptureNameForId(m.Captures[i].Index)
-		captures[name] = m.Captures[i].Node
+		name := captureNames[m.Captures[i].Index]
+		captures[name] = &m.Captures[i].Node
 	}
 	return captures
 }
@@ -417,7 +421,7 @@ func isInsideClassBody(node *sitter.Node) bool {
 		return false
 	}
 	for p := node.Parent(); p != nil; p = p.Parent() {
-		if p.Type() == "class_definition" {
+		if p.Kind() == "class_definition" {
 			return true
 		}
 	}
@@ -436,14 +440,15 @@ func enclosingClassName(methodNode *sitter.Node, src []byte) string {
 		return ""
 	}
 	for p := methodNode.Parent(); p != nil; p = p.Parent() {
-		if p.Type() != "class_definition" {
+		if p.Kind() != "class_definition" {
 			continue
 		}
 		name := p.ChildByFieldName("name")
 		if name == nil {
 			return ""
 		}
-		return name.Content(src)
+		text := name.Utf8Text(src)
+		return text
 	}
 	return ""
 }

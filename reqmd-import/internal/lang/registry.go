@@ -12,7 +12,7 @@ import (
 	"sort"
 	"sync"
 
-	sitter "github.com/smacker/go-tree-sitter"
+	sitter "github.com/tree-sitter/go-tree-sitter"
 
 	"reqmd-import/internal/model"
 )
