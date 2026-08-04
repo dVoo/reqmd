@@ -1017,10 +1017,11 @@ h1:hover .heading-anchor, h2:hover .heading-anchor, h3:hover .heading-anchor, h4
 }
 .mermaid svg { max-width: 100%; height: auto; }
 .structure-diagram {
-  margin-inline: calc(50% - min(50vw, var(--max-w-wide)));
+  margin-inline: auto;
   max-width: var(--max-w-wide);
+  overflow-x: auto;
 }
-.structure-diagram .mermaid { margin: 0; }
+.structure-diagram .mermaid { margin: 0 auto; text-align: center; }
 
 /* ---------- editorial components (home page) ---------- */
 .intro-section { padding: var(--s-9) 0; border-bottom: 1px solid var(--border); }

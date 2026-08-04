@@ -20,9 +20,9 @@ reqmd inherits git's structure primitives — branches, forks, submodules — an
 <div class="structure-diagram">
 
 ```mermaid
-%%{init: {'themeVariables': {'fontSize': '16px'}}}%%
+%%{init: {'themeVariables': {'fontSize': '15px'}}}%%
 
-flowchart TD
+flowchart LR
   classDef upstream fill:#e8f0fe,stroke:#4285f4,stroke-width:2px,color:#1a1a1a
   classDef owned fill:#e6f4ea,stroke:#34a853,stroke-width:2px,color:#1a1a1a
   classDef submodule fill:#f1f3f4,stroke:#5f6368,stroke-width:2px,color:#1a1a1a
@@ -35,20 +35,20 @@ flowchart TD
   end
 
   subgraph assembled["product-spec (top-level repo)"]
-    SUB["library/<br/>pinned @ v1.2"]:::submodule
-    SYS["system/<br/>your team"]:::owned
+    direction TB
+    SUB["library/<br/>pinned @ v1.2<br/><i>consumed</i>"]:::submodule
+    SYS["system/<br/><i>your team</i>"]:::owned
+    BRANCH["feat/login-2fa"]:::branch
+    VAR["Base / Premium"]:::variant
+    SYS -.->|"branches →"| BRANCH
+    SYS -.->|"--filter"| VAR
   end
-
-  BRANCH["feat/login-2fa"]:::branch
-  VAR["Base / Premium"]:::variant
 
   subgraph forked["Fork"]
     FORK["custom-platform-spec<br/>(host fork)"]:::fork
   end
 
   LIB -.->|"bump pin → reqmd repin"| SUB
-  SYS -->|"PR / merge"| BRANCH
-  SYS -->|"--filter"| VAR
   LIB -.->|"sync upstream"| FORK
 ```
 
