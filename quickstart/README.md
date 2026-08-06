@@ -30,11 +30,11 @@ quickstart](https://reqmd.dev/quickstart/).
 
 ## Suggested paths
 
-**New users:** 1 → 2 → 3 → 4 → 5 → 11 → 12
+**New users:** [1](01-get-started/) → [2](02-trace-your-spec/) → [3](03-export/) → [4](04-live-preview/) → [5](05-status-disposition/) → [11](11-verification-results-ctrf/) → [12](12-review-documentation/)
 
-**CI/automation focus:** 1 → 2 → 6 → 9 → 11
+**CI/automation focus:** [1](01-get-started/) → [2](02-trace-your-spec/) → [6](06-ci-integration/) → [9](09-baseline-diff/) → [11](11-verification-results-ctrf/)
 
-**Automotive SPICE focus:** 1 → 2 → 5 → 7 → 11 → 12
+**Automotive SPICE focus:** [1](01-get-started/) → [2](02-trace-your-spec/) → [5](05-status-disposition/) → [7](07-version-pins/) → [11](11-verification-results-ctrf/) → [12](12-review-documentation/)
 
 ## Prerequisites
 

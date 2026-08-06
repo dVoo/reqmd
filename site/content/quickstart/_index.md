@@ -29,7 +29,6 @@ Command details, flags, and reference tables live in the [cheat sheet](/cheat-sh
 | 0 | [Installation](/quickstart/00-installation/) | `go install`, build from source, or prebuilt binary |
 | 1 | [Get started](/quickstart/01-get-started/) | Scaffold a new project and run your first validation |
 | 2 | [Trace your spec](/quickstart/02-trace-your-spec/) | Build the four-level V-model boot-sequence example with trace links |
-| 10 | [Submodule-friendly configuration](/quickstart/10-submodule-configuration/) | Portable `document-id` references for specs assembled from git submodules (optional) |
 | 3 | [Export](/quickstart/03-export/) | CSV, HTML, and graph export formats |
 | 4 | [Live preview](/quickstart/04-live-preview/) | `reqmd serve` with live-reloading HTML |
 | 5 | [Status & disposition](/quickstart/05-status-disposition/) | The `draft`/`approved` lifecycle and `deferred`/`rejected` workflow |
@@ -37,6 +36,7 @@ Command details, flags, and reference tables live in the [cheat sheet](/cheat-sh
 | 7 | [Version pins](/quickstart/07-version-pins/) | Pin traces to a specific upstream version; detect when stale |
 | 8 | [Repin](/quickstart/08-repin/) | Bulk-update `~N` version pins with `reqmd repin --yes` |
 | 9 | [Baseline diff](/quickstart/09-baseline-diff/) | Compare requirements between two git tags |
+| 10 | [Submodule-friendly configuration](/quickstart/10-submodule-configuration/) | Portable `document-id` references for specs assembled from git submodules (optional) |
 | 11 | [Verification results (CTRF)](/quickstart/11-verification-results-ctrf/) | Load automated test results and run outcome-gated checks |
 | 12 | [Review documentation](/quickstart/12-review-documentation/) | Load manual review, inspection, and analysis results |
 | 13 | [Custom templates](/quickstart/13-custom-templates/) | Define your own schema with a custom `reqmd init` preset |
@@ -44,13 +44,13 @@ Command details, flags, and reference tables live in the [cheat sheet](/cheat-sh
 
 ## Suggested paths
 
-**New users:** `00` → `01` → `02` → `03` → `04` → `05` → `11` → `12`
+**New users:** [`00`](/quickstart/00-installation/) → [`01`](/quickstart/01-get-started/) → [`02`](/quickstart/02-trace-your-spec/) → [`03`](/quickstart/03-export/) → [`04`](/quickstart/04-live-preview/) → [`05`](/quickstart/05-status-disposition/) → [`11`](/quickstart/11-verification-results-ctrf/) → [`12`](/quickstart/12-review-documentation/)
 
-**CI/automation focus:** `00` → `01` → `02` → `06` → `09` → `11`
+**CI/automation focus:** [`00`](/quickstart/00-installation/) → [`01`](/quickstart/01-get-started/) → [`02`](/quickstart/02-trace-your-spec/) → [`06`](/quickstart/06-ci-integration/) → [`09`](/quickstart/09-baseline-diff/) → [`11`](/quickstart/11-verification-results-ctrf/)
 
-**Status & lifecycle focus:** `00` → `01` → `02` → `05` → `07` → `11` → `12`
+**Status & lifecycle focus:** [`00`](/quickstart/00-installation/) → [`01`](/quickstart/01-get-started/) → [`02`](/quickstart/02-trace-your-spec/) → [`05`](/quickstart/05-status-disposition/) → [`07`](/quickstart/07-version-pins/) → [`11`](/quickstart/11-verification-results-ctrf/) → [`12`](/quickstart/12-review-documentation/)
 
-**Product-line / variant focus:** `00` → `01` → `02` → `03` → `09` → `14`
+**Product-line / variant focus:** [`00`](/quickstart/00-installation/) → [`01`](/quickstart/01-get-started/) → [`02`](/quickstart/02-trace-your-spec/) → [`03`](/quickstart/03-export/) → [`09`](/quickstart/09-baseline-diff/) → [`14`](/quickstart/14-variant-management/)
 
 ## Prerequisites
 
