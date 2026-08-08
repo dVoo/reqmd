@@ -37,6 +37,12 @@ trace: [stakeholder/STK-GOAL-001]
 The `requires-trace-from` attribute declares which downstream levels must trace
 back to this requirement. reqmd checks coverage both ways.
 
+> **Hint:** The tokens here (`software`, `tests`) are `document-id`s. A
+> `requires-trace-from` token can also name a `level` (e.g.
+> `software-requirements`) to match every document at that layer — see the
+> [x-reqmd options](https://reqmd.dev/cheat-sheet/#x-reqmd-options) and the
+> [level FAQ](https://reqmd.dev/faq/#what-is-the-level-directive-in-x-reqmd-for).
+
 ## Validate the full tree
 
 ```sh

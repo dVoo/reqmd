@@ -188,6 +188,32 @@ Each document directory has a `schema.yaml` that declares the attributes a requi
 One schema per directory means each team or V-model layer can define its own attributes independently. See the [cheat sheet](/cheat-sheet/) for the full `x-reqmd` reference and a complete example.
 {{< /details >}}
 
+{{< details summary="What is the `level` directive in `x-reqmd` for?" card="true" >}}
+`x-reqmd.level` is a label naming a requirement document's position in the V-model (e.g. `stakeholder-needs`, `system-requirements`, `software-requirements`, `test-specs`). It is a free-form string — you pick the names that match your process.
+
+It has **one functional use**: the `requires-trace-from` built-in attribute can name a `level` instead of a `document-id`. When it names a level, reqmd resolves it to *every* document directory that declares that level, and checks that at least one approved requirement from one of those directories traces back. So a stakeholder requirement can write `requires-trace-from: [system-requirements]` and cover all system-requirements documents at once, without listing each `document-id`.
+
+```yaml
+# stakeholder/schema.yaml
+x-reqmd:
+  level: stakeholder-needs
+# ...
+# goals.md
+requires-trace-from: [system-requirements]   # matches by level, not document-id
+```
+
+`requires-trace-from` accepts a mix of `document-id` and `level` tokens; an unknown token (neither a document-id nor a level) is a WARNING.
+
+Two things `level` is **not** used for:
+
+- **HTML document-chain navigation and boundary inference** — those run on `x-reqmd.upstream.sources` (relative paths) and `x-reqmd.external`, not on `level`. `level` is a label, not a wiring mechanism.
+- **Diagrams / reporting** — `level` is not consumed by any export or report; it is only read by the `requires-trace-from` coverage check.
+
+`upstream.level` (under the `upstream:` block) is purely informational — it names the *expected* parent layer but is never read by the tool. The wiring that actually matters is `upstream.sources`.
+
+See the [cheat sheet `x-reqmd` options](/cheat-sheet/#x-reqmd-options) for the full reference.
+{{< /details >}}
+
 {{< details summary="Can reqmd import or export Excel, Word, or ReqIF?" card="true" >}}
 Not built in (yet). The data model — plain Markdown with a YAML `attr` block per requirement — is simple enough that a one-time script can convert from or to any of these formats. For imports, write a script that walks the source file and emits one `.md` per requirement; for exports, `reqmd ls --json` gives you a flat JSON list you can reshape into a spreadsheet or document.
 

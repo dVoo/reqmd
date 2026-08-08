@@ -950,8 +950,9 @@ h1:hover .heading-anchor, h2:hover .heading-anchor, h3:hover .heading-anchor, h4
   cursor: pointer;
   padding: var(--s-4) var(--s-5);
   font-weight: 500;
-  display: flex; align-items: center; justify-content: space-between;
-  gap: var(--s-3);
+  display: block;
+  position: relative;
+  padding-right: calc(var(--s-5) + 1.5rem);
 }
 .faq-card summary::-webkit-details-marker { display: none; }
 .faq-card summary::after {
@@ -959,9 +960,11 @@ h1:hover .heading-anchor, h2:hover .heading-anchor, h3:hover .heading-anchor, h4
   font-size: 1.3rem;
   font-weight: 300;
   color: var(--fg-faint);
-  transition: transform var(--transition);
-  flex: 0 0 auto;
   line-height: 1;
+  position: absolute;
+  top: 50%;
+  right: var(--s-5);
+  transform: translateY(-50%);
 }
 .faq-card[open] summary::after { content: "\2212"; }
 .faq-card summary:hover { background: var(--bg-elev); }

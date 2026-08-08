@@ -314,10 +314,10 @@ x-reqmd:
 
 | Field | What it does |
 |-------|-------------|
-| `level` | Labels the V-model layer for reporting and diagram generation |
+| `level` | Labels the V-model layer. **Only functional use:** a `requires-trace-from` token may name a `level` (instead of a `document-id`); reqmd resolves it to every directory declaring that level. Not used for HTML chain navigation or boundary inference (those use `upstream.sources`). |
 | `document-id` | Stable identifier for the document. Used to disambiguate `trace: [doc-id/ID]` references and as the `requires-trace-from:` coverage target |
-| `upstream.level` | Names the expected parent layer (informational) |
-| `upstream.sources` | Relative paths to upstream document directories |
+| `upstream.level` | Names the expected parent layer. **Informational only** — never read by the tool. |
+| `upstream.sources` | Relative paths to upstream document directories. **This** drives HTML document-chain navigation and path-based boundary inference. |
 | `mandatory-disposition` | When `true`, missing `disposition` becomes an **ERROR** |
 | `external` | When `true`, marks as proxy directory; untraced warnings suppressed |
 | `url` | Human-readable link for HTML export (meaningful only when `external: true`) |

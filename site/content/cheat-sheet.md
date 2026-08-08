@@ -476,12 +476,12 @@ x-reqmd:
 
 | Option | Type | Description |
 |--------|------|-------------|
-| `level` | string | The V-model level for this document (e.g. `stakeholder-needs`, `system-requirements`, `software-requirements`, `test-specs`). Used for the document chain in HTML export. |
-| `document-id` | string | A short identifier for this document directory (e.g. `system`, `stakeholder`, `tests`). Used in qualified references (`document-id/ID`). |
+| `level` | string | A label naming this document's V-model layer (e.g. `stakeholder-needs`, `system-requirements`, `software-requirements`, `test-specs`). Free-form string. **Only functional use:** a `requires-trace-from` token may name a `level` instead of a `document-id`; reqmd resolves it to every directory declaring that level. Not used for HTML chain navigation or boundary inference (those use `upstream.sources`). See the [FAQ](/faq/#what-is-the-level-directive-in-x-reqmd-for). |
+| `document-id` | string | A short identifier for this document directory (e.g. `system`, `stakeholder`, `tests`). Used in qualified references (`document-id/ID`) and as a `requires-trace-from` token. |
 | `id-prefix` | string | The ID prefix for requirements in this directory (e.g. `SYS-`, `STK-GOAL-`, `TST-`). Requirements get IDs like `SYS-001`, `SYS-002`. |
 | `upstream` | object | Declares which document directories are valid upstream sources for trace links. |
-| `upstream.level` | string | The `x-reqmd.level` of the expected upstream. |
-| `upstream.sources` | array | List of relative paths to upstream document directories. reqmd reads their `schema.yaml` to resolve trace targets. |
+| `upstream.level` | string | The `x-reqmd.level` of the expected upstream. **Informational only** — never read by the tool. The wiring that matters is `upstream.sources`. |
+| `upstream.sources` | array | List of relative paths to upstream document directories. reqmd reads their `schema.yaml` to resolve trace targets. **This** drives HTML document-chain navigation and path-based boundary inference. |
 | `mandatory-disposition` | boolean | If `true`, every requirement in this directory must carry a `disposition` attribute (`implemented`, `deferred`, or `rejected`). Used for test specs and verification measures. |
 | `external` | boolean | If `true`, requirements in this directory are external reference requirements (imported, not authored). They can be traced *to* but don't need upstream traces. |
 | `additional-status-values` | array | Extend the built-in `status` enum (`[draft, approved]`) with custom values (e.g. `[review, withdrawn]`). Lowercase only, no built-in collision, no duplicates. |
