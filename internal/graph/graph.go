@@ -138,6 +138,10 @@ type Graph struct {
 	// disjointAttrs names array-typed attributes whose values must overlap
 	// between every trace-linked source and target. Empty = no disjoint check.
 	disjointAttrs []string
+	// hasResults is true when at least one synthesized result
+	// pseudo-requirement (RESULT:*) is present. Set once in Pass 1 so the
+	// outcome-gated checks short-circuit without re-scanning all nodes.
+	hasResults bool
 }
 
 // SetFilter restricts per-requirement checks to the given set of requirement
@@ -254,6 +258,9 @@ func New(docs []model.Document) (*Graph, error) {
 					Message: fmt.Sprintf("duplicate requirement ID: already defined in %s", existing.File),
 				})
 				continue // skip overwrite — first definition wins
+			}
+			if node.IsResult {
+				g.hasResults = true
 			}
 			g.nodes[req.ID] = node
 			dirPath := node.Dir
@@ -993,12 +1000,7 @@ func (g *Graph) checkFailingVerdict() []CheckResult {
 // hasResultNodes reports whether any synthesized result pseudo-requirement
 // is present in the graph.
 func (g *Graph) hasResultNodes() bool {
-	for _, n := range g.nodes {
-		if n.IsResult {
-			return true
-		}
-	}
-	return false
+	return g.hasResults
 }
 
 // isMeasure reports whether a node is a verification measure — a
@@ -1350,19 +1352,26 @@ func (g *Graph) checkDisjointAttribute() []CheckResult {
 	if len(g.disjointAttrs) == 0 {
 		return nil
 	}
-	// Build reqID → attr → []string lookup once from g.docs.
+	// Build reqID → attr → []string lookup once from g.docs. The map is
+	// allocated lazily per requirement: most requirements do not declare
+	// the disjoint attribute, and an absent value means "applies to all"
+	// (exempt) — an empty map entry is indistinguishable from a miss.
 	type attrVals = map[string][]string
 	lookup := make(map[string]attrVals, len(g.nodes))
 	for _, doc := range g.docs {
 		for _, req := range doc.Requirements {
-			vals := make(attrVals, len(g.disjointAttrs))
+			var vals attrVals
 			for _, attr := range g.disjointAttrs {
-				s := getStringSlice(req.Attrs, attr)
-				if len(s) > 0 {
+				if s := getStringSlice(req.Attrs, attr); len(s) > 0 {
+					if vals == nil {
+						vals = make(attrVals, len(g.disjointAttrs))
+					}
 					vals[attr] = s
 				}
 			}
-			lookup[req.ID] = vals
+			if vals != nil {
+				lookup[req.ID] = vals
+			}
 		}
 	}
 

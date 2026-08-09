@@ -26,7 +26,7 @@ func newListCmd() *cobra.Command {
 			}
 
 			if filterExpr != "" {
-				f, err := filter.Compile(filterExpr, filter.BuildValidAttrs(docs))
+				f, err := filter.CompileForDocs(docs, filterExpr)
 				if err != nil {
 					return err
 				}

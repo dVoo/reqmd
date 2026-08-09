@@ -230,6 +230,17 @@ func BuildValidAttrs(docs []model.Document) map[string]struct{} {
 	return valid
 }
 
+// CompileForDocs compiles an expression against the attribute union of the
+// given documents. It is the shared entry point for every CLI command that
+// accepts a --filter flag: Compile + BuildValidAttrs in one call. Returns
+// (nil, nil) when expr is empty (no filter).
+func CompileForDocs(docs []model.Document, expr string) (*Filter, error) {
+	if expr == "" {
+		return nil, nil
+	}
+	return Compile(expr, BuildValidAttrs(docs))
+}
+
 // refCollector implements ast.Visitor and collects all IdentifierNode
 // values from the expression AST. These are cross-referenced against
 // validAttrs to catch typos.

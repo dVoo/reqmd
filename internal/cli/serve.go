@@ -254,7 +254,7 @@ func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string
 
 	// Apply filter to the graph (filter-aware checks) and to the exported docs.
 	if filterExpr != "" {
-		f, err := filter.Compile(filterExpr, filter.BuildValidAttrs(docs))
+		f, err := filter.CompileForDocs(docs, filterExpr)
 		if err != nil {
 			return nil, nil, nil, err
 		}

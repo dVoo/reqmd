@@ -185,7 +185,7 @@ func runBaselineDiffFilteredViews(cmd *cobra.Command, root string, args []string
 // applyFilter compiles and applies a filter expression to a doc slice,
 // returning the filtered docs. Shared by both baseline diff modes.
 func applyFilter(docs []model.Document, expr string) ([]model.Document, error) {
-	f, err := filter.Compile(expr, filter.BuildValidAttrs(docs))
+	f, err := filter.CompileForDocs(docs, expr)
 	if err != nil {
 		return nil, err
 	}

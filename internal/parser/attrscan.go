@@ -149,12 +149,37 @@ func parseScalar(s string) any {
 	case "null", "Null", "NULL", "~":
 		return nil
 	}
-	// int
-	if n, err := strconv.Atoi(s); err == nil {
-		return n
+	// int — only call strconv.Atoi when the string is actually an integer
+	// literal. Atoi allocates an error object on non-numeric input, which
+	// is the common case for attribute values (IDs, statuses, priorities).
+	if isIntegerString(s) {
+		if n, err := strconv.Atoi(s); err == nil {
+			return n
+		}
 	}
 	// string
 	return s
+}
+
+// isIntegerString reports whether s is a plain integer literal (optional
+// sign followed by digits). Used as the gate before strconv.Atoi.
+func isIntegerString(s string) bool {
+	if s == "" {
+		return false
+	}
+	i := 0
+	if s[0] == '-' || s[0] == '+' {
+		if len(s) == 1 {
+			return false
+		}
+		i = 1
+	}
+	for ; i < len(s); i++ {
+		if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return true
 }
 
 // unquoteYAML strips single or double quotes from a YAML scalar.

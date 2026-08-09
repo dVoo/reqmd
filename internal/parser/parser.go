@@ -30,6 +30,13 @@ import (
 
 const attrFenceInfo = "attr"
 
+// Package-level patterns reused in the hot per-line scan helpers. Hoisted
+// so the hot paths don't allocate a []byte pattern on every call.
+var (
+	attrFenceBytes = []byte("```attr")
+	frontmatterSep = []byte("---")
+)
+
 // mdParser is the shared goldmark instance used by parseMD.
 // Constructed once at package init to avoid re-running extension Init for every .md file.
 var mdParser = goldmark.New(
@@ -43,9 +50,6 @@ var mdParser = goldmark.New(
 		emoji.Emoji,
 		meta.Meta,
 		&katex.Extender{},
-	),
-	goldmark.WithParserOptions(
-		parser.WithAutoHeadingID(),
 	),
 )
 
@@ -439,11 +443,11 @@ func findRootSplits(src []byte) (splits []int, frontmatter map[string]any) {
 	pos := 0 // byte offset of current line start
 
 	// Check for frontmatter delimiter on the first line.
-	if firstLine, _ := nextLine(src, 0); bytes.Equal(bytes.TrimSpace(firstLine), []byte("---")) {
+	if firstLine, _ := nextLine(src, 0); bytes.Equal(bytes.TrimSpace(firstLine), frontmatterSep) {
 		pos += len(firstLine) + 1 // skip the --- line
 		for pos < len(src) {
 			line, nl := nextLine(src, pos)
-			if bytes.Equal(bytes.TrimSpace(line), []byte("---")) {
+			if bytes.Equal(bytes.TrimSpace(line), frontmatterSep) {
 				// Found closing ---. Parse frontmatter between markers.
 				if pos > len(firstLine)+1 {
 					fmStart := len(firstLine) + 1
@@ -532,7 +536,7 @@ func nextNonBlankIsAttrBytes(src []byte, pos int) bool {
 			}
 			continue
 		}
-		return bytes.HasPrefix(trimmed, []byte("```attr"))
+		return bytes.HasPrefix(trimmed, attrFenceBytes)
 	}
 	return false
 }
@@ -540,7 +544,7 @@ func nextNonBlankIsAttrBytes(src []byte, pos int) bool {
 // splitHeadingIDBytes splits a heading like "REQ-001: This is a title"
 // into ("REQ-001", "This is a title"). Works on []byte.
 func splitHeadingIDBytes(heading []byte) (id string, title string) {
-	if idx := bytes.Index(heading, []byte(": ")); idx >= 0 {
+	if idx := bytes.IndexByte(heading, ':'); idx >= 0 && idx+1 < len(heading) && heading[idx+1] == ' ' {
 		return string(bytes.TrimSpace(heading[:idx])), string(bytes.TrimSpace(heading[idx+2:]))
 	}
 	return string(bytes.TrimSpace(heading)), ""

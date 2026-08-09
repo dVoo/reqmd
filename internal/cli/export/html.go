@@ -36,7 +36,7 @@ func newHtmlCmd() *cobra.Command {
 			// is still built from the full docs so trace links resolve.
 			exportDocs := docs
 			if filterExpr != "" {
-				f, err := filter.Compile(filterExpr, filter.BuildValidAttrs(docs))
+				f, err := filter.CompileForDocs(docs, filterExpr)
 				if err != nil {
 					return err
 				}

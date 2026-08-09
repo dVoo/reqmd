@@ -82,15 +82,29 @@ func (r *Report) ExitCode() int {
 		return 2
 	}
 	// Also check if any GraphChecks are ERROR level
-	for _, gc := range r.GraphChecks {
-		if gc.Level == graph.LevelError {
-			return 1
-		}
+	_, errors := r.counts()
+	if errors > 0 {
+		return 1
 	}
 	if len(r.ValErrors) > 0 {
 		return 1
 	}
 	return 0
+}
+
+// counts tallies WARNING and ERROR-level graph checks in a single pass.
+// Shared by ExitCode, Format, and FormatJSON so the summary numbers are
+// computed the same way everywhere.
+func (r *Report) counts() (warnings, errors int) {
+	for _, gc := range r.GraphChecks {
+		switch gc.Level {
+		case graph.LevelWarning:
+			warnings++
+		case graph.LevelError:
+			errors++
+		}
+	}
+	return warnings, errors
 }
 
 // Format produces the per-file, per-requirement validation report
@@ -182,16 +196,7 @@ func (r *Report) Format() string {
 
 	// Summary line
 	valErrCount := len(r.ValErrors)
-	warnCount := 0
-	graphErrCount := 0
-	for _, gc := range r.GraphChecks {
-		switch gc.Level {
-		case graph.LevelWarning:
-			warnCount++
-		case graph.LevelError:
-			graphErrCount++
-		}
-	}
+	warnCount, graphErrCount := r.counts()
 
 	b.WriteString(fmt.Sprintf("Summary: %d total, %d valid, %d invalid, %d parse errors",
 		r.TotalReqs, r.ValidReqs, valErrCount+graphErrCount, len(r.ParseErrors)))
@@ -361,21 +366,10 @@ type jsonStatsDoc struct {
 
 // FormatJSON serializes the full check report as JSON.
 func (r *Report) FormatJSON() string {
-	// Count warnings
-	warnCount := 0
-	for _, gc := range r.GraphChecks {
-		if gc.Level == graph.LevelWarning {
-			warnCount++
-		}
-	}
+	warnCount, errorCount := r.counts()
 
 	// Count invalid (pass 1 + graph ERROR)
-	invalid := len(r.ValErrors)
-	for _, gc := range r.GraphChecks {
-		if gc.Level == graph.LevelError {
-			invalid++
-		}
-	}
+	invalid := len(r.ValErrors) + errorCount
 
 	jr := jsonReport{
 		Version:  1,

@@ -17,7 +17,6 @@ import (
 	"github.com/yuin/goldmark-emoji"
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
 	"go.abhg.dev/goldmark/mermaid"
 
 	"reqmd/internal/model"
@@ -85,9 +84,6 @@ var bodyRenderer = goldmark.New(
 		highlighting.Highlighting,
 		emoji.Emoji,
 		&katex.Extender{},
-	),
-	goldmark.WithParserOptions(
-		parser.WithAutoHeadingID(),
 	),
 )
 

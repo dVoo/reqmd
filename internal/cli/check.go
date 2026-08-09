@@ -94,8 +94,7 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 	// does not affect outcome-gated reporting.
 	var filterSet map[string]struct{}
 	if filterExpr != "" {
-		validAttrs := filter.BuildValidAttrs(docs)
-		f, err := filter.Compile(filterExpr, validAttrs)
+		f, err := filter.CompileForDocs(docs, filterExpr)
 		if err != nil {
 			return "", err
 		}
@@ -127,10 +126,8 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 		title := schema.SchemaTitle(doc.Schema)
 		ids := make([]string, 0, len(doc.Requirements))
 		for _, req := range doc.Requirements {
-			if filterSet != nil {
-				if _, ok := filterSet[req.ID]; !ok {
-					continue
-				}
+			if !filterID(filterSet, req.ID) {
+				continue
 			}
 			ids = append(ids, req.ID)
 		}
@@ -178,10 +175,8 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 			continue
 		}
 		for _, req := range docs[i].Requirements {
-			if filterSet != nil {
-				if _, ok := filterSet[req.ID]; !ok {
-					continue
-				}
+			if !filterID(filterSet, req.ID) {
+				continue
 			}
 			report.TotalReqs++
 		}
@@ -195,8 +190,10 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 		ok  bool
 	}
 
-	// Flatten the work list: (docIdx, reqIdx) pairs for docs with valid schemas.
+	// Flatten the work list: (jobIdx, docIdx, reqIdx) triples for docs
+	// with valid schemas.
 	type valJob struct {
+		jobIdx int
 		docIdx int
 		reqIdx int
 	}
@@ -206,31 +203,39 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 			continue
 		}
 		for j := range docs[i].Requirements {
-			if filterSet != nil {
-				if _, ok := filterSet[docs[i].Requirements[j].ID]; !ok {
-					continue
-				}
+			if !filterID(filterSet, docs[i].Requirements[j].ID) {
+				continue
 			}
-			jobs = append(jobs, valJob{docIdx: i, reqIdx: j})
+			jobs = append(jobs, valJob{jobIdx: len(jobs), docIdx: i, reqIdx: j})
 		}
 	}
 
+	// Worker pool sized to NumCPU: one goroutine per requirement would
+	// spawn thousands of short-lived goroutines on large trees. Workers
+	// pull jobs from a channel and write results by index, so the
+	// collected order matches the job order deterministically.
 	valResults := make([]valResult, len(jobs))
+	workers := runtime.NumCPU()
+	if workers > len(jobs) {
+		workers = len(jobs)
+	}
 	var valWG sync.WaitGroup
-	valSem := make(chan struct{}, runtime.NumCPU())
-	for k, job := range jobs {
-		k, job := k, job
-		valSem <- struct{}{}
+	jobCh := make(chan valJob)
+	for w := 0; w < workers; w++ {
 		valWG.Add(1)
 		go func() {
 			defer valWG.Done()
-			defer func() { <-valSem }()
-			req := docs[job.docIdx].Requirements[job.reqIdx]
-			compiled := compiles[job.docIdx].compiled
-			err := compiled.Validate(req.Attrs)
-			valResults[k] = valResult{err: err, ok: err == nil}
+			for job := range jobCh {
+				req := docs[job.docIdx].Requirements[job.reqIdx]
+				err := compiles[job.docIdx].compiled.Validate(req.Attrs)
+				valResults[job.jobIdx] = valResult{err: err, ok: err == nil}
+			}
 		}()
 	}
+	for _, job := range jobs {
+		jobCh <- job
+	}
+	close(jobCh)
 	valWG.Wait()
 
 	// Collect validation results in order.
@@ -372,4 +377,14 @@ func formatReport(r *reporter.Report, jsonOutput bool) string {
 		return r.FormatJSON()
 	}
 	return r.Format()
+}
+
+// filterID reports whether reqID passes the active filter set. A nil set
+// means no filter is active — every requirement passes.
+func filterID(set map[string]struct{}, reqID string) bool {
+	if set == nil {
+		return true
+	}
+	_, ok := set[reqID]
+	return ok
 }

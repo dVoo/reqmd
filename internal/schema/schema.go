@@ -184,19 +184,27 @@ func (c *Compiled) PropertyNames() []string {
 	if s == nil {
 		return nil
 	}
+	return orderedPropertyNames(s.Required, propertyKeySet(s.Properties))
+}
 
-	var result []string
-	seen := make(map[string]bool)
+// orderedPropertyNames is the single implementation of the property-order
+// convention: required fields in schema order, then remaining property
+// keys sorted alphabetically, then built-in attribute names not already
+// listed. Shared by PropertyNames (compiled schema) and ExtractProperties
+// (raw schema map) so the ordering rule lives in one place.
+func orderedPropertyNames(required []string, optional map[string]bool) []string {
+	seen := make(map[string]bool, len(required)+len(optional)+len(builtinDefs))
+	result := make([]string, 0, len(required)+len(optional)+len(builtinDefs))
 
-	// Required fields in schema order
-	for _, r := range s.Required {
-		result = append(result, r)
-		seen[r] = true
+	for _, r := range required {
+		if !seen[r] {
+			result = append(result, r)
+			seen[r] = true
+		}
 	}
 
-	// Optional fields sorted alphabetically
 	var optKeys []string
-	for k := range s.Properties {
+	for k := range optional {
 		if !seen[k] {
 			optKeys = append(optKeys, k)
 		}
@@ -207,13 +215,23 @@ func (c *Compiled) PropertyNames() []string {
 		seen[k] = true
 	}
 
-	// Built-in attr names in canonical order
 	for _, a := range builtinDefs {
 		if !seen[a.Name] {
 			result = append(result, a.Name)
 		}
 	}
 	return result
+}
+
+// propertyKeySet converts a property map (either form) into a key set for
+// orderedPropertyNames. The compiled schema uses *jsonschema.Schema
+// values, the raw map uses any.
+func propertyKeySet[V any](props map[string]V) map[string]bool {
+	set := make(map[string]bool, len(props))
+	for k := range props {
+		set[k] = true
+	}
+	return set
 }
 
 // Validate checks a requirement's attrs against the compiled schema.
@@ -270,41 +288,24 @@ func ExtractProperties(schemaRaw any) (propNames []string) {
 		return nil
 	}
 
-	var result []string
-	seen := make(map[string]bool)
-
-	// Required fields in schema order
+	var required []string
 	if req, ok := m["required"].([]any); ok {
+		required = make([]string, 0, len(req))
 		for _, r := range req {
-			if s, ok := r.(string); ok && !seen[s] {
-				result = append(result, s)
-				seen[s] = true
+			if s, ok := r.(string); ok {
+				required = append(required, s)
 			}
 		}
 	}
 
-	// Optional fields sorted alphabetically
+	optional := make(map[string]bool)
 	if props, ok := m["properties"].(map[string]any); ok {
-		var optKeys []string
 		for k := range props {
-			if !seen[k] {
-				optKeys = append(optKeys, k)
-			}
-		}
-		sort.Strings(optKeys)
-		result = append(result, optKeys...)
-		for _, k := range optKeys {
-			seen[k] = true
+			optional[k] = true
 		}
 	}
 
-	// Built-in attr names in canonical order
-	for _, a := range builtinDefs {
-		if !seen[a.Name] {
-			result = append(result, a.Name)
-		}
-	}
-	return result
+	return orderedPropertyNames(required, optional)
 }
 
 // SchemaTitle extracts a human-readable title from a parsed schema.
