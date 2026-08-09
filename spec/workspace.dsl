@@ -57,7 +57,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         // External systems
         vscodeExt        = softwareSystem "VS Code / Editor"         "Author edits *.md and schema.yaml" "External"
         supplier         = softwareSystem "Tier-1 Supplier Tool"     "(Planned) Receives CSV export" "External"
-        sourceRepository = softwareSystem "Source Repository"        "Git repository containing Go, Python, Rust, Zig, and other source files with requirement references in comments or docstrings" "External"
+        sourceRepository = softwareSystem "Source Repository"        "Git repository containing C, C++, Go, Python, Rust, Zig, and other source files with requirement references in comments or docstrings" "External"
         ci               = softwareSystem "CI Pipeline"              "Automated pipeline that runs extraction on changes and publishes trace artifacts" "External"
         testArtifacts    = softwareSystem "Test Result Artifacts"     "Ephemeral CTRF JSON reports and manual review/inspection markdown produced by CI runs and reviewers; loaded per check --results invocation, never persisted in the spec repo" "External"
 

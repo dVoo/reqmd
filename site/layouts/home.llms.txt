@@ -42,5 +42,5 @@
 - [About]({{ "about/" | absURL }}): Design principles (no lock-in, no database, per-directory schemas, dogfooding) and the self-hosting story.
 
 ## AI integration
-- [reqmd-import]({{ "import/" | absURL }}): Source-code traceability — extracts Go and Python symbols into reqmd .md requirement files, closing the gap from code to spec.
+- [reqmd-import]({{ "import/" | absURL }}): Source-code traceability — extracts C, C++, Go, Python, and Rust symbols into reqmd .md requirement files, closing the gap from code to spec.
 - [AI & agents]({{ "ai/" | absURL }}): Why reqmd's plain-markdown + JSON format is the right substrate for AI-assisted spec workflows, the full command surface, schema reference, and a copy-pasteable AGENTS.md.

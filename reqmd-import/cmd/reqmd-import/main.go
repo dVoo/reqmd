@@ -11,8 +11,11 @@ import (
 	// into the lang registry. Without these, `reqmd-import extract` would
 	// walk the source tree and skip every file (no plugin claims any
 	// extension). Add new plugins here as they land.
+	_ "reqmd-import/internal/lang/c"
+	_ "reqmd-import/internal/lang/cpp"
 	_ "reqmd-import/internal/lang/go"
 	_ "reqmd-import/internal/lang/python"
+	_ "reqmd-import/internal/lang/rust"
 )
 
 // version is overridden at release time via:
@@ -24,7 +27,7 @@ func main() {
 	rootCmd := &cobra.Command{
 		Use:   "reqmd-import",
 		Short: "Extract source code into reqmd requirement files",
-		Long:  "reqmd-import scans source files (Go, Python) and generates ephemeral .md requirement files for downstream reqmd validation.",
+		Long:  "reqmd-import scans source files (C, C++, Go, Python, Rust) and generates ephemeral .md requirement files for downstream reqmd validation.",
 		Version: version,
 		// When invoked with no subcommand, print usage to stderr and exit non-zero.
 		// Without this, cobra would print nothing and exit 0, which is misleading:

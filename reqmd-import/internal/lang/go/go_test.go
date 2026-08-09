@@ -97,6 +97,54 @@ var SomeMap = map[string]int{}
 	}
 }
 
+// TestParseLocalConstVarSkipped verifies that const and var declarations
+// nested inside function bodies are not emitted as top-level symbols.
+// Two test helpers that each declare `const src = ...` would otherwise
+// collide on the same requirement ID (the ID hashes package + name only).
+// The package-level blank identifier `var _ T = ...` is also skipped.
+func TestParseLocalConstVarSkipped(t *testing.T) {
+	const src = `package scope
+
+// topLevel is a package const.
+const topLevel = 1
+
+// assert implements the interface.
+var _ interface{ String() string } = (*T)(nil)
+
+func helperOne() {
+	const src = "one"
+	_ = src
+}
+
+func helperTwo() {
+	const src = "two"
+	var localVar = 1
+	_ = localVar
+}
+`
+	l := &GoLanguage{}
+	syms, err := l.Parse("scope.go", []byte(src))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	names := make(map[string]bool)
+	for _, s := range syms {
+		names[s.Name] = true
+	}
+	if names["src"] {
+		t.Errorf("local const src must not be emitted")
+	}
+	if names["localVar"] {
+		t.Errorf("local var localVar must not be emitted")
+	}
+	if names["_"] {
+		t.Errorf("blank identifier var _ must not be emitted")
+	}
+	if !names["topLevel"] || !names["helperOne"] || !names["helperTwo"] {
+		t.Errorf("missing top-level symbols; got %v (len=%d)", names, len(syms))
+	}
+}
+
 // TestParseEmpty handles zero-byte and unparseable input gracefully.
 func TestParseEmpty(t *testing.T) {
 	l := &GoLanguage{}

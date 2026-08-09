@@ -1,10 +1,10 @@
 ---
 title: "reqmd-import"
-description: "Source-code traceability — close the gap from code to spec by extracting requirement IDs from Go and Python source."
+description: "Source-code traceability — close the gap from code to spec by extracting requirement IDs from Go, Python, C, C++, and Rust source."
 weight: 5
 ---
 
-A source-code extractor that reads your Go or Python code, walks each file with a tree-sitter grammar, and writes per-package `.md` files into your spec tree. Every function, type, and method becomes a `reqmd` requirement. The source is annotated as provenance, the symbol kind is preserved, and the doc comment becomes the requirement body. The result is a spec tree where the code and the spec share an ID space.
+A source-code extractor that reads your C, C++, Go, Python, or Rust code, walks each file with a tree-sitter grammar, and writes per-package `.md` files into your spec tree. Every function, type, and method becomes a `reqmd` requirement. The source is annotated as provenance, the symbol kind is preserved, and the doc comment becomes the requirement body. The result is a spec tree where the code and the spec share an ID space.
 
 This is what closes the traceability gap from code to spec. Without it, you have two artifacts that reference each other in different vocabularies. With it, the agent (and the human) can follow a trace from a stakeholder requirement to the system requirement to the software requirement to the function that implements it.
 
@@ -87,6 +87,9 @@ reqmd-import extract ./internal ./spec/03-software/imported
 # Restrict to one language
 reqmd-import extract --lang go ./internal ./spec/03-software/imported-go
 reqmd-import extract --lang python ./src ./spec/03-software/imported-py
+reqmd-import extract --lang c ./src ./spec/03-software/imported-c
+reqmd-import extract --lang cpp ./src ./spec/03-software/imported-cpp
+reqmd-import extract --lang rust ./src ./spec/03-software/imported-rs
 
 # Also extract bare requirement IDs from prose (not just explicit markers)
 reqmd-import extract --heuristic-traces ./internal ./spec/03-software/imported
@@ -110,9 +113,11 @@ The generated files participate in every check just like hand-authored ones. If 
 | Language | Status | Tree-sitter grammar | Notes |
 |---|---|---|---|
 | **Go** | Stable | `tree-sitter-go` | Functions, methods, types, constants, variables. Method receivers are part of the ID (`Foo.Bar`). |
-| **Python** | Stable | `tree-sitter-python` | Functions, classes, methods, constants. Async functions are tagged in the symbol-kind. |
-| Rust | Not implemented | — | The registry slot is reserved; contributions welcome. |
-| Zig | Not implemented | — | Same. |
+| **Python** | Stable | `tree-sitter-python` | Functions, classes, methods, constants. Package falls back to the module (file) name. |
+| **C** | Stable | `tree-sitter-c` | Functions, struct/enum/union types, typedefs, global variables, `#define` macros. Function prototypes and function-local declarations are skipped. |
+| **C++** | Stable | `tree-sitter-cpp` | Functions, class/struct member functions (inline and declared), class/struct/enum/union types, `using` aliases, typedefs, globals, macros. Method receivers carry the enclosing class. |
+| **Rust** | Stable | `tree-sitter-rust` | Functions, `impl`/`trait` methods, struct/enum/trait/union types, type aliases, constants, statics. Method receivers carry the impl'd type or trait. |
+| Zig | Not implemented | — | The registry slot is reserved; contributions welcome. |
 
 To add a new language: implement the `lang.Language` interface in a new package under `internal/lang/<lang>/`, and self-register it via `lang.Register(&impl{})` in an `init()` block. The blank import in `cmd/reqmd-import/main.go` pulls all plugins into the binary.
 

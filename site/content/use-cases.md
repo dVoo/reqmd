@@ -57,7 +57,7 @@ You write requirements the way you already write documentation: in a text editor
 </article>
 <article class="usecase">
 <h3>Source-code traceability</h3>
-<p>The companion <code>reqmd-import</code> tool walks Go and Python source with tree-sitter and writes per-package <code>.md</code> requirements into your spec tree. Every function and type gets an ID in the same namespace as your spec — the same <code>reqmd check</code> that catches broken upstream refs also catches broken implementation refs.</p>
+<p>The companion <code>reqmd-import</code> tool walks C, C++, Go, Python, or Rust source with tree-sitter and writes per-package <code>.md</code> requirements into your spec tree. Every function and type gets an ID in the same namespace as your spec — the same <code>reqmd check</code> that catches broken upstream refs also catches broken implementation refs.</p>
 <a href="/import/">reqmd-import →</a>
 </article>
 <article class="usecase">

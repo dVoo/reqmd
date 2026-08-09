@@ -15,7 +15,7 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
 - `go.mod` / `go.sum` — Go module `reqmd` (1.26)
 - `go.work` / `go.work.sum` — Go workspace linking `reqmd` (root) and `reqmd-import` so `go build ./...` and `go test ./...` from the repo root cover both modules. Both keep independent `go.mod` files and dependency sets.
-- `reqmd-import/` — separate Go module (`reqmd-import`) for the extraction tool that imports source code as proxy requirements. Independent toolchain (tree-sitter); shares the spec *format* with reqmd but no Go code. Build with `go build ./reqmd-import/cmd/reqmd-import`. Modeled in `spec/workspace.dsl` as the "Extraction Tool" softwareSystem.
+- `reqmd-import/` — separate Go module (`reqmd-import`) for the extraction tool that imports source code as proxy requirements. Independent toolchain (tree-sitter); shares the spec *format* with reqmd but no Go code. Build with `go build ./reqmd-import/cmd/reqmd-import`. Modeled in `spec/workspace.dsl` as the "Extraction Tool" softwareSystem. Language plugins live in `reqmd-import/internal/lang/` (currently C, C++, Go, Python, Rust), each self-registering via `lang.Register` in `init()` and blank-imported from `cmd/reqmd-import/main.go`.
 - `.opencode/` — OpenCode tooling install (not part of the project)
 
 ## Key facts

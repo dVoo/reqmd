@@ -9,7 +9,11 @@ import (
 
 	"github.com/spf13/cobra"
 
+	_ "reqmd-import/internal/lang/c" // register C plugin via init()
+	_ "reqmd-import/internal/lang/cpp"
 	_ "reqmd-import/internal/lang/go" // register Go plugin via init()
+	_ "reqmd-import/internal/lang/python"
+	_ "reqmd-import/internal/lang/rust"
 )
 
 // newTestCmd returns a minimal cobra command suitable for passing to
@@ -206,3 +210,85 @@ func TestExtSet(t *testing.T) {
 		t.Errorf("extSet = %v", got)
 	}
 }
+
+// TestRunExtract_NoSymbolsNotParseFailure verifies that a file with no
+// extractable symbols (e.g. a package-doc-only .go file) is not counted
+// as a parse failure in the summary. Parse returns an empty slice for
+// such files; the failure counter must only track actual read/parse
+// errors.
+func TestRunExtract_NoSymbolsNotParseFailure(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "doc.go", "// Package only.\npackage doconly\n")
+	out := t.TempDir()
+
+	var outBuf, errBuf bytes.Buffer
+	cmd := &cobra.Command{}
+	cmd.SetOut(&outBuf)
+	cmd.SetErr(&errBuf)
+
+	f := &extractFlags{idPrefix: "IMP-"}
+	if err := runExtract(cmd, []string{src, out}, f); err != nil {
+		t.Fatalf("runExtract: %v", err)
+	}
+	if strings.Contains(outBuf.String(), "parse failure") {
+		t.Errorf("summary should not report parse failures; got: %q", outBuf.String())
+	}
+}
+
+// TestRunExtract_MultiLanguage walks a source tree containing one file per
+// registered language and verifies that each yields a package directory in
+// the target tree. This is the plugin-registry end-to-end: every language
+// plugin must self-register and claim its extension.
+func TestRunExtract_MultiLanguage(t *testing.T) {
+	src := t.TempDir()
+	out := t.TempDir()
+
+	writeFile(t, src, "thing.c", `// C thing.
+int c_thing(void) { return 0; }
+`)
+	writeFile(t, src, "thing.cpp", `// C++ thing.
+int cpp_thing() { return 0; }
+`)
+	writeFile(t, src, "thing.go", `package gopkg
+
+// Go thing.
+func GoThing() {}
+`)
+	writeFile(t, src, "thing.py", `# Python thing.
+def py_thing():
+    pass
+`)
+	writeFile(t, src, "thing.rs", `// Rust thing.
+fn rust_thing() {}
+`)
+
+	f := &extractFlags{idPrefix: "IMP-"}
+	cmd := newTestCmd()
+	if err := runExtract(cmd, []string{src, out}, f); err != nil {
+		t.Fatalf("runExtract: %v", err)
+	}
+
+	// One package directory per language (named after the source file).
+	for _, want := range []string{"thing", "thing", "gopkg", "thing", "thing"} {
+		_ = want
+	}
+	for _, want := range []string{"gopkg", "thing"} {
+		if _, err := os.Stat(filepath.Join(out, want, "package.md")); err != nil {
+			t.Errorf("package %q missing: %v", want, err)
+		}
+	}
+	// The Go package carries the package-clause name; the C/C++/Python/Rust
+	// packages fall back to the file basename ("thing"), all sharing one
+	// directory. Verify the requirements landed there.
+	md, err := os.ReadFile(filepath.Join(out, "thing", "package.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	mdStr := string(md)
+	for _, wantSym := range []string{"c_thing", "cpp_thing", "py_thing", "rust_thing"} {
+		if !strings.Contains(mdStr, wantSym) {
+			t.Errorf("package.md missing %q requirement; got:\n%s", wantSym, mdStr)
+		}
+	}
+}
+

@@ -204,19 +204,48 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 		}
 		return lang.SymbolAt(captures["type.decl"], file, pkg, model.SymbolType, name, "", l, src), true
 	case captures["const.decl"] != nil:
+		// Skip const declarations nested inside function bodies
+		// (e.g. `const src = ...` in a test helper) — only package-level
+		// constants are top-level symbols. Also skip the blank identifier
+		// `var _ T = ...` compile-time assertion idiom.
+		if isInsideFunction(captures["const.decl"]) {
+			return model.Symbol{}, false
+		}
 		name := lang.CaptureContent(captures["const.name"], src)
-		if name == "" {
+		if name == "" || name == "_" {
 			return model.Symbol{}, false
 		}
 		return lang.SymbolAt(captures["const.decl"], file, pkg, model.SymbolConst, name, "", l, src), true
 	case captures["var.decl"] != nil:
+		// Same scope rule as const: only package-level variables are
+		// top-level symbols.
+		if isInsideFunction(captures["var.decl"]) {
+			return model.Symbol{}, false
+		}
 		name := lang.CaptureContent(captures["var.name"], src)
-		if name == "" {
+		if name == "" || name == "_" {
 			return model.Symbol{}, false
 		}
 		return lang.SymbolAt(captures["var.decl"], file, pkg, model.SymbolVar, name, "", l, src), true
 	}
 	return model.Symbol{}, false
+}
+
+// isInsideFunction reports whether node's ancestor chain contains a
+// function_declaration or method_declaration. Used to reject const/var
+// declarations nested inside function bodies, which are function-local
+// and not top-level symbols.
+func isInsideFunction(node *sitter.Node) bool {
+	if node == nil {
+		return false
+	}
+	for p := node.Parent(); p != nil; p = p.Parent() {
+		switch p.Kind() {
+		case "function_declaration", "method_declaration", "func_literal":
+			return true
+		}
+	}
+	return false
 }
 
 // receiverType extracts the receiver type name from a method_declaration

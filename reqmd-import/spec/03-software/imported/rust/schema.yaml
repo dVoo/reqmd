@@ -42,7 +42,7 @@ properties:
 title: Auto-imported requirements (reqmd-import)
 type: object
 x-reqmd:
-    id-prefix: IMP-writer-
+    id-prefix: IMP-rust-
     level: imported-requirements
     upstream:
         sources:

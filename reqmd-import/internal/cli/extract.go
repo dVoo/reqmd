@@ -61,7 +61,7 @@ Examples:
 		},
 	}
 
-	cmd.Flags().StringVar(&f.lang, "lang", "", "restrict to one language (e.g. 'go', 'python'); default: all registered")
+	cmd.Flags().StringVar(&f.lang, "lang", "", "restrict to one language (e.g. 'c', 'cpp', 'go', 'python', 'rust'); default: all registered")
 	cmd.Flags().BoolVar(&f.heuristicTraces, "heuristic-traces", false, "also extract bare requirement IDs from prose (not just explicit reqmd:trace markers)")
 	cmd.Flags().StringVar(&f.idPrefix, "id-prefix", "IMP-", "prefix for generated requirement IDs (forward-compat; the embedded schema uses 'IMP-')")
 
@@ -214,6 +214,14 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 						errs <- fmt.Sprintf("warn: parse %s: %v", j.path, err)
 						results <- nil
 						continue
+					}
+					// A successful parse of a file with no extractable
+					// symbols returns a nil slice. Normalize it so the
+					// collector can distinguish "no symbols" (a normal
+					// outcome for doc-only files) from "failure" (nil
+					// sent only on the error paths above).
+					if syms == nil {
+						syms = []model.Symbol{}
 					}
 					results <- syms
 				}
