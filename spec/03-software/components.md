@@ -214,3 +214,99 @@ trace:
 The graph shall run two new checks when result pseudo-requirements are present: `missing-verdict` (WARNING — an approved verification measure, identified by a non-empty `verify` attribute, has no result tracing to it; draft measures are skipped) and `failing-verdict` (ERROR — a measure's latest result has outcome `fail`). Both checks are no-ops when no result nodes exist. Both are suppressible via `reqmd-suppress`.
 
 *Rationale:* A measure is defined by the `verify` attribute, not by inbound edges — a measure with no result has no inbound result edge, so the check must key on `verify`. Draft measures are skipped because a draft measure is not yet expected to have results.
+
+## SW-FIL-001: Attribute filter engine
+```attr
+status: approved
+package: filter
+priority: Medium
+trace:
+  - SYS-FIL-001
+```
+The `internal/filter` package shall compile a `--filter` expression once at startup into bytecode using expr-lang, reject at compile time any expression referencing an attribute not declared in some `schema.yaml` (global typo check), and evaluate the bytecode against each requirement's attribute map plus the built-in `id` and `title` variables. Per-document attribute absence shall evaluate to nil (no error) via `AllowUndefinedVariables`. The package shall provide a `MatchingIDs` helper and document filtering (`FilterDocs`).
+
+*Rationale:* Compile-once/eval-many keeps per-requirement filtering cheap on large trees; the global schema check turns attribute typos into a startup error instead of silent empty matches.
+
+## SW-DIS-001: Disjoint-attribute graph check
+```attr
+status: approved
+package: graph
+priority: Medium
+trace:
+  - SYS-CHK-003
+```
+The graph package shall implement `checkDisjointAttribute` (code `disjoint-attribute`), enabled via `SetDisjointAttrs` populated from the `--disjoint-check` flag or `x-reqmd.disjoint-check`. For every trace edge, the source and target requirements must share at least one value of each named array attribute; zero intersection shall produce an ERROR result, and an empty or absent value is exempt. The check shall respect `reqmd-suppress`.
+
+*Rationale:* The check is a pure graph pass over already-built edges, so it adds no new data structures; naming the attribute per invocation keeps it project-configurable without a new built-in.
+
+## SW-STS-001: Status lifecycle enforcement
+```attr
+status: approved
+package: schema
+priority: Medium
+trace:
+  - SYS-STS-001
+```
+The schema package shall validate `x-reqmd.additional-status-values` (lowercase-only matching `^[a-z][a-z0-9_-]*$`, no reserved built-in collision, no duplicates) and extend the built-in `status` enum per document accordingly. The graph shall gate coverage on status: only `approved` requirements satisfy a `requires-trace-from` expectation, and a missing-coverage message shall append the count of draft downstreams ignored. The exporter shall hide the status filter for documents with `x-reqmd.ignore-status: true`.
+
+*Rationale:* The status axis is enforced at three points — schema (valid extension values), graph (coverage provider gate), and exporter (status filter visibility) — so the lifecycle is consistent across validation, coverage, and rendered output.
+
+## SW-SUP-001: Check suppression
+```attr
+status: approved
+package: graph
+priority: Medium
+trace:
+  - SYS-SUP-001
+```
+The graph package shall parse a `reqmd-suppress: [<code>...]` attribute into each requirement's suppression set and skip the listed graph checks when collecting results for that requirement.
+
+*Rationale:* Suppression is a per-requirement opt-out evaluated at result-collection time, so it composes with every existing and future graph check without touching each check's logic.
+
+## SW-LEV-001: Level-typed coverage resolution
+```attr
+status: approved
+package: graph
+priority: High
+trace:
+  - SYS-FMT-005
+```
+The graph package shall index document directories by their `x-reqmd.level` and resolve each `requires-trace-from` token against that index: a token matching a declared level expands to every directory at that level (any approved inbound from any of them satisfies coverage), a token matching a `document-id` resolves as today, and a token matching neither shall produce a WARNING.
+
+*Rationale:* Level indexing is built once at graph construction from data the parser already exposes, so coverage checks stay O(1) per token while remaining correct as directories within a level are added or removed.
+
+## SW-IMP-001: Source-code extraction pipeline
+```attr
+status: approved
+package: extractor
+priority: High
+trace:
+  - SYS-IMP-001
+```
+The `reqmd-import` extractor shall walk a source tree, dispatch each file to the `lang` plugin claiming its extension, parse symbols in parallel via a worker pool, bind adjacent doc comments, and extract explicit `reqmd:trace` markers plus (opt-in) heuristic bare-ID references from the bound docs. It shall group symbols into per-package requirements and hand them to the writer with stable, line-independent IDs.
+
+*Rationale:* Decoupling the walk from parsing (and parsing from writing) keeps the pipeline independently testable and lets the worker pool absorb per-file tree-sitter cost.
+
+## SW-IMP-002: Language plugin registry
+```attr
+status: approved
+package: lang
+priority: High
+trace:
+  - SYS-IMP-001
+```
+The `internal/lang` registry shall define the `Language` interface (name, extensions, tree-sitter grammar, embedded query, doc binding, parse) and host self-registering plugins for C, C++, Go, Python, and Rust, blank-imported from the binary's entrypoint. Each plugin shall map its tree-sitter captures to the shared symbol model, populate method receivers from the enclosing type, and emit only top-level symbols (function-local declarations are excluded so same-named locals cannot collide on one ID).
+
+*Rationale:* The registry lets a new language land as a single self-registering package with no changes to the extractor or writer; scope rules keep generated IDs unique within a package.
+
+## SW-IMP-003: Proxy requirement writer
+```attr
+status: approved
+package: writer
+priority: High
+trace:
+  - SYS-IMP-001
+```
+The writer shall render per-package `.md` files with one requirement per symbol: ID `<id-prefix><package>-<symbol>-<7charhash>`, `status: approved`, `x-reqmd.imported: true`, provenance (`x-reqmd.source-file`, `x-reqmd.source-line`, `x-reqmd.symbol-kind`), and `###` children for methods nested under their parent type. Output shall be byte-deterministic and idempotent: existing files are only rewritten when their content changes, and hand-authored files (no generated marker) are never touched.
+
+*Rationale:* Deterministic output makes re-running the extractor a safe no-op, and the generated-marker guard prevents clobbering manual edits in the same target tree.

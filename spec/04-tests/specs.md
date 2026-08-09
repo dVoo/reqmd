@@ -98,3 +98,71 @@ trace:
 Integration tests shall verify that `serve --results <path>` loads verification results, renders verdict badges in the HTML output, watches result file paths for changes (both fsnotify and polling fallback), and triggers a rebuild when result files change. Tests shall confirm that CTRF JSON changes update verdict badges from pass to fail and that the `failing-verdict` check fires on rebuild.
 
 *Rationale:* The `serve --results` feature combines the live-reload watcher with the verify pipeline. Both the fsnotify and polling watcher paths must be exercised to ensure result-file changes trigger rebuilds in both modes. The verdict badge rendering must be verified in the HTML output, not just the graph checks.
+
+## TST-FIL-001: Filter package tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-FIL-001
+```
+Unit tests shall cover the `internal/filter` package: expression compilation (including rejection of undeclared attributes), matching against requirement attribute maps plus `id`/`title`, per-document nil handling, `FilterDocs`/`MatchingIDs`, and filter-aware coverage (a filtered-out inbound cannot satisfy a filtered-in requirement).
+
+*Rationale:* The filter engine is the gate for scoping `check`, exports, and diffs. Compile-time typo rejection and filter-aware coverage semantics are load-bearing and must be pinned by tests.
+
+## TST-DIS-001: Disjoint-attribute check tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-DIS-001
+  - SW-SUP-001
+```
+Unit tests shall cover the `disjoint-attribute` graph check: zero intersection produces an ERROR, overlapping values pass, empty/absent attribute is exempt, enablement via `--disjoint-check` and `x-reqmd.disjoint-check`, and suppression via `reqmd-suppress`.
+
+*Rationale:* The check gates cross-cutting attribute consistency (variants, safety levels) that other trace checks do not; both the intersection logic and the exemption/suppression paths need coverage.
+
+## TST-STS-001: Status lifecycle tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-STS-001
+```
+Unit tests shall cover the status lifecycle: missing status defaults to approved, draft requirements do not satisfy coverage, `x-reqmd.additional-status-values` validation (lowercase-only, reserved collision, duplicates), `x-reqmd.ignore-status` making all requirements coverage providers, and the draft-downstreams-ignored coverage message.
+
+*Rationale:* The lifecycle is enforced across schema, graph, and exporter; the coverage-provider gate is the behavior that changes validation outcomes and must be regression-tested.
+
+## TST-LEV-001: Level-typed coverage tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-LEV-001
+```
+Unit tests shall cover level-typed `requires-trace-from`: a level token expands to every document declaring it, coverage is satisfied by any approved inbound from those documents, document-id tokens still resolve, and unknown tokens produce a WARNING.
+
+*Rationale:* Level resolution changes coverage semantics for multi-document layers; the expansion and fallback paths must be verified independently.
+
+## TST-IMP-001: reqmd-import extraction tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-IMP-001
+  - SW-IMP-002
+  - SW-IMP-003
+```
+Unit tests shall cover the `reqmd-import` pipeline: language plugin parse/classification for C, C++, Go, Python, and Rust (kinds, method receivers, doc binding, top-level-only scope rules), trace extraction (explicit `reqmd:trace` markers and opt-in heuristic IDs), and the writer's deterministic, idempotent per-package output with provenance attributes and generated-marker guard.
+
+*Rationale:* reqmd-import closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the writer's determinism is what makes re-running the extractor safe in CI.

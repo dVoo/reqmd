@@ -407,3 +407,21 @@ The tool shall support safety attribute assignment to requirements (ASIL QM/A/B/
 *Rationale:* ISO 26262-6 7.4.2 requires ASIL designation for software requirements. Users define `asil` as a normal attribute in their `schema.yaml` with the desired enum values. The tool's standard validation (required fields, enum values, type checking) applies to user-defined safety attributes through JSON Schema 2020-12 validation. ASIL consistency checking across the trace chain is out of scope — orgs requiring ASIL propagation checks should use the ladybugdb graph export and external query tools.
 
 *Already fulfilled by:* User-defined schema attributes, JSON Schema validation (required, enum, type). *Gap:* ASIL consistency across the V-model trace chain is not validated — deferred to external tooling via graph export.
+
+## ASP-SR-022: Source-code traceability
+```attr
+process: SWE
+aspice-bp: ["SYS2-BP5", "SWE1-BP5", "SWE3-BP3"]
+status: approved
+disposition: implemented
+coverage: Full
+trace:
+  - ASP-SYS2-BP5
+  - ASP-SWE1-BP5
+  - ASP-SWE3-BP3
+```
+The tool shall support traceability between source-code artifacts and requirements by extracting requirement references from code comments and generating proxy software requirements that participate in the same validation graph as authored requirements.
+
+*Rationale:* ASPICE traceability BPs require consistency and bidirectional traceability across the development workflow (SYS.2.BP5, SWE.1.BP5) and implementation of software units (SWE.3.BP3). reqmd's companion `reqmd-import` tool walks C, C++, Go, Python, and Rust source with tree-sitter grammars, turns every top-level symbol into a generated requirement (`status: approved`, `x-reqmd.imported: true`, stable package+symbol-hashed IDs), binds the adjacent doc comment as the body, extracts explicit `reqmd:trace` markers and opt-in heuristic IDs, and writes per-package `.md` files into the spec tree. The generated requirements validate, export, and diff like any other document, so a deleted or renamed implementation surfaces as a broken trace in the same `reqmd check` that catches broken spec references.
+
+*Already fulfilled by:* `reqmd-import extract` with language plugins (C, C++, Go, Python, Rust), `reqmd:trace` markers and `--heuristic-traces`, generated `.md` files validated by the standard pipeline (`x-reqmd.imported`, source provenance attributes).

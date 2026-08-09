@@ -42,7 +42,7 @@ properties:
 title: Auto-imported requirements (reqmd-import)
 type: object
 x-reqmd:
-    id-prefix: IMP-parser-
+    id-prefix: IMP-verify-
     level: imported-requirements
     upstream:
         sources:

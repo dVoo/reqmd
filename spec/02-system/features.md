@@ -179,3 +179,95 @@ Each merged result is synthesized as a pseudo-requirement (`RESULT:<id>`, `trace
 
 *Rationale:* reqmd traces the left side of the V-model (stakeholder → system → software → test specs) but could not represent the right side: verification *results*. Every ASPICE BP that says "record the verification results including pass/fail status and evaluate" was unrepresentable. The `status: draft|approved` axis is a lifecycle gate, not a verdict — an approved, implemented test can still fail. Ephemeral results keep CI run-to-run churn out of git and `baseline diff`, while the outcome-gated checks close the V-model right side by enforcing that every approved measure has a passing latest verdict.
 
+## SYS-FIL-001: Generic attribute filtering
+```attr
+status: approved
+priority: Medium
+requires-trace-from: [software-requirements]
+trace:
+  - STK-GOAL-003
+  - STK-GOAL-005
+  - ASP-SR-005
+  - ASP-SR-008
+  - ASP-SR-018
+```
+The `check`, `ls`, `stats`, `export csv`, `export html`, and `serve` commands shall accept a `--filter "<expr>"` flag that scopes the operation to requirements matching an expression evaluated against the requirement's attributes plus the built-in `id` and `title` variables. Expressions shall be compiled once at startup into bytecode, and compile-time validation shall reject expressions referencing attributes not declared in any `schema.yaml` (global typo check). Per-document attribute absence shall evaluate to nil rather than erroring.
+
+Coverage checking shall be filter-aware: a filtered-out requirement cannot satisfy the `requires-trace-from` expectation of a filtered-in requirement, so filtered-out requirements do not cause false coverage failures. The graph is always built from the full tree so trace refs to filtered-out requirements still resolve; only per-requirement checks and coverage are scoped. `baseline diff` shall additionally accept `--filter-a` and `--filter-b` to compare two filtered views of a single commit (e.g. "what does Premium add over Base").
+
+*Rationale:* Large specs make full-tree review and incremental CI expensive. Attribute filtering lets teams scope `check`, exports, and diffs to the slice of the tree that a change touches, without losing the ability to resolve traces globally. Rejecting undeclared attribute names at compile time catches typos before they silently match nothing, and filter-aware coverage (RFC §3.2) keeps filtered-out requirements from causing false failures.
+
+## SYS-CHK-003: Disjoint-attribute consistency check
+```attr
+status: approved
+priority: Medium
+requires-trace-from: [software-requirements]
+trace:
+  - STK-GOAL-003
+  - ASP-SR-005
+  - ASP-SR-011
+```
+The `check` command shall accept a repeatable `--disjoint-check <attr>` flag (and the equivalent `x-reqmd.disjoint-check` key in `schema.yaml`, string or array) that, for every trace link, verifies that the source and target requirements have at least one overlapping value for the named array-typed attribute. A zero intersection shall produce an ERROR (`disjoint-attribute`); an empty or absent value is exempt ("applies to all"). The check shall be suppressible per requirement via `reqmd-suppress: [disjoint-attribute]`.
+
+*Rationale:* Attribute-consistency gates capture cross-cutting invariants that pure trace-structure checks miss — e.g. "a trace link may only connect two requirements that share a product variant or a safety level". They turn a manual review convention into an enforceable CI check with a single flag, without adding a new built-in attribute.
+
+## SYS-STS-001: Requirement status lifecycle
+```attr
+status: approved
+priority: Medium
+requires-trace-from: [software-requirements]
+trace:
+  - STK-GOAL-003
+  - STK-GOAL-005
+  - ASP-SR-006
+  - ASP-SR-008
+```
+`status` shall be a built-in attribute with enum `[draft, approved]`; a missing `status` shall default to `approved` (silently). Only `approved` requirements shall count as upstream coverage providers — a `draft` requirement referenced by a `trace` shall NOT satisfy a `requires-trace-from` expectation. Schemas may extend the enum via `x-reqmd.additional-status-values` (lowercase-only values, no built-in collision, no duplicates) or opt out of the lifecycle per document via `x-reqmd.ignore-status: true` (all requirements become coverage providers; the status filter is hidden in HTML export). When a missing-coverage message is produced and at least one inbound was filtered by the status gate, the message shall report how many draft downstreams were ignored.
+
+*Rationale:* A lifecycle axis distinct from `disposition` lets teams keep in-progress requirements in the spec without letting them (falsely) satisfy coverage. Draft requirements remain traceable and validated, but cannot close a coverage expectation until promoted to `approved`.
+
+## SYS-SUP-001: Check suppression
+```attr
+status: approved
+priority: Medium
+requires-trace-from: [software-requirements]
+trace:
+  - STK-GOAL-003
+  - ASP-SR-008
+```
+Any requirement may declare a `reqmd-suppress: [<check-code>]` attribute listing graph checks to suppress for that requirement (e.g. `version-pin`, `missing-verdict`, `failing-verdict`, `disjoint-attribute`). Suppressed checks shall emit no result for the declaring requirement, in all commands that run graph checks.
+
+*Rationale:* Not every check applies to every requirement; a deliberate, documented exception should not fail CI. Suppression is per-requirement and opt-in, so the default remains strict — an exception is visible in the source and auditable in review.
+
+## SYS-FMT-005: Level-typed trace coverage
+```attr
+status: approved
+priority: High
+requires-trace-from: [software-requirements]
+trace:
+  - STK-GOAL-005
+  - ASP-SR-004
+  - ASP-SR-020
+```
+A `requires-trace-from` token shall name either a `document-id` or an `x-reqmd.level`. When a token names a level, reqmd shall resolve it to every document directory that declares that level and check that at least one approved requirement from one of those directories traces back — covering all documents at a V-model layer without listing each `document-id`. A token that matches neither a `document-id` nor a declared level shall produce a WARNING.
+
+*Rationale:* Multi-document layers (e.g. several `system-requirements` directories owned by different teams) otherwise force every coverage expectation to enumerate every document-id. Level-typed coverage makes the V-model layer itself a first-class coverage target and stays robust as documents are added or removed within a layer.
+
+## SYS-IMP-001: Source-code requirement extraction
+```attr
+status: approved
+priority: High
+requires-trace-from: [software-requirements]
+trace:
+  - STK-GOAL-002
+  - STK-GOAL-005
+  - ASP-SR-001
+  - ASP-SR-002
+  - ASP-SR-022
+```
+The toolchain shall include `reqmd-import`, a companion extraction tool that walks a source tree, dispatches each file to the tree-sitter language plugin claiming its extension, extracts top-level symbols (functions, methods, types, constants, variables) from C, C++, Go, Python, and Rust source, binds the adjacent doc comment as the requirement body, extracts explicit `reqmd:trace` markers (and, opt-in via `--heuristic-traces`, bare requirement IDs from prose), and writes per-package `.md` requirement files into a target spec directory.
+
+Generated requirements shall be first-class spec documents: `status: approved`, `x-reqmd.imported: true`, provenance attributes (`x-reqmd.source-file`, `x-reqmd.source-line`, `x-reqmd.symbol-kind`), and IDs of the form `<id-prefix><package>-<symbol>-<hash>` (hash over package+symbol so IDs survive line shifts). The generated files shall validate, export, and diff like any other spec document, closing the V-model gap from spec to code.
+
+*Rationale:* Software requirements trace down to tests (ASP-SR-006) but not to the implementation that satisfies them. Automatic extraction turns source symbols into requirements in the same ID namespace, so a broken spec→code trace is caught by the same `reqmd check` that catches broken spec refs — and re-running the extractor keeps the code-side of the V-model current without hand-maintained mapping tables.
+

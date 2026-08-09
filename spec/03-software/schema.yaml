@@ -8,7 +8,7 @@ required:
 properties:
   package:
     type: string
-    enum: [parser, schema, graph, reporter, exporter, cmd, verify]
+    enum: [parser, schema, graph, reporter, exporter, cmd, verify, filter, extractor, lang, writer]
   priority:
     type: string
     enum: [Critical, High, Medium]

@@ -16,11 +16,12 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
                 schemaFile = component "schema.yaml"   "JSON Schema 2020-12 in YAML + x-reqmd upstream" "YAML"
             }
 
-            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json output" "Go 1.26" "CLI" {
+            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json and --filter output" "Go 1.26" "CLI" {
                 parser       = component "Markdown Parser"  "Discovers schema.yaml per dir and parses .md via goldmark AST with GFM and parallel worker pool" "Go / goldmark"
-                validator    = component "Schema Validator" "Injects built-in attrs and validates attr maps against JSON Schema 2020-12" "Go / google/jsonschema-go"
-                graphBuilder = component "Graph Builder"    "Builds in-memory adjacency from parsed requirements, resolves doc-id-qualified traces" "Go"
-                traceChecker = component "Trace Checker"   "Runs Pass 2 trace checks and Pass 3 sub-req parent validation against the in-memory cache" "Go"
+                validator    = component "Schema Validator" "Injects built-in attrs (including the status lifecycle and additional-status-values), validates attr maps against JSON Schema 2020-12, and accepts reqmd-suppress per requirement" "Go / google/jsonschema-go"
+                graphBuilder = component "Graph Builder"    "Builds in-memory adjacency from parsed requirements, resolves doc-id-qualified traces, and indexes x-reqmd.level for level-typed requires-trace-from coverage" "Go"
+                traceChecker = component "Trace Checker"   "Runs Pass 2 trace checks, Pass 3 sub-req parent validation, disjoint-attribute checks, and outcome-gated verdict checks against the in-memory cache; honors per-requirement reqmd-suppress" "Go"
+                filter       = component "Attribute Filter" "Compiles --filter expressions (expr-lang) once, validates attribute names against all schemas, and scopes check/ls/stats/export/serve/baseline to matching requirements with filter-aware coverage" "Go / expr-lang"
                 exporter     = component "Exporter"        "Renders standalone HTML, CSV, and LadybugDB graph outputs" "Go"
                 reporter     = component "Reporter"        "Aggregates Pass 1/2/3 results, emits formatted or JSON output, sets exit code" "Go"
                 differ       = component "Baseline Differ" "Compares requirements and schemas between two git tags via git archive, using r3labs/diff for attribute-level changes" "Go / r3labs-diff"
@@ -30,7 +31,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         }
 
         // reqmd-import: source-code requirement trace extraction tool
-        extractionTool = softwareSystem "Extraction Tool" "Parses source code with Tree-sitter, extracts symbols and requirement IDs, and writes ephemeral .md requirement files (proxy items) into a target spec directory" {
+        extractionTool = softwareSystem "Extraction Tool" "Parses source code with Tree-sitter (C, C++, Go, Python, Rust grammars), extracts symbols and requirement IDs, and writes ephemeral .md requirement files (proxy items) into a target spec directory" {
 
             scanner = container "Repository Scanner" "Discovers files, detects languages, computes hashes, and schedules parsing work" "CLI / File walker"
 
@@ -92,6 +93,10 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         repinner     -> graphBuilder "Reads OutboundPins and OutboundRefs from graph to compute version-pin deltas"
         repinner     -> specRepo     "Rewrites ```attr blocks in .md files to update ~N pins"
         traceChecker -> verifyLoader  "Runs missing-verdict / failing-verdict checks against result nodes"
+        filter       -> parser        "Validates filter attribute names against all parsed schemas"
+        filter       -> graphBuilder  "Scopes per-requirement checks and coverage to matching requirements"
+        filter       -> reporter      "Filters results to matching requirements"
+        filter       -> exporter      "Scopes CSV/HTML export to matching requirements"
 
         // --- Extraction tool internal flow ---
         extractionTool.scanner        -> extractionTool.cache          "Reads/writes file hashes and work state"
