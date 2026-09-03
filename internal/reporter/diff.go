@@ -4,9 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
-	"strings"
-
 	"reqmd/internal/diff"
+	"strings"
 )
 
 const (
@@ -147,7 +146,7 @@ func renderSubmoduleSection(submodules []diff.SubmoduleChange) string {
 func FormatDiffJSON(result *diff.Result) (string, error) {
 	data, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("marshaling diff result: %w", err)
 	}
 	return string(data), nil
 }

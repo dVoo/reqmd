@@ -363,3 +363,113 @@ func TestCompile_AdditionalPropertiesFalseAcceptsBuiltInStatus(t *testing.T) {
 		t.Error("Validate with capitalized status: want error, got nil")
 	}
 }
+
+// ---------------------------------------------------------------------------
+// x-reqmd.requires-trace-from document default
+// ---------------------------------------------------------------------------
+
+func compileWithRTF(t *testing.T, rtf any) error {
+	t.Helper()
+	raw := map[string]any{
+		"$schema": "https://json-schema.org/draft/2020-12/schema",
+		"type":    "object",
+		"x-reqmd": map[string]any{"requires-trace-from": rtf},
+	}
+	_, err := Compile(raw, ".")
+	return err
+}
+
+func TestCompile_RequiresTraceFromDefaultAccepted(t *testing.T) {
+	for name, rtf := range map[string]any{
+		"array":  []any{"software", "tests"},
+		"scalar": "software",
+		"empty":  []any{},
+	} {
+		if err := compileWithRTF(t, rtf); err != nil {
+			t.Errorf("%s: Compile should accept %v as a document default: %v", name, rtf, err)
+		}
+	}
+}
+
+func TestCompile_RequiresTraceFromDefaultRejected(t *testing.T) {
+	cases := map[string]struct {
+		rtf     any
+		wantErr string
+	}{
+		"not-a-list-or-string": {42, "must be an array of strings"},
+		"non-string-entry":     {[]any{"software", 7}, "every entry must be a string"},
+		"uppercase-token":      {[]any{"System"}, "invalid token \"System\""},
+		"invalid-char-token":   {[]any{"software req"}, "invalid token"},
+		"empty-token":          {[]any{""}, "empty/whitespace-only token"},
+		"duplicate-token":      {[]any{"software", "software"}, "duplicate token \"software\""},
+	}
+	for name, tc := range cases {
+		err := compileWithRTF(t, tc.rtf)
+		if err == nil {
+			t.Errorf("%s: Compile should reject %v, got nil", name, tc.rtf)
+			continue
+		}
+		if !strings.Contains(err.Error(), tc.wantErr) {
+			t.Errorf("%s: error should contain %q, got: %v", name, tc.wantErr, err)
+		}
+	}
+}
+
+func TestExtractXReqmd_RequiresTraceFromScalarNormalized(t *testing.T) {
+	raw := map[string]any{"x-reqmd": map[string]any{"requires-trace-from": "system"}}
+	xr := ExtractXReqmd(raw)
+	if xr == nil {
+		t.Fatal("ExtractXReqmd returned nil")
+	}
+	if len(xr.RequiresTraceFrom) != 1 || xr.RequiresTraceFrom[0] != "system" {
+		t.Errorf("scalar default should be normalized to [system], got %v", xr.RequiresTraceFrom)
+	}
+}
+
+func TestExtractXReqmd_RequiresTraceFromEmptyStaysDistinct(t *testing.T) {
+	raw := map[string]any{"x-reqmd": map[string]any{"requires-trace-from": []any{}}}
+	xr := ExtractXReqmd(raw)
+	if xr == nil {
+		t.Fatal("ExtractXReqmd returned nil")
+	}
+	if xr.RequiresTraceFrom == nil {
+		t.Error("explicit empty default must round-trip as a non-nil empty slice (opt-out), got nil")
+	}
+	if len(xr.RequiresTraceFrom) != 0 {
+		t.Errorf("empty default should have no tokens, got %v", xr.RequiresTraceFrom)
+	}
+}
+
+func TestExtractXReqmd_RequiresTraceFromAbsentIsNil(t *testing.T) {
+	raw := map[string]any{"x-reqmd": map[string]any{"level": "system-requirements"}}
+	xr := ExtractXReqmd(raw)
+	if xr == nil {
+		t.Fatal("ExtractXReqmd returned nil")
+	}
+	if xr.RequiresTraceFrom != nil {
+		t.Errorf("absent default must stay nil, got %v", xr.RequiresTraceFrom)
+	}
+}
+
+func TestExtractXReqmd_MalformedDefaultDoesNotDropBlock(t *testing.T) {
+	// A malformed default value must not silently invalidate the whole
+	// x-reqmd block (Compile reports the error in `check`; other commands
+	// ignore the bad field and keep the rest of the metadata).
+	raw := map[string]any{
+		"x-reqmd": map[string]any{
+			"requires-trace-from": 42,
+			"level":               "system-requirements",
+			"document-id":         "system",
+		},
+	}
+	xr := ExtractXReqmd(raw)
+	if xr == nil {
+		t.Fatal("ExtractXReqmd must not drop the whole x-reqmd block on a malformed requires-trace-from")
+	}
+	if xr.Level != "system-requirements" || xr.DocumentID != "system" {
+		t.Errorf("other x-reqmd fields should survive, got %+v", xr)
+	}
+	if xr.RequiresTraceFrom != nil {
+		t.Errorf("malformed default should be ignored, got %v", xr.RequiresTraceFrom)
+	}
+}

@@ -2,10 +2,9 @@ package reporter
 
 import (
 	"encoding/json"
+	"reqmd/internal/graph"
 	"strings"
 	"testing"
-
-	"reqmd/internal/graph"
 )
 
 // mustUnmarshal decodes JSON string into a map for assertion checks.
@@ -97,7 +96,7 @@ func TestFormat_WithValidationErrors(t *testing.T) {
 		TotalReqs: 5,
 		ValidReqs: 3,
 		DocHeaders: []DocHeader{
-			{Path: "docs", SchemaTitle: "test", ReqCount: 5, ReqIDs: []string{"IVI-FUN-001", "IVI-FUN-002", "IVI-FUN-003", "IVI-FUN-004", "IVI-FUN-005"}},
+			{Path: "docs", Title: "test", ReqCount: 5, ReqIDs: []string{"IVI-FUN-001", "IVI-FUN-002", "IVI-FUN-003", "IVI-FUN-004", "IVI-FUN-005"}},
 		},
 		ValErrors: []ValidationError{
 			{File: "docs/ivi.md", ReqID: "IVI-FUN-001", Message: "missing required \"title\""},
@@ -135,7 +134,7 @@ func TestFormat_WithNewFormat(t *testing.T) {
 		TotalReqs: 2,
 		ValidReqs: 1,
 		DocHeaders: []DocHeader{
-			{Path: "spec/example", SchemaTitle: "ivi-srs-001 — IVI Attributes", ReqCount: 2, ReqIDs: []string{"R1", "R2"}},
+			{Path: "spec/example", Title: "ivi-srs-001 — IVI Attributes", ReqCount: 2, ReqIDs: []string{"R1", "R2"}},
 		},
 		ValErrors: []ValidationError{
 			{File: "spec/example/ivi.md", ReqID: "R2", Message: "missing required: asil"},
@@ -187,7 +186,7 @@ func TestFormat_WithNewFormat(t *testing.T) {
 func TestFormat_EmptyWithDocHeaders(t *testing.T) {
 	r := Report{
 		DocHeaders: []DocHeader{
-			{Path: "spec/example", SchemaTitle: "ivi-srs-001", ReqCount: 0},
+			{Path: "spec/example", Title: "ivi-srs-001", ReqCount: 0},
 		},
 	}
 	r.NewIndex()
@@ -255,7 +254,7 @@ func TestFormatList(t *testing.T) {
 		{
 			Path:       "spec/example",
 			Properties: []string{"status", "asil"},
-			Rows: []ReqRow{
+			Rows: []NodeRow{
 				{ID: "IVI-FUN-001", Attrs: map[string]any{"status": "approved", "asil": "B"}},
 				{ID: "IVI-FUN-002", Attrs: map[string]any{"status": "draft", "asil": "A"}},
 			},
@@ -304,7 +303,7 @@ func TestFormatList_WithTitle(t *testing.T) {
 		{
 			Path:       "spec/example",
 			Properties: []string{"status"},
-			Rows: []ReqRow{
+			Rows: []NodeRow{
 				{ID: "IVI-FUN-001", Title: "Login req", Attrs: map[string]any{"status": "approved"}},
 				{ID: "IVI-FUN-002", Title: "", Attrs: map[string]any{"status": "draft"}},
 			},
@@ -327,7 +326,7 @@ func TestFormatListJSON_WithTitle(t *testing.T) {
 		{
 			Path:       "spec/example",
 			Properties: []string{"status"},
-			Rows: []ReqRow{
+			Rows: []NodeRow{
 				{ID: "R1", Title: "Login req", Attrs: map[string]any{"status": "approved"}},
 				{ID: "R2", Title: "", Attrs: map[string]any{"status": "draft"}},
 			},
@@ -338,10 +337,10 @@ func TestFormatListJSON_WithTitle(t *testing.T) {
 
 	docsArr := m["documents"].([]any)
 	doc := docsArr[0].(map[string]any)
-	reqs := doc["requirements"].([]any)
+	rows := doc["rows"].([]any)
 
 	// R1 should have title field
-	r1 := reqs[0].(map[string]any)
+	r1 := rows[0].(map[string]any)
 	if r1["id"] != "R1" {
 		t.Errorf("req[0] id = %v", r1["id"])
 	}
@@ -349,7 +348,7 @@ func TestFormatListJSON_WithTitle(t *testing.T) {
 		t.Errorf("req[0] title = %v, want 'Login req'", r1["title"])
 	}
 	// R2 should omit title when empty (omitempty)
-	r2 := reqs[1].(map[string]any)
+	r2 := rows[1].(map[string]any)
 	if r2["id"] != "R2" {
 		t.Errorf("req[1] id = %v", r2["id"])
 	}
@@ -365,7 +364,8 @@ func TestFormatStats(t *testing.T) {
 		{
 			Path:       "spec/example",
 			Properties: []string{"status"},
-			Rows: []ReqRow{
+			ReqCount:   3,
+			Rows: []NodeRow{
 				{ID: "R1", Attrs: map[string]any{"status": "approved"}},
 				{ID: "R2", Attrs: map[string]any{"status": "draft"}},
 				{ID: "R3", Attrs: map[string]any{"status": "approved"}},
@@ -406,7 +406,7 @@ func TestFormatJSON_Simple(t *testing.T) {
 		TotalReqs: 5,
 		ValidReqs: 3,
 		DocHeaders: []DocHeader{
-			{Path: "spec/example", SchemaTitle: "ivi-srs-001", ReqCount: 5, ReqIDs: []string{"R1", "R2", "R3", "R4", "R5"}},
+			{Path: "spec/example", Title: "ivi-srs-001", ReqCount: 5, ReqIDs: []string{"R1", "R2", "R3", "R4", "R5"}},
 		},
 		ValErrors: []ValidationError{
 			{File: "spec/example/ivi.md", ReqID: "R1", Message: "missing required \"title\""},
@@ -531,7 +531,7 @@ func TestFormatJSON_GraphErrors(t *testing.T) {
 		TotalReqs: 2,
 		ValidReqs: 2,
 		DocHeaders: []DocHeader{
-			{Path: "docs", SchemaTitle: "test", ReqCount: 2, ReqIDs: []string{"A", "B"}},
+			{Path: "docs", Title: "test", ReqCount: 2, ReqIDs: []string{"A", "B"}},
 		},
 		GraphChecks: []graph.CheckResult{
 			{Level: "ERROR", ReqID: "A", File: "docs/a.md", Message: "circular dependency detected: A->B->A"},
@@ -555,7 +555,7 @@ func TestFormatListJSON(t *testing.T) {
 		{
 			Path:       "spec/example",
 			Properties: []string{"status", "asil"},
-			Rows: []ReqRow{
+			Rows: []NodeRow{
 				{ID: "R1", Attrs: map[string]any{"status": "approved", "asil": "B"}},
 				{ID: "R2", Attrs: map[string]any{"status": "draft"}},
 			},
@@ -572,11 +572,11 @@ func TestFormatListJSON(t *testing.T) {
 	if doc["path"] != "spec/example" {
 		t.Errorf("path = %v", doc["path"])
 	}
-	reqs := doc["requirements"].([]any)
-	if len(reqs) != 2 {
-		t.Fatalf("requirements len = %d, want 2", len(reqs))
+	rows := doc["rows"].([]any)
+	if len(rows) != 2 {
+		t.Fatalf("requirements len = %d, want 2", len(rows))
 	}
-	r1 := reqs[0].(map[string]any)
+	r1 := rows[0].(map[string]any)
 	if r1["id"] != "R1" {
 		t.Errorf("req[0] id = %v", r1["id"])
 	}
@@ -587,7 +587,8 @@ func TestFormatStatsJSON(t *testing.T) {
 		{
 			Path:       "spec/example",
 			Properties: []string{"status"},
-			Rows: []ReqRow{
+			ReqCount:   3,
+			Rows: []NodeRow{
 				{ID: "R1", Attrs: map[string]any{"status": "approved"}},
 				{ID: "R2", Attrs: map[string]any{"status": "draft"}},
 				{ID: "R3", Attrs: map[string]any{"status": "approved"}},

@@ -2,12 +2,11 @@ package cli
 
 import (
 	"fmt"
-
-	"github.com/spf13/cobra"
-
 	"reqmd/internal/filter"
 	"reqmd/internal/parser"
 	"reqmd/internal/reporter"
+
+	"github.com/spf13/cobra"
 )
 
 func newListCmd() *cobra.Command {
@@ -28,20 +27,24 @@ func newListCmd() *cobra.Command {
 			if filterExpr != "" {
 				f, err := filter.CompileForDocs(docs, filterExpr)
 				if err != nil {
-					return err
+					return fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 				}
 				docs, err = f.FilterDocs(docs)
 				if err != nil {
-					return err
+					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
 				}
 			}
 
 			summaries := buildDocSummaries(docs)
 
+			var output string
 			if jsonOutput {
-				fmt.Fprint(cmd.OutOrStdout(), reporter.FormatListJSON(summaries))
+				output = reporter.FormatListJSON(summaries)
 			} else {
-				fmt.Fprint(cmd.OutOrStdout(), reporter.FormatList(summaries))
+				output = reporter.FormatList(summaries)
+			}
+			if _, err := fmt.Fprint(cmd.OutOrStdout(), output); err != nil {
+				return fmt.Errorf("writing output: %w", err)
 			}
 			return nil
 		},

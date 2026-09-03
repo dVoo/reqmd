@@ -2,6 +2,7 @@ x-reqmd:
   document-id: system
   level: system-requirements
   id-prefix: SYS-
+  requires-trace-from: [software]
   upstream:
     level: stakeholder-needs
     # sources intentionally omitted; the integration repository chooses the path

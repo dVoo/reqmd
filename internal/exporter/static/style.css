@@ -1106,6 +1106,17 @@ html.dark .chain-card--current {
   line-height: 1.4;
 }
 
+.req-toc-item-id--item {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.req-toc-item--child .req-toc-item-id--item {
+  font-weight: 600;
+}
+
 .req-toc-item-title {
   font-size: 0.74rem;
   color: var(--text-secondary);
@@ -1239,29 +1250,96 @@ html.dark .chain-card--current {
   }
 }
 
-/* ── Parent card with children ──────────────────── */
-.req-card--has-children {
-  padding-bottom: 0;
+/* ── Container items (folder-like sections) ─────── */
+.container-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
 }
 
-/* ── Children section within parent card ────────── */
-.req-children {
-  margin-top: 1.25rem;
-  padding-top: 0.25rem;
+.container-item--child {
+  margin-left: 0.75rem;
   padding-left: 0.75rem;
   border-left: 2px solid var(--border);
-  position: relative;
 }
 
-.req-children-header {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.container-item summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.container-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.container-item summary::before {
+  content: '\25B8';
   color: var(--text-muted);
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.35rem;
-  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  transition: transform 0.15s ease;
+}
+
+.container-item details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.container-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.container-item-anchor {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.container-item:hover .container-item-anchor {
+  opacity: 1;
+}
+
+.container-item-body {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/* ── Info items (plain blocks) ───────────────────── */
+.info-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
+  color: var(--text-secondary);
+}
+
+.info-item--child {
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border);
+}
+
+.info-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+.info-item-body {
+  line-height: 1.6;
+}
+
+.info-item-body > :first-child {
+  margin-top: 0;
+}
+
+.info-item-body > :last-child {
+  margin-bottom: 0;
 }
 
 /* ── Child cards ────────────────────────────────── */

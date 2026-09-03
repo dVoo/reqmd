@@ -1114,6 +1114,17 @@ html.dark .chain-card--current {
   line-height: 1.4;
 }
 
+.req-toc-item-id--item {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.req-toc-item--child .req-toc-item-id--item {
+  font-weight: 600;
+}
+
 .req-toc-item-title {
   font-size: 0.74rem;
   color: var(--text-secondary);
@@ -1247,29 +1258,96 @@ html.dark .chain-card--current {
   }
 }
 
-/* ── Parent card with children ──────────────────── */
-.req-card--has-children {
-  padding-bottom: 0;
+/* ── Container items (folder-like sections) ─────── */
+.container-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
 }
 
-/* ── Children section within parent card ────────── */
-.req-children {
-  margin-top: 1.25rem;
-  padding-top: 0.25rem;
+.container-item--child {
+  margin-left: 0.75rem;
   padding-left: 0.75rem;
   border-left: 2px solid var(--border);
-  position: relative;
 }
 
-.req-children-header {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.container-item summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.container-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.container-item summary::before {
+  content: '\25B8';
   color: var(--text-muted);
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.35rem;
-  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  transition: transform 0.15s ease;
+}
+
+.container-item details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.container-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.container-item-anchor {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.container-item:hover .container-item-anchor {
+  opacity: 1;
+}
+
+.container-item-body {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/* ── Info items (plain blocks) ───────────────────── */
+.info-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
+  color: var(--text-secondary);
+}
+
+.info-item--child {
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border);
+}
+
+.info-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+.info-item-body {
+  line-height: 1.6;
+}
+
+.info-item-body > :first-child {
+  margin-top: 0;
+}
+
+.info-item-body > :last-child {
+  margin-bottom: 0;
 }
 
 /* ── Child cards ────────────────────────────────── */
@@ -1534,7 +1612,7 @@ html.dark .boundary-badge--leaf {
         <div class="chain-tier-label">Upstream · 2 levels above</div>
         <div class="chain-tier-cards">
       <a class="chain-card" href="02-system-requirements.html">
-        <span class="chain-card-title">reqmd System Requirements</span>
+        <span class="chain-card-title">reqmd System Features</span>
         <span class="chain-card-meta">02-system</span>
       </a>
         </div>
@@ -1543,7 +1621,7 @@ html.dark .boundary-badge--leaf {
         <div class="chain-tier-label">Upstream</div>
         <div class="chain-tier-cards">
       <a class="chain-card" href="03-software-requirements.html">
-        <span class="chain-card-title">reqmd Software Requirements</span>
+        <span class="chain-card-title">reqmd Software Components</span>
         <span class="chain-card-meta">03-software</span>
       </a>
         </div>
@@ -1565,8 +1643,8 @@ html.dark .boundary-badge--leaf {
 </nav>
 <header class="doc-header">
 <h1>reqmd Test Specifications</h1>
-<p class="doc-count">7 requirements (7 parents, 0 children)</p>
-<div class="status-breakdown"><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-draft)"></span><span class="status-breakdown__label">draft</span><span class="status-breakdown__count">2</span></span><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-approved)"></span><span class="status-breakdown__label">approved</span><span class="status-breakdown__count">5</span></span></div><div class="boundary-badges"><span class="boundary-badge boundary-badge--leaf" title="Leaf boundary — this document is not referenced as upstream by any other document">Leaf</span></div></header>
+<p class="doc-count">13 requirements (13 parents, 0 children)</p>
+<div class="status-breakdown"><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-draft)"></span><span class="status-breakdown__label">draft</span><span class="status-breakdown__count">2</span></span><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-approved)"></span><span class="status-breakdown__label">approved</span><span class="status-breakdown__count">11</span></span></div><div class="boundary-badges"><span class="boundary-badge boundary-badge--leaf" title="Leaf boundary — this document is not referenced as upstream by any other document">Leaf</span></div></header>
 <div class="search-toolbar" data-default-status="approved" data-additional-status-values="null">
   <div class="search-row">
     <input type="search" class="search-input" placeholder="Search ID, body, rationale, attributes..." autocomplete="off"
@@ -1745,7 +1823,7 @@ html.dark .boundary-badge--leaf {
 </article>
 <article class="req-card req-card--status-draft" id="TST-UNT-002" x-show="isCardVisible('TST-UNT-002')" x-cloak>
 <div class="req-header">
-<h2 class="req-id"><code>TST-UNT-002</code>: Frontmatter and rendering tests</h2>
+<h2 class="req-id"><code>TST-UNT-002</code>: Frontmatter, parsing, and rendering tests</h2>
 <a class="req-anchor" href="#TST-UNT-002" title="Link to this requirement" aria-label="Link to TST-UNT-002">#</a>
 </div>
 <dl class="req-attrs">
@@ -1767,11 +1845,11 @@ html.dark .boundary-badge--leaf {
 </div>
 </dl>
 <div class="req-body">
-<p>Unit tests SHALL verify: frontmatter extraction via goldmark-meta with correct <code>Document.Meta</code> population; goldmark body rendering produces correct HTML for inline code, emoji, math, and fenced blocks; search-and-filter JS logic (debounce, AND-combined filters, card hide/show, count update, child card visibility); sub-requirement parsing (dynamic reqLevel, <code>ParentID</code> population, <code>isNextAttrBlock</code> backward compatibility); and the tree TOC sidebar renders with correct parent/child nesting, toggle expand/collapse, and scroll-spy highlights.</p>
+<p>Unit tests SHALL verify: frontmatter extraction via goldmark-meta with correct <code>Document.Meta</code> population; goldmark body rendering produces correct HTML for inline code, emoji, math, and fenced blocks; search-and-filter JS logic (debounce, AND-combined filters, card hide/show, count update, child card visibility); content-tree parsing (every heading a node, <code>ParentID</code> population, container promotion, nothing dropped); and the tree TOC sidebar renders with correct parent/child nesting, toggle expand/collapse, and scroll-spy highlights.</p>
 
 </div>
 <div class="req-rationale">
-<strong>Rationale:</strong> <p>These features have distinct logic paths requiring dedicated test coverage. Frontmatter parsing touches the parser AST pipeline; sub-requirement parsing adds a new state machine with reqLevel discovery and parentID tracking; tree TOC and search/filter are client-side JS features tested via rendered HTML output.</p>
+<strong>Rationale:</strong> <p>These features have distinct logic paths requiring dedicated test coverage. Frontmatter parsing touches the parser AST pipeline; content-tree parsing drives the tree assembly and parent-chain semantics; tree TOC and search/filter are client-side JS features tested via rendered HTML output.</p>
 
 </div>
 <div class="req-traces">
@@ -1780,6 +1858,50 @@ html.dark .boundary-badge--leaf {
 <div class="trace-column-header">Upstream (2)</div>
 <a class="trace-link" href="03-software-requirements.html#SW-PAR-001"><span class="trace-link-id">SW-PAR-001</span><span class="trace-link-title">Goldmark-based markdown parser</span></a>
 <a class="trace-link" href="03-software-requirements.html#SW-EXP-001"><span class="trace-link-id">SW-EXP-001</span><span class="trace-link-title">CSV, HTML, and graph export</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (0)</div>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="TST-UNT-003" x-show="isCardVisible('TST-UNT-003')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>TST-UNT-003</code>: Content-tree and item tests</h2>
+<a class="req-anchor" href="#TST-UNT-003" title="Link to this requirement" aria-label="Link to TST-UNT-003">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Verify</dt>
+<dd>Test</dd>
+</div>
+<div class="attr">
+<dt>Test Type</dt>
+<dd>unit</dd>
+</div>
+<div class="attr">
+<dt>Disposition</dt>
+<dd>implemented</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Unit tests shall cover the content tree: preamble prose captured as a headingless info node, requirement-less files fully preserved, container headings promoted to <code>KindContainer</code> only when they have children, mid-file headings becoming nodes instead of body text, <code>ParentID</code> pointing at the nearest ancestor requirement (never a container), thematic breaks kept in bodies, deterministic multi-file merge order, and the chunked parallel path retaining the file preamble. Tests shall also cover item-aware output: <code>ls</code>/<code>stats</code> Type columns and counts, CSV rows in document order for all node kinds, HTML container sections and info blocks with stable anchors, index entries carrying <code>type</code>/<code>parentId</code>/<code>children</code>, and <code>--filter</code> pruning requirements while keeping items.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The content tree is the parser's core contract — content must never be dropped and nesting must stay faithful to the source. Item-aware output crosses the parser, reporter, and exporter packages, so it needs dedicated end-to-end coverage.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (2)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-PAR-002"><span class="trace-link-id">SW-PAR-002</span><span class="trace-link-title">Content-tree parsing</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-EXP-002"><span class="trace-link-id">SW-EXP-002</span><span class="trace-link-title">Item-aware export</span></a>
 </div>
 <div class="trace-column">
 <div class="trace-column-header">Downstream (0)</div>
@@ -1920,6 +2042,224 @@ html.dark .boundary-badge--leaf {
 </div>
 </div>
 </article>
+<article class="req-card" id="TST-FIL-001" x-show="isCardVisible('TST-FIL-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>TST-FIL-001</code>: Filter package tests</h2>
+<a class="req-anchor" href="#TST-FIL-001" title="Link to this requirement" aria-label="Link to TST-FIL-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Verify</dt>
+<dd>Test</dd>
+</div>
+<div class="attr">
+<dt>Test Type</dt>
+<dd>unit</dd>
+</div>
+<div class="attr">
+<dt>Disposition</dt>
+<dd>implemented</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Unit tests shall cover the <code>internal/filter</code> package: expression compilation (including rejection of undeclared attributes), matching against requirement attribute maps plus <code>id</code>/<code>title</code>, per-document nil handling, <code>FilterDocs</code>/<code>MatchingIDs</code>, and filter-aware coverage (a filtered-out inbound cannot satisfy a filtered-in requirement).</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The filter engine is the gate for scoping <code>check</code>, exports, and diffs. Compile-time typo rejection and filter-aware coverage semantics are load-bearing and must be pinned by tests.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-FIL-001"><span class="trace-link-id">SW-FIL-001</span><span class="trace-link-title">Attribute filter engine</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (0)</div>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="TST-DIS-001" x-show="isCardVisible('TST-DIS-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>TST-DIS-001</code>: Disjoint-attribute check tests</h2>
+<a class="req-anchor" href="#TST-DIS-001" title="Link to this requirement" aria-label="Link to TST-DIS-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Verify</dt>
+<dd>Test</dd>
+</div>
+<div class="attr">
+<dt>Test Type</dt>
+<dd>unit</dd>
+</div>
+<div class="attr">
+<dt>Disposition</dt>
+<dd>implemented</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Unit tests shall cover the <code>disjoint-attribute</code> graph check: zero intersection produces an ERROR, overlapping values pass, empty/absent attribute is exempt, enablement via <code>--disjoint-check</code> and <code>x-reqmd.disjoint-check</code>, and suppression via <code>reqmd-suppress</code>.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The check gates cross-cutting attribute consistency (variants, safety levels) that other trace checks do not; both the intersection logic and the exemption/suppression paths need coverage.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (2)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-DIS-001"><span class="trace-link-id">SW-DIS-001</span><span class="trace-link-title">Disjoint-attribute graph check</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-SUP-001"><span class="trace-link-id">SW-SUP-001</span><span class="trace-link-title">Check suppression</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (0)</div>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="TST-STS-001" x-show="isCardVisible('TST-STS-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>TST-STS-001</code>: Status lifecycle tests</h2>
+<a class="req-anchor" href="#TST-STS-001" title="Link to this requirement" aria-label="Link to TST-STS-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Verify</dt>
+<dd>Test</dd>
+</div>
+<div class="attr">
+<dt>Test Type</dt>
+<dd>unit</dd>
+</div>
+<div class="attr">
+<dt>Disposition</dt>
+<dd>implemented</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Unit tests shall cover the status lifecycle: missing status defaults to approved, draft requirements do not satisfy coverage, <code>x-reqmd.additional-status-values</code> validation (lowercase-only, reserved collision, duplicates), <code>x-reqmd.ignore-status</code> making all requirements coverage providers, and the draft-downstreams-ignored coverage message.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The lifecycle is enforced across schema, graph, and exporter; the coverage-provider gate is the behavior that changes validation outcomes and must be regression-tested.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-STS-001"><span class="trace-link-id">SW-STS-001</span><span class="trace-link-title">Status lifecycle enforcement</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (0)</div>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="TST-LEV-001" x-show="isCardVisible('TST-LEV-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>TST-LEV-001</code>: Level-typed coverage tests</h2>
+<a class="req-anchor" href="#TST-LEV-001" title="Link to this requirement" aria-label="Link to TST-LEV-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Verify</dt>
+<dd>Test</dd>
+</div>
+<div class="attr">
+<dt>Test Type</dt>
+<dd>unit</dd>
+</div>
+<div class="attr">
+<dt>Disposition</dt>
+<dd>implemented</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Unit tests shall cover level-typed <code>requires-trace-from</code>: a level token expands to every document declaring it, coverage is satisfied by any approved inbound from those documents, document-id tokens still resolve, and unknown tokens produce a WARNING.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Level resolution changes coverage semantics for multi-document layers; the expansion and fallback paths must be verified independently.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-LEV-001"><span class="trace-link-id">SW-LEV-001</span><span class="trace-link-title">Level-typed coverage resolution</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (0)</div>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="TST-IMP-001" x-show="isCardVisible('TST-IMP-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>TST-IMP-001</code>: reqmd-import extraction tests</h2>
+<a class="req-anchor" href="#TST-IMP-001" title="Link to this requirement" aria-label="Link to TST-IMP-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Verify</dt>
+<dd>Test</dd>
+</div>
+<div class="attr">
+<dt>Test Type</dt>
+<dd>unit</dd>
+</div>
+<div class="attr">
+<dt>Disposition</dt>
+<dd>implemented</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Unit tests shall cover the <code>reqmd-import</code> pipeline: language plugin parse/classification for C, C++, Go, Python, and Rust (kinds, method receivers, doc binding, top-level-only scope rules), trace extraction (explicit <code>reqmd:trace</code> markers and opt-in heuristic IDs), and the writer's deterministic, idempotent per-package output with provenance attributes and generated-marker guard.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>reqmd-import closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the writer's determinism is what makes re-running the extractor safe in CI.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (3)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-IMP-001"><span class="trace-link-id">SW-IMP-001</span><span class="trace-link-title">Source-code extraction pipeline</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-IMP-002"><span class="trace-link-id">SW-IMP-002</span><span class="trace-link-title">Language plugin registry</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-IMP-003"><span class="trace-link-id">SW-IMP-003</span><span class="trace-link-title">Proxy requirement writer</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (0)</div>
+</div>
+</div>
+</div>
+</article>
 </main>
 <script>
 
@@ -1948,11 +2288,14 @@ function reqmdApp() {
       }
 
       // Parse the requirement index (used by isCardVisible and the count).
+      // The index contains every node (requirements, containers, info
+      // items); search/filter counts apply to requirements only.
       var indexEl = document.getElementById('req-index');
       if (indexEl) {
         try { this.reqIndex = JSON.parse(indexEl.textContent); } catch (e) { this.reqIndex = []; }
       }
       var self = this;
+      this.reqIndex = this.reqIndex.filter(function (r) { return r.type !== 'container' && r.type !== 'info'; });
       this.reqMap = new Map(this.reqIndex.map(function (r) { return [r.id, r]; }));
       this.totalCount = this.reqIndex.length;
       this.visibleCount = this.totalCount;
@@ -2136,9 +2479,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
       var childCount = 0;
       for (var pid in childMap) childCount += childMap[pid].length;
+      var itemCount = 0;
+      reqs.forEach(function (r) {
+        if (r.type === 'container' || r.type === 'info') itemCount++;
+      });
 
       if (tocCount) {
         tocCount.textContent = reqs.length + ' requirements (' + topLevel.length + ' parents \u00B7 ' + childCount + ' children)';
+        if (itemCount > 0) {
+          tocCount.textContent += ' \u00B7 ' + itemCount + ' items';
+        }
       }
 
       function createTreeItem(r, isChild) {
@@ -2147,12 +2497,13 @@ document.addEventListener('DOMContentLoaded', function () {
         wrapper.setAttribute('data-id', r.id);
 
         var hasKids = r.children && r.children.length > 0;
+        var isItem = r.type === 'container' || r.type === 'info';
 
         if (hasKids) {
           var toggle = document.createElement('button');
           toggle.className = 'req-toc-toggle';
           toggle.textContent = '\u25B6';
-          toggle.setAttribute('aria-label', 'Expand ' + r.id);
+          toggle.setAttribute('aria-label', 'Expand ' + (r.title || r.id));
           toggle.setAttribute('aria-expanded', 'false');
           wrapper.appendChild(toggle);
         }
@@ -2161,11 +2512,16 @@ document.addEventListener('DOMContentLoaded', function () {
         mainDiv.className = 'req-toc-item-main';
 
         var idSpan = document.createElement('span');
-        idSpan.className = 'req-toc-item-id';
-        idSpan.innerHTML = '<code>' + r.id + '</code>';
+        if (isItem) {
+          idSpan.className = 'req-toc-item-id req-toc-item-id--item';
+          idSpan.textContent = r.title || '(untitled)';
+        } else {
+          idSpan.className = 'req-toc-item-id';
+          idSpan.innerHTML = '<code>' + r.id + '</code>';
+        }
         mainDiv.appendChild(idSpan);
 
-        if (r.title) {
+        if (r.title && !isItem) {
           var titleSpan = document.createElement('span');
           titleSpan.className = 'req-toc-item-title';
           titleSpan.textContent = r.title;
@@ -2174,7 +2530,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var bodySpan = document.createElement('span');
         bodySpan.className = 'req-toc-item-body';
-        bodySpan.textContent = r.body || '(no description)';
+        bodySpan.textContent = r.body || (isItem ? '' : '(no description)');
         mainDiv.appendChild(bodySpan);
 
         wrapper.appendChild(mainDiv);
@@ -2229,7 +2585,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── Scroll-spy: highlight active TOC item ──
   var tocItems = document.querySelectorAll('.req-toc-item');
-  var cards = document.querySelectorAll('.req-card, .req-card-child');
+  var cards = document.querySelectorAll('.req-card, .req-card-child, .container-item, .info-item');
   if (tocItems.length && cards.length) {
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -2261,7 +2617,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // @click.away on the sidebar, and @keydown.escape.window on <body>.
 });
 </script>
-<script type="application/json" id="req-index">[{"id":"TST-UNT-001","title":"Core package unit tests","body":"Unit tests shall cover the parser, schema, and graph packages with inline fixtur...","rationale":"Inline fixtures keep tests self-contained and fast. These packages constitute the core validation pipeline and require the highest confidence. Each validation check has distinct logic paths exercised independently.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-INT-001","title":"End-to-end integration tests","body":"Integration tests shall run the full pipeline end-to-end: parse a multi-level re...","rationale":"Integration tests catch cross-package contract violations that unit tests miss. The reqmd's own `spec/` directory serves as the primary integration test fixture, and should exercise the sub-requirement hierarchy.","attrs":{"disposition":"implemented","status":"draft","test-type":"integration","verify":"Test"}},{"id":"TST-FIX-001","title":"Build and test gate","body":"The project shall build cleanly with `go build ./...` and all tests shall pass w...","rationale":"A build-and-test gate in CI prevents regressions. Existing tests must be maintained and extended as features are added.","attrs":{"disposition":"implemented","status":"approved","test-type":"build","verify":"Test"}},{"id":"TST-UNT-002","title":"Frontmatter and rendering tests","body":"Unit tests SHALL verify: frontmatter extraction via goldmark-meta with correct `...","rationale":"These features have distinct logic paths requiring dedicated test coverage. Frontmatter parsing touches the parser AST pipeline; sub-requirement parsing adds a new state machine with reqLevel discovery and parentID tracking; tree TOC and search/filter are client-side JS features tested via rendered HTML output.","attrs":{"disposition":"implemented","status":"draft","test-type":"unit","verify":"Test"}},{"id":"TST-VER-001","title":"Verify package tests","body":"Unit tests shall cover the `internal/verify` package: CTRF JSON parsing (status→...","rationale":"The verify package is the entry point for the V\u0026V results feature. Each parsing path (CTRF, manual, auto-detection) has distinct logic that must be exercised independently. The merge semantics (latest-wins, pin stripping) are load-bearing for correctness.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-VER-002","title":"Outcome-gated graph checks tests","body":"Unit tests shall cover the `missing-verdict` and `failing-verdict` graph checks:...","rationale":"The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-SRV-001","title":"Serve with results integration tests","body":"Integration tests shall verify that `serve --results \u003cpath\u003e` loads verification ...","rationale":"The `serve --results` feature combines the live-reload watcher with the verify pipeline. Both the fsnotify and polling watcher paths must be exercised to ensure result-file changes trigger rebuilds in both modes. The verdict badge rendering must be verified in the HTML output, not just the graph checks.","attrs":{"disposition":"implemented","status":"approved","test-type":"integration","verify":"Test"}}]</script>
+<script type="application/json" id="req-index">[{"id":"TST-UNT-001","title":"Core package unit tests","body":"Unit tests shall cover the parser, schema, and graph packages with inline fixtur...","rationale":"Inline fixtures keep tests self-contained and fast. These packages constitute the core validation pipeline and require the highest confidence. Each validation check has distinct logic paths exercised independently.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-INT-001","title":"End-to-end integration tests","body":"Integration tests shall run the full pipeline end-to-end: parse a multi-level re...","rationale":"Integration tests catch cross-package contract violations that unit tests miss. The reqmd's own `spec/` directory serves as the primary integration test fixture, and should exercise the sub-requirement hierarchy.","attrs":{"disposition":"implemented","status":"draft","test-type":"integration","verify":"Test"}},{"id":"TST-FIX-001","title":"Build and test gate","body":"The project shall build cleanly with `go build ./...` and all tests shall pass w...","rationale":"A build-and-test gate in CI prevents regressions. Existing tests must be maintained and extended as features are added.","attrs":{"disposition":"implemented","status":"approved","test-type":"build","verify":"Test"}},{"id":"TST-UNT-002","title":"Frontmatter, parsing, and rendering tests","body":"Unit tests SHALL verify: frontmatter extraction via goldmark-meta with correct `...","rationale":"These features have distinct logic paths requiring dedicated test coverage. Frontmatter parsing touches the parser AST pipeline; content-tree parsing drives the tree assembly and parent-chain semantics; tree TOC and search/filter are client-side JS features tested via rendered HTML output.","attrs":{"disposition":"implemented","status":"draft","test-type":"unit","verify":"Test"}},{"id":"TST-UNT-003","title":"Content-tree and item tests","body":"Unit tests shall cover the content tree: preamble prose captured as a headingles...","rationale":"The content tree is the parser's core contract — content must never be dropped and nesting must stay faithful to the source. Item-aware output crosses the parser, reporter, and exporter packages, so it needs dedicated end-to-end coverage.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-VER-001","title":"Verify package tests","body":"Unit tests shall cover the `internal/verify` package: CTRF JSON parsing (status→...","rationale":"The verify package is the entry point for the V\u0026V results feature. Each parsing path (CTRF, manual, auto-detection) has distinct logic that must be exercised independently. The merge semantics (latest-wins, pin stripping) are load-bearing for correctness.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-VER-002","title":"Outcome-gated graph checks tests","body":"Unit tests shall cover the `missing-verdict` and `failing-verdict` graph checks:...","rationale":"The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-SRV-001","title":"Serve with results integration tests","body":"Integration tests shall verify that `serve --results \u003cpath\u003e` loads verification ...","rationale":"The `serve --results` feature combines the live-reload watcher with the verify pipeline. Both the fsnotify and polling watcher paths must be exercised to ensure result-file changes trigger rebuilds in both modes. The verdict badge rendering must be verified in the HTML output, not just the graph checks.","attrs":{"disposition":"implemented","status":"approved","test-type":"integration","verify":"Test"}},{"id":"TST-FIL-001","title":"Filter package tests","body":"Unit tests shall cover the `internal/filter` package: expression compilation (in...","rationale":"The filter engine is the gate for scoping `check`, exports, and diffs. Compile-time typo rejection and filter-aware coverage semantics are load-bearing and must be pinned by tests.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-DIS-001","title":"Disjoint-attribute check tests","body":"Unit tests shall cover the `disjoint-attribute` graph check: zero intersection p...","rationale":"The check gates cross-cutting attribute consistency (variants, safety levels) that other trace checks do not; both the intersection logic and the exemption/suppression paths need coverage.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-STS-001","title":"Status lifecycle tests","body":"Unit tests shall cover the status lifecycle: missing status defaults to approved...","rationale":"The lifecycle is enforced across schema, graph, and exporter; the coverage-provider gate is the behavior that changes validation outcomes and must be regression-tested.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-LEV-001","title":"Level-typed coverage tests","body":"Unit tests shall cover level-typed `requires-trace-from`: a level token expands ...","rationale":"Level resolution changes coverage semantics for multi-document layers; the expansion and fallback paths must be verified independently.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-IMP-001","title":"reqmd-import extraction tests","body":"Unit tests shall cover the `reqmd-import` pipeline: language plugin parse/classi...","rationale":"reqmd-import closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the writer's determinism is what makes re-running the extractor safe in CI.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}}]</script>
 <script type="application/json" id="req-filter-index">{"status":["draft","approved"],"test-type":["build","integration","unit"]}</script>
 </div>
 </body>

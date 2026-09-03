@@ -19,3 +19,4 @@ x-reqmd:
       - ../01-stakeholder/
       - ../01a-aspice-stakeholder/
   id-prefix: SYS-
+  requires-trace-from: [software-requirements]

@@ -1,17 +1,17 @@
 package cli
 
 import (
-	"github.com/spf13/cobra"
-
 	"reqmd/internal/cli/export"
+
+	"github.com/spf13/cobra"
 )
 
 // NewRootCmd builds the root cobra command. version is injected at build time
 // via -ldflags "-X main.version=..."; when empty, --version is omitted.
 func NewRootCmd(version string) *cobra.Command {
 	cmd := &cobra.Command{
-		Use:           "reqmd",
-		Short:         "Requirement specification tool — check, ls, stats, export, serve, baseline, repin, init",
+		Use:   "reqmd",
+		Short: "Requirement specification tool — check, ls, stats, export, serve, baseline, repin, init",
 		Long: `reqmd — requirement specification tool
 
 reqmd is a CLI tool for authoring, validating, and exporting

@@ -206,6 +206,21 @@ Summary: 3 total, 3 valid, 0 invalid, 0 parse errors, 2 warnings
 
 **Key insight:** `requires-trace-from` tells ReqMD *which downstream documents you expect coverage from*. If you do not declare `requires-trace-from`, ReqMD falls back to generic boundary inference (orphan/missing-downstream warnings based on V-model topology). `requires-trace-from` gives you **per-requirement** precision.
 
+When every requirement in a document shares the same downstream expectation,
+declare it **once per document** instead of repeating it on each requirement:
+
+```yaml
+# system/schema.yaml
+x-reqmd:
+  level: system-requirements
+  document-id: system
+  requires-trace-from: [software, tests]   # SYS-001 inherits this
+```
+
+Requirements that do not declare their own `requires-trace-from` inherit the
+document default; a requirement may still override it with its own attribute,
+or opt out with `requires-trace-from: []`.
+
 ---
 
 ## Step 4 — List all requirements
@@ -415,7 +430,7 @@ The command always exits `0` because diffing is informational, not validation.
 | `schema.yaml` | JSON Schema 2020-12 in YAML per document directory |
 | `x-reqmd` | Directory metadata: `level`, `document-id`, `upstream`, `id-prefix` |
 | `trace` | Upstream requirement references; supports `document-id/ID` qualified form |
-| `requires-trace-from` | Coverage expectations — which downstream documents must trace to this requirement |
+| `requires-trace-from` | Coverage expectations — which downstream documents must trace to this requirement; can be inherited from `x-reqmd.requires-trace-from` in `schema.yaml` |
 | `requires-trace-from: []` | Explicit opt-out: no downstream coverage expected |
 | `version` | Integer version for trace pinning (`SYS-001~2`) |
 | `disposition` + `disposition-reason` | Record why a requirement is deferred or rejected |

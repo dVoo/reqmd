@@ -4,17 +4,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/spf13/cobra"
-
 	"reqmd/internal/exporter"
 	"reqmd/internal/filter"
 	"reqmd/internal/graph"
 	"reqmd/internal/parser"
 	"reqmd/internal/verify"
+
+	"github.com/spf13/cobra"
 )
 
-func newHtmlCmd() *cobra.Command {
+func newHTMLCmd() *cobra.Command {
 	var outputDir string
 	var resultsPaths []string
 	var filterExpr string
@@ -36,13 +35,14 @@ func newHtmlCmd() *cobra.Command {
 			// is still built from the full docs so trace links resolve.
 			exportDocs := docs
 			if filterExpr != "" {
-				f, err := filter.CompileForDocs(docs, filterExpr)
+				var f *filter.Filter
+				f, err = filter.CompileForDocs(docs, filterExpr)
 				if err != nil {
-					return err
+					return fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 				}
 				exportDocs, err = f.FilterDocs(docs)
 				if err != nil {
-					return err
+					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
 				}
 			}
 
@@ -54,7 +54,11 @@ func newHtmlCmd() *cobra.Command {
 			var verdicts map[string]exporter.VerdictInfo
 			graphDocs := docs
 			if len(resultsPaths) > 0 {
-				merged, vVerdicts, _, err := verify.LoadVerdicts(resultsPaths)
+				var (
+					merged    map[string]verify.Result
+					vVerdicts map[string]verify.Verdict
+				)
+				merged, vVerdicts, _, err = verify.LoadVerdicts(resultsPaths)
 				if err != nil {
 					return fmt.Errorf("loading results: %w", err)
 				}
@@ -87,27 +91,39 @@ func newHtmlCmd() *cobra.Command {
 
 			// Ensure output directory exists.
 			if outputDir != "" {
-				if err := os.MkdirAll(outputDir, 0755); err != nil {
+				if err := os.MkdirAll(outputDir, 0o755); err != nil {
 					return fmt.Errorf("creating output directory: %w", err)
 				}
 			}
 
+			// outPathFor mirrors the file-writing logic below: when
+			// outputDir is set every page is written flat into it, otherwise
+			// each page goes into its own document directory.
+			outPathFor := func(docPath string) string {
+				name := filepath.Base(docPath) + "-requirements.html"
+				if outputDir != "" {
+					return filepath.Join(outputDir, name)
+				}
+				return filepath.Join(docPath, name)
+			}
+			outPathByDir := make(map[string]string, len(docs))
+			for _, d := range docs {
+				outPathByDir[filepath.Base(d.Path)] = outPathFor(d.Path)
+			}
+
 			for _, doc := range exportDocs {
 				props := doc.Properties
-				dirName := filepath.Base(doc.Path)
-				outPath := dirName + "-requirements.html"
-
-				if outputDir != "" {
-					outPath = filepath.Join(outputDir, outPath)
-				} else {
-					outPath = filepath.Join(doc.Path, outPath)
-				}
+				outPath := outPathFor(doc.Path)
 
 				exp.SetBoundary(boundaries[doc.Path])
 
-				// Build doc-level Confluence-Flow trace graph and rewrite card
-				// paths to be relative to the output file we're about to write.
+				// Build doc-level Confluence-Flow trace graph, point each
+				// card at the output file that doc is written to, then
+				// relativize to this page's own directory.
 				graph := rctx.BuildChainGraph(doc)
+				exporter.ResolveChainOutputs(&graph, func(dirName string) string {
+					return outPathByDir[dirName]
+				})
 				exporter.RelativizeChainGraph(&graph, filepath.Dir(outPath))
 				exp.SetDocChainGraph(graph)
 

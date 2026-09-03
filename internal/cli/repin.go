@@ -6,12 +6,11 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"reqmd/internal/repin"
 	"strings"
 
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
-
-	"reqmd/internal/repin"
 )
 
 func newRepinCmd() *cobra.Command {
@@ -82,7 +81,9 @@ func runRepin(cmd *cobra.Command, root string, opt repinOptions) error {
 		if opt.jsonOutput {
 			return writeJSON(cmd, res)
 		}
-		fmt.Fprintln(cmd.OutOrStdout(), "no version-pin changes needed")
+		if _, err := fmt.Fprintln(cmd.OutOrStdout(), "no version-pin changes needed"); err != nil {
+			return fmt.Errorf("writing output: %w", err)
+		}
 		return nil
 	}
 
@@ -103,7 +104,7 @@ func runRepin(cmd *cobra.Command, root string, opt repinOptions) error {
 			apply = ok
 			if !apply {
 				aborted = true
-				fmt.Fprintln(cmd.ErrOrStderr(), "aborted; no files written.")
+				_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "aborted; no files written.")
 			}
 		}
 	}
@@ -116,14 +117,17 @@ func runRepin(cmd *cobra.Command, root string, opt repinOptions) error {
 		if opt.jsonOutput {
 			return writeJSON(cmd, res)
 		}
-		fmt.Fprint(cmd.OutOrStdout(), repin.FormatText(res))
+		if _, err := fmt.Fprint(cmd.OutOrStdout(), repin.FormatText(res)); err != nil {
+			return fmt.Errorf("writing output: %w", err)
+		}
 		if stdinNotTTY {
-			fmt.Fprintln(cmd.ErrOrStderr(), "hint: pass --yes to apply (stdin is not a TTY).")
+			_, _ = fmt.Fprintln(cmd.ErrOrStderr(), "hint: pass --yes to apply (stdin is not a TTY).")
 		}
 		return nil
 	}
 	return applyRepin(cmd, res, opt)
 }
+
 func applyRepin(cmd *cobra.Command, res repin.Result, opt repinOptions) error {
 	rep, err := repin.Apply(res.Deltas)
 	if err != nil {
@@ -132,14 +136,17 @@ func applyRepin(cmd *cobra.Command, res repin.Result, opt repinOptions) error {
 	if opt.jsonOutput {
 		// Emit a combined report: dry-run Result + apply outcome.
 		out := struct {
-			repin.Result
 			Apply repin.ApplyReport `json:"apply"`
-		}{res, rep}
+			repin.Result
+		}{
+			Apply:  rep,
+			Result: res,
+		}
 		return writeJSON(cmd, out)
 	}
 	fmt.Fprint(cmd.OutOrStdout(), repin.FormatTextApplied(rep))
 	if len(rep.Skipped) > 0 {
-		fmt.Fprintf(cmd.ErrOrStderr(), "skipped %d predated findings (data-integrity errors, fix manually):\n", len(rep.Skipped))
+		_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "skipped %d predated findings (data-integrity errors, fix manually):\n", len(rep.Skipped))
 		for _, d := range rep.Skipped {
 			fmt.Fprintf(cmd.ErrOrStderr(), "  %s  %s  %s (pin %d > upstream v%d)\n",
 				d.File, d.ReqID, d.SourceRef, d.OldPin, d.NewVersion)
@@ -151,7 +158,10 @@ func applyRepin(cmd *cobra.Command, res repin.Result, opt repinOptions) error {
 func writeJSON(cmd *cobra.Command, v any) error {
 	enc := json.NewEncoder(cmd.OutOrStdout())
 	enc.SetIndent("", "  ")
-	return enc.Encode(v)
+	if err := enc.Encode(v); err != nil {
+		return fmt.Errorf("encoding JSON: %w", err)
+	}
+	return nil
 }
 
 func isTerminal(f *os.File) bool { return isatty.IsTerminal(f.Fd()) }
@@ -161,7 +171,7 @@ func promptYes(w io.Writer, r io.Reader, nDeltas, nFiles int) (bool, error) {
 	rdr := bufio.NewReader(r)
 	line, err := rdr.ReadString('\n')
 	if err != nil && err != io.EOF {
-		return false, err
+		return false, fmt.Errorf("reading confirmation: %w", err)
 	}
 	ans := strings.TrimSpace(line)
 	return strings.EqualFold(ans, "y") || strings.EqualFold(ans, "yes"), nil

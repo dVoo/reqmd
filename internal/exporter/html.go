@@ -9,17 +9,16 @@ import (
 	"html"
 	"io"
 	"io/fs"
+	"reqmd/internal/model"
 	"strings"
 
-	"github.com/FurqanSoftware/goldmark-katex"
-	"github.com/stefanfritsch/goldmark-fences"
+	katex "github.com/FurqanSoftware/goldmark-katex"
+	fences "github.com/stefanfritsch/goldmark-fences"
 	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark-emoji"
+	emoji "github.com/yuin/goldmark-emoji"
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	"github.com/yuin/goldmark/extension"
 	"go.abhg.dev/goldmark/mermaid"
-
-	"reqmd/internal/model"
 )
 
 //go:embed static
@@ -49,13 +48,11 @@ type VerdictInfo struct {
 	Source  string // CTRF file path or manual-results markdown path
 }
 
-
-
 // HTML exports requirements as standalone HTML with card-based layout.
 type HTML struct {
-	docChainGraph DocChainGraph            // tiered document graph for the Confluence-Flow visualization
-	boundary      DocBoundary              // current document's root/leaf position in the V-model chain
-	verdicts      map[string]VerdictInfo   // measureID → verdict (nil when no --results loaded)
+	verdicts      map[string]VerdictInfo
+	docChainGraph DocChainGraph
+	boundary      DocBoundary
 }
 
 // SetVerdicts stores the verification verdicts for rendering badges on
@@ -73,6 +70,15 @@ func schemaTitle(doc model.Document) string {
 	}
 	s, _ := m["title"].(string)
 	return s
+}
+
+// docTitle returns the title used for rendering a document page or card:
+// the parsed file h1 (document title), falling back to the schema title.
+func docTitle(doc model.Document) string {
+	if doc.Title != "" {
+		return doc.Title
+	}
+	return schemaTitle(doc)
 }
 
 // bodyRenderer renders requirement body markdown to HTML.
@@ -126,9 +132,9 @@ func (h *HTML) ExportWithTraces(w io.Writer, doc model.Document, propOrder []str
 }
 
 func (h *HTML) exportHTML(w io.Writer, doc model.Document, propOrder []string, tc *TraceResolver) error {
-	title := doc.Path
-	if t := schemaTitle(doc); t != "" {
-		title = t
+	title := docTitle(doc)
+	if title == "" {
+		title = doc.Path
 	}
 
 	rd := buildRenderData(doc)
@@ -143,17 +149,19 @@ func (h *HTML) exportHTML(w io.Writer, doc model.Document, propOrder []string, t
 	renderDocHeader(b, doc, title, h.boundary.IsRoot, h.boundary.IsLeaf)
 	renderToolbar(b, doc, ignoreStatus)
 
-	b.WriteString("<main>\n")
-	for _, req := range rd.TopLevel {
-		renderCard(b, req, propOrder, traceCache, tc, ignoreStatus, false, h.verdicts)
-		renderChildren(b, req.ID, rd, propOrder, traceCache, tc, ignoreStatus, h.verdicts)
+	_, _ = b.WriteString("<main>\n")
+	for _, node := range rd.Nodes {
+		renderContentNode(b, node, 0, rd, propOrder, traceCache, tc, ignoreStatus, h.verdicts)
 	}
-	b.WriteString("</main>\n")
+	_, _ = b.WriteString("</main>\n")
 
 	renderScripts(b, rd)
 	renderBodyClose(b)
 
-	return b.Flush()
+	if err := b.Flush(); err != nil {
+		return fmt.Errorf("flushing HTML output: %w", err)
+	}
+	return nil
 }
 
 // formatAttrLabel converts a snake_case or kebab-case attribute name to
@@ -232,7 +240,7 @@ func formatAttrHTML(v any) string {
 // zones. There are no per-card connectors, no merge/fork lines, and no
 // sibling separators inside a zone.
 func renderChainGraph(b *bufio.Writer, g DocChainGraph) {
-	b.WriteString("  <div class=\"chain-stack\">\n")
+	_, _ = b.WriteString("  <div class=\"chain-stack\">\n")
 
 	// ── Upstream zone ──
 	if len(g.Upstream) > 0 {

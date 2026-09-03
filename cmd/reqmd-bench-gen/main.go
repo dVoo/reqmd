@@ -57,22 +57,24 @@ func main() {
 
 	// Step 1: collect every requirement ID in the source tree.
 	ids := map[string]bool{}
-	filepath.WalkDir(*src, func(p string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return nil
+	if err := filepath.WalkDir(*src, func(p string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
 		}
-		if !strings.HasSuffix(p, ".md") && filepath.Base(p) != "schema.yaml" {
+		if d.IsDir() || (!strings.HasSuffix(p, ".md") && filepath.Base(p) != "schema.yaml") {
 			return nil
 		}
 		body, err := os.ReadFile(p)
 		if err != nil {
-			return nil
+			return fmt.Errorf("reading %s: %w", p, err)
 		}
 		for _, m := range headingIDRe.FindAllSubmatch(body, -1) {
 			ids[string(m[1])] = true
 		}
 		return nil
-	})
+	}); err != nil {
+		panic(err)
+	}
 
 	idList := make([]string, 0, len(ids))
 	for id := range ids {
@@ -83,7 +85,7 @@ func main() {
 	// Count top-level doc dirs (those with a schema.yaml in the original).
 	totalSrcReqs := len(ids)
 	srcDocDirs := 0
-	filepath.WalkDir(*src, func(p string, d fs.DirEntry, err error) error {
+	_ = filepath.WalkDir(*src, func(p string, d fs.DirEntry, err error) error {
 		if err != nil || !d.IsDir() || p == *src {
 			return nil
 		}
@@ -101,7 +103,7 @@ func main() {
 	}
 
 	// Step 2: emit copies.
-	for i := 0; i < *copies; i++ {
+	for i := range *copies {
 		tag := fmt.Sprintf("T%02d", i)
 		copyDir := filepath.Join(*dst, fmt.Sprintf("spec_%s", tag))
 		if err := os.MkdirAll(copyDir, 0o755); err != nil {
@@ -113,20 +115,14 @@ func main() {
 		}
 		rewriteTree(*src, copyDir, tag, rename)
 		if *reqsPerDoc > 0 && srcReqsPerDoc > 0 {
-			multiplier := (*reqsPerDoc) / srcReqsPerDoc
-			if multiplier < 1 {
-				multiplier = 1
-			}
+			multiplier := max(1, (*reqsPerDoc)/srcReqsPerDoc)
 			if multiplier > 1 {
 				replicatePerDoc(copyDir, multiplier)
 			}
 		}
 		fmt.Printf("wrote %s (%d IDs rewritten", copyDir, len(rename))
 		if *reqsPerDoc > 0 && srcReqsPerDoc > 0 {
-			m := (*reqsPerDoc) / srcReqsPerDoc
-			if m < 1 {
-				m = 1
-			}
+			m := max(1, (*reqsPerDoc)/srcReqsPerDoc)
 			fmt.Printf(", per-doc content x%d", m)
 		}
 		fmt.Println(")")
@@ -140,22 +136,27 @@ func rewriteTree(src, dst, tag string, rename map[string]string) {
 	}
 	sort.Slice(keys, func(i, j int) bool { return len(keys[i]) > len(keys[j]) })
 
-	filepath.WalkDir(src, func(p string, d fs.DirEntry, err error) error {
+	if err := filepath.WalkDir(src, func(p string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
 		rel, _ := filepath.Rel(src, p)
 		target := filepath.Join(dst, rel)
 		if d.IsDir() {
-			return os.MkdirAll(target, 0o755)
+			return fmt.Errorf("creating dir %s: %w", target, os.MkdirAll(target, 0o755))
 		}
 		body, err := os.ReadFile(p)
 		if err != nil {
-			return err
+			return fmt.Errorf("reading %s: %w", p, err)
 		}
 		out := applyRewrite(string(body), filepath.Base(p), rename, tag)
-		return os.WriteFile(target, []byte(out), 0o644)
-	})
+		if err := os.WriteFile(target, []byte(out), 0o644); err != nil {
+			return fmt.Errorf("writing %s: %w", target, err)
+		}
+		return nil
+	}); err != nil {
+		panic(err)
+	}
 }
 
 // replicatePerDoc walks each top-level doc dir in `root` and, for every
@@ -167,7 +168,7 @@ func replicatePerDoc(root string, multiplier int) {
 		if err != nil || !d.IsDir() || p == root {
 			return nil
 		}
-		if _, err := os.Stat(filepath.Join(p, "schema.yaml")); err != nil {
+		if _, statErr := os.Stat(filepath.Join(p, "schema.yaml")); statErr != nil {
 			return nil
 		}
 		entries, err := os.ReadDir(p)

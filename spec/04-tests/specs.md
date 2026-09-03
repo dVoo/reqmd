@@ -42,7 +42,7 @@ The project shall build cleanly with `go build ./...` and all tests shall pass w
 
 *Rationale:* A build-and-test gate in CI prevents regressions. Existing tests must be maintained and extended as features are added.
 
-## TST-UNT-002: Frontmatter and rendering tests
+## TST-UNT-002: Frontmatter, parsing, and rendering tests
 ```attr
 status: draft
 verify: Test
@@ -52,9 +52,23 @@ trace:
   - SW-PAR-001
   - SW-EXP-001
 ```
-Unit tests SHALL verify: frontmatter extraction via goldmark-meta with correct `Document.Meta` population; goldmark body rendering produces correct HTML for inline code, emoji, math, and fenced blocks; search-and-filter JS logic (debounce, AND-combined filters, card hide/show, count update, child card visibility); sub-requirement parsing (dynamic reqLevel, `ParentID` population, `isNextAttrBlock` backward compatibility); and the tree TOC sidebar renders with correct parent/child nesting, toggle expand/collapse, and scroll-spy highlights.
+Unit tests SHALL verify: frontmatter extraction via goldmark-meta with correct `Document.Meta` population; goldmark body rendering produces correct HTML for inline code, emoji, math, and fenced blocks; search-and-filter JS logic (debounce, AND-combined filters, card hide/show, count update, child card visibility); content-tree parsing (every heading a node, `ParentID` population, container promotion, nothing dropped); and the tree TOC sidebar renders with correct parent/child nesting, toggle expand/collapse, and scroll-spy highlights.
 
-*Rationale:* These features have distinct logic paths requiring dedicated test coverage. Frontmatter parsing touches the parser AST pipeline; sub-requirement parsing adds a new state machine with reqLevel discovery and parentID tracking; tree TOC and search/filter are client-side JS features tested via rendered HTML output.
+*Rationale:* These features have distinct logic paths requiring dedicated test coverage. Frontmatter parsing touches the parser AST pipeline; content-tree parsing drives the tree assembly and parent-chain semantics; tree TOC and search/filter are client-side JS features tested via rendered HTML output.
+
+## TST-UNT-003: Content-tree and item tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-PAR-002
+  - SW-EXP-002
+```
+Unit tests shall cover the content tree: preamble prose captured as a headingless info node, requirement-less files fully preserved, container headings promoted to `KindContainer` only when they have children, mid-file headings becoming nodes instead of body text, `ParentID` pointing at the nearest ancestor requirement (never a container), thematic breaks kept in bodies, deterministic multi-file merge order, and the chunked parallel path retaining the file preamble. Tests shall also cover item-aware output: `ls`/`stats` Type columns and counts, CSV rows in document order for all node kinds, HTML container sections and info blocks with stable anchors, index entries carrying `type`/`parentId`/`children`, and `--filter` pruning requirements while keeping items.
+
+*Rationale:* The content tree is the parser's core contract — content must never be dropped and nesting must stay faithful to the source. Item-aware output crosses the parser, reporter, and exporter packages, so it needs dedicated end-to-end coverage.
 
 ## TST-VER-001: Verify package tests
 ```attr
@@ -149,6 +163,8 @@ trace:
   - SW-LEV-001
 ```
 Unit tests shall cover level-typed `requires-trace-from`: a level token expands to every document declaring it, coverage is satisfied by any approved inbound from those documents, document-id tokens still resolve, and unknown tokens produce a WARNING.
+
+Unit tests shall also cover the `x-reqmd.requires-trace-from` document default (SYS-FMT-003): a requirement that does not declare the attribute inherits the document default and is checked against it; a requirement that declares its own attribute overrides the default; `requires-trace-from: []` opts a requirement out even under a non-empty default; an empty document default opts every requirement in the document out; and a document without a default leaves its requirements on the generic boundary-inference fallback.
 
 *Rationale:* Level resolution changes coverage semantics for multi-document layers; the expansion and fallback paths must be verified independently.
 

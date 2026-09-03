@@ -11,6 +11,12 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"reqmd/internal/exporter"
+	"reqmd/internal/filter"
+	"reqmd/internal/graph"
+	"reqmd/internal/model"
+	"reqmd/internal/parser"
+	"reqmd/internal/verify"
 	"runtime"
 	"sort"
 	"sync"
@@ -18,13 +24,6 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
-
-	"reqmd/internal/exporter"
-	"reqmd/internal/filter"
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
-	"reqmd/internal/parser"
-	"reqmd/internal/verify"
 )
 
 // pollInterval is the file polling interval used when fsnotify is unavailable.
@@ -114,7 +113,7 @@ func runServe(root string, addr string, debounce time.Duration, headless bool, n
 		filterExpr:   filterExpr,
 	}
 
-	if err := srv.rebuild(ctx); err != nil {
+	if err := srv.rebuild(); err != nil {
 		return fmt.Errorf("initial build: %w", err)
 	}
 
@@ -124,12 +123,16 @@ func runServe(root string, addr string, debounce time.Duration, headless bool, n
 		mux.HandleFunc("/events", srv.sseHandler)
 		mux.HandleFunc("/", srv.fileHandler)
 
-		httpSrv := &http.Server{Addr: addr, Handler: mux}
+		httpSrv := &http.Server{
+			Addr:              addr,
+			Handler:           mux,
+			ReadHeaderTimeout: 5 * time.Second,
+		}
 		go func() {
 			<-ctx.Done()
 			shutdownCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 			defer cancel()
-			httpSrv.Shutdown(shutdownCtx)
+			_ = httpSrv.Shutdown(shutdownCtx)
 		}()
 
 		go func() {
@@ -157,23 +160,19 @@ func runServe(root string, addr string, debounce time.Duration, headless bool, n
 
 // serveData holds shared state for the serve command.
 type serveData struct {
+	pages        map[string][]byte
+	sseClients   map[chan struct{}]struct{}
 	root         string
 	addr         string
-	debounce     time.Duration
-	headless     bool
-	resultsPaths []string
 	filterExpr   string
-
-	// Latest rendered HTML per output path (relative path → content)
-	mu    sync.RWMutex
-	pages map[string][]byte
-
-	// SSE clients
-	sseMu      sync.Mutex
-	sseClients map[chan struct{}]struct{}
+	resultsPaths []string
+	debounce     time.Duration
+	mu           sync.RWMutex
+	sseMu        sync.Mutex
+	headless     bool
 }
 
-func (s *serveData) rebuild(ctx context.Context) error {
+func (s *serveData) rebuild() error {
 	docs, verdicts, g, err := discoverAndBuildGraph(s.root, s.resultsPaths, s.filterExpr)
 	if err != nil {
 		return err
@@ -187,7 +186,7 @@ func (s *serveData) rebuild(ctx context.Context) error {
 	}
 	boundaries := exporter.ComputeDocBoundaries(docs)
 
-	pages, totalReqs, results, err := exportServePages(docs, g, rctx, boundaries, s.root, titleMap, verdicts)
+	pages, totalReqs, results, err := exportServePages(docs, g, rctx, boundaries, titleMap, verdicts)
 	if err != nil {
 		return err
 	}
@@ -235,7 +234,11 @@ func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string
 	var verdicts map[string]exporter.VerdictInfo
 	graphDocs := docs
 	if len(resultsPaths) > 0 {
-		merged, vVerdicts, _, err := verify.LoadVerdicts(resultsPaths)
+		var (
+			merged    map[string]verify.Result
+			vVerdicts map[string]verify.Verdict
+		)
+		merged, vVerdicts, _, err = verify.LoadVerdicts(resultsPaths)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("loading results: %w", err)
 		}
@@ -256,16 +259,16 @@ func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string
 	if filterExpr != "" {
 		f, err := filter.CompileForDocs(docs, filterExpr)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 		}
 		filterSet, err := f.MatchingIDs(docs)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, fmt.Errorf("collecting matching IDs: %w", err)
 		}
 		g.SetFilter(filterSet)
 		docs, err = f.FilterDocs(docs)
 		if err != nil {
-			return nil, nil, nil, err
+			return nil, nil, nil, fmt.Errorf("applying filter %q: %w", filterExpr, err)
 		}
 	}
 
@@ -275,7 +278,7 @@ func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string
 // exportServePages renders every document to HTML and counts graph checks.
 // It returns the rendered pages, the total requirement count, and the graph
 // check results so the caller can report status.
-func exportServePages(docs []model.Document, g *graph.Graph, rctx *exporter.RenderContext, boundaries map[string]exporter.DocBoundary, root string, titleMap map[string]string, verdicts map[string]exporter.VerdictInfo) (map[string][]byte, int, []graph.CheckResult, error) {
+func exportServePages(docs []model.Document, g *graph.Graph, rctx *exporter.RenderContext, boundaries map[string]exporter.DocBoundary, titleMap map[string]string, verdicts map[string]exporter.VerdictInfo) (map[string][]byte, int, []graph.CheckResult, error) {
 	var exp exporter.HTML
 	exp.SetVerdicts(verdicts)
 	upstreamFn := g.UpstreamNeighbors
@@ -316,7 +319,7 @@ func exportServePages(docs []model.Document, g *graph.Graph, rctx *exporter.Rend
 		}
 		pages[outPath] = buf.Bytes()
 
-		totalReqs += len(doc.Requirements)
+		totalReqs += len(doc.Requirements())
 	}
 
 	return pages, totalReqs, g.CheckResults(), nil
@@ -349,7 +352,7 @@ func (s *serveData) watchFsnotify(ctx context.Context) error {
 	if err != nil {
 		return errFsnotifyUnavailable
 	}
-	defer watcher.Close()
+	defer func() { _ = watcher.Close() }()
 
 	// Watch root + doc dirs. Recursive watching exhausts inotify limits.
 	docDirs := findDocDirsFlat(s.root)
@@ -374,7 +377,7 @@ func (s *serveData) watchFsnotify(ctx context.Context) error {
 		}
 	}
 
-	rebuildAndNotify := s.makeRebuildAndNotify(ctx)
+	rebuildAndNotify := s.makeRebuildAndNotify()
 
 	var debounceTimer *time.Timer
 	var debounceCh chan struct{}
@@ -390,13 +393,13 @@ func (s *serveData) watchFsnotify(ctx context.Context) error {
 			}
 			// If a new schema.yaml was created, add its parent dir
 			if event.Op&fsnotify.Create != 0 && filepath.Base(event.Name) == "schema.yaml" {
-				watcher.Add(filepath.Dir(event.Name))
+				_ = watcher.Add(filepath.Dir(event.Name))
 			}
 			// If a new directory was created, check for schema.yaml
 			if event.Op&fsnotify.Create != 0 {
 				if fi, err := os.Stat(event.Name); err == nil && fi.IsDir() {
 					if _, err := os.Stat(filepath.Join(event.Name, "schema.yaml")); err == nil {
-						watcher.Add(event.Name)
+						_ = watcher.Add(event.Name)
 					}
 				}
 			}
@@ -434,7 +437,7 @@ func (s *serveData) watchFsnotify(ctx context.Context) error {
 }
 
 func (s *serveData) watchPolling(ctx context.Context) error {
-	rebuildAndNotify := s.makeRebuildAndNotify(ctx)
+	rebuildAndNotify := s.makeRebuildAndNotify()
 
 	// Track last modification time per doc dir
 	type docState struct {
@@ -525,9 +528,9 @@ func (s *serveData) watchPolling(ctx context.Context) error {
 	}
 }
 
-func (s *serveData) makeRebuildAndNotify(ctx context.Context) func() {
+func (s *serveData) makeRebuildAndNotify() func() {
 	return func() {
-		if err := s.rebuild(ctx); err != nil {
+		if err := s.rebuild(); err != nil {
 			fmt.Fprintf(os.Stderr, "[%s] rebuild error: %v\n", time.Now().Format("15:04:05"), err)
 			return
 		}
@@ -676,11 +679,11 @@ func (s *serveData) fileHandler(w http.ResponseWriter, r *http.Request) {
 	lrScript := []byte(`<script>new EventSource('/events').addEventListener('reload',()=>location.reload());</script>`)
 	bodyEnd := bytes.LastIndex(content, []byte("</body>"))
 	if bodyEnd >= 0 {
-		w.Write(content[:bodyEnd])
-		w.Write(lrScript)
-		w.Write(content[bodyEnd:])
+		_, _ = w.Write(content[:bodyEnd])
+		_, _ = w.Write(lrScript)
+		_, _ = w.Write(content[bodyEnd:])
 	} else {
-		w.Write(content)
-		w.Write(lrScript)
+		_, _ = w.Write(content)
+		_, _ = w.Write(lrScript)
 	}
 }

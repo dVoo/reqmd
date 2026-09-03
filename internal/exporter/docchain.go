@@ -1,10 +1,10 @@
 package exporter
 
 import (
+	"fmt"
 	"path/filepath"
-	"strconv"
-
 	"reqmd/internal/model"
+	"strconv"
 )
 
 // BuildTitleMap builds a reqID → title map across all documents, for use as
@@ -12,7 +12,7 @@ import (
 func BuildTitleMap(docs []model.Document) map[string]string {
 	titleMap := make(map[string]string)
 	for _, d := range docs {
-		for _, req := range d.Requirements {
+		for _, req := range d.Requirements() {
 			if req.Title != "" {
 				titleMap[req.ID] = req.Title
 			}
@@ -24,13 +24,13 @@ func BuildTitleMap(docs []model.Document) map[string]string {
 // RenderContext holds precomputed document chain and link resolution data
 // for cross-document HTML traceability. It is shared by the export and serve commands.
 type RenderContext struct {
-	docs         []model.Document
+	reqToHTML    map[string]string
+	absMap       map[string]absDocInfo
+	downstreamOf map[string][]string
 	root         string
-	reqToHTML    map[string]string // reqID → output HTML path
+	docs         []model.Document
 	docLinks     []docLinkInfo
 	absPaths     []string
-	absMap       map[string]absDocInfo
-	downstreamOf map[string][]string // absPath → docs that declare absPath as an upstream source
 }
 
 type docLinkInfo struct {
@@ -58,25 +58,19 @@ func NewRenderContext(docs []model.Document, root string) (*RenderContext, error
 		htmlName := dirName + "-requirements.html"
 		htmlPath := htmlName
 
-		for _, req := range doc.Requirements {
+		for _, req := range doc.Requirements() {
 			rctx.reqToHTML[req.ID] = htmlPath
-		}
-		title := ""
-		if t, ok := doc.Schema.(map[string]any)["title"]; ok {
-			if s, ok := t.(string); ok {
-				title = s
-			}
 		}
 		info := docLinkInfo{
 			id:    dirName,
-			title: title,
+			title: docTitle(doc),
 			path:  htmlPath,
 		}
 		rctx.docLinks = append(rctx.docLinks, info)
 
 		absPath, err := filepath.Abs(doc.Path)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("resolving %s: %w", doc.Path, err)
 		}
 		rctx.absMap[absPath] = absDocInfo{info: info, doc: doc}
 		rctx.absPaths = append(rctx.absPaths, absPath)
@@ -119,7 +113,7 @@ func (r *RenderContext) ResolveLink(currentOutPath string) func(string) string {
 
 // ChainCard represents a single document in the chain graph visualization.
 type ChainCard struct {
-	Title      string // schema title (or dirName if empty)
+	Title      string // document title (parsed h1, or schema title, or dirName if empty)
 	Path       string // output HTML path (empty for current doc, or unknown)
 	DirName    string // directory basename
 	IsCurrent  bool   // true for the doc this graph was built for
@@ -128,9 +122,9 @@ type ChainCard struct {
 
 // ChainTier is a horizontal row of docs at the same trace distance.
 type ChainTier struct {
-	Level int         // distance from current (negative upstream, positive downstream, 0 = current)
-	Label string      // human label, e.g. "Upstream tier 2", "Downstream tier 1", "Current"
-	Cards []ChainCard // docs in this tier (1 for current tier, n for parallel branches)
+	Label string
+	Cards []ChainCard
+	Level int
 }
 
 // DocChainGraph is the full tiered document graph for a single current doc.
@@ -302,6 +296,34 @@ func downstreamTierLabel(level int) string {
 		return "Downstream · 3 levels below"
 	default:
 		return "Downstream · " + strconv.Itoa(level) + " levels below"
+	}
+}
+
+// ResolveChainOutputs replaces every non-current card's Path — which the
+// render context seeds with the flat output file name (e.g.
+// "01-stakeholder-requirements.html") — with the real output path for that
+// document, as reported by outPath(dirName). Callers know where each page
+// is actually written (flat into an output dir, or into each document's own
+// dir), so they supply the mapping. Relative card paths are then produced
+// by RelativizeChainGraph.
+func ResolveChainOutputs(g *DocChainGraph, outPath func(dirName string) string) {
+	if g == nil || outPath == nil {
+		return
+	}
+	resolveTier := func(t *ChainTier) {
+		for i := range t.Cards {
+			c := &t.Cards[i]
+			if c.IsCurrent || c.DirName == "" {
+				continue
+			}
+			c.Path = outPath(c.DirName)
+		}
+	}
+	for i := range g.Upstream {
+		resolveTier(&g.Upstream[i])
+	}
+	for i := range g.Downstream {
+		resolveTier(&g.Downstream[i])
 	}
 }
 

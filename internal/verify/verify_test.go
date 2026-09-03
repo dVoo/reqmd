@@ -3,11 +3,19 @@ package verify_test
 import (
 	"os"
 	"path/filepath"
-	"testing"
-	"time"
 
 	"reqmd/internal/verify"
+	"testing"
+	"time"
 )
+
+// writeFixture writes fixture content to a file, failing the test on error.
+func writeFixture(t *testing.T, path, content string) {
+	t.Helper()
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+		t.Fatalf("writing %s: %v", path, err)
+	}
+}
 
 // ---------------------------------------------------------------------------
 // CTRF parser
@@ -27,7 +35,7 @@ func ctrfReport(tests string) string {
 func TestLoadCTRF_PassFail(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "report.ctrf.json")
-	os.WriteFile(path, []byte(ctrfReport(`{
+	writeFixture(t, path, ctrfReport(`{
 		"name": "TestA",
 		"status": "passed",
 		"duration": 10,
@@ -39,7 +47,7 @@ func TestLoadCTRF_PassFail(t *testing.T) {
 		"duration": 10,
 		"stop": 1700000002000,
 		"extra": {"x-reqmd": {"id": "TST-002"}}
-	}`)), 0644)
+	}`))
 
 	results, warnings, err := verify.LoadResults([]string{path})
 	if err != nil {
@@ -65,12 +73,12 @@ func TestLoadCTRF_PassFail(t *testing.T) {
 func TestLoadCTRF_UnmappedTestWarns(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "report.ctrf.json")
-	os.WriteFile(path, []byte(ctrfReport(`{
+	writeFixture(t, path, ctrfReport(`{
 		"name": "TestNoReq",
 		"status": "passed",
 		"duration": 10,
 		"extra": {}
-	}`)), 0644)
+	}`))
 
 	results, warnings, err := verify.LoadResults([]string{path})
 	if err != nil {
@@ -87,12 +95,12 @@ func TestLoadCTRF_UnmappedTestWarns(t *testing.T) {
 func TestLoadCTRF_VersionPinPreserved(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "report.ctrf.json")
-	os.WriteFile(path, []byte(ctrfReport(`{
+	writeFixture(t, path, ctrfReport(`{
 		"name": "TestPinned",
 		"status": "passed",
 		"duration": 10,
 		"extra": {"x-reqmd": {"id": "TST-001~3"}}
-	}`)), 0644)
+	}`))
 
 	results, _, err := verify.LoadResults([]string{path})
 	if err != nil {
@@ -109,13 +117,13 @@ func TestLoadCTRF_VersionPinPreserved(t *testing.T) {
 func TestLoadCTRF_FlakyIsInconclusive(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "report.ctrf.json")
-	os.WriteFile(path, []byte(ctrfReport(`{
+	writeFixture(t, path, ctrfReport(`{
 		"name": "TestFlaky",
 		"status": "passed",
 		"duration": 10,
 		"flaky": true,
 		"extra": {"x-reqmd": {"id": "TST-001"}}
-	}`)), 0644)
+	}`))
 
 	results, _, err := verify.LoadResults([]string{path})
 	if err != nil {
@@ -162,12 +170,12 @@ func TestMergeLatest_PinStrippedFromKey(t *testing.T) {
 func TestLoadResults_NonCTRFJsonSkipped(t *testing.T) {
 	dir := t.TempDir()
 	// coverage.json — not CTRF, must be skipped silently
-	os.WriteFile(filepath.Join(dir, "coverage.json"), []byte(`{"coverage": 0.95}`), 0644)
+	writeFixture(t, filepath.Join(dir, "coverage.json"), `{"coverage": 0.95}`)
 	// a real CTRF report
-	os.WriteFile(filepath.Join(dir, "run.ctrf.json"), []byte(ctrfReport(`{
+	writeFixture(t, filepath.Join(dir, "run.ctrf.json"), ctrfReport(`{
 		"name": "TestA", "status": "passed", "duration": 1,
 		"extra": {"x-reqmd": {"id": "TST-001"}}
-	}`)), 0644)
+	}`))
 
 	results, _, err := verify.LoadResults([]string{dir})
 	if err != nil {
@@ -181,10 +189,10 @@ func TestLoadResults_NonCTRFJsonSkipped(t *testing.T) {
 func TestLoadResults_PlainJsonCTRFShapeAccepted(t *testing.T) {
 	dir := t.TempDir()
 	// plain .json with CTRF shape → accepted
-	os.WriteFile(filepath.Join(dir, "report.json"), []byte(ctrfReport(`{
+	writeFixture(t, filepath.Join(dir, "report.json"), ctrfReport(`{
 		"name": "TestA", "status": "passed", "duration": 1,
 		"extra": {"x-reqmd": {"id": "TST-001"}}
-	}`)), 0644)
+	}`))
 
 	results, _, err := verify.LoadResults([]string{dir})
 	if err != nil {
@@ -204,10 +212,11 @@ func TestSynthesize_ResultNodeIDAndTrace(t *testing.T) {
 		"TST-001": {MeasureID: "TST-001~3", Outcome: verify.OutcomePass, Source: "run.ctrf.json"},
 	}
 	doc := verify.Synthesize(merged)
-	if len(doc.Requirements) != 1 {
-		t.Fatalf("reqs = %d, want 1", len(doc.Requirements))
+	reqs := doc.Requirements()
+	if len(reqs) != 1 {
+		t.Fatalf("reqs = %d, want 1", len(reqs))
 	}
-	r := doc.Requirements[0]
+	r := reqs[0]
 	if r.ID != "RESULT:TST-001" {
 		t.Errorf("ID = %q, want RESULT:TST-001", r.ID)
 	}
@@ -223,7 +232,7 @@ func TestSynthesize_ResultNodeIDAndTrace(t *testing.T) {
 
 func TestIsResultNode(t *testing.T) {
 	cases := []struct {
-		id  string
+		id   string
 		want bool
 	}{
 		{"RESULT:TST-001", true},

@@ -30,11 +30,17 @@ trace:
   - system/SYS-001
 ```
 
-Coverage expectations use the same IDs:
+Coverage expectations use the same IDs, declared once per document in `x-reqmd.requires-trace-from` so every requirement in the layer inherits them regardless of where the submodule is mounted:
 
 ```yaml
-requires-trace-from: [software]
+# system/schema.yaml
+x-reqmd:
+  document-id: system
+  level: system-requirements
+  requires-trace-from: [software]
 ```
+
+A requirement may override the document default with its own `requires-trace-from` attribute, or opt out of downstream coverage with `requires-trace-from: []`.
 
 ## Validate the assembled example
 

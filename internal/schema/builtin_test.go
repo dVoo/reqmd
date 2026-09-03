@@ -1,6 +1,7 @@
 package schema
 
 import (
+	"slices"
 	"testing"
 )
 
@@ -147,14 +148,7 @@ func TestRejectBuiltinRedefinition_JSONSchema(t *testing.T) {
 // T1: BuiltinNames must include "status".
 func TestBuiltinNames_IncludesStatus(t *testing.T) {
 	names := BuiltinNames()
-	found := false
-	for _, n := range names {
-		if n == "status" {
-			found = true
-			break
-		}
-	}
-	if !found {
+	if !slices.Contains(names, "status") {
 		t.Errorf("BuiltinNames() = %v, want to include 'status'", names)
 	}
 }

@@ -9,16 +9,15 @@ package schema
 
 import (
 	"fmt"
+	"reqmd/internal/model"
 	"sort"
 	"strings"
-
-	"reqmd/internal/model"
 )
 
 // BuiltinAttr describes a single reqmd built-in attribute.
 type BuiltinAttr struct {
+	Definition map[string]any
 	Name       string
-	Definition map[string]any // JSON Schema property definition
 }
 
 // builtinDefs is the canonical list of all reqmd built-in attributes.

@@ -13,12 +13,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strconv"
-	"strings"
-
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
 	"reqmd/internal/parser"
+	"slices"
+	"strconv"
+	"strings"
 )
 
 // Result is the value Build returns: a sorted list of deltas plus a
@@ -28,8 +28,8 @@ import (
 // The JSON field names form the stable contract for the
 // `reqmd repin --json` interface.
 type Result struct {
-	Deltas   []graph.RepinDelta `json:"deltas"`
 	ByFile   map[string]int     `json:"by_file"`
+	Deltas   []graph.RepinDelta `json:"deltas"`
 	Outdated int                `json:"outdated"`
 	Unpinned int                `json:"unpinned"`
 	Predated int                `json:"predated"`
@@ -42,8 +42,8 @@ type Result struct {
 // never auto-fixes. Files is the number of distinct spec files
 // actually rewritten.
 type ApplyReport struct {
-	Applied int                `json:"applied"`
 	Skipped []graph.RepinDelta `json:"skipped"`
+	Applied int                `json:"applied"`
 	Files   int                `json:"files"`
 }
 
@@ -122,10 +122,7 @@ func Apply(deltas []graph.RepinDelta) (ApplyReport, error) {
 		if err != nil {
 			return report, fmt.Errorf("reading %s: %w", path, err)
 		}
-		updated, matches, err := applyToFile(src, fileDeltas)
-		if err != nil {
-			return report, fmt.Errorf("rewriting %s: %w", path, err)
-		}
+		updated, matches := applyToFile(src, fileDeltas)
 		if matches == 0 {
 			// No ref was actually replaced; leave the file untouched
 			// and don't count it toward Files.
@@ -156,24 +153,23 @@ func Apply(deltas []graph.RepinDelta) (ApplyReport, error) {
 // by `~` for the unpinned-promote case). This prevents a naive
 // substring match from corrupting an already-pinned ref like
 // `UP-001~3` when the same ref is being promoted from unpinned.
-func applyToFile(src []byte, deltas []graph.RepinDelta) ([]byte, int, error) {
+func applyToFile(src []byte, deltas []graph.RepinDelta) ([]byte, int) {
 	ranges := locateAttrBlocks(src)
 	if len(ranges) == 0 {
-		return src, 0, nil
+		return src, 0
 	}
 	// Build the (oldRef, newRef) pairs up front so the per-block
 	// pass can scan each pair without re-parsing the deltas.
 	pairs := buildPairs(deltas)
 	if len(pairs) == 0 {
-		return src, 0, nil
+		return src, 0
 	}
 
 	// Process ranges in reverse so byte offsets remain valid as we
 	// mutate the buffer.
 	out := src
 	totalMatches := 0
-	for i := len(ranges) - 1; i >= 0; i-- {
-		r := ranges[i]
+	for _, r := range slices.Backward(ranges) {
 		block := out[r.start:r.end]
 		newBlock, matches := applyPairsToBlock(block, pairs)
 		totalMatches += matches
@@ -181,7 +177,7 @@ func applyToFile(src []byte, deltas []graph.RepinDelta) ([]byte, int, error) {
 			out = bytesSliceReplace(out, r.start, r.end, newBlock)
 		}
 	}
-	return out, totalMatches, nil
+	return out, totalMatches
 }
 
 // refPair is a pre-computed (oldRef, newRef) pair ready for byte
@@ -409,4 +405,3 @@ func FormatTextApplied(rep ApplyReport) string {
 	}
 	return fmt.Sprintf("applied %d changes across %d files\n", rep.Applied, rep.Files)
 }
-

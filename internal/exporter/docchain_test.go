@@ -1,9 +1,8 @@
 package exporter
 
 import (
-	"testing"
-
 	"reqmd/internal/model"
+	"testing"
 )
 
 // makeDoc constructs a minimal model.Document with the given path, title and
@@ -18,9 +17,8 @@ func makeDoc(path, title string, xr *model.XReqmd) model.Document {
 }
 
 // makeXReqmd is a tiny constructor for XReqmd pointer values.
-func makeXReqmd(sources []string, external bool) *model.XReqmd {
+func makeXReqmd(sources []string) *model.XReqmd {
 	return &model.XReqmd{
-		External: external,
 		Upstream: &model.TraceUpstream{
 			Sources: sources,
 		},
@@ -31,8 +29,8 @@ func TestBuildChainGraphSimpleLinear(t *testing.T) {
 	// root → mid → leaf
 	docs := []model.Document{
 		makeDoc("/docs/root", "Root", nil),
-		makeDoc("/docs/mid", "Mid", makeXReqmd([]string{"../root"}, false)),
-		makeDoc("/docs/leaf", "Leaf", makeXReqmd([]string{"../mid"}, false)),
+		makeDoc("/docs/mid", "Mid", makeXReqmd([]string{"../root"})),
+		makeDoc("/docs/leaf", "Leaf", makeXReqmd([]string{"../mid"})),
 	}
 	rctx, err := NewRenderContext(docs, "/docs")
 	if err != nil {
@@ -67,7 +65,7 @@ func TestBuildChainGraphParallelBranches(t *testing.T) {
 	docs := []model.Document{
 		makeDoc("/docs/root_a", "Root A", nil),
 		makeDoc("/docs/root_b", "Root B", nil),
-		makeDoc("/docs/mid", "Mid", makeXReqmd([]string{"../root_a", "../root_b"}, false)),
+		makeDoc("/docs/mid", "Mid", makeXReqmd([]string{"../root_a", "../root_b"})),
 	}
 	rctx, err := NewRenderContext(docs, "/docs")
 	if err != nil {
@@ -94,7 +92,7 @@ func TestBuildChainGraphParallelBranches(t *testing.T) {
 func TestBuildChainGraphExternalFlag(t *testing.T) {
 	docs := []model.Document{
 		makeDoc("/docs/ext", "External Spec", &model.XReqmd{External: true}),
-		makeDoc("/docs/mid", "Mid", makeXReqmd([]string{"../ext"}, false)),
+		makeDoc("/docs/mid", "Mid", makeXReqmd([]string{"../ext"})),
 	}
 	rctx, err := NewRenderContext(docs, "/docs")
 	if err != nil {
@@ -113,8 +111,8 @@ func TestBuildChainGraphExternalFlag(t *testing.T) {
 func TestBuildChainGraphCycle(t *testing.T) {
 	// a → b → a (cycle)
 	docs := []model.Document{
-		makeDoc("/docs/a", "A", makeXReqmd([]string{"../b"}, false)),
-		makeDoc("/docs/b", "B", makeXReqmd([]string{"../a"}, false)),
+		makeDoc("/docs/a", "A", makeXReqmd([]string{"../b"})),
+		makeDoc("/docs/b", "B", makeXReqmd([]string{"../a"})),
 	}
 	rctx, err := NewRenderContext(docs, "/docs")
 	if err != nil {
@@ -136,9 +134,9 @@ func TestBuildChainGraphDeeperLevels(t *testing.T) {
 	// root → a → b → leaf (3 levels away from leaf)
 	docs := []model.Document{
 		makeDoc("/docs/root", "Root", nil),
-		makeDoc("/docs/a", "A", makeXReqmd([]string{"../root"}, false)),
-		makeDoc("/docs/b", "B", makeXReqmd([]string{"../a"}, false)),
-		makeDoc("/docs/leaf", "Leaf", makeXReqmd([]string{"../b"}, false)),
+		makeDoc("/docs/a", "A", makeXReqmd([]string{"../root"})),
+		makeDoc("/docs/b", "B", makeXReqmd([]string{"../a"})),
+		makeDoc("/docs/leaf", "Leaf", makeXReqmd([]string{"../b"})),
 	}
 	rctx, err := NewRenderContext(docs, "/docs")
 	if err != nil {
@@ -176,5 +174,38 @@ func TestBuildChainGraphNoUpstream(t *testing.T) {
 	g := rctx.BuildChainGraph(docs[0])
 	if g.HasContent() {
 		t.Errorf("root-only graph should have no content, got %+v", g)
+	}
+}
+
+func TestResolveAndRelativizeChainOutputs(t *testing.T) {
+	g := &DocChainGraph{
+		Upstream: []ChainTier{{Cards: []ChainCard{
+			{DirName: "01-stakeholder", Path: "01-stakeholder-requirements.html"},
+		}}},
+		Downstream: []ChainTier{{Cards: []ChainCard{
+			{IsCurrent: true, DirName: "02-system", Path: ""},
+			{DirName: "03-software", Path: "03-software-requirements.html"},
+		}}},
+	}
+	ResolveChainOutputs(g, func(dirName string) string {
+		return "/export/" + dirName + "-requirements.html"
+	})
+	if got := g.Upstream[0].Cards[0].Path; got != "/export/01-stakeholder-requirements.html" {
+		t.Errorf("upstream Path = %q, want resolved output path", got)
+	}
+	if got := g.Downstream[0].Cards[1].Path; got != "/export/03-software-requirements.html" {
+		t.Errorf("downstream Path = %q, want resolved output path", got)
+	}
+	// Current card is untouched.
+	if got := g.Downstream[0].Cards[0].Path; got != "" {
+		t.Errorf("current Path = %q, want unchanged", got)
+	}
+
+	RelativizeChainGraph(g, "/export")
+	if got := g.Upstream[0].Cards[0].Path; got != "01-stakeholder-requirements.html" {
+		t.Errorf("relative upstream Path = %q, want flat sibling name", got)
+	}
+	if got := g.Downstream[0].Cards[1].Path; got != "03-software-requirements.html" {
+		t.Errorf("relative downstream Path = %q, want flat sibling name", got)
 	}
 }

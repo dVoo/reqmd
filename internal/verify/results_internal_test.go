@@ -3,10 +3,9 @@ package verify
 import (
 	"os"
 	"path/filepath"
+	"reqmd/internal/model"
 	"testing"
 	"time"
-
-	"reqmd/internal/model"
 )
 
 // ---------------------------------------------------------------------------
@@ -98,7 +97,8 @@ The review confirmed the requirement is satisfied.
 // ---------------------------------------------------------------------------
 
 func TestResultFromReq_HappyPath(t *testing.T) {
-	req := model.Requirement{
+	req := &model.Node{
+		Kind:   model.KindRequirement,
 		ID:     "RES-001",
 		Source: "/results/r.md",
 		Attrs: map[string]any{
@@ -111,7 +111,7 @@ func TestResultFromReq_HappyPath(t *testing.T) {
 			},
 		},
 	}
-	r, ok := resultFromReq(req, "/results")
+	r, ok := resultFromReq(req)
 	if !ok {
 		t.Fatal("ok = false, want true")
 	}
@@ -137,21 +137,23 @@ func TestResultFromReq_HappyPath(t *testing.T) {
 }
 
 func TestResultFromReq_NoOutcomeNotAResult(t *testing.T) {
-	req := model.Requirement{
+	req := &model.Node{
+		Kind:   model.KindRequirement,
 		ID:     "REQ-001",
 		Source: "/docs/r.md",
 		Attrs: map[string]any{
-			"verifier": "Jane",
+			"verifier":      "Jane",
 			model.AttrTrace: []any{"MEAS-001~3"},
 		},
 	}
-	if _, ok := resultFromReq(req, "/docs"); ok {
+	if _, ok := resultFromReq(req); ok {
 		t.Error("ok = true, want false (no outcome attr → not a result)")
 	}
 }
 
 func TestResultFromReq_EmptyTraceFallsBackToReqID(t *testing.T) {
-	req := model.Requirement{
+	req := &model.Node{
+		Kind:   model.KindRequirement,
 		ID:     "RES-001",
 		Source: "/results/r.md",
 		Attrs: map[string]any{
@@ -161,7 +163,7 @@ func TestResultFromReq_EmptyTraceFallsBackToReqID(t *testing.T) {
 			// no trace attr → MeasureID must fall back to the requirement ID
 		},
 	}
-	r, ok := resultFromReq(req, "/results")
+	r, ok := resultFromReq(req)
 	if !ok {
 		t.Fatal("ok = false, want true")
 	}

@@ -4,12 +4,11 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"reqmd/internal/graph"
 	"sort"
 	"strconv"
 	"strings"
 	"testing"
-
-	"reqmd/internal/graph"
 )
 
 // ---------------------------------------------------------------------------
@@ -18,7 +17,7 @@ import (
 
 // writeFile creates a temp dir, writes content, and returns the dir path
 // (caller is responsible for cleanup via t.TempDir()).
-func writeFile(t *testing.T, dir, rel, content string) string {
+func writeFile(t *testing.T, dir, rel, content string) {
 	t.Helper()
 	p := filepath.Join(dir, rel)
 	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
@@ -27,7 +26,6 @@ func writeFile(t *testing.T, dir, rel, content string) string {
 	if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
-	return p
 }
 
 // minimalSchema is a permissive JSON Schema for attr blocks. Tests
@@ -156,7 +154,7 @@ func TestApply_PromoteAddsPin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
-	if _, err := Apply(res.Deltas); err != nil {
+	if _, err = Apply(res.Deltas); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	got, err := os.ReadFile(filepath.Join(root, "downstream/dn.md"))
@@ -191,7 +189,7 @@ func TestApply_PreservesProseWithTilde(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
-	if _, err := Apply(res.Deltas); err != nil {
+	if _, err = Apply(res.Deltas); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	got, err := os.ReadFile(filepath.Join(root, "downstream/dn.md"))
@@ -216,7 +214,7 @@ func TestApply_Idempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
-	if _, err := Apply(res.Deltas); err != nil {
+	if _, err = Apply(res.Deltas); err != nil {
 		t.Fatalf("first Apply: %v", err)
 	}
 	// Second Build should produce no deltas — pin now == upstream.
@@ -270,7 +268,7 @@ func TestApply_UnpinnedPromoteDoesNotCorruptPinnedSiblings(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build promote: %v", err)
 	}
-	if _, err := Apply(res.Deltas); err != nil {
+	if _, err = Apply(res.Deltas); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	got, err := os.ReadFile(filepath.Join(root, "downstream/dn.md"))
@@ -371,15 +369,15 @@ func TestApply_MultipleDeltasSameFile(t *testing.T) {
 
 func TestNewRefFrom(t *testing.T) {
 	cases := []struct {
-		ref       string
-		newPin    int
-		want      string
+		ref    string
+		want   string
+		newPin int
 	}{
-		{"UP-001~1", 3, "UP-001~3"},
-		{"upstream/UP-001~1", 3, "upstream/UP-001~3"},
-		{"UP-001", 5, "UP-001~5"},         // unpinned promote
-		{"upstream/UP-001", 5, "upstream/UP-001~5"}, // qualified unpinned promote
-		{"UP-001~0", 4, "UP-001~4"},       // ~0 → ~4
+		{ref: "UP-001~1", newPin: 3, want: "UP-001~3"},
+		{ref: "upstream/UP-001~1", newPin: 3, want: "upstream/UP-001~3"},
+		{ref: "UP-001", newPin: 5, want: "UP-001~5"},                   // unpinned promote
+		{ref: "upstream/UP-001", newPin: 5, want: "upstream/UP-001~5"}, // qualified unpinned promote
+		{ref: "UP-001~0", newPin: 4, want: "UP-001~4"},                 // ~0 → ~4
 	}
 	for _, c := range cases {
 		d := graph.RepinDelta{SourceRef: c.ref, NewPin: c.newPin}

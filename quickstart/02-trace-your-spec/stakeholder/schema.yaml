@@ -1,6 +1,7 @@
 x-reqmd:
   level: stakeholder-needs
   document-id: stakeholder
+  requires-trace-from: [system]
 
 $schema: "https://json-schema.org/draft/2020-12/schema"
 $id: "stakeholder-goals"

@@ -62,3 +62,68 @@ func TestStatsCmd_Filter(t *testing.T) {
 		t.Fatalf("filtered stats should not include Base variant:\n%s", out)
 	}
 }
+
+func TestListCmd_ShowsItems(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "sw/schema.yaml", variantSchema)
+	writeFile(t, root, "sw/sw.md", "# Software\n\nIntro prose for the doc.\n\n## Sub System\n\n### SW-001: Base parser\n```attr\nstatus: approved\nvariant: [Base]\n```\n")
+
+	out, err := runCmd(t, newListCmd(), root)
+	if err != nil {
+		t.Fatalf("ls failed: %v", err)
+	}
+	if !strings.Contains(out, "container") {
+		t.Fatalf("ls should show the ## Sub System container:\n%s", out)
+	}
+	if !strings.Contains(out, "Sub System") {
+		t.Fatalf("ls should show the container title:\n%s", out)
+	}
+	if !strings.Contains(out, "SW-001") {
+		t.Fatalf("ls should still list requirements:\n%s", out)
+	}
+	// Filtering scopes requirements but keeps the container visible.
+	out, err = runCmd(t, newListCmd(), "--filter", `"Premium" in variant`, root)
+	if err != nil {
+		t.Fatalf("ls --filter failed: %v", err)
+	}
+	if !strings.Contains(out, "container") || !strings.Contains(out, "Sub System") {
+		t.Fatalf("filtered ls should keep the container:\n%s", out)
+	}
+	if strings.Contains(out, "SW-001") {
+		t.Fatalf("filtered ls should not list SW-001:\n%s", out)
+	}
+}
+
+func TestListCmd_ItemsJSON(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "sw/schema.yaml", variantSchema)
+	writeFile(t, root, "sw/sw.md", "# Software\n\nIntro prose for the doc.\n\n## Sub System\n\n### SW-001: Base parser\n```attr\nstatus: approved\nvariant: [Base]\n```\n")
+
+	out, err := runCmd(t, newListCmd(), "--json", root)
+	if err != nil {
+		t.Fatalf("ls --json failed: %v", err)
+	}
+	if !strings.Contains(out, `"type": "container"`) {
+		t.Fatalf("ls --json should include the container row:\n%s", out)
+	}
+	if !strings.Contains(out, `"type": "req"`) {
+		t.Fatalf("ls --json should include requirement rows:\n%s", out)
+	}
+}
+
+func TestStatsCmd_ShowsItems(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "sw/schema.yaml", variantSchema)
+	writeFile(t, root, "sw/sw.md", "# Software\n\nIntro prose for the doc.\n\n## Sub System\n\n### SW-001: Base parser\n```attr\nstatus: approved\nvariant: [Base]\n```\n")
+
+	out, err := runCmd(t, newStatsCmd(), root)
+	if err != nil {
+		t.Fatalf("stats failed: %v", err)
+	}
+	if !strings.Contains(out, "1 reqs, 2 items") {
+		t.Fatalf("stats should count the container and intro info items:\n%s", out)
+	}
+	if !strings.Contains(out, "type:") || !strings.Contains(out, "container") {
+		t.Fatalf("stats should include a type breakdown:\n%s", out)
+	}
+}

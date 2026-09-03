@@ -1,14 +1,10 @@
+// Package cli implements the reqmd cobra command tree.
 package cli
 
 import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"runtime"
-	"sync"
-
-	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v3"
 
 	"reqmd/internal/filter"
 	"reqmd/internal/graph"
@@ -17,6 +13,11 @@ import (
 	"reqmd/internal/reporter"
 	"reqmd/internal/schema"
 	"reqmd/internal/verify"
+	"runtime"
+	"sync"
+
+	"github.com/spf13/cobra"
+	"gopkg.in/yaml.v3"
 )
 
 func newCheckCmd() *cobra.Command {
@@ -54,13 +55,17 @@ duration of this run.`,
 			if schemaPath != "" {
 				output, err := validateSingleFile(path, schemaPath, jsonOutput, relaxedVersions)
 				if output != "" {
-					fmt.Fprint(cmd.OutOrStdout(), output)
+					if _, werr := fmt.Fprint(cmd.OutOrStdout(), output); werr != nil {
+						return fmt.Errorf("writing output: %w", werr)
+					}
 				}
 				return err
 			}
 			output, err := validateDir(path, jsonOutput, relaxedVersions, resultsPaths, filterExpr, disjointChecks)
 			if output != "" {
-				fmt.Fprint(cmd.OutOrStdout(), output)
+				if _, werr := fmt.Fprint(cmd.OutOrStdout(), output); werr != nil {
+					return fmt.Errorf("writing output: %w", werr)
+				}
 			}
 			return err
 		},
@@ -96,11 +101,11 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 	if filterExpr != "" {
 		f, err := filter.CompileForDocs(docs, filterExpr)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 		}
 		filterSet, err = f.MatchingIDs(docs)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("collecting matching IDs for filter %q: %w", filterExpr, err)
 		}
 		report.Filter = filterExpr
 	}
@@ -114,28 +119,35 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 	if len(resultsPaths) > 0 {
 		merged, _, warnings, err := verify.LoadVerdicts(resultsPaths)
 		if err != nil {
-			return "", err
+			return "", fmt.Errorf("loading verification results: %w", err)
 		}
 		resultWarnings = warnings
 		resultDoc = verify.Synthesize(merged)
 	}
 
+	// Precompute the flat requirement list per doc (derived from the
+	// content tree; collected once for all passes below).
+	reqsByDoc := make([][]*model.Node, len(docs))
+	for i := range docs {
+		reqsByDoc[i] = docs[i].Requirements()
+	}
+
 	// Build doc headers (skip the synthetic results doc — it has no
 	// schema and is not a user-facing document).
-	for _, doc := range docs {
-		title := schema.SchemaTitle(doc.Schema)
-		ids := make([]string, 0, len(doc.Requirements))
-		for _, req := range doc.Requirements {
+	for i, doc := range docs {
+		title := schema.Title(doc.Schema)
+		ids := make([]string, 0, len(reqsByDoc[i]))
+		for _, req := range reqsByDoc[i] {
 			if !filterID(filterSet, req.ID) {
 				continue
 			}
 			ids = append(ids, req.ID)
 		}
 		report.DocHeaders = append(report.DocHeaders, reporter.DocHeader{
-			Path:        doc.Path,
-			SchemaTitle: title,
-			ReqCount:    len(ids),
-			ReqIDs:      ids,
+			Path:     doc.Path,
+			Title:    title,
+			ReqCount: len(ids),
+			ReqIDs:   ids,
 		})
 	}
 
@@ -153,28 +165,25 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 	var compileWG sync.WaitGroup
 	compileSem := make(chan struct{}, runtime.NumCPU())
 	for i, doc := range docs {
-		i, doc := i, doc
 		compileSem <- struct{}{}
-		compileWG.Add(1)
-		go func() {
-			defer compileWG.Done()
+		compileWG.Go(func() {
 			defer func() { <-compileSem }()
 			c, err := schema.Compile(doc.Schema, doc.Path)
 			compiles[i] = compileResult{compiled: c, err: err}
-		}()
+		})
 	}
 	compileWG.Wait()
 
 	// Collect compile errors and count total reqs serially (cheap).
-	for i, cr := range compiles {
-		if cr.err != nil {
+	for i, doc := range docs {
+		if cr := compiles[i]; cr.err != nil {
 			report.ParseErrors = append(report.ParseErrors, reporter.ParseError{
-				File:    docs[i].Path,
+				File:    doc.Path,
 				Message: fmt.Sprintf("compiling schema: %v", cr.err),
 			})
 			continue
 		}
-		for _, req := range docs[i].Requirements {
+		for _, req := range reqsByDoc[i] {
 			if !filterID(filterSet, req.ID) {
 				continue
 			}
@@ -202,8 +211,8 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 		if cr.err != nil || cr.compiled == nil {
 			continue
 		}
-		for j := range docs[i].Requirements {
-			if !filterID(filterSet, docs[i].Requirements[j].ID) {
+		for j := range reqsByDoc[i] {
+			if !filterID(filterSet, reqsByDoc[i][j].ID) {
 				continue
 			}
 			jobs = append(jobs, valJob{jobIdx: len(jobs), docIdx: i, reqIdx: j})
@@ -215,22 +224,17 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 	// pull jobs from a channel and write results by index, so the
 	// collected order matches the job order deterministically.
 	valResults := make([]valResult, len(jobs))
-	workers := runtime.NumCPU()
-	if workers > len(jobs) {
-		workers = len(jobs)
-	}
+	workers := min(runtime.NumCPU(), len(jobs))
 	var valWG sync.WaitGroup
 	jobCh := make(chan valJob)
-	for w := 0; w < workers; w++ {
-		valWG.Add(1)
-		go func() {
-			defer valWG.Done()
+	for range workers {
+		valWG.Go(func() {
 			for job := range jobCh {
-				req := docs[job.docIdx].Requirements[job.reqIdx]
+				req := reqsByDoc[job.docIdx][job.reqIdx]
 				err := compiles[job.docIdx].compiled.Validate(req.Attrs)
 				valResults[job.jobIdx] = valResult{err: err, ok: err == nil}
 			}
-		}()
+		})
 	}
 	for _, job := range jobs {
 		jobCh <- job
@@ -240,7 +244,7 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 
 	// Collect validation results in order.
 	for k, job := range jobs {
-		req := docs[job.docIdx].Requirements[job.reqIdx]
+		req := reqsByDoc[job.docIdx][job.reqIdx]
 		if valResults[k].ok {
 			report.ValidReqs++
 		} else {
@@ -324,7 +328,7 @@ func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions
 		return "", fmt.Errorf("reading schema %s: %w", schemaPath, err)
 	}
 	var schemaAny any
-	if err := yaml.Unmarshal(schemaRaw, &schemaAny); err != nil {
+	if err = yaml.Unmarshal(schemaRaw, &schemaAny); err != nil {
 		return "", fmt.Errorf("parsing schema: %w", err)
 	}
 
@@ -335,9 +339,9 @@ func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions
 
 	// Wrap as a single Document for the shared pipeline
 	doc := model.Document{
-		Path:         filepath.Dir(filePath),
-		Schema:       schemaAny,
-		Requirements: reqs,
+		Path:   filepath.Dir(filePath),
+		Schema: schemaAny,
+		Nodes:  reqs,
 	}
 
 	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions, nil, "", nil)

@@ -1,6 +1,7 @@
 x-reqmd:
   level: system-requirements
   document-id: system
+  requires-trace-from: [software, tests]
   upstream:
     level: stakeholder-needs
     sources:

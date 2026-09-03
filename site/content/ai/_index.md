@@ -40,7 +40,7 @@ UI-based ALM tools — Jama, Polarion, Siemens Teamcenter, IBM DOORS, codeBeamer
 2. **The trace graph is opaque.** "Where does SYS-007 trace to?" requires either a UI session or a paginated REST call that returns IDs but not context. The agent has to follow references by hand, across multiple round-trips, to recover what reqmd makes a single 16 ms read.
 3. **Review is impossible.** When the agent writes a new requirement through the API, the change shows up in the UI but the diff is unreadable. A reviewer looking at the agent's PR sees a JSON blob in the audit log, not a Markdown paragraph they can mark up in GitHub.
 
-reqmd's model is the opposite. A requirement is a level-2 heading, a YAML `attr` block, and free-form prose. The agent edits text. The diff is text. The review is text. The check is a binary that returns text. The whole pipeline is in text.
+reqmd's model is the opposite. A requirement is a heading, a YAML `attr` block, and free-form prose; headings without an `attr` block are containers and info items — structure that is rendered and listed but never validated. The agent edits text. The diff is text. The review is text. The check is a binary that returns text. The whole pipeline is in text.
 
 ## The format is the API
 
@@ -117,6 +117,15 @@ x-reqmd:
 | `reqmd-suppress` | Array of check names to suppress (e.g. `[version-pin, missing-verdict]`). |
 | `external` | If `true`, this is an external reference requirement. |
 
+### Content model — nothing is dropped
+
+Every heading is a content-tree node. `req` = heading + `attr` block
+(validated, traced, filtered). `container` = heading without `attr` block
+that has children (folder-like; collapsible in HTML, `container` rows in
+`ls`/CSV, TOC folders). `info` = heading without `attr` block and no
+children, or leading prose. Items carry no attributes and are never
+validated, traced, or filter-pruned — `check` is requirement-scoped.
+
 See the [cheat sheet](/cheat-sheet/) for the full schema reference and every `x-reqmd` option.
 
 ## A copy-pasteable AGENTS.md
@@ -134,6 +143,14 @@ Single-binary Go CLI. Validates a directory of `.md` files against per-directory
 JSON Schema (YAML) with bidirectional trace checks. Exit codes: 0 (clean),
 1 (validation errors), 2 (parse error). See <https://reqmd.dev/llms.txt>
 for a machine-readable index of the docs.
+
+Every heading is a node: a requirement (heading + `attr` block) validates,
+traces, and filters; headings without an `attr` block are containers and
+info items — structure that renders in `ls`/CSV/HTML but is never
+validated, traced, or filter-pruned. Level-1 headings are the document
+title, not content: they never become requirements (only h2+ can), and
+they render as the page title rather than a folder. Nothing is dropped;
+don't delete non-requirement headings to "clean up" — they are content.
 
 ## Hard rules
 

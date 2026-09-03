@@ -1,17 +1,16 @@
 package graph_test
 
 import (
-	"strings"
-	"testing"
-
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
+	"strings"
+	"testing"
 )
 
 // resultReq builds a synthesized verification-result pseudo-requirement
 // tracing to measureID with the given outcome.
-func resultReq(measureID, outcome string) model.Requirement {
-	return model.Requirement{
+func resultReq(measureID, outcome string) *model.Node {
+	return &model.Node{
 		ID:     "RESULT:" + measureID,
 		Source: measureID + ".ctrf.json",
 		Attrs: map[string]any{
@@ -24,27 +23,27 @@ func resultReq(measureID, outcome string) model.Requirement {
 
 // measureReq builds a verification-measure requirement (an authored req
 // that a result traces to). By default it has status approved.
-func measureReq(id string, status string) model.Requirement {
+func measureReq(status string) *model.Node {
 	attrs := map[string]any{"verify": "Test"}
 	if status != "" {
 		attrs[model.AttrStatus] = status
 	}
-	return model.Requirement{
-		ID:     id,
-		Source: "/docs/" + id + ".md",
+	return &model.Node{
+		ID:     "TST-001",
+		Source: "/docs/TST-001.md",
 		Attrs:  attrs,
 	}
 }
 
-func resultDoc(reqs ...model.Requirement) model.Document {
+func resultDoc(reqs ...*model.Node) model.Document {
 	return model.Document{
-		Path:         "<verify-results>",
-		Requirements:  reqs,
-		XReqmd:       &model.XReqmd{Level: "verify-results"},
+		Path:   "<verify-results>",
+		Nodes:  reqs,
+		XReqmd: &model.XReqmd{Level: "verify-results"},
 	}
 }
 
-func measureDoc(reqs ...model.Requirement) model.Document {
+func measureDoc(reqs ...*model.Node) model.Document {
 	return docWithXReqmd("/docs/test-specs", &model.XReqmd{Level: "test-specs"}, reqs...)
 }
 
@@ -54,7 +53,7 @@ func measureDoc(reqs ...model.Requirement) model.Document {
 
 func TestCheckResults_NoResults_NoOutcomeChecks(t *testing.T) {
 	g, err := graph.New([]model.Document{
-		measureDoc(measureReq("TST-001", model.StatusApproved)),
+		measureDoc(measureReq(model.StatusApproved)),
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -73,7 +72,7 @@ func TestCheckResults_NoResults_NoOutcomeChecks(t *testing.T) {
 
 func TestMissingVerdict_MeasureWithoutResult(t *testing.T) {
 	g, err := graph.New([]model.Document{
-		measureDoc(measureReq("TST-001", model.StatusApproved)),
+		measureDoc(measureReq(model.StatusApproved)),
 		resultDoc(resultReq("TST-002", "pass")), // result for a *different* measure
 	})
 	if err != nil {
@@ -96,7 +95,7 @@ func TestMissingVerdict_MeasureWithoutResult(t *testing.T) {
 
 func TestMissingVerdict_MeasureWithResult_NoFinding(t *testing.T) {
 	g, err := graph.New([]model.Document{
-		measureDoc(measureReq("TST-001", model.StatusApproved)),
+		measureDoc(measureReq(model.StatusApproved)),
 		resultDoc(resultReq("TST-001", "pass")),
 	})
 	if err != nil {
@@ -112,7 +111,7 @@ func TestMissingVerdict_MeasureWithResult_NoFinding(t *testing.T) {
 
 func TestMissingVerdict_DraftMeasureSkipped(t *testing.T) {
 	g, err := graph.New([]model.Document{
-		measureDoc(measureReq("TST-001", model.StatusDraft)),
+		measureDoc(measureReq(model.StatusDraft)),
 		resultDoc(resultReq("TST-002", "pass")), // result for a different measure
 	})
 	if err != nil {
@@ -132,7 +131,7 @@ func TestMissingVerdict_DraftMeasureSkipped(t *testing.T) {
 
 func TestFailingVerdict_MeasureFails(t *testing.T) {
 	g, err := graph.New([]model.Document{
-		measureDoc(measureReq("TST-001", model.StatusApproved)),
+		measureDoc(measureReq(model.StatusApproved)),
 		resultDoc(resultReq("TST-001", "fail")),
 	})
 	if err != nil {
@@ -155,7 +154,7 @@ func TestFailingVerdict_MeasureFails(t *testing.T) {
 
 func TestFailingVerdict_MeasurePasses_NoFinding(t *testing.T) {
 	g, err := graph.New([]model.Document{
-		measureDoc(measureReq("TST-001", model.StatusApproved)),
+		measureDoc(measureReq(model.StatusApproved)),
 		resultDoc(resultReq("TST-001", "pass")),
 	})
 	if err != nil {
@@ -175,7 +174,7 @@ func TestFailingVerdict_MeasurePasses_NoFinding(t *testing.T) {
 
 func TestVersionPin_StaleResultPin(t *testing.T) {
 	// measure at version 4, result pins ~3 → outdated
-	measure := measureReq("TST-001", model.StatusApproved)
+	measure := measureReq(model.StatusApproved)
 	measure.Attrs[model.AttrVersion] = 4
 	g, err := graph.New([]model.Document{
 		measureDoc(measure),
@@ -200,9 +199,9 @@ func TestVersionPin_StaleResultPin(t *testing.T) {
 }
 
 // staleResultReq builds a result whose trace carries a ~N pin.
-func staleResultReq(pinnedMeasureID, outcome string) model.Requirement {
+func staleResultReq(pinnedMeasureID, outcome string) *model.Node {
 	strip := strings.SplitN(pinnedMeasureID, "~", 2)[0]
-	return model.Requirement{
+	return &model.Node{
 		ID:     "RESULT:" + strip,
 		Source: "run.ctrf.json",
 		Attrs: map[string]any{

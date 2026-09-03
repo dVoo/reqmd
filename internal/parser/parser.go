@@ -1,3 +1,6 @@
+// Package parser discovers reqmd document directories, parses the
+// Markdown content tree (requirements, containers, and info items), and
+// loads document trees from git tags.
 package parser
 
 import (
@@ -5,6 +8,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"reqmd/internal/model"
+	"reqmd/internal/schema"
 	"runtime"
 	"strings"
 	"sync"
@@ -15,17 +20,14 @@ import (
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/text"
 
-	"github.com/FurqanSoftware/goldmark-katex"
-	"github.com/stefanfritsch/goldmark-fences"
-	"github.com/yuin/goldmark-emoji"
+	katex "github.com/FurqanSoftware/goldmark-katex"
+	fences "github.com/stefanfritsch/goldmark-fences"
+	emoji "github.com/yuin/goldmark-emoji"
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
-	"github.com/yuin/goldmark-meta"
+	meta "github.com/yuin/goldmark-meta"
 	"go.abhg.dev/goldmark/mermaid"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
-
-	"reqmd/internal/model"
-	"reqmd/internal/schema"
 )
 
 const attrFenceInfo = "attr"
@@ -66,7 +68,6 @@ func Discover(root string) ([]model.Document, error) {
 	docs := make([]model.Document, len(docDirs))
 	g := new(errgroup.Group)
 	for i, dir := range docDirs {
-		i, dir := i, dir
 		g.Go(func() error {
 			doc, err := loadDocument(dir)
 			if err != nil {
@@ -77,7 +78,7 @@ func Discover(root string) ([]model.Document, error) {
 		})
 	}
 	if err := g.Wait(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("loading documents: %w", err)
 	}
 	return docs, nil
 }
@@ -125,7 +126,7 @@ func loadDocument(dir string) (model.Document, error) {
 
 	entries, err := os.ReadDir(dir)
 	if err != nil {
-		return model.Document{}, err
+		return model.Document{}, fmt.Errorf("reading %s: %w", dir, err)
 	}
 	var mdFiles []string
 	for _, e := range entries {
@@ -134,7 +135,7 @@ func loadDocument(dir string) (model.Document, error) {
 		}
 	}
 
-	reqs, frontmatter, errs := parseFiles(mdFiles)
+	nodes, title, frontmatter, errs := parseFiles(mdFiles)
 	if len(errs) > 0 {
 		return model.Document{}, fmt.Errorf("parse errors: %v", errs)
 	}
@@ -142,105 +143,109 @@ func loadDocument(dir string) (model.Document, error) {
 	xReqmd := schema.ExtractXReqmd(schemaData)
 
 	return model.Document{
-		Path:         dir,
-		Schema:       schemaData,
-		Requirements: reqs,
-		XReqmd:       xReqmd,
-		Properties:   schema.ExtractProperties(schemaData),
-		Meta:         frontmatter,
+		Path:       dir,
+		Schema:     schemaData,
+		Title:      title,
+		Nodes:      nodes,
+		XReqmd:     xReqmd,
+		Properties: schema.ExtractProperties(schemaData),
+		Meta:       frontmatter,
 	}, nil
 }
 
-func parseFiles(files []string) ([]model.Requirement, map[string]any, []error) {
+// parseFiles parses all .md files in a document directory and returns the
+// concatenated content tree roots in mdFiles order (deterministic), the
+// document title (the first file's h1 heading, if any), merged
+// frontmatter, and any per-file errors. Files are parsed in parallel;
+// results are collected by file index so the returned order never depends
+// on goroutine completion order.
+func parseFiles(files []string) ([]*model.Node, string, map[string]any, []error) {
 	if len(files) == 0 {
-		return nil, nil, nil
+		return nil, "", nil, nil
 	}
 
 	type result struct {
-		reqs []model.Requirement
-		meta map[string]any
-		err  error
+		err   error
+		meta  map[string]any
+		title string
+		nodes []*model.Node
 	}
-	results := make(chan result, len(files))
+	results := make([]result, len(files))
 	sem := make(chan struct{}, runtime.NumCPU())
 	var wg sync.WaitGroup
 
-	for _, f := range files {
-		f := f
+	for i, f := range files {
 		sem <- struct{}{}
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			defer func() { <-sem }()
 			src, err := os.ReadFile(f)
 			if err != nil {
-				results <- result{err: fmt.Errorf("reading %s: %w", f, err)}
+				results[i] = result{err: fmt.Errorf("reading %s: %w", f, err)}
 				return
 			}
-			reqs, frontmatter, err := parseMD(src, f)
+			nodes, title, frontmatter, err := parseMD(src, f)
 			if err != nil {
-				results <- result{err: fmt.Errorf("parsing %s: %w", f, err)}
+				results[i] = result{err: fmt.Errorf("parsing %s: %w", f, err)}
 				return
 			}
-			results <- result{reqs: reqs, meta: frontmatter}
-		}()
+			results[i] = result{nodes: nodes, title: title, meta: frontmatter}
+		})
 	}
 
-	go func() {
-		wg.Wait()
-		close(results)
-	}()
+	wg.Wait()
 
-	var allReqs []model.Requirement
+	var all []*model.Node
 	var errs []error
 	mergedMeta := make(map[string]any)
-	for r := range results {
+	title := ""
+	for i, r := range results {
 		if r.err != nil {
 			errs = append(errs, r.err)
-		} else {
-			allReqs = append(allReqs, r.reqs...)
-			// Merge frontmatter in order (first file's value wins per key)
-			for k, v := range r.meta {
-				if _, exists := mergedMeta[k]; !exists {
-					mergedMeta[k] = v
-				}
+			continue
+		}
+		all = append(all, r.nodes...)
+		// Document title = the first file's h1 heading (file order).
+		if i == 0 && title == "" {
+			title = r.title
+		}
+		// Merge frontmatter in order (first file's value wins per key)
+		for k, v := range r.meta {
+			if _, exists := mergedMeta[k]; !exists {
+				mergedMeta[k] = v
 			}
 		}
 	}
-	return allReqs, mergedMeta, errs
+	return all, title, mergedMeta, errs
 }
 
-// reqStackEntry tracks an open requirement at a heading level.
-type reqStackEntry struct {
-	level int
-	id    string
-}
-
-// popStackToLevel removes entries whose level is >= targetLevel.
-// Used by both requirement and container headings to close requirements
-// at their level or deeper.
-func popStackToLevel(stack []reqStackEntry, targetLevel int) []reqStackEntry {
-	for len(stack) > 0 && stack[len(stack)-1].level >= targetLevel {
-		stack = stack[:len(stack)-1]
-	}
-	return stack
-}
-
-// parseMD uses goldmark to extract requirements from a single .md file
-// and returns any YAML frontmatter as a map.
+// parseMD parses a single .md file and returns the assembled content tree
+// roots, the file title (the first h1 heading, when present), and any YAML
+// frontmatter as a map.
+//
+// Level-1 headings are document titles, not content: they are never nodes
+// and can never be requirements (only h2+ can). The first h1 in the file is
+// captured as the file title; the tree assembled from the remaining nodes
+// starts at the content heading level.
 //
 // For files with multiple root-level requirements (parent=nil), the file
 // is split at root requirement boundaries and chunks are parsed in
-// parallel. Each chunk is self-contained: a root requirement and all its
-// descendants. The pre-scan to find split points is a cheap line scan
-// that replicates the stack logic without building a goldmark AST.
-func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any, error) {
+// parallel. Each chunk yields a flat node stream in source order; the
+// streams are concatenated and assembled into the tree afterwards so
+// nesting across chunk boundaries (e.g. a container in chunk 0 with a
+// requirement in chunk 1) is preserved. The pre-scan to find split
+// points is a cheap line scan that replicates the stack logic without
+// building a goldmark AST.
+func parseMD(src []byte, sourcePath string) ([]*model.Node, string, map[string]any, error) {
 	splits, frontmatter := findRootSplits(src)
 
 	// No splits or a single root → parse the whole file serially.
 	nRoots := len(splits)
 	if nRoots <= 1 {
-		return parseMDChunk(src, sourcePath)
+		nodes, title, fm, err := parseMDChunk(src, sourcePath)
+		if err != nil {
+			return nil, "", fm, err
+		}
+		return assembleTree(nodes), title, fm, nil
 	}
 
 	// Batch root requirements into ~NumCPU chunks to amortize goldmark
@@ -248,57 +253,64 @@ func parseMD(src []byte, sourcePath string) ([]model.Requirement, map[string]any
 	// Each chunk contains multiple consecutive root requirements + their
 	// descendants. Chunks are balanced by root count, not byte size.
 	nCPU := runtime.NumCPU()
-	nChunks := nRoots
-	if nChunks > nCPU {
-		nChunks = nCPU
-	}
+	nChunks := min(nRoots, nCPU)
 
 	// Compute chunk boundaries: which split indices start/end each chunk.
+	// Chunk 0 additionally covers the file preamble [0, splits[0]) so
+	// leading containers and prose (including the h1 title) are never
+	// dropped.
 	type chunkResult struct {
-		reqs []model.Requirement
-		err  error
+		err   error
+		nodes []*model.Node
 	}
 	results := make([]chunkResult, nChunks)
+	var title string
 	var wg sync.WaitGroup
 
 	for c := range nChunks {
 		// Root index range [rootStart, rootEnd) for this chunk.
 		rootStart := c * nRoots / nChunks
-		rootEnd := (c + 1) * nRoots / nChunks
-		if rootEnd > nRoots {
-			rootEnd = nRoots
-		}
+		rootEnd := min((c+1)*nRoots/nChunks, nRoots)
 		// Byte range: from the start of the first root in this chunk
 		// to the start of the first root in the next chunk (or EOF).
 		byteStart := splits[rootStart]
+		if rootStart == 0 {
+			byteStart = 0 // include the preamble in chunk 0
+		}
 		byteEnd := len(src)
 		if rootEnd < nRoots {
 			byteEnd = splits[rootEnd]
 		}
 		chunk := src[byteStart:byteEnd]
 		idx := c
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			reqs, _, err := parseMDChunk(chunk, sourcePath)
-			results[idx] = chunkResult{reqs: reqs, err: err}
-		}()
+		wg.Go(func() {
+			nodes, chunkTitle, _, err := parseMDChunk(chunk, sourcePath)
+			results[idx] = chunkResult{nodes: nodes, err: err}
+			if idx == 0 && chunkTitle != "" {
+				title = chunkTitle
+			}
+		})
 	}
 	wg.Wait()
 
-	var reqs []model.Requirement
+	var all []*model.Node
 	for _, r := range results {
 		if r.err != nil {
-			return nil, frontmatter, r.err
+			return nil, "", frontmatter, r.err
 		}
-		reqs = append(reqs, r.reqs...)
+		all = append(all, r.nodes...)
 	}
-	return reqs, frontmatter, nil
+	return assembleTree(all), title, frontmatter, nil
 }
 
 // parseMDChunk parses a single chunk of markdown (possibly the whole file)
-// using goldmark and returns requirements and frontmatter.
-func parseMDChunk(src []byte, sourcePath string) ([]model.Requirement, map[string]any, error) {
+// using goldmark and returns the flat node stream in source order, the file
+// title (first h1 heading), and any YAML frontmatter. Every heading except
+// a level-1 document title becomes a node; prose and other blocks attach to
+// the most recently opened node's Body. Nodes are NOT assembled into a tree
+// here — callers must assemble the concatenated streams so nesting across
+// chunk boundaries is preserved.
+func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[string]any, error) {
 	p := mdParser.Parser()
 	parseCtx := parser.NewContext()
 	doc := p.Parse(text.NewReader(src), parser.WithContext(parseCtx))
@@ -309,53 +321,66 @@ func parseMDChunk(src []byte, sourcePath string) ([]model.Requirement, map[strin
 		frontmatter = fm
 	}
 
-	var reqs []model.Requirement
-	var cur *model.Requirement
+	var nodes []*model.Node
+	var cur *model.Node
 	var waitingForAttr bool
+	var title string
 	var bodyBuf strings.Builder
-	var stack []reqStackEntry // open requirements by heading level
+	// ensureOpenNode creates a headingless info node (level 0) when prose
+	// or other blocks appear before the first heading, so nothing is dropped.
+	ensureOpenNode := func() {
+		if cur == nil {
+			cur = &model.Node{Kind: model.KindInfo, Level: 0, Source: sourcePath}
+			nodes = append(nodes, cur)
+		}
+	}
+	// closeNode flushes the open node's body and resets the cursor so the
+	// next content starts a fresh node.
+	closeNode := func() {
+		if cur != nil {
+			cur.Body = bodyBuf.String()
+			bodyBuf.Reset()
+			cur = nil
+			waitingForAttr = false
+		}
+	}
 	for n := doc.FirstChild(); n != nil; n = n.NextSibling() {
 		switch v := n.(type) {
 		case *ast.Heading:
 			level := v.Level
 			hasAdjacentAttr := isNextAttrBlock(n, src)
+			heading := collectInlineText(v, src)
 
-			if hasAdjacentAttr {
-				// ── Requirement heading ──
-				if cur != nil {
-					if cur.Attrs == nil {
-						return nil, frontmatter, fmt.Errorf("%s: req %s: missing attr block", sourcePath, cur.ID)
-					}
-					cur.Body = bodyBuf.String()
-					reqs = append(reqs, *cur)
-					cur = nil
+			// Level 1 is the document title, never content: it cannot be a
+			// requirement, and it does not become a container or info node.
+			if level == 1 {
+				if hasAdjacentAttr {
+					return nil, "", frontmatter, fmt.Errorf("%s: heading %q is a level-1 requirement; requirement headings must be level 2 or higher (h1 is the document title)", sourcePath, heading)
 				}
-				stack = popStackToLevel(stack, level)
-				parentID := ""
-				if len(stack) > 0 {
-					parentID = stack[len(stack)-1].id
+				closeNode()
+				if title == "" {
+					title = strings.TrimSpace(heading)
 				}
-				heading := collectInlineText(v, src)
-				id, title := splitHeadingID(heading)
-				cur = &model.Requirement{
-					ID:       id,
-					Title:    title,
-					Source:   sourcePath,
-					ParentID: parentID,
-				}
-				bodyBuf.Reset()
-				stack = append(stack, reqStackEntry{level: level, id: id})
-				waitingForAttr = true
-			} else {
-				// ── Container heading (no attr) ──
-				// Pop requirements at this level or deeper, breaking the
-				// parent chain. Deeper headings (level > stack top) are
-				// body text and don't pop anything.
-				stack = popStackToLevel(stack, level)
-				if cur != nil {
-					bodyBuf.WriteString(renderHeading(v, src))
-				}
+				continue
 			}
+
+			closeNode()
+			kind := model.KindInfo
+			if hasAdjacentAttr {
+				kind = model.KindRequirement
+			}
+			cur = &model.Node{
+				Kind:   kind,
+				Level:  level,
+				Source: sourcePath,
+			}
+			if hasAdjacentAttr {
+				cur.ID, cur.Title = splitHeadingID(heading)
+			} else {
+				cur.Title = heading
+			}
+			nodes = append(nodes, cur)
+			waitingForAttr = hasAdjacentAttr
 
 		case *ast.FencedCodeBlock:
 			if cur != nil && waitingForAttr && fenceInfo(v, src) == attrFenceInfo {
@@ -366,7 +391,7 @@ func parseMDChunk(src []byte, sourcePath string) ([]model.Requirement, map[strin
 					// doesn't handle (nested maps, flow sequences, etc.).
 					attrs = make(map[string]any, 8)
 					if yamlErr := yaml.Unmarshal([]byte(yamlText), &attrs); yamlErr != nil {
-						return nil, frontmatter, fmt.Errorf("%s: req %s: invalid attr YAML: %w", sourcePath, cur.ID, yamlErr)
+						return nil, "", frontmatter, fmt.Errorf("%s: req %s: invalid attr YAML: %w", sourcePath, cur.ID, yamlErr)
 					}
 				}
 				cur.Attrs = attrs
@@ -382,57 +407,122 @@ func parseMDChunk(src []byte, sourcePath string) ([]model.Requirement, map[strin
 					delete(attrs, "reqmd-suppress")
 				}
 				waitingForAttr = false
-			} else if cur != nil {
-				// Non-attr code block inside requirement body
+			} else {
+				ensureOpenNode()
+				// Non-attr code block inside a node's body
 				bodyBuf.WriteString(renderFence(v, src))
 			}
 
 		case *ast.Paragraph:
-			if cur != nil {
-				text := paragraphText(v, src)
-				if text == "" {
-					continue
+			text := paragraphText(v, src)
+			if text == "" {
+				continue
+			}
+			ensureOpenNode()
+			if trimmed, ok := strings.CutPrefix(text, "*Rationale:"); ok {
+				// Handle both *Rationale: and *Rationale:* (markdown italic)
+				trimmed = strings.TrimLeft(trimmed, "* ")
+				cur.Rationale = strings.TrimSpace(trimmed)
+			} else {
+				if bodyBuf.Len() > 0 {
+					bodyBuf.WriteString("\n\n")
 				}
-				if strings.HasPrefix(text, "*Rationale:") {
-					// Handle both *Rationale: and *Rationale:* (markdown italic)
-					trimmed := strings.TrimPrefix(text, "*Rationale:")
-					trimmed = strings.TrimLeft(trimmed, "* ")
-					cur.Rationale = strings.TrimSpace(trimmed)
-				} else {
-					if bodyBuf.Len() > 0 {
-						bodyBuf.WriteString("\n\n")
-					}
-					bodyBuf.WriteString(text)
-				}
+				bodyBuf.WriteString(text)
 			}
 
 		case *ast.ThematicBreak:
-			// ignore separators
+			// Thematic breaks are content: keep them in the open node's body.
+			ensureOpenNode()
+			if bodyBuf.Len() > 0 {
+				bodyBuf.WriteString("\n\n")
+			}
+			bodyBuf.WriteString("---")
 
 		default:
-			// Any other block (blockquote, list, etc.) → body text if inside a requirement
-			if cur != nil {
-				bodyBuf.WriteString(renderBlock(src, n))
-			}
+			// Any other block (blockquote, list, etc.) → body text if inside a node
+			ensureOpenNode()
+			bodyBuf.WriteString(renderBlock(src, n))
 		}
 	}
 
-	// Finalize last requirement
 	if cur != nil {
-		if cur.Attrs == nil {
-			return nil, frontmatter, fmt.Errorf("%s: req %s: missing attr block", sourcePath, cur.ID)
-		}
 		cur.Body = bodyBuf.String()
-		reqs = append(reqs, *cur)
 	}
 
-	return reqs, frontmatter, nil
+	return nodes, title, frontmatter, nil
+}
+
+// assembleTree builds the document content tree from a flat, ordered node
+// stream. A node's parent is the nearest preceding heading with a
+// shallower level; requirements additionally get ParentID pointing at the
+// nearest preceding requirement heading. Info nodes with children are
+// promoted to KindContainer.
+func assembleTree(nodes []*model.Node) []*model.Node {
+	var roots []*model.Node
+	var stack []*model.Node    // open headings by level
+	var reqStack []*model.Node // open requirements by level (for ParentID)
+	for _, n := range nodes {
+		stack = popByLevel(stack, n.Level)
+		reqStack = popByLevel(reqStack, n.Level)
+		if n.Level == 0 || len(stack) == 0 {
+			roots = append(roots, n)
+		} else {
+			stack[len(stack)-1].Children = append(stack[len(stack)-1].Children, n)
+		}
+		if n.Kind == model.KindRequirement {
+			if len(reqStack) > 0 {
+				n.ParentID = reqStack[len(reqStack)-1].ID
+			}
+			reqStack = append(reqStack, n)
+		}
+		if n.Level > 0 {
+			stack = append(stack, n)
+		}
+	}
+	promoteContainers(roots)
+	return roots
+}
+
+// popByLevel removes stack entries whose level is >= target, mirroring
+// the heading-nesting rule: a heading at level L closes everything at
+// level L or deeper.
+func popByLevel(stack []*model.Node, target int) []*model.Node {
+	for len(stack) > 0 && stack[len(stack)-1].Level >= target {
+		stack = stack[:len(stack)-1]
+	}
+	return stack
+}
+
+// promoteContainers upgrades info nodes that have children to containers.
+func promoteContainers(nodes []*model.Node) {
+	for _, n := range nodes {
+		promoteContainers(n.Children)
+		if n.Kind == model.KindInfo && len(n.Children) > 0 {
+			n.Kind = model.KindContainer
+		}
+	}
+}
+
+// reqStackEntry tracks an open requirement at a heading level.
+type reqStackEntry struct {
+	id    string
+	level int
+}
+
+// popStackToLevel removes entries whose level is >= targetLevel.
+// Used by the root-split pre-scan to replicate requirement nesting.
+func popStackToLevel(stack []reqStackEntry, targetLevel int) []reqStackEntry {
+	for len(stack) > 0 && stack[len(stack)-1].level >= targetLevel {
+		stack = stack[:len(stack)-1]
+	}
+	return stack
 }
 
 // findRootSplits scans src line-by-line to find byte offsets where root-level
-// requirements begin. A root requirement is one where the stack is empty when
-// the requirement heading is encountered. The scan replicates the same stack
-// logic as parseMDChunk but without building a goldmark AST.
+// requirements begin. A root requirement is one where the requirement stack
+// is empty when the requirement heading is encountered. The scan replicates
+// the same stack logic as the assembly step but without building a goldmark
+// AST.
 //
 // Returns the byte offsets of root requirement starts (including the heading
 // line) and any YAML frontmatter parsed from the file header.
@@ -470,9 +560,11 @@ func findRootSplits(src []byte) (splits []int, frontmatter map[string]any) {
 		lineEnd := pos + len(line)
 
 		if level, ok := headingLevelBytes(line); ok {
-			hasAttr := nextNonBlankIsAttrBytes(src, lineEnd+1)
-
-			if hasAttr {
+			// Level 1 is the document title: it can never be a requirement,
+			// so it only closes any open headings (matching the chunk parse).
+			if level == 1 {
+				stack = popStackToLevel(stack, level)
+			} else if hasAttr := nextNonBlankIsAttrBytes(src, lineEnd+1); hasAttr {
 				stack = popStackToLevel(stack, level)
 				if len(stack) == 0 {
 					splits = append(splits, lineStart)
@@ -499,11 +591,8 @@ func nextLine(src []byte, pos int) (line []byte, hasNL bool) {
 		return nil, false
 	}
 	rest := src[pos:]
-	idx := bytes.IndexByte(rest, '\n')
-	if idx < 0 {
-		return rest, false
-	}
-	return rest[:idx], true
+	line, _, hasNL = bytes.Cut(rest, []byte{'\n'})
+	return line, hasNL
 }
 
 // headingLevelBytes returns the heading level (1-6) and true if the line
@@ -549,6 +638,7 @@ func splitHeadingIDBytes(heading []byte) (id string, title string) {
 	}
 	return string(bytes.TrimSpace(heading)), ""
 }
+
 // isNextAttrBlock returns true if n's next sibling is a ```attr fence.
 // Blank lines between heading and fence are consumed by goldmark and don't
 // create AST nodes, so they don't affect this check.
@@ -568,8 +658,8 @@ func isNextAttrBlock(n ast.Node, src []byte) bool {
 // into ("REQ-001", "This is a title"). If there's no colon+space,
 // returns (heading, "").
 func splitHeadingID(heading string) (id string, title string) {
-	if idx := strings.Index(heading, ": "); idx >= 0 {
-		return strings.TrimSpace(heading[:idx]), strings.TrimSpace(heading[idx+2:])
+	if id, title, found := strings.Cut(heading, ": "); found {
+		return strings.TrimSpace(id), strings.TrimSpace(title)
 	}
 	return strings.TrimSpace(heading), ""
 }
@@ -578,7 +668,7 @@ func splitHeadingID(heading string) (id string, title string) {
 
 func collectInlineText(n ast.Node, src []byte) string {
 	var b strings.Builder
-	ast.Walk(n, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+	_ = ast.Walk(n, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
 			return ast.WalkContinue, nil
 		}
@@ -600,7 +690,7 @@ func fenceInfo(f *ast.FencedCodeBlock, src []byte) string {
 
 func fenceLines(f *ast.FencedCodeBlock, src []byte) string {
 	var b strings.Builder
-	for i := 0; i < f.Lines().Len(); i++ {
+	for i := range f.Lines().Len() {
 		seg := f.Lines().At(i)
 		b.Write(seg.Value(src))
 	}
@@ -609,20 +699,11 @@ func fenceLines(f *ast.FencedCodeBlock, src []byte) string {
 
 func paragraphText(p *ast.Paragraph, src []byte) string {
 	var b strings.Builder
-	for i := 0; i < p.Lines().Len(); i++ {
+	for i := range p.Lines().Len() {
 		seg := p.Lines().At(i)
 		b.WriteString(strings.TrimRight(string(seg.Value(src)), "\n\r"))
 	}
 	return strings.TrimSpace(b.String())
-}
-
-func renderHeading(h *ast.Heading, src []byte) string {
-	var b strings.Builder
-	b.WriteString(strings.Repeat("#", h.Level))
-	b.WriteString(" ")
-	b.WriteString(collectInlineText(h, src))
-	b.WriteString("\n\n")
-	return b.String()
 }
 
 func renderFence(f *ast.FencedCodeBlock, src []byte) string {
@@ -638,7 +719,7 @@ func renderFence(f *ast.FencedCodeBlock, src []byte) string {
 func renderBlock(src []byte, n ast.Node) string {
 	var b strings.Builder
 	// Collect all text content from unrecognized block elements
-	ast.Walk(n, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+	_ = ast.Walk(n, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
 			return ast.WalkContinue, nil
 		}
@@ -647,7 +728,7 @@ func renderBlock(src []byte, n ast.Node) string {
 		if n.Type() == ast.TypeInline {
 			return ast.WalkContinue, nil
 		}
-		for i := 0; i < n.Lines().Len(); i++ {
+		for i := range n.Lines().Len() {
 			seg := n.Lines().At(i)
 			b.Write(seg.Value(src))
 		}
@@ -657,11 +738,11 @@ func renderBlock(src []byte, n ast.Node) string {
 }
 
 // ParseSingleFile is used by `reqmd check <file> --schema <schema>`.
-func ParseSingleFile(path string) ([]model.Requirement, error) {
+func ParseSingleFile(path string) ([]*model.Node, error) {
 	src, err := os.ReadFile(path)
 	if err != nil {
 		return nil, fmt.Errorf("reading %s: %w", path, err)
 	}
-	reqs, _, err := parseMD(src, path)
-	return reqs, err
+	nodes, _, _, err := parseMD(src, path)
+	return nodes, err
 }

@@ -2,10 +2,9 @@ package exporter
 
 import (
 	"fmt"
+	"reqmd/internal/model"
 	"strings"
 	"testing"
-
-	"reqmd/internal/model"
 )
 
 func schemaWithTitle(title string) map[string]any {
@@ -27,7 +26,7 @@ func TestCSVExport(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Test Export"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{
 				ID: "REQ-001",
 				Attrs: map[string]any{
@@ -64,21 +63,21 @@ func TestCSVExport(t *testing.T) {
 
 	// Header
 	header := lines[0]
-	wantHeader := "ID,Title,status,asil,maturity,verify,Body,Rationale"
+	wantHeader := "Type,ID,Title,status,asil,maturity,verify,Body,Rationale"
 	if header != wantHeader {
 		t.Errorf("header = %q, want %q", header, wantHeader)
 	}
 
 	// Row 1 - all fields (Title empty)
 	row1 := lines[1]
-	wantRow1 := "REQ-001,,approved,B,released,test,The system shall do X.,Required for safety."
+	wantRow1 := "req,REQ-001,,approved,B,released,test,The system shall do X.,Required for safety."
 	if row1 != wantRow1 {
 		t.Errorf("row 1 = %q, want %q", row1, wantRow1)
 	}
 
 	// Row 2 - missing attrs (Title empty)
 	row2 := lines[2]
-	wantRow2 := "REQ-002,,draft,,,,The system shall do Y.,"
+	wantRow2 := "req,REQ-002,,draft,,,,The system shall do Y.,"
 	if row2 != wantRow2 {
 		t.Errorf("row 2 = %q, want %q", row2, wantRow2)
 	}
@@ -89,7 +88,7 @@ func TestCSVExportSpecialTypes(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: map[string]any{"type": "object"},
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{
 				ID: "REQ-003",
 				Attrs: map[string]any{
@@ -115,7 +114,7 @@ func TestCSVExportSpecialTypes(t *testing.T) {
 	}
 
 	header := lines[0]
-	wantHeader := "ID,Title,status,safety_relevant,level,trace,Body,Rationale"
+	wantHeader := "Type,ID,Title,status,safety_relevant,level,trace,Body,Rationale"
 	if header != wantHeader {
 		t.Errorf("header = %q, want %q", header, wantHeader)
 	}
@@ -138,7 +137,7 @@ func TestHTMLExport(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Test Export"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{
 				ID: "REQ-001",
 				Attrs: map[string]any{
@@ -362,7 +361,7 @@ func TestHTMLExportHTMLEscaping(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Test"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{
 				ID: "REQ-&",
 				Attrs: map[string]any{
@@ -418,16 +417,13 @@ func TestHTMLExportHTMLEscaping(t *testing.T) {
 
 func TestHTMLExportTOCBodyTruncation(t *testing.T) {
 	// Build a body that's exactly 81 characters (will be truncated to 80 + "...")
-	longBody := ""
-	for i := 0; i < 81; i++ {
-		longBody += "a"
-	}
+	longBody := strings.Repeat("a", 81)
 
 	propOrder := []string{"status"}
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Truncation Test"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{
 				ID:   "REQ-LONG",
 				Body: longBody,
@@ -449,11 +445,7 @@ func TestHTMLExportTOCBodyTruncation(t *testing.T) {
 	output := buf.String()
 
 	// Long body should be truncated to 80 chars + "..."
-	expectedTruncated := ""
-	for i := 0; i < 80; i++ {
-		expectedTruncated += "a"
-	}
-	expectedTruncated += "..."
+	expectedTruncated := strings.Repeat("a", 80) + "..."
 
 	if !strings.Contains(output, `"body":"`+expectedTruncated+`"`) {
 		t.Error("long body should be truncated to 80 chars + '...' in req-index")
@@ -475,7 +467,7 @@ func TestHTMLExportTitleFallback(t *testing.T) {
 		doc := model.Document{
 			Path:   "/some/path",
 			Schema: map[string]any{"type": "object"},
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "REQ-001", Body: "Body."},
 			},
 		}
@@ -495,7 +487,7 @@ func TestHTMLExportTitleFallback(t *testing.T) {
 		doc := model.Document{
 			Path:   "/other/path",
 			Schema: schemaWithTitle(""),
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "REQ-001", Body: "Body."},
 			},
 		}
@@ -515,7 +507,7 @@ func TestHTMLExportTitleFallback(t *testing.T) {
 		doc := model.Document{
 			Path:   "/some/path",
 			Schema: schemaWithTitle("My Document"),
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "REQ-001", Body: "Body."},
 			},
 		}
@@ -537,7 +529,7 @@ func TestHTMLExportTraceFiltered(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Trace Test"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{
 				ID: "REQ-001",
 				Attrs: map[string]any{
@@ -582,7 +574,7 @@ func TestHTMLExportArrayPillsAndNestedObjects(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Array Test"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{
 				ID: "REQ-001",
 				Attrs: map[string]any{
@@ -661,7 +653,7 @@ func TestHTMLExportDocChain(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Test Doc"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{ID: "REQ-001", Body: "Body."},
 		},
 	}
@@ -770,7 +762,7 @@ func TestHTMLExportDocChainExternal(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Test Doc"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{ID: "REQ-001", Body: "Body."},
 		},
 	}
@@ -823,14 +815,14 @@ func TestHTMLExportDocChainDeep(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Test Doc"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{ID: "REQ-001", Body: "Body."},
 		},
 	}
 
 	// Build a deep chain: 4 upstream tiers + 3 downstream tiers (>6).
 	upstream := make([]ChainTier, 4)
-	for i := 0; i < 4; i++ {
+	for i := range 4 {
 		upstream[i] = ChainTier{
 			Level: -(i + 1),
 			Label: fmt.Sprintf("Upstream %d", i+1),
@@ -838,7 +830,7 @@ func TestHTMLExportDocChainDeep(t *testing.T) {
 		}
 	}
 	downstream := make([]ChainTier, 3)
-	for i := 0; i < 3; i++ {
+	for i := range 3 {
 		downstream[i] = ChainTier{
 			Level: i + 1,
 			Label: fmt.Sprintf("Downstream %d", i+1),
@@ -887,13 +879,13 @@ func TestHTMLExportDocChainCrowded(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Test Doc"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{ID: "REQ-001", Body: "Body."},
 		},
 	}
 
 	cards := make([]ChainCard, 9)
-	for i := 0; i < 9; i++ {
+	for i := range 9 {
 		cards[i] = ChainCard{Title: fmt.Sprintf("Spec %d", i+1), Path: fmt.Sprintf("s%d.html", i+1), DirName: fmt.Sprintf("s%d", i+1)}
 	}
 	graph := DocChainGraph{
@@ -926,7 +918,7 @@ func TestHTMLExportNoDocLinks(t *testing.T) {
 	doc := model.Document{
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Test"),
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{ID: "REQ-001", Body: "Body."},
 		},
 	}
@@ -946,5 +938,95 @@ func TestHTMLExportNoDocLinks(t *testing.T) {
 	}
 	if strings.Contains(output, `class="chain-stack"`) {
 		t.Error("output should NOT contain chain-stack when no graph set")
+	}
+}
+
+func TestCSVExportItems(t *testing.T) {
+	propOrder := []string{"status"}
+	doc := model.Document{
+		Path:   "/test/doc",
+		Schema: schemaWithTitle("Test Export"),
+		Nodes: []*model.Node{
+			{Kind: model.KindContainer, Title: "Section One", Level: 1, Body: "Container prose."},
+			{ID: "REQ-001", Attrs: map[string]any{"status": "approved"}},
+			{Kind: model.KindInfo, Title: "Note", Level: 2, Body: "Some note."},
+		},
+	}
+
+	var buf strings.Builder
+	if err := (&CSV{}).Export(&buf, doc, propOrder); err != nil {
+		t.Fatalf("CSV export failed: %v", err)
+	}
+
+	lines := strings.Split(strings.TrimRight(buf.String(), "\n"), "\n")
+	if len(lines) != 4 {
+		t.Fatalf("expected 4 lines (header + 3 nodes), got %d", len(lines))
+	}
+	wantRows := []string{
+		"container,,Section One,,Container prose.,",
+		"req,REQ-001,,approved,,",
+		"info,,Note,,Some note.,",
+	}
+	for i, want := range wantRows {
+		if lines[i+1] != want {
+			t.Errorf("row %d = %q, want %q", i+1, lines[i+1], want)
+		}
+	}
+}
+
+func TestHTMLExportItems(t *testing.T) {
+	propOrder := []string{"status"}
+	doc := model.Document{
+		Path:   "/test/doc",
+		Schema: schemaWithTitle("Test Export"),
+		Nodes: []*model.Node{
+			{
+				Kind:  model.KindContainer,
+				Title: "Section One",
+				Level: 1,
+				Body:  "Container prose.",
+				Children: []*model.Node{
+					{ID: "REQ-001", Attrs: map[string]any{"status": "approved"}, Body: "Req body."},
+				},
+			},
+			{Kind: model.KindInfo, Title: "Note", Level: 2, Body: "Some note."},
+		},
+	}
+
+	var h HTML
+	var buf strings.Builder
+	if err := h.Export(&buf, doc, propOrder); err != nil {
+		t.Fatalf("HTML export failed: %v", err)
+	}
+	out := buf.String()
+
+	// Container renders as a collapsible section with its title + body.
+	if !strings.Contains(out, `<section class="container-item" id="info-1">`) {
+		t.Error("container section missing")
+	}
+	if !strings.Contains(out, "Section One") {
+		t.Error("container title missing")
+	}
+	if !strings.Contains(out, "Container prose.") {
+		t.Error("container body missing")
+	}
+	// The nested requirement renders as a child card.
+	if !strings.Contains(out, `<article class="req-card-child" id="REQ-001"`) {
+		t.Error("child card missing")
+	}
+	// Info item renders as a plain block with its own anchor.
+	if !strings.Contains(out, `<section class="info-item" id="info-2">`) {
+		t.Error("info section missing")
+	}
+	if !strings.Contains(out, "Some note.") {
+		t.Error("info body missing")
+	}
+	// Doc count mentions items.
+	if !strings.Contains(out, "1 requirement · 2 items") {
+		t.Error("doc count line missing")
+	}
+	// Index carries the item entries with type markers.
+	if !strings.Contains(out, `"id":"info-1","type":"container"`) {
+		t.Error("index missing container entry")
 	}
 }

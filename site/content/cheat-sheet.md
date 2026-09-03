@@ -84,32 +84,35 @@ Summary: 11 total, 11 valid, 0 invalid, 0 parse errors, 50 warnings
 ```
 {{< /details >}}
 
-### `reqmd ls` — list all requirements
+### `reqmd ls` — list all content
 
-Prints a table of every requirement with all schema attributes.
+Prints a table of every node in document order, with a leading `Type`
+column (`req` / `container` / `info`). Requirements show all schema
+attributes; containers and info items show their heading text.
 
 ```sh
 reqmd ls spec/                # table output
-reqmd ls spec/ --json         # JSON output
-reqmd ls spec/ --filter '"Premium" in variant'   # only matching requirements
+reqmd ls spec/ --json         # JSON output (rows array with a type field)
+reqmd ls spec/ --filter '"Premium" in variant'   # only matching requirements (items always shown)
 ```
 
 {{< details summary="Example output" >}}
 ```text
 === spec/02-system ===
-ID                       | priority     | trace                                    | status       |
--------------------------------------------------------------------------------------------------------------------------
-SYS-FMT-001: Markdown requirement format | Critical     | ["STK-GOAL-001","ASP-SR-001"]            | approved     |
-SYS-FMT-002: Built-in attribute system | Critical     | ["STK-GOAL-002","ASP-SR-007"]            | approved     |
-SYS-FMT-003: Schema.yaml document config | Critical     | ["STK-GOAL-003","ASP-SR-002"]            | approved     |
-SYS-CLI-001: CLI subcommands | Critical     | ["STK-GOAL-001","STK-GOAL-004"]          | approved     |
-SYS-VAL-001: Multi-pass validation | Critical | ["STK-GOAL-003","STK-GOAL-005"]      | approved     |
+Type       | ID                       | priority     | status       |
+---------------------------------------------------------------------
+container  | reqmd System Features    |              |              |
+req        | SYS-FMT-001: Markdown requirement format | Critical     | approved     |
+req        | SYS-FMT-002: Built-in attribute system | Critical     | approved     |
+req        | SYS-FMT-003: Schema.yaml document configuration | Critical     | approved     |
+req        | SYS-CLI-001: CLI subcommands | Critical     | approved     |
+req        | SYS-VAL-001: Multi-pass validation pipeline | Critical     | approved     |
 ```
 {{< /details >}}
 
 ### `reqmd stats` — attribute-value breakdown per document
 
-Shows how many requirements have each attribute value, grouped by document directory.
+Shows how many requirements have each attribute value, grouped by document directory, plus item counts and a type breakdown.
 
 ```sh
 reqmd stats spec/             # table output
@@ -119,15 +122,19 @@ reqmd stats spec/ --filter 'priority == "Critical"'   # scope to matching requir
 
 {{< details summary="Example output" >}}
 ```text
-Requirements: 11
+Requirements: 19
 Documents:    1
 
-=== spec/02-system (11 reqs) ===
+=== spec/02-system (19 reqs, 1 item) ===
+  type:
+    container            1
+    req                  19
   priority:
     Critical             6
-    High                 5
+    High                 8
+    Medium               5
   status:
-    approved             11
+    approved             19
 ```
 {{< /details >}}
 
@@ -253,7 +260,9 @@ exporting spec/ → csv-out/
   6 documents, 249 requirements exported
 ```
 
-Each CSV has columns: `ID, Title, <schema attributes>, Body, Rationale`.
+Each CSV has columns: `Type, ID, Title, <schema attributes>, Body, Rationale`.
+Rows are emitted in document order for every node — requirements and
+containers/info items alike.
 {{< /details >}}
 
 ### `reqmd export html` — export to HTML
@@ -278,7 +287,10 @@ exporting spec/ → html-out/
   6 documents exported
 ```
 
-Each HTML file is standalone (no external JS), with card-based layout, trace links, document chain, search, and theme toggle.
+Each HTML file is standalone (no external JS), with requirement cards,
+collapsible container sections and info blocks for headings without
+`attr` blocks, a sidebar TOC with folder nesting, trace links, document
+chain, search, and theme toggle.
 
 [**See a live HTML export →**](/export-sample/02-system-requirements.html) (from the reqmd project's own spec)
 {{< /details >}}
@@ -464,6 +476,7 @@ x-reqmd:
   level: system-requirements
   document-id: system
   id-prefix: SYS-
+  requires-trace-from: [software-requirements]
   upstream:
     level: stakeholder-needs
     sources:
@@ -486,6 +499,7 @@ x-reqmd:
 | `external` | boolean | If `true`, requirements in this directory are external reference requirements (imported, not authored). They can be traced *to* but don't need upstream traces. |
 | `additional-status-values` | array | Extend the built-in `status` enum (`[draft, approved]`) with custom values (e.g. `[review, withdrawn]`). Lowercase only, no built-in collision, no duplicates. |
 | `ignore-status` | boolean | If `true`, all requirements in this directory are treated as coverage providers regardless of status. The status filter is hidden in HTML export. |
+| `requires-trace-from` | array | Document-wide default coverage expectation (same `document-id`/`level` tokens as the built-in attribute). Requirements that don't declare their own `requires-trace-from` inherit it; an explicit `requires-trace-from: []` on a requirement overrides it; an empty default opts every requirement in the document out. |
 | `disjoint-check` | string \| array | Enables the disjoint-attribute check for the named array-typed attribute(s) (e.g. `variant`) on every `reqmd check`. Same effect as the `--disjoint-check <attr>` CLI flag. |
 
 ### Standard JSON Schema fields
@@ -523,7 +537,7 @@ reqmd recognizes these attribute names automatically (they don't need to be in y
 | Attribute | Description |
 |-----------|-------------|
 | `trace` | Array of upstream IDs this requirement traces to. Supports `~N` version pins (e.g. `SYS-001~3`). |
-| `requires-trace-from` | Declares that this requirement expects downstream coverage. Used for coverage checks. |
+| `requires-trace-from` | Declares that this requirement expects downstream coverage. Used for coverage checks. Omitted on a requirement → inherits the document's `x-reqmd.requires-trace-from` default when one is set; `[]` opts out. |
 | `status` | `draft` or `approved`. Only `approved` counts as coverage. |
 | `disposition` | `implemented`, `deferred`, or `rejected`. Required when `mandatory-disposition: true`. |
 | `version` | Integer version of the requirement. Used by version-pin staleness checks. |
@@ -531,9 +545,23 @@ reqmd recognizes these attribute names automatically (they don't need to be in y
 | `reqmd-suppress` | Array of check names to suppress (e.g. `[version-pin, missing-verdict]`). |
 | `external` | If `true`, this is an external reference requirement (imported, not authored in this tree). |
 
+### Content model — nothing is dropped
+
+Every heading in a document is a node in a content tree:
+
+| Type | Definition | Shown in |
+|------|-----------|----------|
+| `req` | heading followed by an `attr` block | cards, `ls`/CSV rows, all checks |
+| `container` | heading without an `attr` block that has children | collapsible folder sections in HTML, `container` rows in `ls`/CSV, TOC folders |
+| `info` | heading without an `attr` block and no children, or prose before the first heading | plain blocks in HTML, `info` rows in `ls`/CSV |
+
+Containers and info items carry no attributes and skip validation, trace
+checks, coverage, and `--filter` pruning — they exist so exported
+documents stay faithful to the source. `check` is requirement-scoped.
+
 ## The requirement format
 
-Each requirement is a level-2 heading, a YAML `attr` block in a fenced code block, and free-form prose:
+Each requirement is a heading, a YAML `attr` block in a fenced code block, and free-form prose. Any heading level works — the first requirement heading anchors the hierarchy, and deeper requirement headings nest under the nearest shallower requirement as sub-requirements:
 
 ````text
 ## SYS-001  Temperature warning

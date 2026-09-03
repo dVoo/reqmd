@@ -17,10 +17,10 @@ package graph
 import (
 	"fmt"
 	"path/filepath"
+	"reqmd/internal/model"
+	"slices"
 	"sort"
 	"strings"
-
-	"reqmd/internal/model"
 )
 
 // Check result severity levels.
@@ -72,46 +72,27 @@ type RepinDelta struct {
 // CachedNode is an in-memory typed representation of a requirement node,
 // populated once at graph creation. All check methods iterate this cache.
 type CachedNode struct {
-	ReqID                string
+	OutboundPins         map[string]int
+	suppressionsSet      map[string]struct{}
+	OutboundRefs         map[string]string
 	File                 string
-	IsChild              bool
+	Dir                  string
 	Disposition          string
 	DispositionReason    string
-	External             bool
-	MandatoryDisposition bool
+	Verify               string
+	Outcome              string
 	IDPrefix             string
-	Version              int      // 0 = not declared
-	RequiresTraceFrom    []string // nil = not set, []string{} = explicitly empty, [..] = expected coverage sources
+	Status               string
+	ReqID                string
 	Inbound              []string
 	Outbound             []string
-	OutboundPins         map[string]int // target ID → ~N pin; key absence = no pin
-	// OutboundRefs is the full source form of every outbound trace ref
-	// (e.g. "doc-id/ID~3" or "ID~3" or "ID"), keyed by target ID. Populated
-	// in the same Pass 2 loop as OutboundPins; consumed by the repin
-	// command. Existing checks ignore this field — it carries no
-	// semantics for traceability.
-	OutboundRefs    map[string]string
-	Suppressions    []string
-	suppressionsSet map[string]struct{} // precomputed from Suppressions for O(1) isSuppressed
-	// Status is the raw value of the built-in `status` attribute.
-	// Empty means the attribute was not declared — effectiveStatus()
-	// falls back to model.StatusDefault in that case.
-	Status string
-	// Outcome is the verification-result verdict (pass|fail|skipped|
-	// inconclusive) carried by synthesized result pseudo-requirements.
-	// Empty for authored requirements (not a result node).
-	Outcome string
-	// Verify is the raw value of the user-defined `verify` attribute
-	// (e.g. "Test", "Review", "Inspection"). A non-empty value marks the
-	// requirement as a verification measure — the target that
-	// verification results trace to.
-	Verify string
-	// IsResult marks nodes synthesized from ephemeral verification
-	// results (internal/verify). Authored requirements have IsResult=false.
-	IsResult bool
-	// Dir is the directory path of the requirement's source file.
-	// Precomputed to avoid repeated filepath.Dir(node.File) calls.
-	Dir string
+	Suppressions         []string
+	RequiresTraceFrom    []string
+	Version              int
+	MandatoryDisposition bool
+	External             bool
+	IsResult             bool
+	IsChild              bool
 }
 
 // Graph wraps an in-memory adjacency map with a typed node cache. It is
@@ -218,7 +199,16 @@ func New(docs []model.Document) (*Graph, error) {
 		if doc.XReqmd != nil {
 			xr = doc.XReqmd
 		}
-		for _, req := range doc.Requirements {
+		for _, req := range doc.Requirements() {
+			// Effective coverage expectation: the requirement's own
+			// `requires-trace-from` attribute when declared; otherwise
+			// inherit the document's x-reqmd.requires-trace-from default
+			// when set. A nil result means neither declared anything, so
+			// the generic boundary-inference fallback still applies.
+			rtf := getStringSlice(req.Attrs, model.AttrRequiresTraceFrom)
+			if rtf == nil && xr != nil && xr.RequiresTraceFrom != nil {
+				rtf = slices.Clone(xr.RequiresTraceFrom)
+			}
 			node := &CachedNode{
 				ReqID:             req.ID,
 				File:              req.Source,
@@ -227,7 +217,7 @@ func New(docs []model.Document) (*Graph, error) {
 				Disposition:       getString(req.Attrs, model.AttrDisposition),
 				DispositionReason: getString(req.Attrs, model.AttrDispositionReason),
 				Version:           getIntFromAttrs(req.Attrs, model.AttrVersion),
-				RequiresTraceFrom: getStringSlice(req.Attrs, model.AttrRequiresTraceFrom),
+				RequiresTraceFrom: rtf,
 				OutboundPins:      nil, // lazily allocated in Pass 2
 				OutboundRefs:      nil, // lazily allocated in Pass 2
 				Suppressions:      req.Suppressions,
@@ -271,7 +261,7 @@ func New(docs []model.Document) (*Graph, error) {
 
 	// Pass 2: build Inbound/Outbound adjacency from trace attrs
 	for _, doc := range docs {
-		for _, req := range doc.Requirements {
+		for _, req := range doc.Requirements() {
 			traceVal, ok := req.Attrs[model.AttrTrace]
 			if !ok {
 				continue
@@ -374,7 +364,7 @@ func New(docs []model.Document) (*Graph, error) {
 
 	// Pass 3: build parent-child edges from heading hierarchy
 	for _, doc := range docs {
-		for _, req := range doc.Requirements {
+		for _, req := range doc.Requirements() {
 			if req.ParentID == "" {
 				continue
 			}
@@ -579,7 +569,7 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 	// for resolving inbound-edge origins against coverage-source directories.
 	docByReqFile := make(map[string]string, len(docs))
 	for _, doc := range docs {
-		for _, req := range doc.Requirements {
+		for _, req := range doc.Requirements() {
 			docByReqFile[req.Source] = doc.Path
 		}
 	}
@@ -704,12 +694,7 @@ func (g *Graph) hasFilteredInbound(node *CachedNode) bool {
 	if g.filter == nil {
 		return len(node.Inbound) > 0
 	}
-	for _, inID := range node.Inbound {
-		if g.inFilter(inID) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(node.Inbound, g.inFilter)
 }
 
 // hasFilteredOutbound reports whether any outbound edge targets a
@@ -719,12 +704,7 @@ func (g *Graph) hasFilteredOutbound(node *CachedNode) bool {
 	if g.filter == nil {
 		return len(node.Outbound) > 0
 	}
-	for _, outID := range node.Outbound {
-		if g.inFilter(outID) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(node.Outbound, g.inFilter)
 }
 
 // checkDispositionReason detects nodes where disposition is set to a value
@@ -1094,11 +1074,10 @@ func (g *Graph) HasResults() bool {
 	return g.hasResultNodes()
 }
 
-// ---------------------------------------------------------------------------
-// RootDirs returns a sorted slice of document directory paths that are at
-// the top of the V-model (no upstream sources declared, or external).
-// Uses the cached boundaries from CheckResults; returns empty if CheckResults
-// has not been called.
+// RootDirs returns the document directory paths at the top of the V-model
+// (no upstream sources declared, or external), sorted. Uses the cached
+// boundaries from CheckResults; returns empty if CheckResults has not been
+// called.
 func (g *Graph) RootDirs() []string {
 	return mapKeysSorted(g.cachedRootDirs)
 }
@@ -1220,12 +1199,7 @@ func (n *CachedNode) isSuppressed(check string) bool {
 		_, ok := n.suppressionsSet[check]
 		return ok
 	}
-	for _, s := range n.Suppressions {
-		if s == check {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(n.Suppressions, check)
 }
 
 // effectiveStatus returns the built-in status value, falling back to
@@ -1328,6 +1302,7 @@ func (g *Graph) RepinDeltas(promoteUnpinned bool) []RepinDelta {
 	})
 	return deltas
 }
+
 func (g *Graph) isCoverageProvider(reqID string) bool {
 	node, ok := g.nodes[reqID]
 	if !ok {
@@ -1359,7 +1334,7 @@ func (g *Graph) checkDisjointAttribute() []CheckResult {
 	type attrVals = map[string][]string
 	lookup := make(map[string]attrVals, len(g.nodes))
 	for _, doc := range g.docs {
-		for _, req := range doc.Requirements {
+		for _, req := range doc.Requirements() {
 			var vals attrVals
 			for _, attr := range g.disjointAttrs {
 				if s := getStringSlice(req.Attrs, attr); len(s) > 0 {

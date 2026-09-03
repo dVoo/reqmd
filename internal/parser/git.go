@@ -7,9 +7,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
-
 	"reqmd/internal/model"
+	"strings"
 )
 
 // DiscoverAtTagWithSchemas extracts the repo at the given git tag into a temp
@@ -23,7 +22,7 @@ func DiscoverAtTagWithSchemas(root, tag string) ([]model.Document, map[string]ma
 // parsed documents and the raw schema maps per document path.
 func discoverAtTag(root, tag string) ([]model.Document, map[string]map[string]any, error) {
 	// Validate tag exists.
-	verifyCmd := exec.Command("git", "-C", root, "rev-parse", "--verify", tag)
+	verifyCmd := exec.Command("git", "-C", root, "rev-parse", "--verify", tag) //nolint:gosec // git invocation by design
 	if out, err := verifyCmd.CombinedOutput(); err != nil {
 		return nil, nil, fmt.Errorf("tag %q not found: %w: %s", tag, err, strings.TrimSpace(string(out)))
 	}
@@ -33,10 +32,10 @@ func discoverAtTag(root, tag string) ([]model.Document, map[string]map[string]an
 	if err != nil {
 		return nil, nil, fmt.Errorf("creating temp dir: %w", err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Extract repo at tag: git archive tag | tar -xf - -C tmpDir.
-	archive := exec.Command("git", "-C", root, "archive", tag)
+	archive := exec.Command("git", "-C", root, "archive", tag) //nolint:gosec // git invocation by design
 	tar := exec.Command("tar", "-xf", "-", "-C", tmpDir)
 
 	tar.Stdin, err = archive.StdoutPipe()
@@ -44,22 +43,22 @@ func discoverAtTag(root, tag string) ([]model.Document, map[string]map[string]an
 		return nil, nil, fmt.Errorf("piping git archive: %w", err)
 	}
 
-	if err := tar.Start(); err != nil {
+	if err = tar.Start(); err != nil {
 		return nil, nil, fmt.Errorf("starting tar: %w", err)
 	}
 
 	// Start the git archive process (its stdout is piped to tar)
-	if err := archive.Start(); err != nil {
-		tar.Wait() //nolint:errcheck
+	if err = archive.Start(); err != nil {
+		_ = tar.Wait()
 		return nil, nil, fmt.Errorf("starting git archive: %w", err)
 	}
 
 	// Wait for both processes
-	if err := archive.Wait(); err != nil {
-		tar.Wait() //nolint:errcheck
+	if err = archive.Wait(); err != nil {
+		_ = tar.Wait()
 		return nil, nil, fmt.Errorf("git archive %q failed: %w", tag, err)
 	}
-	if err := tar.Wait(); err != nil {
+	if err = tar.Wait(); err != nil {
 		return nil, nil, fmt.Errorf("tar extraction failed: %w", err)
 	}
 
@@ -71,12 +70,13 @@ func discoverAtTag(root, tag string) ([]model.Document, map[string]map[string]an
 
 	// Rewrite paths to be relative to the repo root. git archive stores
 	// files with paths relative to the repo root, so stripping the temp
-	// dir prefix yields the original repo-relative path.
+	// dir prefix yields the original repo-relative path. Every node
+	// (requirements and items) carries a Source path.
 	for i := range docs {
 		docs[i].Path = relToTmpDir(tmpDir, docs[i].Path)
-		for j := range docs[i].Requirements {
-			docs[i].Requirements[j].Source = relToTmpDir(tmpDir, docs[i].Requirements[j].Source)
-		}
+		rewriteNodeSources(docs[i].Nodes, func(p string) string {
+			return relToTmpDir(tmpDir, p)
+		})
 	}
 
 	// Load raw schemas for each discovered document.
@@ -90,6 +90,14 @@ func discoverAtTag(root, tag string) ([]model.Document, map[string]map[string]an
 	}
 
 	return docs, schemas, nil
+}
+
+// rewriteNodeSources applies fn to the Source of every node in the tree.
+func rewriteNodeSources(nodes []*model.Node, fn func(string) string) {
+	for _, n := range nodes {
+		n.Source = fn(n.Source)
+		rewriteNodeSources(n.Children, fn)
+	}
 }
 
 // relToTmpDir returns path relative to the temp extraction directory.
@@ -148,18 +156,22 @@ func parseLsTreeOutput(output string) map[string]string {
 
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	// Increase buffer size for very long paths (default 64KB may not be enough)
-	buf := make([]byte, 0, 64*1024)
-	scanner.Buffer(buf, 1024*1024)
+	const (
+		scannerInitialBuf = 64 * 1024
+		scannerMaxBuf     = 1024 * 1024
+	)
+	buf := make([]byte, 0, scannerInitialBuf)
+	scanner.Buffer(buf, scannerMaxBuf)
 
 	for scanner.Scan() {
 		line := scanner.Bytes()
 		// Find tab separator between metadata and path
-		tabIdx := bytes.IndexByte(line, '\t')
-		if tabIdx < 0 {
+		metaBytes, pathBytes, found := bytes.Cut(line, []byte{'\t'})
+		if !found {
 			continue
 		}
-		meta := string(line[:tabIdx])
-		path := string(line[tabIdx+1:])
+		meta := string(metaBytes)
+		path := string(pathBytes)
 
 		// Parse mode type sha
 		var mode, typeStr, sha string

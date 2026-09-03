@@ -1,0 +1,54 @@
+version: "2"
+
+linters:
+  default: none
+  enable:
+    - govet
+    - staticcheck
+    - errcheck
+    - ineffassign
+    - unused
+    - modernize
+    - copyloopvar
+    - intrange
+    - gocritic
+    - revive
+    - gocyclo
+    - gocognit
+    - dupl
+    - unconvert
+    - unparam
+    - nakedret
+    - godox
+    - errorlint
+    - nilerr
+    - wrapcheck
+    - gosec
+    - misspell
+    - whitespace
+    - nolintlint
+    - gocheckcompilerdirectives
+    - mnd
+
+  settings:
+    gocyclo:
+      min-complexity: 15
+    gocognit:
+      min-complexity: 20
+    staticcheck:
+      checks: ["all"]
+    govet:
+      enable-all: true
+    revive:
+      rules:
+        - name: exported
+          severity: warning
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - <your-module-path>   # e.g. github.com/yourorg/reqmd

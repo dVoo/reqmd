@@ -1,0 +1,2062 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Auto-imported requirements (reqmd-import)</title>
+<style>
+
+:root {
+  --bg: #f8f9fa;
+  --card-bg: #ffffff;
+  --text: #1f2937;
+  --text-secondary: #4b5563;
+  --text-muted: #6b7280;
+  --accent: #6366f1;
+  --accent-hover: #4f46e5;
+  --accent-subtle: #eef2ff;
+  --border: #d1d5db;
+  --shadow: 0 1px 4px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-hover: 0 4px 8px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.05);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Fira Code", "Fira Mono", "Roboto Mono", ui-monospace, monospace;
+  --status-draft: #94a3b8;
+  --status-approved: #22c55e;
+}
+
+html.dark {
+  --bg: #0d1017;
+  --card-bg: #121620;
+  --text: #e2e1db;
+  --text-secondary: #a8a7a0;
+  --text-muted: #7c8399;
+  --accent: #8f9cfa;
+  --accent-hover: #bac2fd;
+  --accent-subtle: #1e2440;
+  --border: #282d3a;
+  --shadow: 0 1px 4px rgba(0,0,0,0.3), 0 1px 2px rgba(0,0,0,0.2);
+  --shadow-hover: 0 4px 8px rgba(0,0,0,0.4), 0 2px 4px rgba(0,0,0,0.3);
+  --status-draft: #64748b;
+  --status-approved: #4ade80;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Alpine: hide elements until Alpine has fully initialized */
+[x-cloak] {
+  display: none !important;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font);
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+  display: flex;
+  padding: 0;
+  min-height: 100vh;
+}
+
+/* ── Header ─────────────────────────────────────── */
+
+.doc-header {
+  max-width: 900px;
+  margin: 0 auto 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.doc-header h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  margin-bottom: 0.25rem;
+}
+
+.doc-count {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.boundary-badges {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.boundary-badge {
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  line-height: 1.4;
+}
+
+.boundary-badge--root {
+  background: rgba(76, 191, 153, 0.15);
+  color: #2a9d6e;
+  border: 1px solid rgba(76, 191, 153, 0.35);
+}
+
+.boundary-badge--leaf {
+  background: rgba(57, 186, 230, 0.15);
+  color: #1a8bb5;
+  border: 1px solid rgba(57, 186, 230, 0.35);
+}
+
+.doc-description {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-top: 0.75rem;
+  max-width: 720px;
+}
+
+.doc-description p {
+  margin-bottom: 0.5rem;
+}
+
+.doc-description p:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Main / Cards ───────────────────────────────── */
+
+main {
+  max-width: 900px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.req-card {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  padding: 1.5rem;
+  scroll-margin-top: 1rem;
+}
+
+.req-card:hover {
+  box-shadow: var(--shadow-hover);
+  border-color: var(--accent);
+}
+
+.req-card--hidden {
+  display: none;
+}
+
+/* ── Card header ────────────────────────────────── */
+
+.req-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.req-id {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: -0.01em;
+}
+
+.req-anchor {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+.req-card:hover .req-anchor,
+.req-anchor:focus {
+  opacity: 1;
+}
+
+.req-anchor:hover {
+  color: var(--accent);
+}
+
+/* ── Verification verdict badge ─────────────────── */
+.verdict-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 9999px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  margin-left: auto;
+}
+.verdict-badge--child {
+  font-size: 0.6rem;
+  padding: 0.1rem 0.4rem;
+}
+.verdict-badge--pass {
+  background: rgba(34, 197, 94, 0.15);
+  color: #22c55e;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+}
+.verdict-badge--fail {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+}
+.verdict-badge--skipped {
+  background: rgba(148, 163, 184, 0.15);
+  color: #94a3b8;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+}
+.verdict-badge--inconclusive {
+  background: rgba(249, 115, 22, 0.15);
+  color: #f97316;
+  border: 1px solid rgba(249, 115, 22, 0.3);
+}
+
+/* ── Attributes grid ────────────────────────────── */
+
+.req-attrs {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.5rem 1rem;
+  margin-bottom: 1rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.attr {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.attr dt {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.attr dd {
+  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  color: var(--text);
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.attr-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.attr-pill {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  padding: 0.15rem 0.45rem;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  line-height: 1.3;
+  white-space: nowrap;
+}
+
+.attr-pill-null {
+  font-style: italic;
+  color: var(--text-muted);
+  font-family: var(--font);
+  font-size: 0.75rem;
+}
+
+.attr-nested {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem 0.6rem;
+  margin: 0;
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+/* ── Body ───────────────────────────────────────── */
+
+.req-body {
+  margin-bottom: 0.75rem;
+}
+
+.req-body p {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: var(--text);
+}
+
+/* ── Rationale ──────────────────────────────────── */
+
+.req-rationale {
+  font-size: 0.875rem;
+  color: var(--text-secondary);
+  padding: 0.75rem 1rem;
+  background: var(--accent-subtle);
+  border-radius: var(--radius-sm);
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+.req-rationale strong {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+/* ── Trace tabs ─────────────────────────────────── */
+
+.req-traces {
+  margin-top: 0.25rem;
+}
+
+.trace-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.trace-column {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.trace-column-header {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  padding-bottom: 0.25rem;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.25rem;
+}
+
+@media (max-width: 640px) {
+  .trace-columns {
+    grid-template-columns: 1fr;
+  }
+}
+
+.trace-link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.25rem 0.6rem;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border-radius: 6px;
+  text-decoration: none;
+  border: 1px solid transparent;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.trace-link:hover {
+  background: transparent;
+  border-color: var(--accent);
+  color: var(--accent-hover);
+}
+
+.trace-link-id {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--accent);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.trace-link-title {
+  font-family: var(--font);
+  font-weight: 400;
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.trace-link--child .trace-link-title {
+  font-size: 0.71rem;
+}
+
+/* ── Doc Chain (Document Stack) ─────────────────── */
+
+.doc-chain {
+  font-family: var(--font);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  max-width: 1080px;
+  margin: 0 auto 1.75rem;
+  padding: 0;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* ── Folding: Details / Summary ─────────────────────── */
+
+.chain-details {
+  interpolate-size: allow-keywords;
+}
+
+.chain-details::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition: block-size 0.35s ease, content-visibility 0.35s ease allow-discrete;
+}
+
+.chain-details[open]::details-content {
+  block-size: auto;
+}
+
+@starting-style {
+  .chain-details[open]::details-content {
+    block-size: 0;
+  }
+}
+
+.chain-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1.25rem;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  background: transparent;
+  transition: background-color 0.2s ease;
+}
+
+.chain-summary::-webkit-details-marker {
+  display: none;
+}
+
+.chain-summary::marker {
+  display: none;
+}
+
+.chain-summary:hover,
+.chain-summary:focus-visible {
+  background: var(--accent-subtle);
+  outline: none;
+}
+
+.chain-summary__label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+/* Chevron indicator */
+.chain-summary__label::before {
+  content: "";
+  display: inline-block;
+  width: 0.45rem;
+  height: 0.45rem;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(-45deg);
+  transition: transform 0.25s ease;
+  flex-shrink: 0;
+  margin-bottom: 1px;
+}
+
+.chain-details[open] .chain-summary__label::before {
+  transform: rotate(45deg);
+}
+
+.chain-summary__count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  letter-spacing: -0.01em;
+  flex-shrink: 0;
+}
+
+/* ── Stack Container ────────────────────────────────── */
+
+.chain-stack {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0 1.25rem 1.25rem;
+}
+
+/* ── Zones ────────────────────────────────────────── */
+
+.chain-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.25rem 0;
+}
+
+.chain-zone--upstream {
+  padding-bottom: 0.5rem;
+}
+
+.chain-zone--downstream {
+  padding-top: 0.5rem;
+}
+
+.chain-zone--current {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 0.75rem 0;
+  background: var(--accent-subtle);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+}
+
+.chain-zone-header {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 0.25rem;
+}
+
+/* ── Zone Separators ──────────────────────────────── */
+
+.chain-separator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 0 2rem;
+}
+
+.chain-separator-line {
+  flex: 1;
+  max-width: 120px;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.4;
+}
+
+.chain-separator-chevron {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ── Tiers ────────────────────────────────────────── */
+
+.chain-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.chain-tier-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ── Tier Cards (CSS Grid) ────────────────────────── */
+
+.chain-tier-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.75rem;
+  width: 100%;
+}
+
+/* ── Cards ────────────────────────────────────────── */
+
+.chain-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  padding: 0.85rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  min-width: 0;
+}
+
+.chain-card:hover,
+.chain-card:focus {
+  border-color: var(--accent);
+  box-shadow: var(--shadow-hover);
+  outline: none;
+}
+
+.chain-card-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.chain-card-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  margin-top: auto;
+}
+
+.chain-card-glyph {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.5rem;
+  font-size: 0.85rem;
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+/* Current card */
+.chain-card--current {
+  max-width: 340px;
+  width: 100%;
+  border: 2px solid var(--accent);
+  background: var(--card-bg);
+  box-shadow: 0 0 0 3px var(--accent-subtle), var(--shadow-hover);
+  text-align: center;
+  padding: 1.1rem 1.5rem;
+  cursor: default;
+}
+
+.chain-card--current:hover {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-subtle), var(--shadow-hover);
+}
+
+.chain-card--current .chain-card-title {
+  font-size: 1.1rem;
+  color: var(--accent);
+}
+
+.chain-card--current .chain-card-meta {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 0.5rem;
+}
+
+/* External cards */
+.chain-card--external {
+  border-style: dashed;
+  background: transparent;
+}
+
+.chain-card--external:hover {
+  border-color: var(--accent);
+}
+
+.chain-card--external .chain-card-title {
+  color: var(--text-secondary);
+}
+
+/* ── Deep chain compaction ──────────────────────────── */
+
+.doc-chain--deep .chain-stack {
+  padding: 0 1rem 1rem;
+}
+
+.doc-chain--deep .chain-zone {
+  gap: 0.75rem;
+  padding: 0.85rem 0;
+}
+
+.doc-chain--deep .chain-zone--current {
+  padding: 0.5rem 0;
+}
+
+.doc-chain--deep .chain-card {
+  padding: 0.65rem;
+}
+
+.doc-chain--deep .chain-card-title {
+  font-size: 0.82rem;
+}
+
+.doc-chain--deep .chain-tier-label {
+  font-size: 0.68rem;
+}
+
+.doc-chain--deep .chain-zone-header {
+  font-size: 0.625rem;
+}
+
+/* ── Dark mode ──────────────────────────────────────── */
+
+html.dark .chain-zone--current {
+  background: rgba(143, 156, 250, 0.06);
+}
+
+html.dark .chain-summary:hover,
+html.dark .chain-summary:focus-visible {
+  background: rgba(143, 156, 250, 0.08);
+}
+
+html.dark .chain-card--current {
+  background: var(--card-bg);
+}
+
+/* ── Responsive (≤720px) ────────────────────────────── */
+
+@media (max-width: 720px) {
+  .doc-chain {
+    margin-bottom: 1.25rem;
+  }
+
+  .chain-summary {
+    padding: 0.75rem 1rem;
+  }
+
+  .chain-summary__label {
+    font-size: 0.88rem;
+  }
+
+  .chain-stack {
+    padding: 0 1rem 1rem;
+  }
+
+  .chain-zone {
+    padding: 1rem 0;
+  }
+
+  .chain-tier-cards {
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 0.625rem;
+  }
+
+  .chain-card {
+    padding: 0.75rem;
+  }
+
+  .chain-card--current {
+    max-width: 280px;
+    padding: 0.9rem 1.25rem;
+  }
+
+  .chain-card--current .chain-card-title {
+    font-size: 1rem;
+  }
+
+  .chain-separator {
+    padding: 0 1rem;
+  }
+}
+
+/* ── Responsive (≤480px) ───────────────────────────── */
+
+@media (max-width: 480px) {
+  .chain-summary__count {
+    display: none;
+  }
+
+  .chain-tier-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+
+  .chain-card {
+    padding: 0.65rem;
+  }
+
+  .chain-card--current {
+    max-width: 100%;
+    padding: 0.85rem;
+  }
+
+  .chain-zone-header {
+    font-size: 0.625rem;
+  }
+
+  .chain-tier-label {
+    font-size: 0.6875rem;
+  }
+
+  .chain-separator-line {
+    max-width: 60px;
+  }
+}
+
+/* ── Search & Filter Toolbar ─────────────────────── */
+
+.search-toolbar {
+  max-width: 900px;
+  margin: 0 auto 1.25rem;
+  padding: 0.65rem 0.85rem;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.search-input {
+  flex: 1;
+  font-family: var(--font);
+  font-size: 0.85rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.search-input:focus {
+  border-color: var(--accent);
+}
+
+.search-input::placeholder {
+  color: var(--text-muted);
+}
+
+.search-count {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.filter-group {
+  position: relative;
+  display: inline-block;
+}
+
+.filter-toggle {
+  font-family: var(--font);
+  font-size: 0.78rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+  outline: none;
+}
+
+.filter-toggle:hover,
+.filter-toggle:focus {
+  border-color: var(--accent);
+}
+
+.filter-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  line-height: 1;
+}
+
+.filter-arrow {
+  font-size: 0.6rem;
+  opacity: 0.6;
+}
+
+.filter-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 100;
+  min-width: 160px;
+  max-height: 260px;
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  padding: 0.3rem 0;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.78rem;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.1s;
+}
+
+.filter-option:hover {
+  background: var(--accent-subtle);
+}
+
+.filter-option input[type="checkbox"] {
+  margin: 0;
+  accent-color: var(--accent);
+}
+
+.filter-label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem 0.2rem 0.65rem;
+  background: var(--accent-subtle);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-family: var(--font);
+  line-height: 1.2;
+}
+
+.filter-chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  color: var(--accent);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+  padding: 0;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 50%;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.filter-chip button:hover {
+  background: var(--accent);
+  color: var(--card-bg);
+}
+
+.clear-btn {
+  font-size: 0.72rem;
+  padding: 0.2rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+  font-family: var(--font);
+}
+
+.clear-btn:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ── Sidebar TOC ─────────────────────────────────── */
+
+.req-toc {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 320px;
+  height: 100vh;
+  z-index: 200;
+  background: var(--card-bg);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.req-toc-header {
+  padding: 1rem 0.85rem 0.65rem;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.req-toc-title {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.req-toc-count {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-top: 0.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.req-toc-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.35rem 0;
+}
+
+.req-toc-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+  padding: 0.35rem 0.85rem;
+  cursor: pointer;
+  text-decoration: none;
+  color: var(--text);
+  transition: background 0.1s ease;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  font-family: var(--font);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.req-toc-item:hover {
+  background: var(--accent-subtle);
+}
+
+.req-toc-item--active {
+  background: var(--accent-subtle);
+  border-left: 3px solid var(--accent);
+}
+
+.req-toc-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.req-toc-item-id {
+  font-family: var(--font-mono);
+  font-size: 0.77rem;
+  font-weight: 500;
+  color: var(--accent);
+  line-height: 1.4;
+}
+
+.req-toc-item-id--item {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.req-toc-item--child .req-toc-item-id--item {
+  font-weight: 600;
+}
+
+.req-toc-item-title {
+  font-size: 0.74rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.35;
+  display: block;
+}
+
+.req-toc-item-body {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.3;
+  display: block;
+}
+
+/* ── Content Wrapper ────────────────────────────── */
+
+.content-wrapper {
+  flex: 1;
+  margin-left: 320px;
+  padding: 2rem 2rem 2rem 2.5rem;
+  min-width: 0;
+}
+
+/* ── Mobile TOC toggle ──────────────────────────── */
+
+.toc-toggle-btn {
+  display: none;
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 250;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.toc-toggle-btn:hover {
+  transform: scale(1.1);
+}
+
+/* ── Theme Toggle ───────────────────────────────── */
+
+.theme-toggle {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 300;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  color: var(--text);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow);
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.1);
+}
+
+/* ── Responsive ─────────────────────────────────── */
+
+@media (max-width: 860px) {
+  .req-toc {
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    z-index: 250;
+  }
+
+  .req-toc--open {
+    transform: translateX(0);
+  }
+
+  .content-wrapper {
+    margin-left: 0;
+    padding: 1rem;
+  }
+
+  .toc-toggle-btn {
+    display: flex;
+  }
+
+  /* When TOC is open, dim rest of page */
+  .req-toc--open + .toc-toggle-btn + .content-wrapper {
+    opacity: 0.5;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+}
+
+@media (max-width: 640px) {
+  .req-card {
+    padding: 1rem;
+  }
+
+  .req-attrs {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .doc-header h1 {
+    font-size: 1.35rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .req-attrs {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Container items (folder-like sections) ─────── */
+.container-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
+}
+
+.container-item--child {
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border);
+}
+
+.container-item summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.container-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.container-item summary::before {
+  content: '\25B8';
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  transition: transform 0.15s ease;
+}
+
+.container-item details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.container-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.container-item-anchor {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.container-item:hover .container-item-anchor {
+  opacity: 1;
+}
+
+.container-item-body {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/* ── Info items (plain blocks) ───────────────────── */
+.info-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
+  color: var(--text-secondary);
+}
+
+.info-item--child {
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border);
+}
+
+.info-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+.info-item-body {
+  line-height: 1.6;
+}
+
+.info-item-body > :first-child {
+  margin-top: 0;
+}
+
+.info-item-body > :last-child {
+  margin-bottom: 0;
+}
+
+/* ── Child cards ────────────────────────────────── */
+.req-card-child {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-subtle);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: 0.9rem 1rem;
+  scroll-margin-top: 1rem;
+  margin-bottom: 0.75rem;
+  transition: border-left-color 0.2s ease, border-color 0.2s ease;
+  position: relative;
+}
+
+.req-card-child:hover {
+  border-left-color: var(--accent);
+  border-color: var(--accent);
+}
+
+.req-card-child:last-child {
+  margin-bottom: 0;
+}
+
+/* ── Child card ID (h3) ─────────────────────────── */
+.req-id--child {
+  font-size: 0.92rem;
+}
+
+/* ── Child attrs (more compact) ─────────────────── */
+.req-attrs--child {
+  gap: 0.25rem 0.75rem;
+  margin-bottom: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.req-attrs--child .attr dt {
+  font-size: 0.65rem;
+}
+
+.req-attrs--child .attr dd {
+  font-size: 0.8rem;
+}
+
+/* ── Child body ─────────────────────────────────── */
+.req-body--child p {
+  font-size: 0.88rem;
+}
+
+/* ── Child rationale ────────────────────────────── */
+.req-rationale--child {
+  font-size: 0.82rem;
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Child trace tabs ───────────────────────────── */
+.req-card-child .trace-column-header {
+  font-size: 0.7rem;
+}
+
+.trace-link--child {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+}
+
+/* ── Tree TOC ───────────────────────────────────── */
+.req-toc-item--parent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.15rem;
+  padding: 0.35rem 0.5rem 0.35rem 0.85rem;
+}
+
+.req-toc-toggle {
+  flex-shrink: 0;
+  width: 1rem;
+  height: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  transition: transform 0.15s ease, color 0.15s ease;
+  user-select: none;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font);
+  line-height: 1;
+}
+
+.req-toc-toggle:hover {
+  color: var(--accent);
+}
+
+.req-toc-toggle--expanded {
+  transform: rotate(90deg);
+}
+
+.req-toc-child-count {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  background: var(--accent-subtle);
+  border-radius: 8px;
+  padding: 0.05rem 0.4rem;
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.req-toc-children {
+  overflow: hidden;
+  max-height: 0;
+}
+
+.req-toc-children--expanded {
+  max-height: none;
+}
+
+.req-toc-item--child {
+  padding-left: 1.8rem;
+  font-size: 0.78rem;
+  padding-top: 0.2rem;
+  padding-bottom: 0.2rem;
+}
+
+.req-toc-item--child .req-toc-item-id {
+  font-size: 0.72rem;
+}
+
+.req-toc-item--child .req-toc-item-title {
+  font-size: 0.71rem;
+}
+
+.req-toc-item--child .req-toc-item-body {
+  display: none;
+}
+
+.req-toc-item--active-parent {
+  border-left: 3px solid var(--accent-subtle);
+}
+
+/* ── Status lifecycle ─────────────────────────────── */
+
+.req-card--status-draft {
+  border-left: 3px solid var(--status-draft, #94a3b8);
+  opacity: 0.92;
+}
+
+/* Specificity fix: child cards override border-left-color via their
+   own border-left shorthand, so we re-apply the status border with a
+   more specific selector. */
+.req-card-child.req-card--status-draft {
+  border-left-color: var(--status-draft, #94a3b8);
+}
+
+/* Leaf docs already have a strong bottom border, so don't dim them. */
+.req-card--status-draft:not(.req-card--leaf) {
+  opacity: 0.92;
+}
+
+.status-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.65rem;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
+.status-breakdown__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  white-space: nowrap;
+}
+
+.status-breakdown__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.status-breakdown__label {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.status-breakdown__count {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+html.dark .status-breakdown__count {
+  color: var(--text);
+}
+
+html.dark .boundary-badge--root {
+  color: #6ec9a8;
+  border-color: rgba(76, 191, 153, 0.5);
+}
+
+html.dark .boundary-badge--leaf {
+  color: #6dc8e5;
+  border-color: rgba(57, 186, 230, 0.5);
+}
+</style>
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
+</head>
+<body x-data="reqmdApp()" x-init="initApp()" @keydown.escape.window="tocOpen = false">
+<aside class="req-toc" id="req-toc" :class="{'req-toc--open': tocOpen}" @click.away="tocOpen = false">
+  <div class="req-toc-header">
+    <div class="req-toc-title">Requirements</div>
+    <div class="req-toc-count" id="req-toc-count"></div>
+  </div>
+  <div class="req-toc-list" id="req-toc-list">
+  </div>
+</aside>
+<button id="toc-toggle-btn" class="toc-toggle-btn" aria-label="Toggle requirements list" @click="tocOpen = !tocOpen">&#9776;</button>
+<div class="content-wrapper">
+<button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark mode"
+  @click="toggleTheme()" x-text="theme === 'dark' ? '☀️' : '🌙'">🌙</button>
+<nav class="doc-chain" aria-label="Requirement traceability chain">
+  <details class="chain-details" open>
+    <summary class="chain-summary">
+      <span class="chain-summary__label">Traceability Chain</span>
+      <span class="chain-summary__count">6 upstream</span>
+    </summary>
+  <div class="chain-stack">
+    <div class="chain-zone chain-zone--upstream">
+      <div class="chain-zone-header">Upstream Sources</div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Upstream · 5 levels above</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card chain-card--external" href="00-aspice-requirements.html">
+        <span class="chain-card-glyph" aria-hidden="true">&#8599;</span>
+        <span class="chain-card-title">Automotive SPICE v4.0 — Base Practices</span>
+        <span class="chain-card-meta">00-aspice</span>
+      </a>
+        </div>
+      </div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Upstream · 4 levels above</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card" href="01-stakeholder-requirements.html">
+        <span class="chain-card-title">reqmd Stakeholder Goals</span>
+        <span class="chain-card-meta">01-stakeholder</span>
+      </a>
+      <a class="chain-card" href="01a-aspice-stakeholder-requirements.html">
+        <span class="chain-card-title">ASPICE v4.0 Stakeholder Requirements for reqmd</span>
+        <span class="chain-card-meta">01a-aspice-stakeholder</span>
+      </a>
+        </div>
+      </div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Upstream · 3 levels above</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card" href="02-system-requirements.html">
+        <span class="chain-card-title">reqmd System Features</span>
+        <span class="chain-card-meta">02-system</span>
+      </a>
+        </div>
+      </div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Upstream · 2 levels above</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card" href="03-software-requirements.html">
+        <span class="chain-card-title">reqmd Software Components</span>
+        <span class="chain-card-meta">03-software</span>
+      </a>
+        </div>
+      </div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Upstream</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card" href="imported-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">imported</span>
+      </a>
+        </div>
+      </div>
+    </div>
+    <div class="chain-separator" aria-hidden="true">
+      <div class="chain-separator-line"></div>
+      <div class="chain-separator-chevron">&#9662;</div>
+      <div class="chain-separator-line"></div>
+    </div>
+    <div class="chain-zone chain-zone--current">
+      <span class="chain-card chain-card--current" aria-current="page">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">diff</span>
+      </span>
+    </div>
+  </div>
+  </details>
+</nav>
+<header class="doc-header">
+<h1>Auto-imported requirements (reqmd-import)</h1>
+<p class="doc-count">0 requirements (0 parents, 0 children)</p>
+<div class="boundary-badges"><span class="boundary-badge boundary-badge--leaf" title="Leaf boundary — this document is not referenced as upstream by any other document">Leaf</span></div></header>
+<div class="search-toolbar" data-default-status="approved" data-additional-status-values="null">
+  <div class="search-row">
+    <input type="search" class="search-input" placeholder="Search ID, body, rationale, attributes..." autocomplete="off"
+      x-model.debounce.150ms="searchTerm">
+    <span class="search-count" x-text="visibleCount + '/' + totalCount"></span>
+  </div>
+  <div class="filter-row">
+    <template x-for="(values, attr) in activeFiltersByAttr" :key="attr">
+      <template x-for="v in values" :key="attr + ':' + v">
+        <span class="filter-chip">
+          <span x-text="prettyName(attr) + ': ' + v"></span>
+          <button @click="removeFilter(attr, v)" aria-label="Remove filter">×</button>
+        </span>
+      </template>
+    </template>
+    <template x-if="Object.keys(activeFiltersByAttr).length > 0">
+      <button class="clear-btn" @click="clearAll()">× Clear all</button>
+    </template>
+  </div>
+  <div class="filter-row" id="filter-row">
+    <template x-for="(values, attr) in filterOptions" :key="attr">
+      <div class="filter-group"
+           x-data="{ open: false, closeMenu() { if (this.open) { this.open = false; this.$nextTick(() => { if (this.$refs.toggleBtn) this.$refs.toggleBtn.focus(); }); } } }"
+           @click.outside="closeMenu()"
+           @keydown.escape.window="closeMenu()">
+        <button class="filter-toggle" type="button" @click.prevent="open = !open" :aria-expanded="open" :aria-controls="'filter-menu-' + attr" x-ref="toggleBtn">
+          <span x-text="prettyName(attr)"></span>
+          <span class="filter-badge" x-show="activeFiltersByAttr[attr] && activeFiltersByAttr[attr].length" x-text="(activeFiltersByAttr[attr] || []).length"></span>
+          <span class="filter-arrow" x-text="open ? '▲' : '▾'"></span>
+        </button>
+        <div class="filter-menu" :id="'filter-menu-' + attr" x-show="open" x-cloak x-transition x-ref="menu" x-effect="if (open) { $nextTick(() => { const cb = $refs.menu.querySelector('input'); if (cb) cb.focus(); }); }">
+          <template x-for="v in values" :key="v">
+            <label class="filter-option">
+              <input type="checkbox" :checked="(activeFiltersByAttr[attr] || []).indexOf(v) !== -1"
+                     @change="toggleFilter(attr, v)">
+              <span x-text="v"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+    </template>
+  </div>
+</div>
+<main>
+</main>
+<script>
+
+// ── Alpine component ──
+// Owns: theme, mobile-sidebar open state, search term, active filter
+// chips, the parsed requirement index, and per-card visibility logic.
+function reqmdApp() {
+  return {
+    theme: (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) || 'light',
+    tocOpen: false,
+    searchTerm: '',
+    totalCount: 0,
+    visibleCount: 0,
+    activeFiltersByAttr: {},
+    filterOptions: {},
+    reqIndex: [],
+    reqMap: new Map(),
+
+    initApp() {
+      // Apply the stored theme to <html> before paint to avoid a flash.
+      this.theme = (typeof localStorage !== 'undefined' && localStorage.getItem('theme')) || 'light';
+      if (this.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+
+      // Parse the requirement index (used by isCardVisible and the count).
+      // The index contains every node (requirements, containers, info
+      // items); search/filter counts apply to requirements only.
+      var indexEl = document.getElementById('req-index');
+      if (indexEl) {
+        try { this.reqIndex = JSON.parse(indexEl.textContent); } catch (e) { this.reqIndex = []; }
+      }
+      var self = this;
+      this.reqIndex = this.reqIndex.filter(function (r) { return r.type !== 'container' && r.type !== 'info'; });
+      this.reqMap = new Map(this.reqIndex.map(function (r) { return [r.id, r]; }));
+      this.totalCount = this.reqIndex.length;
+      this.visibleCount = this.totalCount;
+
+      // Parse the filter options (built in Go from the same data the
+      // old vanilla-JS code computed; Alpine renders the <select>s from
+      // this declaratively).
+      var filterEl = document.getElementById('req-filter-index');
+      if (filterEl) {
+        try { this.filterOptions = JSON.parse(filterEl.textContent); } catch (e) { this.filterOptions = {}; }
+      }
+
+      // F1: pre-check the default status filter (declared on the toolbar
+      // as data-default-status. An empty value skips this entirely
+      // (used for ignore-status documents where the lifecycle is
+      // bypassed).
+      var toolbar = document.querySelector('.search-toolbar');
+      var defaultStatus = toolbar ? toolbar.getAttribute('data-default-status') : '';
+      if (defaultStatus && this.filterOptions && this.filterOptions.status && this.filterOptions.status.indexOf(defaultStatus) !== -1) {
+        this.activeFiltersByAttr.status = [defaultStatus];
+      }
+
+      // Re-derive visibleCount whenever any input changes. Alpine's
+      // $watch is the canonical way to subscribe to reactive state.
+      this.$watch('searchTerm', function () { self.recomputeCounts(); });
+      this.$watch('activeFiltersByAttr', function () { self.recomputeCounts(); }, { deep: true });
+
+      // Initial count.
+      this.recomputeCounts();
+    },
+
+    toggleTheme() {
+      this.theme = this.theme === 'dark' ? 'light' : 'dark';
+      if (this.theme === 'dark') {
+        document.documentElement.classList.add('dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+      }
+      try { localStorage.setItem('theme', this.theme); } catch (e) { /* private mode */ }
+    },
+
+    toggleFilter(attr, value) {
+      if (!this.activeFiltersByAttr[attr]) {
+        this.activeFiltersByAttr[attr] = [];
+      }
+      var idx = this.activeFiltersByAttr[attr].indexOf(value);
+      if (idx === -1) {
+        this.activeFiltersByAttr[attr].push(value);
+      } else {
+        this.activeFiltersByAttr[attr].splice(idx, 1);
+        if (this.activeFiltersByAttr[attr].length === 0) {
+          delete this.activeFiltersByAttr[attr];
+        }
+      }
+      // Force reactivity: reassign the outer object
+      this.activeFiltersByAttr = Object.assign({}, this.activeFiltersByAttr);
+    },
+
+    removeFilter(attr, value) {
+      var arr = this.activeFiltersByAttr[attr];
+      if (!arr) return;
+      this.activeFiltersByAttr[attr] = arr.filter(function (v) { return v !== value; });
+      if (this.activeFiltersByAttr[attr].length === 0) {
+        delete this.activeFiltersByAttr[attr];
+      }
+      // Trigger reactivity by reassigning
+      this.activeFiltersByAttr = Object.assign({}, this.activeFiltersByAttr);
+    },
+
+    clearAll() {
+      this.activeFiltersByAttr = {};
+      this.searchTerm = '';
+    },
+
+    prettyName(attr) {
+      if (!attr) return '';
+      return attr.charAt(0).toUpperCase() + attr.slice(1).replace(/[-_]/g, ' ');
+    },
+
+    // Per-card visibility. Used by x-show on every requirement article.
+    // Returns true when the card matches the current search term AND
+    // every active filter (AND semantics across filters).
+    isCardVisible(cardId) {
+      var entry = this.reqMap.get(cardId);
+      if (!entry) return true;
+
+      var match = true;
+
+      // Text search across id, body, rationale, and all scalar attribute values.
+      if (this.searchTerm && this.searchTerm.trim()) {
+        var term = this.searchTerm.toLowerCase().trim();
+        var attrTexts = [];
+        if (entry.attrs) {
+          Object.keys(entry.attrs).forEach(function (k) {
+            var v = entry.attrs[k];
+            if (Array.isArray(v)) {
+              v.forEach(function (item) {
+                if (item !== null && typeof item !== 'object') attrTexts.push(String(item));
+              });
+            } else if (v !== null && typeof v !== 'object') {
+              attrTexts.push(String(v));
+            }
+          });
+        }
+        var searchText = (entry.id + ' ' + (entry.body || '') + ' ' + (entry.rationale || '') + ' ' + attrTexts.join(' ')).toLowerCase();
+        if (searchText.indexOf(term) === -1) match = false;
+      }
+
+      // Attribute filters: OR within each attr, AND across attrs.
+      if (match && Object.keys(this.activeFiltersByAttr).length > 0 && entry.attrs) {
+        var attrNames = Object.keys(this.activeFiltersByAttr);
+        for (var a = 0; a < attrNames.length; a++) {
+          var attr = attrNames[a];
+          var selectedValues = this.activeFiltersByAttr[attr];
+          if (!selectedValues || selectedValues.length === 0) continue;
+          var attrVal = entry.attrs[attr];
+          var hasMatch = false;
+          if (attrVal !== null && attrVal !== undefined) {
+            if (Array.isArray(attrVal)) {
+              for (var si = 0; si < selectedValues.length; si++) {
+                if (attrVal.some(function (v) { return String(v) === selectedValues[si]; })) {
+                  hasMatch = true;
+                  break;
+                }
+              }
+            } else {
+              var strVal = String(attrVal);
+              for (var si = 0; si < selectedValues.length; si++) {
+                if (strVal === selectedValues[si]) { hasMatch = true; break; }
+              }
+            }
+          }
+          if (!hasMatch) { match = false; break; }
+        }
+      }
+
+      return match;
+    },
+
+    // Recompute visibleCount by walking the index. Triggered by $watch on
+    // searchTerm and activeFilters. x-text binds visibleCount + '/' +
+    // totalCount into the search-count span.
+    recomputeCounts() {
+      var n = 0;
+      for (var i = 0; i < this.reqIndex.length; i++) {
+        if (this.isCardVisible(this.reqIndex[i].id)) n++;
+      }
+      this.visibleCount = n;
+    }
+  };
+}
+
+// ── Vanilla JS: TOC tree + scroll-spy ──
+// Runs on DOMContentLoaded. By this point Alpine's <script defer> has
+// parsed but the Alpine component may not have booted yet — the TOC
+// tree is built from #req-index independently of Alpine.
+document.addEventListener('DOMContentLoaded', function () {
+  // ── Build Tree TOC Sidebar ──
+  var tocList = document.getElementById('req-toc-list');
+  var tocCount = document.getElementById('req-toc-count');
+  var indexEl = document.getElementById('req-index');
+
+  if (tocList && indexEl) {
+    var reqs;
+    try { reqs = JSON.parse(indexEl.textContent); } catch (e) { reqs = []; }
+
+    if (reqs && reqs.length) {
+      var topLevel = [];
+      var childMap = {};
+      var entryMap = {};
+
+      reqs.forEach(function (r) {
+        entryMap[r.id] = r;
+        if (r.parentId) {
+          if (!childMap[r.parentId]) childMap[r.parentId] = [];
+          childMap[r.parentId].push(r);
+        } else {
+          topLevel.push(r);
+        }
+      });
+
+      var childCount = 0;
+      for (var pid in childMap) childCount += childMap[pid].length;
+      var itemCount = 0;
+      reqs.forEach(function (r) {
+        if (r.type === 'container' || r.type === 'info') itemCount++;
+      });
+
+      if (tocCount) {
+        tocCount.textContent = reqs.length + ' requirements (' + topLevel.length + ' parents \u00B7 ' + childCount + ' children)';
+        if (itemCount > 0) {
+          tocCount.textContent += ' \u00B7 ' + itemCount + ' items';
+        }
+      }
+
+      function createTreeItem(r, isChild) {
+        var wrapper = document.createElement('div');
+        wrapper.className = isChild ? 'req-toc-item req-toc-item--child' : 'req-toc-item req-toc-item--parent';
+        wrapper.setAttribute('data-id', r.id);
+
+        var hasKids = r.children && r.children.length > 0;
+        var isItem = r.type === 'container' || r.type === 'info';
+
+        if (hasKids) {
+          var toggle = document.createElement('button');
+          toggle.className = 'req-toc-toggle';
+          toggle.textContent = '\u25B6';
+          toggle.setAttribute('aria-label', 'Expand ' + (r.title || r.id));
+          toggle.setAttribute('aria-expanded', 'false');
+          wrapper.appendChild(toggle);
+        }
+
+        var mainDiv = document.createElement('div');
+        mainDiv.className = 'req-toc-item-main';
+
+        var idSpan = document.createElement('span');
+        if (isItem) {
+          idSpan.className = 'req-toc-item-id req-toc-item-id--item';
+          idSpan.textContent = r.title || '(untitled)';
+        } else {
+          idSpan.className = 'req-toc-item-id';
+          idSpan.innerHTML = '<code>' + r.id + '</code>';
+        }
+        mainDiv.appendChild(idSpan);
+
+        if (r.title && !isItem) {
+          var titleSpan = document.createElement('span');
+          titleSpan.className = 'req-toc-item-title';
+          titleSpan.textContent = r.title;
+          mainDiv.appendChild(titleSpan);
+        }
+
+        var bodySpan = document.createElement('span');
+        bodySpan.className = 'req-toc-item-body';
+        bodySpan.textContent = r.body || (isItem ? '' : '(no description)');
+        mainDiv.appendChild(bodySpan);
+
+        wrapper.appendChild(mainDiv);
+
+        if (hasKids) {
+          var badge = document.createElement('span');
+          badge.className = 'req-toc-child-count';
+          badge.textContent = r.children.length;
+          wrapper.appendChild(badge);
+        }
+
+        wrapper.addEventListener('click', function (e) {
+          if (e.target.classList.contains('req-toc-toggle')) return;
+          var target = document.getElementById(r.id);
+          if (target) {
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            target.style.transition = 'border-color 0.3s ease';
+            target.style.borderColor = 'var(--accent)';
+            setTimeout(function () { target.style.borderColor = ''; }, 2000);
+          }
+        });
+
+        if (hasKids) {
+          var childrenWrap = document.createElement('div');
+          childrenWrap.className = 'req-toc-children';
+          wrapper.appendChild(childrenWrap);
+
+          var kids = r.children || [];
+          kids.forEach(function (kidId) {
+            var kidEntry = entryMap[kidId];
+            if (kidEntry) {
+              childrenWrap.appendChild(createTreeItem(kidEntry, true));
+            }
+          });
+
+          toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            var isExpanded = childrenWrap.classList.toggle('req-toc-children--expanded');
+            toggle.classList.toggle('req-toc-toggle--expanded', isExpanded);
+            toggle.setAttribute('aria-expanded', isExpanded ? 'true' : 'false');
+          });
+        }
+
+        return wrapper;
+      }
+
+      topLevel.forEach(function (r) {
+        tocList.appendChild(createTreeItem(r, false));
+      });
+    }
+  }
+
+  // ── Scroll-spy: highlight active TOC item ──
+  var tocItems = document.querySelectorAll('.req-toc-item');
+  var cards = document.querySelectorAll('.req-card, .req-card-child, .container-item, .info-item');
+  if (tocItems.length && cards.length) {
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        if (entry.isIntersecting) {
+          tocItems.forEach(function (item) {
+            item.classList.remove('req-toc-item--active');
+            item.classList.remove('req-toc-item--active-parent');
+          });
+          var activeItem = document.querySelector('.req-toc-item[data-id="' + entry.target.id + '"]');
+          if (activeItem) {
+            activeItem.classList.add('req-toc-item--active');
+            var parent = activeItem.parentElement;
+            while (parent) {
+              if (parent.classList.contains('req-toc-item--parent')) {
+                parent.classList.add('req-toc-item--active-parent');
+                break;
+              }
+              parent = parent.parentElement;
+            }
+          }
+        }
+      });
+    }, { rootMargin: '-80px 0px -60% 0px' });
+    cards.forEach(function (c) { observer.observe(c); });
+  }
+
+  // ── No additional vanilla JS needed for the mobile sidebar ──
+  // Alpine owns the open/close state via @click on the toggle button,
+  // @click.away on the sidebar, and @keydown.escape.window on <body>.
+});
+</script>
+<script type="application/json" id="req-index">[]</script>
+<script type="application/json" id="req-filter-index">{}</script>
+</div>
+</body>
+</html>

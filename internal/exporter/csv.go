@@ -4,10 +4,11 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-
 	"reqmd/internal/model"
 )
 
+// CSV exports document content as comma-separated values. When verdicts
+// are set via SetVerdicts, two extra columns are appended per row.
 type CSV struct {
 	verdicts map[string]VerdictInfo
 }
@@ -17,14 +18,15 @@ type CSV struct {
 func (c *CSV) SetVerdicts(v map[string]VerdictInfo) {
 	c.verdicts = v
 }
+
 func (c *CSV) Export(w io.Writer, doc model.Document, propOrder []string) error {
 	cw := csv.NewWriter(w)
 	defer cw.Flush()
 
-	// Header: ID, Title, properties..., Body, Rationale, [Verdict, Verdict Source]
+	// Header: Type, ID, Title, properties..., Body, Rationale, [Verdict, Verdict Source]
 	hasVerdicts := c.verdicts != nil
-	header := make([]string, 0, 3+len(propOrder)+2+2)
-	header = append(header, "ID", "Title")
+	header := make([]string, 0, 4+len(propOrder)+2+2)
+	header = append(header, "Type", "ID", "Title")
 	header = append(header, propOrder...)
 	header = append(header, "Body", "Rationale")
 	if hasVerdicts {
@@ -34,23 +36,45 @@ func (c *CSV) Export(w io.Writer, doc model.Document, propOrder []string) error 
 		return fmt.Errorf("writing CSV header: %w", err)
 	}
 
-	for _, req := range doc.Requirements {
+	// Rows are emitted in document order for every node: requirements and
+	// information items (containers + info blocks) alike.
+	var writeNode func(n *model.Node) error
+	writeNode = func(n *model.Node) error {
 		row := make([]string, 0, len(header))
-		row = append(row, req.ID, req.Title)
+		row = append(row, n.Kind.String())
+		if n.Kind == model.KindRequirement {
+			row = append(row, n.ID, n.Title)
+		} else {
+			row = append(row, "", n.Title)
+		}
 		for _, prop := range propOrder {
-			val := formatAttr(req.Attrs[prop])
+			val := ""
+			if n.Kind == model.KindRequirement {
+				val = formatAttr(n.Attrs[prop])
+			}
 			row = append(row, val)
 		}
-		row = append(row, req.Body, req.Rationale)
+		row = append(row, n.Body, n.Rationale)
 		if hasVerdicts {
-			if v, ok := c.verdicts[req.ID]; ok {
+			if v, ok := c.verdicts[n.ID]; ok {
 				row = append(row, v.Outcome, v.Source)
 			} else {
 				row = append(row, "", "")
 			}
 		}
 		if err := cw.Write(row); err != nil {
-			return fmt.Errorf("writing CSV row for %s: %w", req.ID, err)
+			return fmt.Errorf("writing CSV row for %s: %w", n.ID, err)
+		}
+		for _, child := range n.Children {
+			if err := writeNode(child); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+	for _, n := range doc.Nodes {
+		if err := writeNode(n); err != nil {
+			return err
 		}
 	}
 	return nil

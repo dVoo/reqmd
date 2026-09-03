@@ -1,13 +1,13 @@
 package filter
 
 import (
-	"testing"
-
 	"reqmd/internal/model"
+	"testing"
 )
 
-func testReq(id, title string, attrs map[string]any) model.Requirement {
-	return model.Requirement{
+func testReq(id, title string, attrs map[string]any) *model.Node {
+	return &model.Node{
+		Kind:  model.KindRequirement,
 		ID:    id,
 		Title: title,
 		Attrs: attrs,
@@ -19,7 +19,7 @@ func testDocs() []model.Document {
 		{
 			Path:       "spec/sw",
 			Properties: []string{"status", "trace", "version", "variant", "priority"},
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				testReq("SW-001", "Parser", map[string]any{
 					"status":   "approved",
 					"version":  3,
@@ -40,7 +40,7 @@ func testDocs() []model.Document {
 		{
 			Path:       "spec/stk",
 			Properties: []string{"status", "source", "category"},
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				testReq("STK-001", "Safety goal", map[string]any{
 					"status":   "approved",
 					"source":   "Safety",
@@ -284,20 +284,20 @@ func TestFilterDocs(t *testing.T) {
 	}
 
 	// spec/sw: SW-001 (approved), SW-002 (draft), SW-003 (approved) → 2 match
-	if got := len(filtered[0].Requirements); got != 2 {
+	if got := len(filtered[0].Requirements()); got != 2 {
 		t.Fatalf("spec/sw: expected 2 reqs, got %d", got)
 	}
 	// spec/stk: STK-001 (approved) → 1 match
-	if got := len(filtered[1].Requirements); got != 1 {
+	if got := len(filtered[1].Requirements()); got != 1 {
 		t.Fatalf("spec/stk: expected 1 req, got %d", got)
 	}
 
 	// Verify IDs
-	if filtered[0].Requirements[0].ID != "SW-001" {
-		t.Fatalf("expected SW-001, got %s", filtered[0].Requirements[0].ID)
+	if filtered[0].Requirements()[0].ID != "SW-001" {
+		t.Fatalf("expected SW-001, got %s", filtered[0].Requirements()[0].ID)
 	}
-	if filtered[0].Requirements[1].ID != "SW-003" {
-		t.Fatalf("expected SW-003, got %s", filtered[0].Requirements[1].ID)
+	if filtered[0].Requirements()[1].ID != "SW-003" {
+		t.Fatalf("expected SW-003, got %s", filtered[0].Requirements()[1].ID)
 	}
 }
 
@@ -318,18 +318,18 @@ func TestFilterDocs_PreservesDocStructure(t *testing.T) {
 	if filtered[0].Path != "spec/sw" {
 		t.Fatalf("spec/sw should be preserved, got path %s", filtered[0].Path)
 	}
-	if len(filtered[0].Requirements) != 0 {
-		t.Fatalf("spec/sw should have 0 reqs, got %d", len(filtered[0].Requirements))
+	if len(filtered[0].Requirements()) != 0 {
+		t.Fatalf("spec/sw should have 0 reqs, got %d", len(filtered[0].Requirements()))
 	}
 	// spec/stk should have 1 req
-	if len(filtered[1].Requirements) != 1 {
-		t.Fatalf("spec/stk should have 1 req, got %d", len(filtered[1].Requirements))
+	if len(filtered[1].Requirements()) != 1 {
+		t.Fatalf("spec/stk should have 1 req, got %d", len(filtered[1].Requirements()))
 	}
 }
 
 func TestFilterDocs_DoesNotMutateOriginal(t *testing.T) {
 	docs := testDocs()
-	originalCount := len(docs[0].Requirements)
+	originalCount := len(docs[0].Requirements())
 
 	f, err := Compile(`status == "approved"`, validAttrsFor(docs))
 	if err != nil {
@@ -341,8 +341,68 @@ func TestFilterDocs_DoesNotMutateOriginal(t *testing.T) {
 		t.Fatalf("FilterDocs: %v", err)
 	}
 
-	if len(docs[0].Requirements) != originalCount {
-		t.Fatalf("original docs mutated: expected %d reqs, got %d", originalCount, len(docs[0].Requirements))
+	if len(docs[0].Requirements()) != originalCount {
+		t.Fatalf("original docs mutated: expected %d reqs, got %d", originalCount, len(docs[0].Requirements()))
+	}
+}
+
+func TestFilterDocs_KeepsItems(t *testing.T) {
+	docs := testDocs()
+	docs[0].Nodes = []*model.Node{
+		{Kind: model.KindContainer, Title: "Section", Children: []*model.Node{
+			testReq("SW-001", "Parser", map[string]any{"status": "approved"}),
+			testReq("SW-002", "Schema", map[string]any{"status": "draft"}),
+		}},
+		{Kind: model.KindInfo, Title: "Note"},
+	}
+	f, err := Compile(`status == "approved"`, validAttrsFor(docs))
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+
+	filtered, err := f.FilterDocs(docs)
+	if err != nil {
+		t.Fatalf("FilterDocs: %v", err)
+	}
+
+	nodes := filtered[0].Nodes
+	if len(nodes) != 2 {
+		t.Fatalf("expected 2 top-level nodes (container + info), got %d", len(nodes))
+	}
+	container := nodes[0]
+	if container.Kind != model.KindContainer || container.Title != "Section" {
+		t.Fatalf("nodes[0] = %v %q, want container Section", container.Kind, container.Title)
+	}
+	if len(container.Children) != 1 || container.Children[0].ID != "SW-001" {
+		t.Fatalf("container children = %+v, want [SW-001] (SW-002 pruned)", container.Children)
+	}
+	if nodes[1].Kind != model.KindInfo || nodes[1].Title != "Note" {
+		t.Fatalf("nodes[1] = %v %q, want info Note", nodes[1].Kind, nodes[1].Title)
+	}
+	if reqs := filtered[0].Requirements(); len(reqs) != 1 || reqs[0].ID != "SW-001" {
+		t.Fatalf("Requirements() = %+v, want [SW-001]", reqs)
+	}
+}
+
+func TestFilterDocs_ReattachesChildrenOfPrunedReq(t *testing.T) {
+	docs := testDocs()
+	child := testReq("SW-CHILD", "Child", map[string]any{"status": "approved"})
+	docs[0].Nodes = []*model.Node{
+		{Kind: model.KindRequirement, ID: "SW-PARENT", Title: "Parent", Attrs: map[string]any{"status": "draft"}, Children: []*model.Node{child}},
+	}
+	f, err := Compile(`status == "approved"`, validAttrsFor(docs))
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+
+	filtered, err := f.FilterDocs(docs)
+	if err != nil {
+		t.Fatalf("FilterDocs: %v", err)
+	}
+
+	nodes := filtered[0].Nodes
+	if len(nodes) != 1 || nodes[0].ID != "SW-CHILD" {
+		t.Fatalf("pruned parent's child should be re-attached: %+v", nodes)
 	}
 }
 

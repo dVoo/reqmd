@@ -15,18 +15,18 @@ package filter
 
 import (
 	"fmt"
+	"maps"
+	"reqmd/internal/model"
 	"sort"
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/ast"
 	"github.com/expr-lang/expr/parser"
 	"github.com/expr-lang/expr/vm"
-
-	"reqmd/internal/model"
 )
 
 // builtInVars are always available in the filter scope regardless of
-// schema declarations. `id` and `title` live on model.Requirement, not in
+// schema declarations. `id` and `title` live on model.Node, not in
 // Attrs; the rest are the RFC §2.3 built-in attributes (status,
 // disposition, trace, version). They are always accepted by the typo
 // check even when no schema in the tree declares them; at evaluation time
@@ -145,38 +145,34 @@ func (f *Filter) Refs() []string { return f.refs }
 // Match evaluates the compiled expression against a single requirement.
 // Returns (true, nil) if the requirement matches, (false, nil) if not,
 // and (false, err) if evaluation fails (e.g. type mismatch).
-func (f *Filter) Match(req model.Requirement) (bool, error) {
-	env := buildEnv(req)
+func (f *Filter) Match(node *model.Node) (bool, error) {
+	env := buildEnv(node)
 	result, err := expr.Run(f.program, env)
 	if err != nil {
-		return false, fmt.Errorf("filter %q on %s: %w", f.expr, req.ID, err)
+		return false, fmt.Errorf("filter %q on %s: %w", f.expr, node.ID, err)
 	}
 	b, ok := result.(bool)
 	if !ok {
-		return false, fmt.Errorf("filter %q on %s: expression did not evaluate to bool (got %T)", f.expr, req.ID, result)
+		return false, fmt.Errorf("filter %q on %s: expression did not evaluate to bool (got %T)", f.expr, node.ID, result)
 	}
 	return b, nil
 }
 
 // FilterDocs returns a new []model.Document containing only matching
-// requirements per document. Documents with all requirements filtered
-// out are kept (with an empty Requirements slice) so document-level
-// structure is preserved for list/stats/export output.
+// requirements per document. Non-requirement nodes (containers and info
+// items) are always kept, so document structure and content survive
+// filtering. Documents with all requirements filtered out are kept (with
+// only items) so document-level structure is preserved for list/stats/
+// export output.
 func (f *Filter) FilterDocs(docs []model.Document) ([]model.Document, error) {
 	out := make([]model.Document, len(docs))
 	for i, doc := range docs {
 		filtered := doc
-		reqs := make([]model.Requirement, 0, len(doc.Requirements))
-		for _, req := range doc.Requirements {
-			match, err := f.Match(req)
-			if err != nil {
-				return nil, err
-			}
-			if match {
-				reqs = append(reqs, req)
-			}
+		nodes, err := f.pruneNodes(doc.Nodes)
+		if err != nil {
+			return nil, err
 		}
-		filtered.Requirements = reqs
+		filtered.Nodes = nodes
 		out[i] = filtered
 	}
 	return out, nil
@@ -188,7 +184,7 @@ func (f *Filter) FilterDocs(docs []model.Document) ([]model.Document, error) {
 func (f *Filter) MatchingIDs(docs []model.Document) (map[string]struct{}, error) {
 	ids := make(map[string]struct{})
 	for _, doc := range docs {
-		for _, req := range doc.Requirements {
+		for _, req := range doc.Requirements() {
 			match, err := f.Match(req)
 			if err != nil {
 				return nil, err
@@ -201,16 +197,44 @@ func (f *Filter) MatchingIDs(docs []model.Document) (map[string]struct{}, error)
 	return ids, nil
 }
 
+// pruneNodes returns the subset of a node list to keep: all non-
+// requirement nodes are kept; requirement nodes are kept only when they
+// match the filter. Children of a pruned requirement are re-attached to
+// the pruned node's position so no matching requirement is lost. Kept
+// nodes are shallow copies — the input tree is never mutated, so
+// multiple filtered views of the same documents stay independent.
+func (f *Filter) pruneNodes(nodes []*model.Node) ([]*model.Node, error) {
+	var out []*model.Node
+	for _, n := range nodes {
+		children, err := f.pruneNodes(n.Children)
+		if err != nil {
+			return nil, err
+		}
+		if n.Kind == model.KindRequirement {
+			match, err := f.Match(n)
+			if err != nil {
+				return nil, err
+			}
+			if !match {
+				out = append(out, children...)
+				continue
+			}
+		}
+		cp := *n
+		cp.Children = children
+		out = append(out, &cp)
+	}
+	return out, nil
+}
+
 // buildEnv constructs the expr evaluation environment for a requirement:
 // the req's Attrs map plus `id` and `title` injected as top-level vars.
 // We copy into a new map to avoid mutating the original Attrs.
-func buildEnv(req model.Requirement) map[string]any {
-	env := make(map[string]any, len(req.Attrs)+2)
-	for k, v := range req.Attrs {
-		env[k] = v
-	}
-	env["id"] = req.ID
-	env["title"] = req.Title
+func buildEnv(node *model.Node) map[string]any {
+	env := make(map[string]any, len(node.Attrs)+2)
+	maps.Copy(env, node.Attrs)
+	env["id"] = node.ID
+	env["title"] = node.Title
 	return env
 }
 

@@ -10,8 +10,11 @@ reqmd export csv 02-trace-your-spec/ -o csv-out/
 ```
 
 Produces one CSV per document directory (`stakeholder-requirements.csv`,
-`system-requirements.csv`, etc.) with columns: ID, Title, all schema
-attributes, Body, Rationale.
+`system-requirements.csv`, etc.) with a leading `Type` column followed by
+ID, Title, all schema attributes, Body, Rationale. Rows are emitted in
+document order for every node — requirements **and** containers/info
+items (headings without `attr` blocks) — so the CSV mirrors the source
+document, not just its requirement subset.
 
 ## HTML export
 
@@ -20,10 +23,13 @@ reqmd export html 02-trace-your-spec/ -o html-out/
 ```
 
 Produces standalone HTML files with:
-- Card-based layout with goldmark-rendered body text
+- Requirement cards with goldmark-rendered body text
+- Collapsible container sections and plain info blocks for headings
+  without `attr` blocks (folders, exactly as authored)
+- Sidebar TOC with the same folder nesting
 - Upstream/downstream trace links between files
 - Document chain tab strip (V-model navigation)
-- Search and filter (Alpine.js)
+- Search and filter (Alpine.js, requirement-scoped)
 - Light/dark theme toggle
 
 Open `html-out/tests-requirements.html` in a browser to see trace links.

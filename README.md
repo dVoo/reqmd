@@ -103,7 +103,7 @@ go run ./cmd/reqmd serve spec/ --headless   # terminal-only
 
 ### 1. Requirement files
 
-Each requirement is a level-2 heading followed by a fenced `attr` block with
+Each requirement is a Markdown heading followed by a fenced `attr` block with
 YAML attributes, then free-form prose. The heading text **is** the requirement ID.
 An optional title can follow the ID after a colon and space:
 
@@ -164,6 +164,42 @@ required fields from the schema.
 - Requirement IDs use uppercase letters, digits, and hyphens: `^[A-Z][A-Z0-9]*(-[A-Z0-9]+)*$` with a trailing number segment (e.g. `STK-GOAL-001`, `SYS-FMT-002`). Optional version pinning suffix `~N` is allowed for trace references (e.g. `SYS-001~3`). Colons and spaces are not allowed in IDs — they delimit the optional title.
 - If `x-reqmd.id-prefix` is set, every ID in that directory must start with the declared prefix
 
+### 1a. Content model — nothing is dropped
+
+reqmd parses the full document content, not just requirements. Every heading
+becomes a node in a document tree:
+
+| Node kind | When | Rendered as |
+|-----------|------|-------------|
+| **requirement** | heading followed by an `attr` block | card (HTML/CSV/ls row) |
+| **container** | heading without an `attr` block that contains nested headings | collapsible folder section in HTML, `container` rows in `ls`/CSV |
+| **info** | heading without an `attr` block and no children, or prose before the first heading | plain block in HTML, `info` rows in `ls`/CSV |
+
+Prose and other blocks attach to the nearest open heading's body. Leading
+prose before any heading is captured as a headingless info item — content
+is never dropped. Headings nest folder-like:
+
+```markdown
+# System Overview                      ← container (no attr block)
+
+Intro prose.                           ← info item (headingless)
+
+## SYS-001: Platform                   ← requirement
+```attr
+status: approved
+```
+
+### Functional Overview                ← info item under SYS-001
+
+## SYS-002: Safety                     ← requirement
+```
+
+Containers and info items have no attributes and participate in no
+validation or trace checks (`check` stays requirement-scoped); they exist
+to preserve and display document structure in `ls`, `stats`, CSV, and HTML
+exports (including the sidebar TOC). `--filter` prunes requirements but
+never removes containers or info items.
+
 ### 2. Schema files (`schema.yaml`)
 
 Every directory with requirements needs a `schema.yaml` — standard JSON Schema 2020-12
@@ -212,11 +248,35 @@ These attributes are reserved by reqmd and injected automatically — you must
 | `trace` | `ref[]` | Cross-document upstream references, e.g. `[SYS-001, SAFE-003]` |
 | `disposition` | `enum` | How intent is addressed: `implemented`, `deferred`, or `rejected` |
 | `disposition-reason` | `string` | Required when disposition ≠ `implemented` |
-| `requires-trace-from` | `string[]` | Coverage expectations — which downstream levels or document-ids are expected to trace to this requirement |
+| `requires-trace-from` | `string[]` | Coverage expectations — which downstream levels or document-ids are expected to trace to this requirement. Omitted on a requirement → inherits the document's `x-reqmd.requires-trace-from` default when one is set. |
 | `version` | `int` | Version number for trace pinning (e.g. `SYS-001~3`) |
 | `status` | `enum` | Approval lifecycle. Default: `approved`. Only `approved` satisfies traceability coverage. |
 
 All built-in attributes are **optional**. Redefining them in `schema.yaml` is a compile error.
+
+### 3a. Per-document coverage defaults
+
+When every requirement in a document shares the same downstream expectation,
+declare it once in `x-reqmd.requires-trace-from` instead of repeating it on
+each requirement:
+
+```yaml
+x-reqmd:
+  level: system-requirements
+  document-id: system
+  requires-trace-from: [software-requirements]
+```
+
+Every requirement that does **not** declare its own `requires-trace-from`
+attribute inherits this default. A requirement may override it by declaring the
+attribute (the declared tokens replace the default entirely — no merging), and
+`requires-trace-from: []` opts that single requirement out of downstream
+coverage. An empty document default (`requires-trace-from: []`) opts out every
+requirement in the document — useful for bottom-of-V layers. The default accepts
+the same tokens as the attribute (`document-id`s and `level`s — a `level` token
+matches every document at that layer) and is validated at schema compile time.
+When neither the requirement nor the document declares a default, reqmd falls
+back to generic boundary inference.
 
 ### 4. Status lifecycle
 
@@ -310,6 +370,7 @@ x-reqmd:
     path: ".reqmd/arch/sys/*.md"               # reqmd-scan input glob
     format: archi                               # input format
   id-prefix: IVI-FUN-                          # enforce ID prefix
+  requires-trace-from: [test-spec-unit]        # default downstream coverage for every requirement
 ```
 
 | Field | What it does |
@@ -324,6 +385,7 @@ x-reqmd:
 | `source.path` | Path/glob/URL for the source artefact (future `reqmd-scan`) |
 | `source.format` | Source format: `archi`, `doxygen`, `gtest`, `pytest`, `junit`, `reqif` |
 | `id-prefix` | Enforces that all requirement IDs start with this prefix; collision is an ERROR |
+| `requires-trace-from` | Document-wide default coverage expectation; inherited by requirements that don't declare their own `requires-trace-from` (see [Per-document coverage defaults](#3a-per-document-coverage-defaults)) |
 | `additional-status-values` | Lowercase extensions to the built-in `status` enum (e.g. `[review]`). See [Status lifecycle](#4-status-lifecycle). |
 | `ignore-status` | When `true`, the document opts out of the status lifecycle (see [Opting out](#4b-opting-out-of-the-lifecycle)) |
 
@@ -404,12 +466,12 @@ in both parsing and HTML export, with these extensions enabled:
 | `reqmd check --filter "<expr>" <root>` | Scope validation to requirements matching an [expr-lang](https://expr-lang.org) expression (e.g. `"Premium" in variant`). Coverage checking becomes filter-aware: filtered-out requirements cannot cause false coverage failures. `--json` adds a `"filter"` field to the summary. |
 | `reqmd check --disjoint-check <attr> <root>` | Check that trace-linked requirements have overlapping values for the named array-typed attribute (e.g. `variant`). Zero intersection → ERROR; empty/absent = "applies to all" (exempt). Repeatable. Also settable via `x-reqmd.disjoint-check` in `schema.yaml`. |
 | `reqmd init <dir>` | Scaffold a new requirements directory with schema.yaml and example file. Presets: `generic` (default), `aspice`, `results` (manual verification results), or a custom preset directory path. Flags: `--preset`, `--id-prefix`, `--id`, `--title`, `--level`, `--force` |
-| `reqmd ls <root>` | Table of all requirements with attribute values. `--filter "<expr>"` scopes to matching requirements. |
-| `reqmd ls --json <root>` | JSON list. `--filter` supported. |
-| `reqmd stats <root>` | Attribute-value breakdown per document. `--filter "<expr>"` scopes to matching requirements. |
+| `reqmd ls <root>` | Table of all content in document order with a leading `Type` column (`req` / `container` / `info`). Requirements show their attributes; items show their heading text. `--filter "<expr>"` scopes to matching requirements (items are always shown). |
+| `reqmd ls --json <root>` | JSON list — every node in the `rows` array with a `type` discriminator. `--filter` supported. |
+| `reqmd stats <root>` | Attribute-value breakdown per document, plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements. |
 | `reqmd stats --json <root>` | JSON stats. `--filter` supported. |
-| `reqmd export csv <root> -o <dir>` | CSV export with Body and Rationale columns. `--results <path>` (repeatable) adds Verdict and Verdict Source columns. `--filter "<expr>"` exports only matching requirements. |
-| `reqmd export html <root> -o <dir>` | Standalone HTML: card layout, goldmark-rendered body, trace columns, doc chain tab strip, search/filter, theme toggle. `--results <path>` (repeatable) renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter "<expr>"` exports only matching requirements. |
+| `reqmd export csv <root> -o <dir>` | CSV export with Type, Body and Rationale columns, emitted in document order for requirements and items alike. `--results <path>` (repeatable) adds Verdict and Verdict Source columns. `--filter "<expr>"` exports only matching requirements. |
+| `reqmd export html <root> -o <dir>` | Standalone HTML: card layout for requirements, collapsible folder sections for containers, plain blocks for info items, goldmark-rendered bodies, trace columns, doc chain tab strip, search/filter (requirement-scoped), sidebar TOC including containers, theme toggle. `--results <path>` (repeatable) renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter "<expr>"` exports only matching requirements. |
 | `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build). `--results <path>` (repeatable) includes `RESULT:` nodes with `outcome` and `source` properties, enabling graph traversal from requirements through measures to verification results. |
 | `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`, `--filter`) |
 | `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`, `--filter "<expr>"` to scope both snapshots) |
@@ -447,13 +509,16 @@ Summary: 3 total, 2 valid, 1 invalid, 0 parse errors, 6 warnings
 
 ```
 === example ===
-ID                       | asil         | maturity     | status       | verify       | owner        | priority     | safety_relevant | trace        | disposition  | disposition-reason | version  |
+Type       | ID                       | asil         | maturity     | status       | verify       | owner        | priority     | safety_relevant | trace        | disposition  | disposition-reason | version  |
 ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-IVI-FUN-001              | QM           | Production   | approved     | Test         | TierOneSupplierA |              |              | ["SYS-001","SAFE-003"] |              |              | 1            |
-IVI-FUN-002              | B            | Prototype    | draft        | Test         | TierOneSupplierA |              |              | ["SYS-007"]  | deferred     | Moved to Phase 2 — serial peripheral interface requires next PCB revision |              |
-IVI-FUN-003              |              | Concept      | draft        | Test         |              |              |              |                   |              |              |              |
+req        | IVI-FUN-001              | QM           | Production   | approved     | Test         | TierOneSupplierA |              |              | ["SYS-001","SAFE-003"] |              |              | 1            |
+req        | IVI-FUN-002              | B            | Prototype    | draft        | Test         | TierOneSupplierA |              |              | ["SYS-007"]  | deferred     | Moved to Phase 2 — serial peripheral interface requires next PCB revision |              |
+req        | IVI-FUN-003              |              | Concept      | draft        | Test         |              |              |              |                   |              |              |              |
 ```
 
+Every node appears in document order with a leading `Type` column —
+`req` for requirements, `container`/`info` for headings without `attr`
+blocks (headings that group content, shown with their heading text).
 User-defined attributes first, then built-in attributes. Empty cells mean the
 requirement didn't set that attribute. Non-string values (arrays, integers,
 booleans) are formatted automatically.
@@ -657,9 +722,9 @@ runs these checks:
 |-------|-------|-----------|------------|
 | **Broken reference** | WARNING | `trace` references an ID not found in any document | No |
 | **Circular dependency** | ERROR | Cycle detected via DFS along `TRACES` edges | **Yes** |
-| **requires-trace-from coverage** | WARNING | When a requirement declares `requires-trace-from: [..]`, at least one inbound edge must originate from each named `document-id` or `level` | No |
-| **Untraced (generic)** | WARNING | Fallback: no incoming traces, not a top-boundary dir, not a sub-req, `requires-trace-from` not set | No |
-| **No upstream reference (generic)** | WARNING | Fallback: no outgoing traces, not a bottom-boundary dir, `requires-trace-from` not set | No |
+| **requires-trace-from coverage** | WARNING | When a requirement declares `requires-trace-from: [..]` (or inherits a `x-reqmd.requires-trace-from` document default), at least one inbound edge must originate from each named `document-id` or `level` | No |
+| **Untraced (generic)** | WARNING | Fallback: no incoming traces, not a top-boundary dir, not a sub-req, no `requires-trace-from` and no document default | No |
+| **No upstream reference (generic)** | WARNING | Fallback: no outgoing traces, not a bottom-boundary dir, no `requires-trace-from` and no document default | No |
 | **Disposition without reason** | WARNING | `disposition` is `deferred`/`rejected` but reason is missing | No |
 | **Mandatory disposition** | ERROR | `mandatory-disposition: true` and `disposition` is missing | **Yes** |
 | **ID prefix mismatch** | ERROR | ID doesn't start with directory's `id-prefix` | **Yes** |
@@ -674,9 +739,10 @@ Boundary inference: Directories with no `upstream.sources` are
 **top-boundary** (generic untraced suppressed). Directories not referenced by
 any other directory's `upstream.sources` are **bottom-boundary**
 (generic no-upstream-reference suppressed). For fine-grained control, declare
-`requires-trace-from: [..]` on a requirement to specify exactly which document-ids or
-levels must trace to it; use `requires-trace-from: []` to explicitly opt out of generic
-boundary coverage.
+`requires-trace-from: [..]` on a requirement — or once per document via
+`x-reqmd.requires-trace-from` (see [Per-document coverage defaults](#3a-per-document-coverage-defaults))
+— to specify exactly which document-ids or levels must trace to it; use
+`requires-trace-from: []` to explicitly opt out of generic boundary coverage.
 
 Per-requirement check suppression is available via the `reqmd-suppress` attr:
 ```yaml
@@ -1015,16 +1081,17 @@ ReqMD dogfoods its own format. The `spec/` directory contains a complete
 |-------|-----------|:----:|-------------|
 | External | `spec/00-aspice/` | 191 | Automotive SPICE v4.0 base practices (`external: true`) |
 | Stakeholder | `spec/01-stakeholder/` | 5 | Stakeholder goals (top boundary, no upstream) |
-| ASPICE SR | `spec/01a-aspice-stakeholder/` | 18 | ASPICE stakeholder requirements mapped to base practices |
-| System | `spec/02-system/` | 9 | Feature specifications |
-| Software | `spec/03-software/` | 6 | Component-level design |
-| Tests | `spec/04-tests/` | 4 | Test specifications (mandatory-disposition) |
+| ASPICE SR | `spec/01a-aspice-stakeholder/` | 19 | ASPICE stakeholder requirements mapped to base practices |
+| System | `spec/02-system/` | 19 | Feature specifications |
+| Software | `spec/03-software/` | 27 | Component-level design |
+| Tests | `spec/04-tests/` | 13 | Test specifications (mandatory-disposition) |
 
-All 233 requirements validate cleanly:
+All 274 requirements validate cleanly (each document also carries one
+container item — its `# Title` heading):
 
 ```sh
 $ reqmd check spec/
-# ... 233 total, 233 valid, 0 invalid, 0 parse errors, 197 warnings
+# ... 274 total, 274 valid, 0 invalid, 0 parse errors, 23 warnings
 
 $ reqmd serve spec/          # live-reloading HTML preview
 $ reqmd export html spec/ -o /tmp/out/

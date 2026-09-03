@@ -4,7 +4,6 @@
 ```attr
 status: approved
 variant: [Sport]
-requires-trace-from: [software-requirements]
 ```
 The system shall provide launch control for Sport variants.
 
@@ -12,7 +11,6 @@ The system shall provide launch control for Sport variants.
 ```attr
 status: approved
 variant: [Base]
-requires-trace-from: [software-requirements]
 ```
 The system shall provide the base UI shell in all variants.
 
@@ -20,6 +18,5 @@ The system shall provide the base UI shell in all variants.
 ```attr
 status: approved
 variant: [Premium]
-requires-trace-from: [software-requirements]
 ```
 The system shall provide telematics connectivity for Premium variants.

@@ -61,7 +61,7 @@ func ExportGraph(docs []model.Document, outDir string) error {
 	// Result pseudo-requirements (RESULT:<id>) carry outcome and source
 	// properties; authored requirements leave them NULL.
 	for _, doc := range docs {
-		for _, req := range doc.Requirements {
+		for _, req := range doc.Requirements() {
 			escID := escapeCypherString(req.ID)
 			escFile := escapeCypherString(req.Source)
 			outcome, _ := req.Attrs["outcome"].(string)
@@ -84,7 +84,7 @@ func ExportGraph(docs []model.Document, outDir string) error {
 
 	// Pass 2: create TracesTo edges for every trace attribute entry.
 	for _, doc := range docs {
-		for _, req := range doc.Requirements {
+		for _, req := range doc.Requirements() {
 			traceVal, ok := req.Attrs[model.AttrTrace]
 			if !ok {
 				continue

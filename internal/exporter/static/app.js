@@ -23,11 +23,14 @@ function reqmdApp() {
       }
 
       // Parse the requirement index (used by isCardVisible and the count).
+      // The index contains every node (requirements, containers, info
+      // items); search/filter counts apply to requirements only.
       var indexEl = document.getElementById('req-index');
       if (indexEl) {
         try { this.reqIndex = JSON.parse(indexEl.textContent); } catch (e) { this.reqIndex = []; }
       }
       var self = this;
+      this.reqIndex = this.reqIndex.filter(function (r) { return r.type !== 'container' && r.type !== 'info'; });
       this.reqMap = new Map(this.reqIndex.map(function (r) { return [r.id, r]; }));
       this.totalCount = this.reqIndex.length;
       this.visibleCount = this.totalCount;
@@ -211,9 +214,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
       var childCount = 0;
       for (var pid in childMap) childCount += childMap[pid].length;
+      var itemCount = 0;
+      reqs.forEach(function (r) {
+        if (r.type === 'container' || r.type === 'info') itemCount++;
+      });
 
       if (tocCount) {
         tocCount.textContent = reqs.length + ' requirements (' + topLevel.length + ' parents \u00B7 ' + childCount + ' children)';
+        if (itemCount > 0) {
+          tocCount.textContent += ' \u00B7 ' + itemCount + ' items';
+        }
       }
 
       function createTreeItem(r, isChild) {
@@ -222,12 +232,13 @@ document.addEventListener('DOMContentLoaded', function () {
         wrapper.setAttribute('data-id', r.id);
 
         var hasKids = r.children && r.children.length > 0;
+        var isItem = r.type === 'container' || r.type === 'info';
 
         if (hasKids) {
           var toggle = document.createElement('button');
           toggle.className = 'req-toc-toggle';
           toggle.textContent = '\u25B6';
-          toggle.setAttribute('aria-label', 'Expand ' + r.id);
+          toggle.setAttribute('aria-label', 'Expand ' + (r.title || r.id));
           toggle.setAttribute('aria-expanded', 'false');
           wrapper.appendChild(toggle);
         }
@@ -236,11 +247,16 @@ document.addEventListener('DOMContentLoaded', function () {
         mainDiv.className = 'req-toc-item-main';
 
         var idSpan = document.createElement('span');
-        idSpan.className = 'req-toc-item-id';
-        idSpan.innerHTML = '<code>' + r.id + '</code>';
+        if (isItem) {
+          idSpan.className = 'req-toc-item-id req-toc-item-id--item';
+          idSpan.textContent = r.title || '(untitled)';
+        } else {
+          idSpan.className = 'req-toc-item-id';
+          idSpan.innerHTML = '<code>' + r.id + '</code>';
+        }
         mainDiv.appendChild(idSpan);
 
-        if (r.title) {
+        if (r.title && !isItem) {
           var titleSpan = document.createElement('span');
           titleSpan.className = 'req-toc-item-title';
           titleSpan.textContent = r.title;
@@ -249,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var bodySpan = document.createElement('span');
         bodySpan.className = 'req-toc-item-body';
-        bodySpan.textContent = r.body || '(no description)';
+        bodySpan.textContent = r.body || (isItem ? '' : '(no description)');
         mainDiv.appendChild(bodySpan);
 
         wrapper.appendChild(mainDiv);
@@ -304,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── Scroll-spy: highlight active TOC item ──
   var tocItems = document.querySelectorAll('.req-toc-item');
-  var cards = document.querySelectorAll('.req-card, .req-card-child');
+  var cards = document.querySelectorAll('.req-card, .req-card-child, .container-item, .info-item');
   if (tocItems.length && cards.length) {
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {

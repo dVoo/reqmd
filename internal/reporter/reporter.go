@@ -1,13 +1,15 @@
+// Package reporter formats reqmd validation results, per-document
+// listings, and statistics as human-readable text or JSON.
 package reporter
 
 import (
 	"encoding/json"
 	"fmt"
-	"sort"
-	"strings"
 
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
+	"sort"
+	"strings"
 )
 
 // ValidationError describes a single requirement that failed validation.
@@ -33,29 +35,28 @@ func (e *ExitCodeError) Error() string {
 	return fmt.Sprintf("reqmd exited with code %d", e.Code)
 }
 
+// ExitCode returns the process exit code this error carries.
+func (e *ExitCodeError) ExitCode() int { return e.Code }
+
 // DocHeader holds per-document metadata for the validate output header.
 type DocHeader struct {
-	Path        string
-	SchemaTitle string
-	ReqCount    int
-	ReqIDs      []string
+	Path     string
+	Title    string
+	ReqIDs   []string
+	ReqCount int
 }
 
 // Report holds all results from a validation run.
 type Report struct {
-	ValidReqs   int
-	TotalReqs   int
-	ValErrors   []ValidationError
-	ParseErrors []ParseError
-	GraphChecks []graph.CheckResult
-	DocHeaders  []DocHeader
-	// Filter is the active --filter expression, empty if no filter was applied.
-	// Surfaced in JSON output as the "filter" field in the summary object.
-	Filter string
-
-	// Pre-indexed maps (populated by NewIndex once at creation)
-	valErrorsByReq   map[string][]ValidationError   // reqID → errors
-	graphChecksByReq map[string][]graph.CheckResult // reqID → graph checks
+	valErrorsByReq   map[string][]ValidationError
+	graphChecksByReq map[string][]graph.CheckResult
+	Filter           string
+	ValErrors        []ValidationError
+	ParseErrors      []ParseError
+	GraphChecks      []graph.CheckResult
+	DocHeaders       []DocHeader
+	ValidReqs        int
+	TotalReqs        int
 }
 
 // NewIndex populates the pre-indexed maps from the flat slices.
@@ -120,7 +121,7 @@ func (r *Report) Format() string {
 	// Per-doc sections
 	for _, dh := range r.DocHeaders {
 		b.WriteString("=\n")
-		fmt.Fprintf(&b, "Schema : %s\n", dh.SchemaTitle)
+		fmt.Fprintf(&b, "Schema : %s\n", dh.Title)
 		fmt.Fprintf(&b, "File   : %s  (%d requirements)\n", dh.Path, dh.ReqCount)
 		b.WriteString("=\n")
 
@@ -135,48 +136,49 @@ func (r *Report) Format() string {
 			// Collect matching graph checks
 			graphMsgs := r.graphChecksByReq[reqID]
 
-		// Extract verdict info (if present) for the status line.
-		verdict := ""
-		verdictSource := ""
-		for _, g := range graphMsgs {
-			if g.Code == graph.CodeVerdict {
-				verdict = g.Message
-				verdictSource = g.File
-				break
-			}
-		}
-
-		// Render status line
-		if pass1Err != "" {
-			fmt.Fprintf(&b, "  ❌  %s  %s\n", reqID, pass1Err)
-		} else {
-			hasWarn := false
-			hasError := false
+			// Extract verdict info (if present) for the status line.
+			verdict := ""
+			verdictSource := ""
 			for _, g := range graphMsgs {
-				switch g.Level {
-				case graph.LevelWarning:
-					hasWarn = true
-				case graph.LevelError:
-					hasError = true
+				if g.Code == graph.CodeVerdict {
+					verdict = g.Message
+					verdictSource = g.File
+					break
 				}
 			}
-			if hasError {
-				fmt.Fprintf(&b, "  ❌  %s  attributes valid (see trace checks below)\n", reqID)
-			} else if hasWarn {
-				fmt.Fprintf(&b, "  ⚠  %s  attributes valid (see trace checks below)\n", reqID)
-			} else if verdict != "" {
-				if verdictSource != "" {
-					fmt.Fprintf(&b, "  ✅  %s  all attributes valid (%s — %s)\n", reqID, verdict, verdictSource)
-				} else {
-					fmt.Fprintf(&b, "  ✅  %s  all attributes valid (%s)\n", reqID, verdict)
-				}
-			} else {
-				fmt.Fprintf(&b, "  ✅  %s  all attributes valid\n", reqID)
-			}
-		}
 
-		// Render graph check detail lines (skip verdict INFO — already
-		// shown in the status line annotation).
+			// Render status line
+			if pass1Err != "" {
+				fmt.Fprintf(&b, "  ❌  %s  %s\n", reqID, pass1Err)
+			} else {
+				hasWarn := false
+				hasError := false
+				for _, g := range graphMsgs {
+					switch g.Level {
+					case graph.LevelWarning:
+						hasWarn = true
+					case graph.LevelError:
+						hasError = true
+					}
+				}
+				switch {
+				case hasError:
+					fmt.Fprintf(&b, "  ❌  %s  attributes valid (see trace checks below)\n", reqID)
+				case hasWarn:
+					fmt.Fprintf(&b, "  ⚠  %s  attributes valid (see trace checks below)\n", reqID)
+				case verdict != "":
+					if verdictSource != "" {
+						fmt.Fprintf(&b, "  ✅  %s  all attributes valid (%s — %s)\n", reqID, verdict, verdictSource)
+					} else {
+						fmt.Fprintf(&b, "  ✅  %s  all attributes valid (%s)\n", reqID, verdict)
+					}
+				default:
+					fmt.Fprintf(&b, "  ✅  %s  all attributes valid\n", reqID)
+				}
+			}
+
+			// Render graph check detail lines (skip verdict INFO — already
+			// shown in the status line annotation).
 			for _, g := range graphMsgs {
 				if g.Code == graph.CodeVerdict {
 					continue
@@ -198,8 +200,8 @@ func (r *Report) Format() string {
 	valErrCount := len(r.ValErrors)
 	warnCount, graphErrCount := r.counts()
 
-	b.WriteString(fmt.Sprintf("Summary: %d total, %d valid, %d invalid, %d parse errors",
-		r.TotalReqs, r.ValidReqs, valErrCount+graphErrCount, len(r.ParseErrors)))
+	fmt.Fprintf(&b, "Summary: %d total, %d valid, %d invalid, %d parse errors",
+		r.TotalReqs, r.ValidReqs, valErrCount+graphErrCount, len(r.ParseErrors))
 	if warnCount > 0 {
 		fmt.Fprintf(&b, ", %d warnings", warnCount)
 	}
@@ -207,13 +209,18 @@ func (r *Report) Format() string {
 	return b.String()
 }
 
-// FormatList produces a text table for `reqmd list`.
+// FormatList produces a text table for `reqmd list`. Every node appears
+// in document order with a leading Type column: requirements carry their
+// ID (+ title) and attributes, containers and info items show their
+// heading text with empty attribute cells.
 func FormatList(docs []DocumentSummary) string {
 	var b strings.Builder
 
 	for _, doc := range docs {
 		fmt.Fprintf(&b, "=== %s ===\n", doc.Path)
 		// Header row
+		fmt.Fprintf(&b, "%-10s", "Type")
+		b.WriteString(" | ")
 		fmt.Fprintf(&b, "%-24s", "ID")
 		b.WriteString(" | ")
 		for _, prop := range doc.Properties {
@@ -221,18 +228,24 @@ func FormatList(docs []DocumentSummary) string {
 			b.WriteString(" | ")
 		}
 		b.WriteString("\n")
-		b.WriteString(strings.Repeat("-", 24+3+len(doc.Properties)*15))
+		b.WriteString(strings.Repeat("-", 10+3+24+3+len(doc.Properties)*15))
 		b.WriteString("\n")
 
-		for _, req := range doc.Rows {
-			displayID := req.ID
-			if req.Title != "" {
-				displayID = req.ID + ": " + req.Title
+		for _, row := range doc.Rows {
+			fmt.Fprintf(&b, "%-10s", row.Kind.String())
+			b.WriteString(" | ")
+			displayID := row.ID
+			if row.Title != "" {
+				if displayID != "" {
+					displayID = row.ID + ": " + row.Title
+				} else {
+					displayID = row.Title
+				}
 			}
 			fmt.Fprintf(&b, "%-24s", displayID)
 			b.WriteString(" | ")
 			for _, prop := range doc.Properties {
-				val := formatAttrValue(req.Attrs[prop])
+				val := formatAttrValue(row.Attrs[prop])
 				fmt.Fprintf(&b, "%-12s", val)
 				b.WriteString(" | ")
 			}
@@ -243,7 +256,9 @@ func FormatList(docs []DocumentSummary) string {
 	return b.String()
 }
 
-// FormatStats produces a stats breakdown.
+// FormatStats produces a stats breakdown. The per-document header shows
+// requirement and item counts; a type breakdown section precedes the
+// attribute-value breakdowns.
 func FormatStats(docs []DocumentSummary, totalReqs int) string {
 	var b strings.Builder
 
@@ -251,11 +266,33 @@ func FormatStats(docs []DocumentSummary, totalReqs int) string {
 	fmt.Fprintf(&b, "Documents:    %d\n\n", len(docs))
 
 	for _, doc := range docs {
-		fmt.Fprintf(&b, "=== %s (%d reqs) ===\n", doc.Path, len(doc.Rows))
+		fmt.Fprintf(&b, "=== %s (%d reqs", doc.Path, doc.ReqCount)
+		if doc.ItemCount > 0 {
+			label := "items"
+			if doc.ItemCount == 1 {
+				label = "item"
+			}
+			fmt.Fprintf(&b, ", %d %s", doc.ItemCount, label)
+		}
+		b.WriteString(") ===\n")
+
+		if doc.ItemCount > 0 {
+			counts := map[string]int{}
+			for _, row := range doc.Rows {
+				counts[row.Kind.String()]++
+			}
+			if len(counts) > 0 {
+				b.WriteString("  type:\n")
+				for _, val := range sortedKeys(counts) {
+					fmt.Fprintf(&b, "    %-20s %d\n", val, counts[val])
+				}
+			}
+		}
+
 		for _, prop := range doc.Properties {
 			counts := map[string]int{}
-			for _, req := range doc.Rows {
-				if val, ok := req.Attrs[prop].(string); ok {
+			for _, row := range doc.Rows {
+				if val, ok := row.Attrs[prop].(string); ok {
 					counts[val]++
 				}
 			}
@@ -275,14 +312,18 @@ func FormatStats(docs []DocumentSummary, totalReqs int) string {
 type DocumentSummary struct {
 	Path       string
 	Properties []string
-	Rows       []ReqRow
+	Rows       []NodeRow // every node in document order (reqs + items)
+	ReqCount   int
+	ItemCount  int
 }
 
-// ReqRow is a single row in list/stats output.
-type ReqRow struct {
+// NodeRow is a single row in list/stats output: a requirement or an
+// information item (container/info), in document order.
+type NodeRow struct {
+	Attrs map[string]any
 	ID    string
 	Title string
-	Attrs map[string]any
+	Kind  model.Kind
 }
 
 func sortedKeys(m map[string]int) []string {
@@ -299,33 +340,33 @@ func sortedKeys(m map[string]int) []string {
 // ---------------------------------------------------------------------------
 
 type jsonReport struct {
-	Version     int              `json:"version"`
-	ExitCode    int              `json:"exit_code"`
-	Summary     jsonSummary      `json:"summary"`
 	Documents   []jsonDocSection `json:"documents"`
 	ParseErrors []jsonParseErr   `json:"parse_errors"`
+	Summary     jsonSummary      `json:"summary"`
+	Version     int              `json:"version"`
+	ExitCode    int              `json:"exit_code"`
 }
 
 type jsonSummary struct {
+	Filter      string `json:"filter,omitempty"`
 	Total       int    `json:"total"`
 	Valid       int    `json:"valid"`
 	Invalid     int    `json:"invalid"`
 	ParseErrors int    `json:"parse_errors"`
 	Warnings    int    `json:"warnings"`
-	Filter      string `json:"filter,omitempty"`
 }
 
 type jsonDocSection struct {
-	Path        string          `json:"path"`
-	SchemaTitle string          `json:"schema_title"`
-	ReqCount    int             `json:"req_count"`
-	Reqs        []jsonReqResult `json:"requirements"`
+	Path     string          `json:"path"`
+	Title    string          `json:"schema_title"`
+	Reqs     []jsonReqResult `json:"requirements"`
+	ReqCount int             `json:"req_count"`
 }
 
 type jsonReqResult struct {
 	ID     string    `json:"id"`
-	Valid  bool      `json:"valid"`
 	Checks []jsonChk `json:"checks,omitempty"`
+	Valid  bool      `json:"valid"`
 }
 
 type jsonChk struct {
@@ -349,19 +390,22 @@ type jsonListReport struct {
 type jsonListDoc struct {
 	Path       string        `json:"path"`
 	Properties []string      `json:"properties"`
-	Reqs       []jsonListReq `json:"requirements"`
+	Rows       []jsonListRow `json:"rows"`
 }
 
-type jsonListReq struct {
-	ID    string         `json:"id"`
+type jsonListRow struct {
+	Attrs map[string]any `json:"attrs,omitempty"`
+	Type  string         `json:"type"`
+	ID    string         `json:"id,omitempty"`
 	Title string         `json:"title,omitempty"`
-	Attrs map[string]any `json:"attrs"`
+	Body  string         `json:"body,omitempty"`
 }
 
 type jsonStatsDoc struct {
+	AttributeStats map[string]map[string]int `json:"attribute_stats"`
 	Path           string                    `json:"path"`
 	ReqCount       int                       `json:"req_count"`
-	AttributeStats map[string]map[string]int `json:"attribute_stats"`
+	ItemCount      int                       `json:"item_count"`
 }
 
 // FormatJSON serializes the full check report as JSON.
@@ -388,31 +432,31 @@ func (r *Report) FormatJSON() string {
 
 	for _, dh := range r.DocHeaders {
 		doc := jsonDocSection{
-			Path:        dh.Path,
-			SchemaTitle: dh.SchemaTitle,
-			ReqCount:    dh.ReqCount,
-			Reqs:        make([]jsonReqResult, 0, len(dh.ReqIDs)),
+			Path:     dh.Path,
+			Title:    dh.Title,
+			ReqCount: dh.ReqCount,
+			Reqs:     make([]jsonReqResult, 0, len(dh.ReqIDs)),
 		}
 
 		for _, reqID := range dh.ReqIDs {
 			// Collect all checks for this req into a flat list
 			var checks []jsonChk
 
-		// Schema validation errors
-		for _, ve := range r.valErrorsByReq[reqID] {
-			checks = append(checks, jsonChk{Level: graph.LevelError, Message: ve.Message})
-		}
-		// Trace graph results
-		for _, gc := range r.graphChecksByReq[reqID] {
-			checks = append(checks, jsonChk{
-				Level:     gc.Level,
-				Code:      gc.Code,
-				Direction: gc.Direction,
-				Outcome:   gc.Outcome,
-				Source:    gc.File,
-				Message:   gc.Message,
-			})
-		}
+			// Schema validation errors
+			for _, ve := range r.valErrorsByReq[reqID] {
+				checks = append(checks, jsonChk{Level: graph.LevelError, Message: ve.Message})
+			}
+			// Trace graph results
+			for _, gc := range r.graphChecksByReq[reqID] {
+				checks = append(checks, jsonChk{
+					Level:     gc.Level,
+					Code:      gc.Code,
+					Direction: gc.Direction,
+					Outcome:   gc.Outcome,
+					Source:    gc.File,
+					Message:   gc.Message,
+				})
+			}
 
 			// Valid = no ERROR-level checks
 			valid := true
@@ -433,10 +477,7 @@ func (r *Report) FormatJSON() string {
 	}
 
 	for _, pe := range r.ParseErrors {
-		jr.ParseErrors = append(jr.ParseErrors, jsonParseErr{
-			File:    pe.File,
-			Message: pe.Message,
-		})
+		jr.ParseErrors = append(jr.ParseErrors, jsonParseErr(pe))
 	}
 
 	b, err := json.MarshalIndent(jr, "", "  ")
@@ -446,7 +487,8 @@ func (r *Report) FormatJSON() string {
 	return string(b) + "\n"
 }
 
-// FormatListJSON serializes list output as JSON.
+// FormatListJSON serializes list output as JSON. All nodes appear in
+// document order in the `rows` array with a `type` discriminator.
 func FormatListJSON(docs []DocumentSummary) string {
 	jr := jsonListReport{
 		Documents: make([]jsonListDoc, 0, len(docs)),
@@ -455,14 +497,18 @@ func FormatListJSON(docs []DocumentSummary) string {
 		jdoc := jsonListDoc{
 			Path:       doc.Path,
 			Properties: doc.Properties,
-			Reqs:       make([]jsonListReq, 0, len(doc.Rows)),
+			Rows:       make([]jsonListRow, 0, len(doc.Rows)),
 		}
 		for _, row := range doc.Rows {
-			jdoc.Reqs = append(jdoc.Reqs, jsonListReq{
+			jrow := jsonListRow{
+				Type:  row.Kind.String(),
 				ID:    row.ID,
 				Title: row.Title,
-				Attrs: row.Attrs,
-			})
+			}
+			if row.Kind == model.KindRequirement {
+				jrow.Attrs = row.Attrs
+			}
+			jdoc.Rows = append(jdoc.Rows, jrow)
 		}
 		jr.Documents = append(jr.Documents, jdoc)
 	}
@@ -476,9 +522,9 @@ func FormatListJSON(docs []DocumentSummary) string {
 // FormatStatsJSON serializes stats output as JSON.
 func FormatStatsJSON(docs []DocumentSummary, totalReqs int) string {
 	type jsonStatsOut struct {
+		Documents         []jsonStatsDoc `json:"documents"`
 		TotalRequirements int            `json:"total_requirements"`
 		TotalDocuments    int            `json:"total_documents"`
-		Documents         []jsonStatsDoc `json:"documents"`
 	}
 	jr := jsonStatsOut{
 		TotalRequirements: totalReqs,
@@ -487,13 +533,14 @@ func FormatStatsJSON(docs []DocumentSummary, totalReqs int) string {
 	for _, doc := range docs {
 		jdoc := jsonStatsDoc{
 			Path:           doc.Path,
-			ReqCount:       len(doc.Rows),
+			ReqCount:       doc.ReqCount,
+			ItemCount:      doc.ItemCount,
 			AttributeStats: make(map[string]map[string]int),
 		}
 		for _, prop := range doc.Properties {
 			counts := map[string]int{}
-			for _, req := range doc.Rows {
-				if val, ok := req.Attrs[prop].(string); ok {
+			for _, row := range doc.Rows {
+				if val, ok := row.Attrs[prop].(string); ok {
 					counts[val]++
 				}
 			}

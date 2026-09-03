@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>reqmd Software Requirements</title>
+<title>reqmd Software Components</title>
 <style>
 
 :root {
@@ -1114,6 +1114,17 @@ html.dark .chain-card--current {
   line-height: 1.4;
 }
 
+.req-toc-item-id--item {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.req-toc-item--child .req-toc-item-id--item {
+  font-weight: 600;
+}
+
 .req-toc-item-title {
   font-size: 0.74rem;
   color: var(--text-secondary);
@@ -1247,29 +1258,96 @@ html.dark .chain-card--current {
   }
 }
 
-/* ── Parent card with children ──────────────────── */
-.req-card--has-children {
-  padding-bottom: 0;
+/* ── Container items (folder-like sections) ─────── */
+.container-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
 }
 
-/* ── Children section within parent card ────────── */
-.req-children {
-  margin-top: 1.25rem;
-  padding-top: 0.25rem;
+.container-item--child {
+  margin-left: 0.75rem;
   padding-left: 0.75rem;
   border-left: 2px solid var(--border);
-  position: relative;
 }
 
-.req-children-header {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.container-item summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.container-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.container-item summary::before {
+  content: '\25B8';
   color: var(--text-muted);
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.35rem;
-  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  transition: transform 0.15s ease;
+}
+
+.container-item details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.container-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.container-item-anchor {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.container-item:hover .container-item-anchor {
+  opacity: 1;
+}
+
+.container-item-body {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/* ── Info items (plain blocks) ───────────────────── */
+.info-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
+  color: var(--text-secondary);
+}
+
+.info-item--child {
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border);
+}
+
+.info-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+.info-item-body {
+  line-height: 1.6;
+}
+
+.info-item-body > :first-child {
+  margin-top: 0;
+}
+
+.info-item-body > :last-child {
+  margin-bottom: 0;
 }
 
 /* ── Child cards ────────────────────────────────── */
@@ -1502,7 +1580,7 @@ html.dark .boundary-badge--leaf {
   <details class="chain-details" open>
     <summary class="chain-summary">
       <span class="chain-summary__label">Traceability Chain</span>
-      <span class="chain-summary__count">4 upstream · 1 downstream</span>
+      <span class="chain-summary__count">4 upstream · 17 downstream</span>
     </summary>
   <div class="chain-stack">
     <div class="chain-zone chain-zone--upstream">
@@ -1534,7 +1612,7 @@ html.dark .boundary-badge--leaf {
         <div class="chain-tier-label">Upstream</div>
         <div class="chain-tier-cards">
       <a class="chain-card" href="02-system-requirements.html">
-        <span class="chain-card-title">reqmd System Requirements</span>
+        <span class="chain-card-title">reqmd System Features</span>
         <span class="chain-card-meta">02-system</span>
       </a>
         </div>
@@ -1547,7 +1625,7 @@ html.dark .boundary-badge--leaf {
     </div>
     <div class="chain-zone chain-zone--current">
       <span class="chain-card chain-card--current" aria-current="page">
-        <span class="chain-card-title">reqmd Software Requirements</span>
+        <span class="chain-card-title">reqmd Software Components</span>
         <span class="chain-card-meta">03-software</span>
       </span>
     </div>
@@ -1561,9 +1639,78 @@ html.dark .boundary-badge--leaf {
       <div class="chain-tier">
         <div class="chain-tier-label">Downstream</div>
         <div class="chain-tier-cards">
+      <a class="chain-card" href="imported-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">imported</span>
+      </a>
       <a class="chain-card" href="04-tests-requirements.html">
         <span class="chain-card-title">reqmd Test Specifications</span>
         <span class="chain-card-meta">04-tests</span>
+      </a>
+        </div>
+      </div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Downstream · 2 levels below</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card" href="cli-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">cli</span>
+      </a>
+      <a class="chain-card" href="diff-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">diff</span>
+      </a>
+      <a class="chain-card" href="export-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">export</span>
+      </a>
+      <a class="chain-card" href="exporter-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">exporter</span>
+      </a>
+      <a class="chain-card" href="filter-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">filter</span>
+      </a>
+      <a class="chain-card" href="graph-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">graph</span>
+      </a>
+      <a class="chain-card" href="graph_test-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">graph_test</span>
+      </a>
+      <a class="chain-card" href="main-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">main</span>
+      </a>
+      <a class="chain-card" href="model-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">model</span>
+      </a>
+      <a class="chain-card" href="parser-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">parser</span>
+      </a>
+      <a class="chain-card" href="repin-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">repin</span>
+      </a>
+      <a class="chain-card" href="reporter-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">reporter</span>
+      </a>
+      <a class="chain-card" href="schema-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">schema</span>
+      </a>
+      <a class="chain-card" href="verify-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">verify</span>
+      </a>
+      <a class="chain-card" href="verify_test-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">verify_test</span>
       </a>
         </div>
       </div>
@@ -1572,9 +1719,9 @@ html.dark .boundary-badge--leaf {
   </details>
 </nav>
 <header class="doc-header">
-<h1>reqmd Software Requirements</h1>
-<p class="doc-count">17 requirements (17 parents, 0 children)</p>
-<div class="status-breakdown"><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-draft)"></span><span class="status-breakdown__label">draft</span><span class="status-breakdown__count">1</span></span><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-approved)"></span><span class="status-breakdown__label">approved</span><span class="status-breakdown__count">16</span></span></div></header>
+<h1>reqmd Software Components</h1>
+<p class="doc-count">27 requirements (27 parents, 0 children)</p>
+<div class="status-breakdown"><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-draft)"></span><span class="status-breakdown__label">draft</span><span class="status-breakdown__count">1</span></span><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-approved)"></span><span class="status-breakdown__label">approved</span><span class="status-breakdown__count">26</span></span></div></header>
 <div class="search-toolbar" data-default-status="approved" data-additional-status-values="null">
   <div class="search-row">
     <input type="search" class="search-input" placeholder="Search ID, body, rationale, attributes..." autocomplete="off"
@@ -1639,11 +1786,11 @@ html.dark .boundary-badge--leaf {
 </div>
 </dl>
 <div class="req-body">
-<p>The parser package shall use goldmark to walk the Markdown AST, extracting requirement ID from headings and YAML attributes from fenced <code>```attr ```</code> blocks. The first heading+attr pair encountered determines the requirement level (<code>reqLevel</code>); headings at <code>reqLevel</code> with an adjacent attr block are top-level requirements, and headings at <code>reqLevel+1</code> with an adjacent attr block are sub-requirements (<code>ParentID</code> set to the active parent). Non-attr headings are body text. The parser SHALL also extract YAML frontmatter from <code>.md</code> files, with first-file-wins merge semantics across files in the same document directory. Parsing shall run in parallel across files via a worker pool sized to <code>runtime.NumCPU()</code>.</p>
+<p>The parser package shall use goldmark to walk the Markdown AST, extracting requirement IDs from headings and YAML attributes from fenced <code>```attr ```</code> blocks. The package shall also extract YAML frontmatter from <code>.md</code> files, with first-file-wins merge semantics across files in the same document directory, and parse files in parallel via a worker pool sized to <code>runtime.NumCPU()</code> with deterministic (file-order) result merging. Heading structure, parent chains, and content capture are defined in SW-PAR-002.</p>
 
 </div>
 <div class="req-rationale">
-<strong>Rationale:</strong> <p>Dynamic <code>reqLevel</code> discovery decouples requirement detection from hardcoded heading levels. The <code>isNextAttrBlock()</code> lookahead provides a universal gate. First-file-wins merge avoids metadata conflicts. Parallel worker pools maximize throughput on multi-document repositories.</p>
+<strong>Rationale:</strong> <p>goldmark provides a battle-tested CommonMark AST. Deterministic merge ordering keeps output stable regardless of goroutine scheduling. Content-tree semantics live in SW-PAR-002.</p>
 
 </div>
 <div class="req-traces">
@@ -1656,7 +1803,7 @@ html.dark .boundary-badge--leaf {
 <div class="trace-column">
 <div class="trace-column-header">Downstream (2)</div>
 <a class="trace-link" href="04-tests-requirements.html#TST-UNT-001"><span class="trace-link-id">TST-UNT-001</span><span class="trace-link-title">Core package unit tests</span></a>
-<a class="trace-link" href="04-tests-requirements.html#TST-UNT-002"><span class="trace-link-id">TST-UNT-002</span><span class="trace-link-title">Frontmatter and rendering tests</span></a>
+<a class="trace-link" href="04-tests-requirements.html#TST-UNT-002"><span class="trace-link-id">TST-UNT-002</span><span class="trace-link-title">Frontmatter, parsing, and rendering tests</span></a>
 </div>
 </div>
 </div>
@@ -1822,7 +1969,7 @@ html.dark .boundary-badge--leaf {
 <div class="trace-column">
 <div class="trace-column-header">Downstream (2)</div>
 <a class="trace-link" href="04-tests-requirements.html#TST-INT-001"><span class="trace-link-id">TST-INT-001</span><span class="trace-link-title">End-to-end integration tests</span></a>
-<a class="trace-link" href="04-tests-requirements.html#TST-UNT-002"><span class="trace-link-id">TST-UNT-002</span><span class="trace-link-title">Frontmatter and rendering tests</span></a>
+<a class="trace-link" href="04-tests-requirements.html#TST-UNT-002"><span class="trace-link-id">TST-UNT-002</span><span class="trace-link-title">Frontmatter, parsing, and rendering tests</span></a>
 </div>
 </div>
 </div>
@@ -2305,6 +2452,414 @@ html.dark .boundary-badge--leaf {
 </div>
 </div>
 </article>
+<article class="req-card" id="SW-FIL-001" x-show="isCardVisible('SW-FIL-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-FIL-001</code>: Attribute filter engine</h2>
+<a class="req-anchor" href="#SW-FIL-001" title="Link to this requirement" aria-label="Link to SW-FIL-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>filter</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The <code>internal/filter</code> package shall compile a <code>--filter</code> expression once at startup into bytecode using expr-lang, reject at compile time any expression referencing an attribute not declared in some <code>schema.yaml</code> (global typo check), and evaluate the bytecode against each requirement's attribute map plus the built-in <code>id</code> and <code>title</code> variables. Per-document attribute absence shall evaluate to nil (no error) via <code>AllowUndefinedVariables</code>. The package shall provide a <code>MatchingIDs</code> helper and document filtering (<code>FilterDocs</code>).</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Compile-once/eval-many keeps per-requirement filtering cheap on large trees; the global schema check turns attribute typos into a startup error instead of silent empty matches.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-FIL-001"><span class="trace-link-id">SYS-FIL-001</span><span class="trace-link-title">Generic attribute filtering</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-FIL-001"><span class="trace-link-id">TST-FIL-001</span><span class="trace-link-title">Filter package tests</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SW-DIS-001" x-show="isCardVisible('SW-DIS-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-DIS-001</code>: Disjoint-attribute graph check</h2>
+<a class="req-anchor" href="#SW-DIS-001" title="Link to this requirement" aria-label="Link to SW-DIS-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>graph</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The graph package shall implement <code>checkDisjointAttribute</code> (code <code>disjoint-attribute</code>), enabled via <code>SetDisjointAttrs</code> populated from the <code>--disjoint-check</code> flag or <code>x-reqmd.disjoint-check</code>. For every trace edge, the source and target requirements must share at least one value of each named array attribute; zero intersection shall produce an ERROR result, and an empty or absent value is exempt. The check shall respect <code>reqmd-suppress</code>.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The check is a pure graph pass over already-built edges, so it adds no new data structures; naming the attribute per invocation keeps it project-configurable without a new built-in.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-CHK-003"><span class="trace-link-id">SYS-CHK-003</span><span class="trace-link-title">Disjoint-attribute consistency check</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-DIS-001"><span class="trace-link-id">TST-DIS-001</span><span class="trace-link-title">Disjoint-attribute check tests</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SW-STS-001" x-show="isCardVisible('SW-STS-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-STS-001</code>: Status lifecycle enforcement</h2>
+<a class="req-anchor" href="#SW-STS-001" title="Link to this requirement" aria-label="Link to SW-STS-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>schema</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The schema package shall validate <code>x-reqmd.additional-status-values</code> (lowercase-only matching <code>^[a-z][a-z0-9_-]*$</code>, no reserved built-in collision, no duplicates) and extend the built-in <code>status</code> enum per document accordingly. The graph shall gate coverage on status: only <code>approved</code> requirements satisfy a <code>requires-trace-from</code> expectation, and a missing-coverage message shall append the count of draft downstreams ignored. The exporter shall hide the status filter for documents with <code>x-reqmd.ignore-status: true</code>.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The status axis is enforced at three points — schema (valid extension values), graph (coverage provider gate), and exporter (status filter visibility) — so the lifecycle is consistent across validation, coverage, and rendered output.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-STS-001"><span class="trace-link-id">SYS-STS-001</span><span class="trace-link-title">Requirement status lifecycle</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-STS-001"><span class="trace-link-id">TST-STS-001</span><span class="trace-link-title">Status lifecycle tests</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SW-SUP-001" x-show="isCardVisible('SW-SUP-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-SUP-001</code>: Check suppression</h2>
+<a class="req-anchor" href="#SW-SUP-001" title="Link to this requirement" aria-label="Link to SW-SUP-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>graph</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The graph package shall parse a <code>reqmd-suppress: [&lt;code&gt;...]</code> attribute into each requirement's suppression set and skip the listed graph checks when collecting results for that requirement.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Suppression is a per-requirement opt-out evaluated at result-collection time, so it composes with every existing and future graph check without touching each check's logic.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-SUP-001"><span class="trace-link-id">SYS-SUP-001</span><span class="trace-link-title">Check suppression</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-DIS-001"><span class="trace-link-id">TST-DIS-001</span><span class="trace-link-title">Disjoint-attribute check tests</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SW-LEV-001" x-show="isCardVisible('SW-LEV-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-LEV-001</code>: Level-typed coverage resolution</h2>
+<a class="req-anchor" href="#SW-LEV-001" title="Link to this requirement" aria-label="Link to SW-LEV-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>graph</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The graph package shall index document directories by their <code>x-reqmd.level</code> and resolve each <code>requires-trace-from</code> token against that index: a token matching a declared level expands to every directory at that level (any approved inbound from any of them satisfies coverage), a token matching a <code>document-id</code> resolves as today, and a token matching neither shall produce a WARNING.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Level indexing is built once at graph construction from data the parser already exposes, so coverage checks stay O(1) per token while remaining correct as directories within a level are added or removed.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-FMT-005"><span class="trace-link-id">SYS-FMT-005</span><span class="trace-link-title">Level-typed trace coverage</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-LEV-001"><span class="trace-link-id">TST-LEV-001</span><span class="trace-link-title">Level-typed coverage tests</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SW-IMP-001" x-show="isCardVisible('SW-IMP-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-IMP-001</code>: Source-code extraction pipeline</h2>
+<a class="req-anchor" href="#SW-IMP-001" title="Link to this requirement" aria-label="Link to SW-IMP-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>extractor</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The <code>reqmd-import</code> extractor shall walk a source tree, dispatch each file to the <code>lang</code> plugin claiming its extension, parse symbols in parallel via a worker pool, bind adjacent doc comments, and extract explicit <code>reqmd:trace</code> markers plus (opt-in) heuristic bare-ID references from the bound docs. It shall group symbols into per-package requirements and hand them to the writer with stable, line-independent IDs.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Decoupling the walk from parsing (and parsing from writing) keeps the pipeline independently testable and lets the worker pool absorb per-file tree-sitter cost.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-IMP-001"><span class="trace-link-id">SYS-IMP-001</span><span class="trace-link-title">Source-code requirement extraction</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-IMP-001"><span class="trace-link-id">TST-IMP-001</span><span class="trace-link-title">reqmd-import extraction tests</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SW-IMP-002" x-show="isCardVisible('SW-IMP-002')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-IMP-002</code>: Language plugin registry</h2>
+<a class="req-anchor" href="#SW-IMP-002" title="Link to this requirement" aria-label="Link to SW-IMP-002">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>lang</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The <code>internal/lang</code> registry shall define the <code>Language</code> interface (name, extensions, tree-sitter grammar, embedded query, doc binding, parse) and host self-registering plugins for C, C++, Go, Python, and Rust, blank-imported from the binary's entrypoint. Each plugin shall map its tree-sitter captures to the shared symbol model, populate method receivers from the enclosing type, and emit only top-level symbols (function-local declarations are excluded so same-named locals cannot collide on one ID).</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The registry lets a new language land as a single self-registering package with no changes to the extractor or writer; scope rules keep generated IDs unique within a package.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-IMP-001"><span class="trace-link-id">SYS-IMP-001</span><span class="trace-link-title">Source-code requirement extraction</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-IMP-001"><span class="trace-link-id">TST-IMP-001</span><span class="trace-link-title">reqmd-import extraction tests</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SW-IMP-003" x-show="isCardVisible('SW-IMP-003')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-IMP-003</code>: Proxy requirement writer</h2>
+<a class="req-anchor" href="#SW-IMP-003" title="Link to this requirement" aria-label="Link to SW-IMP-003">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>writer</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The writer shall render per-package <code>.md</code> files with one requirement per symbol: ID <code>&lt;id-prefix&gt;&lt;package&gt;-&lt;symbol&gt;-&lt;7charhash&gt;</code>, <code>status: approved</code>, <code>x-reqmd.imported: true</code>, provenance (<code>x-reqmd.source-file</code>, <code>x-reqmd.source-line</code>, <code>x-reqmd.symbol-kind</code>), and <code>###</code> children for methods nested under their parent type. Output shall be byte-deterministic and idempotent: existing files are only rewritten when their content changes, and hand-authored files (no generated marker) are never touched.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Deterministic output makes re-running the extractor a safe no-op, and the generated-marker guard prevents clobbering manual edits in the same target tree.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-IMP-001"><span class="trace-link-id">SYS-IMP-001</span><span class="trace-link-title">Source-code requirement extraction</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-IMP-001"><span class="trace-link-id">TST-IMP-001</span><span class="trace-link-title">reqmd-import extraction tests</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SW-PAR-002" x-show="isCardVisible('SW-PAR-002')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-PAR-002</code>: Content-tree parsing</h2>
+<a class="req-anchor" href="#SW-PAR-002" title="Link to this requirement" aria-label="Link to SW-PAR-002">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>parser</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The parser package shall emit a flat node stream per <code>.md</code> file — one <code>model.Node</code> per heading (kind requirement, container, or info) except the level-1 document title, which is captured as the file title and excluded from the stream — with prose, rationales, code blocks, and thematic breaks attached to the open node's body — and assemble it into the document content tree with <code>assembleTree</code>: parent = nearest preceding heading with a shallower level; <code>ParentID</code> set for requirements to the nearest ancestor requirement; info nodes with children promoted to <code>KindContainer</code>. Requirement headings shall be level 2 or higher; a level-1 heading with an <code>attr</code> block shall be rejected as a parse error. Multi-file documents shall merge per-file trees in <code>mdFiles</code> (sorted) order so output ordering is deterministic regardless of parse parallelism, take the document title from the first file's h1 heading, and the parallel chunked path shall include the file preamble in chunk 0 so leading prose and headings are never dropped.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The chunked parse path previously split files at root-requirement boundaries, silently discarding the preamble. Assembly after concatenating chunk node streams (instead of per-chunk) preserves nesting across chunk boundaries (e.g. a container in chunk 0 holding a requirement in chunk 1) while keeping parse parallelism.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-CON-001"><span class="trace-link-id">SYS-CON-001</span><span class="trace-link-title">Content tree — nothing dropped</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-UNT-003"><span class="trace-link-id">TST-UNT-003</span><span class="trace-link-title">Content-tree and item tests</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SW-EXP-002" x-show="isCardVisible('SW-EXP-002')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SW-EXP-002</code>: Item-aware export</h2>
+<a class="req-anchor" href="#SW-EXP-002" title="Link to this requirement" aria-label="Link to SW-EXP-002">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Package</dt>
+<dd>exporter</dd>
+</div>
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The exporter package shall render the document tree depth-first: requirement cards with child cards nested, containers as collapsible folder sections with stable <code>info-N</code> anchors, and info items as plain blocks. The embedded JSON index shall include every node with a <code>type</code> discriminator and tree references (parent/children anchors) so the sidebar TOC renders folders and scroll-spy covers item blocks; the client-side search/filter shall count requirements only. CSV export shall emit a <code>Type</code> column and rows for all nodes in document order.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>The index previously carried only requirement IDs and parent/child lists derived from <code>ParentID</code>. Containers need their own anchors and tree edges; keeping the index shape flat (id/type/parentId/children) lets the existing Alpine and vanilla-JS code consume the extended data with minimal client changes.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="02-system-requirements.html#SYS-CON-002"><span class="trace-link-id">SYS-CON-002</span><span class="trace-link-title">Items in output commands</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="04-tests-requirements.html#TST-UNT-003"><span class="trace-link-id">TST-UNT-003</span><span class="trace-link-title">Content-tree and item tests</span></a>
+</div>
+</div>
+</div>
+</article>
 </main>
 <script>
 
@@ -2333,11 +2888,14 @@ function reqmdApp() {
       }
 
       // Parse the requirement index (used by isCardVisible and the count).
+      // The index contains every node (requirements, containers, info
+      // items); search/filter counts apply to requirements only.
       var indexEl = document.getElementById('req-index');
       if (indexEl) {
         try { this.reqIndex = JSON.parse(indexEl.textContent); } catch (e) { this.reqIndex = []; }
       }
       var self = this;
+      this.reqIndex = this.reqIndex.filter(function (r) { return r.type !== 'container' && r.type !== 'info'; });
       this.reqMap = new Map(this.reqIndex.map(function (r) { return [r.id, r]; }));
       this.totalCount = this.reqIndex.length;
       this.visibleCount = this.totalCount;
@@ -2521,9 +3079,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
       var childCount = 0;
       for (var pid in childMap) childCount += childMap[pid].length;
+      var itemCount = 0;
+      reqs.forEach(function (r) {
+        if (r.type === 'container' || r.type === 'info') itemCount++;
+      });
 
       if (tocCount) {
         tocCount.textContent = reqs.length + ' requirements (' + topLevel.length + ' parents \u00B7 ' + childCount + ' children)';
+        if (itemCount > 0) {
+          tocCount.textContent += ' \u00B7 ' + itemCount + ' items';
+        }
       }
 
       function createTreeItem(r, isChild) {
@@ -2532,12 +3097,13 @@ document.addEventListener('DOMContentLoaded', function () {
         wrapper.setAttribute('data-id', r.id);
 
         var hasKids = r.children && r.children.length > 0;
+        var isItem = r.type === 'container' || r.type === 'info';
 
         if (hasKids) {
           var toggle = document.createElement('button');
           toggle.className = 'req-toc-toggle';
           toggle.textContent = '\u25B6';
-          toggle.setAttribute('aria-label', 'Expand ' + r.id);
+          toggle.setAttribute('aria-label', 'Expand ' + (r.title || r.id));
           toggle.setAttribute('aria-expanded', 'false');
           wrapper.appendChild(toggle);
         }
@@ -2546,11 +3112,16 @@ document.addEventListener('DOMContentLoaded', function () {
         mainDiv.className = 'req-toc-item-main';
 
         var idSpan = document.createElement('span');
-        idSpan.className = 'req-toc-item-id';
-        idSpan.innerHTML = '<code>' + r.id + '</code>';
+        if (isItem) {
+          idSpan.className = 'req-toc-item-id req-toc-item-id--item';
+          idSpan.textContent = r.title || '(untitled)';
+        } else {
+          idSpan.className = 'req-toc-item-id';
+          idSpan.innerHTML = '<code>' + r.id + '</code>';
+        }
         mainDiv.appendChild(idSpan);
 
-        if (r.title) {
+        if (r.title && !isItem) {
           var titleSpan = document.createElement('span');
           titleSpan.className = 'req-toc-item-title';
           titleSpan.textContent = r.title;
@@ -2559,7 +3130,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var bodySpan = document.createElement('span');
         bodySpan.className = 'req-toc-item-body';
-        bodySpan.textContent = r.body || '(no description)';
+        bodySpan.textContent = r.body || (isItem ? '' : '(no description)');
         mainDiv.appendChild(bodySpan);
 
         wrapper.appendChild(mainDiv);
@@ -2614,7 +3185,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── Scroll-spy: highlight active TOC item ──
   var tocItems = document.querySelectorAll('.req-toc-item');
-  var cards = document.querySelectorAll('.req-card, .req-card-child');
+  var cards = document.querySelectorAll('.req-card, .req-card-child, .container-item, .info-item');
   if (tocItems.length && cards.length) {
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -2646,8 +3217,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // @click.away on the sidebar, and @keydown.escape.window on <body>.
 });
 </script>
-<script type="application/json" id="req-index">[{"id":"SW-PAR-001","title":"Goldmark-based markdown parser","body":"The parser package shall use goldmark to walk the Markdown AST, extracting requi...","rationale":"Dynamic `reqLevel` discovery decouples requirement detection from hardcoded heading levels. The `isNextAttrBlock()` lookahead provides a universal gate. First-file-wins merge avoids metadata conflicts. Parallel worker pools maximize throughput on multi-document repositories.","attrs":{"package":"parser","priority":"Critical","status":"approved"}},{"id":"SW-SCH-001","title":"JSON Schema compilation","body":"The schema package shall compile `schema.yaml` via `github.com/google/jsonschema...","rationale":"The Google jsonschema-go library is the official JSON Schema 2020-12 implementation for Go with zero external dependencies. Direct map access avoids marshal/unmarshal overhead on the hot validation path. Keeping parent-child out of the schema keeps the validation layer focused on project-specific attributes.","attrs":{"package":"schema","priority":"Critical","status":"approved"}},{"id":"SW-GRA-001","title":"In-memory directed graph","body":"The graph package shall build a pure Go in-memory directed graph from all parsed...","rationale":"Three sub-passes guarantee deterministic node initialization before edge construction. The `IsChild` flag propagates into untraced-check suppression. Pure Go adjacency eliminates temp-directory I/O and serialization overhead.","attrs":{"package":"graph","priority":"Critical","status":"approved"}},{"id":"SW-CHK-001","title":"Ten trace integrity checks","body":"The graph package shall implement ten Pass 2 trace checks: broken reference (WAR...","rationale":"ISO 26262 requires demonstrated absence of broken or circular traces. ERROR-level checks enforce structural integrity; WARNING-level checks flag maintainability concerns without blocking CI. Untraced suppression for sub-requirements avoids false positives — children are expected to be referenced by their parent, not by external traces.","attrs":{"package":"graph","priority":"Critical","status":"approved"}},{"id":"SW-EXP-001","title":"CSV, HTML, and graph export","body":"The exporter package shall produce three output formats: CSV (attribute columns ...","rationale":"CSV covers bulk data exchange; HTML supports human traceability review with full Markdown rendering and navigation features. Nested child cards preserve V-model decomposition visually. Graph export via ladybugdb provides a persistent queryable graph database for the planned `reqmd-query` standalone analysis tool.","attrs":{"package":"exporter","priority":"High","status":"approved"}},{"id":"SW-CLI-001","title":"Cobra command dispatch","body":"The cmd package shall use cobra to dispatch subcommands and coordinate the full ...","rationale":"Cobra provides standard CLI conventions (help text, flags, subcommands). A single coordinator function ensures consistent pipeline execution across all commands.","attrs":{"package":"cmd","priority":"Critical","status":"approved"}},{"id":"SW-ERR-001","title":"Parser discovery error handling","body":"The parser package shall surface discovery errors (unreadable directories, malfo...","rationale":"Partial-failure reporting lets CI surface every problem in one run instead of failing fast on the first error and hiding subsequent issues. Parallel parsing keeps large trees fast; error collection preserves the worker-pool's throughput benefit.","attrs":{"package":"parser","priority":"High","status":"approved"}},{"id":"SW-SAF-001","title":"Version-pin demotion in check","body":"The `check` command shall accept a `--relaxed-versions` flag that demotes `versi...","rationale":"Outdated pins are often intentional (a downstream validated against a known-good older version and has not yet revalidated); demoting them to WARNING lets teams adopt version pinning without blocking CI on every upstream bump. Predated pins are data-integrity errors and must always block.","attrs":{"package":"cmd","priority":"Medium","status":"approved"}},{"id":"SW-SAF-002","title":"Graph construction safety","body":"The graph package's `New` constructor shall build the in-memory directed graph f...","rationale":"Keeping graph construction pure (no file I/O, no network, no allocations beyond the adjacency slices) means the graph can be rebuilt cheaply on every file change in `serve` mode and unit-tested without fixtures. The three-sub-pass ordering guarantees nodes exist before edges are wired.","attrs":{"package":"graph","priority":"High","status":"approved"}},{"id":"SW-SEC-001","title":"Exporter trace-link resolution","body":"The exporter's `ExportWithTraces` shall resolve cross-document trace links via a...","rationale":"HTML export is the primary human-review artifact and may be served over HTTP or opened from the filesystem. Relative-only links keep the output portable; omitting unresolvable targets avoids dead anchors and prevents path-traversal-style hrefs from reaching the rendered page.","attrs":{"package":"exporter","priority":"High","status":"approved"}},{"id":"SW-SRV-001","title":"Live-reload serve subcommand","body":"The `serve` subcommand shall watch a requirements directory tree and serve a liv...","rationale":"A live preview shortens the author→review feedback loop for the HTML output. fsnotify gives sub-second response on supported platforms; the polling fallback keeps `serve` usable on network filesystems and in containers. Separating graph checks from full validation keeps rebuilds fast enough for interactive use. Extending `--results` to `serve` closes the V-model right side in the interactive authoring loop: a failing verdict turns the status line red immediately, without leaving the editor to run `check`.","attrs":{"package":"cmd","priority":"Medium","status":"approved"}},{"id":"SW-BAS-001","title":"Baseline diff via git tags","body":"The `baseline diff \u003ctag1\u003e \u003ctag2\u003e` subcommand shall compare requirement specifica...","rationale":"Requirement-level diffs drive change-impact analysis and release notes. Using git tags as baseline anchors inherits the team's existing version-control workflow; `git archive` avoids checking out tags into separate worktrees, keeping the operation fast and side-effect-free. Submodule diff surfaces pinned-dependency drift that requirement diffs alone miss.","attrs":{"package":"cmd","priority":"High","status":"approved"}},{"id":"SW-CHK-002","title":"Scoped check pipeline","body":"The `check` command shall accept a `--scope` flag that restricts validation to a...","rationale":"Scoped checks let developers validate only the requirements affected by a change, making incremental CI fast on large trees. Running the cheap global checks even in scoped mode preserves duplicate-ID and prefix-collision signal without the cost of the full graph build. This requirement is draft: the scoped pipeline is planned but not yet implemented.","attrs":{"package":"cmd","priority":"Medium","status":"draft"}},{"id":"SW-VER-001","title":"CTRF report parser","body":"The `internal/verify` package shall parse CTRF JSON reports (top-level `results....","rationale":"CTRF is the open standard for JSON test reports. Using its `extra` extension point for the measure ID survives test renaming and avoids brittle name-parsing. Flaky tests are inconclusive because a pass-after-fail is not a clean pass.","attrs":{"package":"verify","priority":"High","status":"approved"}},{"id":"SW-VER-002","title":"Manual-results markdown loader","body":"The `internal/verify` package shall load manual-results markdown directories via...","rationale":"Reusing the existing document pipeline for manual results avoids a parallel parser and keeps schema validation uniform. Keeping results outside the spec root ensures a normal `check` never sees them.","attrs":{"package":"verify","priority":"High","status":"approved"}},{"id":"SW-VER-003","title":"Result merge and synthesis","body":"The `internal/verify` package shall merge all loaded results by measure ID (stri...","rationale":"Collapsing to one result per measure reflects \"latest verdict wins\" without storing history in-file. The synthetic `RESULT:` prefix lets graph checks distinguish result nodes from authored ones. Preserving the pin on the trace edge makes the existing `version-pin` check detect stale results with no new logic.","attrs":{"package":"verify","priority":"High","status":"approved"}},{"id":"SW-VER-004","title":"Outcome-gated graph checks","body":"The graph shall run two new checks when result pseudo-requirements are present: ...","rationale":"A measure is defined by the `verify` attribute, not by inbound edges — a measure with no result has no inbound result edge, so the check must key on `verify`. Draft measures are skipped because a draft measure is not yet expected to have results.","attrs":{"package":"graph","priority":"High","status":"approved"}}]</script>
-<script type="application/json" id="req-filter-index">{"package":["cmd","exporter","graph","parser","schema","verify"],"priority":["Critical","High","Medium"],"status":["draft","approved"]}</script>
+<script type="application/json" id="req-index">[{"id":"SW-PAR-001","title":"Goldmark-based markdown parser","body":"The parser package shall use goldmark to walk the Markdown AST, extracting requi...","rationale":"goldmark provides a battle-tested CommonMark AST. Deterministic merge ordering keeps output stable regardless of goroutine scheduling. Content-tree semantics live in SW-PAR-002.","attrs":{"package":"parser","priority":"Critical","status":"approved"}},{"id":"SW-SCH-001","title":"JSON Schema compilation","body":"The schema package shall compile `schema.yaml` via `github.com/google/jsonschema...","rationale":"The Google jsonschema-go library is the official JSON Schema 2020-12 implementation for Go with zero external dependencies. Direct map access avoids marshal/unmarshal overhead on the hot validation path. Keeping parent-child out of the schema keeps the validation layer focused on project-specific attributes.","attrs":{"package":"schema","priority":"Critical","status":"approved"}},{"id":"SW-GRA-001","title":"In-memory directed graph","body":"The graph package shall build a pure Go in-memory directed graph from all parsed...","rationale":"Three sub-passes guarantee deterministic node initialization before edge construction. The `IsChild` flag propagates into untraced-check suppression. Pure Go adjacency eliminates temp-directory I/O and serialization overhead.","attrs":{"package":"graph","priority":"Critical","status":"approved"}},{"id":"SW-CHK-001","title":"Ten trace integrity checks","body":"The graph package shall implement ten Pass 2 trace checks: broken reference (WAR...","rationale":"ISO 26262 requires demonstrated absence of broken or circular traces. ERROR-level checks enforce structural integrity; WARNING-level checks flag maintainability concerns without blocking CI. Untraced suppression for sub-requirements avoids false positives — children are expected to be referenced by their parent, not by external traces.","attrs":{"package":"graph","priority":"Critical","status":"approved"}},{"id":"SW-EXP-001","title":"CSV, HTML, and graph export","body":"The exporter package shall produce three output formats: CSV (attribute columns ...","rationale":"CSV covers bulk data exchange; HTML supports human traceability review with full Markdown rendering and navigation features. Nested child cards preserve V-model decomposition visually. Graph export via ladybugdb provides a persistent queryable graph database for the planned `reqmd-query` standalone analysis tool.","attrs":{"package":"exporter","priority":"High","status":"approved"}},{"id":"SW-CLI-001","title":"Cobra command dispatch","body":"The cmd package shall use cobra to dispatch subcommands and coordinate the full ...","rationale":"Cobra provides standard CLI conventions (help text, flags, subcommands). A single coordinator function ensures consistent pipeline execution across all commands.","attrs":{"package":"cmd","priority":"Critical","status":"approved"}},{"id":"SW-ERR-001","title":"Parser discovery error handling","body":"The parser package shall surface discovery errors (unreadable directories, malfo...","rationale":"Partial-failure reporting lets CI surface every problem in one run instead of failing fast on the first error and hiding subsequent issues. Parallel parsing keeps large trees fast; error collection preserves the worker-pool's throughput benefit.","attrs":{"package":"parser","priority":"High","status":"approved"}},{"id":"SW-SAF-001","title":"Version-pin demotion in check","body":"The `check` command shall accept a `--relaxed-versions` flag that demotes `versi...","rationale":"Outdated pins are often intentional (a downstream validated against a known-good older version and has not yet revalidated); demoting them to WARNING lets teams adopt version pinning without blocking CI on every upstream bump. Predated pins are data-integrity errors and must always block.","attrs":{"package":"cmd","priority":"Medium","status":"approved"}},{"id":"SW-SAF-002","title":"Graph construction safety","body":"The graph package's `New` constructor shall build the in-memory directed graph f...","rationale":"Keeping graph construction pure (no file I/O, no network, no allocations beyond the adjacency slices) means the graph can be rebuilt cheaply on every file change in `serve` mode and unit-tested without fixtures. The three-sub-pass ordering guarantees nodes exist before edges are wired.","attrs":{"package":"graph","priority":"High","status":"approved"}},{"id":"SW-SEC-001","title":"Exporter trace-link resolution","body":"The exporter's `ExportWithTraces` shall resolve cross-document trace links via a...","rationale":"HTML export is the primary human-review artifact and may be served over HTTP or opened from the filesystem. Relative-only links keep the output portable; omitting unresolvable targets avoids dead anchors and prevents path-traversal-style hrefs from reaching the rendered page.","attrs":{"package":"exporter","priority":"High","status":"approved"}},{"id":"SW-SRV-001","title":"Live-reload serve subcommand","body":"The `serve` subcommand shall watch a requirements directory tree and serve a liv...","rationale":"A live preview shortens the author→review feedback loop for the HTML output. fsnotify gives sub-second response on supported platforms; the polling fallback keeps `serve` usable on network filesystems and in containers. Separating graph checks from full validation keeps rebuilds fast enough for interactive use. Extending `--results` to `serve` closes the V-model right side in the interactive authoring loop: a failing verdict turns the status line red immediately, without leaving the editor to run `check`.","attrs":{"package":"cmd","priority":"Medium","status":"approved"}},{"id":"SW-BAS-001","title":"Baseline diff via git tags","body":"The `baseline diff \u003ctag1\u003e \u003ctag2\u003e` subcommand shall compare requirement specifica...","rationale":"Requirement-level diffs drive change-impact analysis and release notes. Using git tags as baseline anchors inherits the team's existing version-control workflow; `git archive` avoids checking out tags into separate worktrees, keeping the operation fast and side-effect-free. Submodule diff surfaces pinned-dependency drift that requirement diffs alone miss.","attrs":{"package":"cmd","priority":"High","status":"approved"}},{"id":"SW-CHK-002","title":"Scoped check pipeline","body":"The `check` command shall accept a `--scope` flag that restricts validation to a...","rationale":"Scoped checks let developers validate only the requirements affected by a change, making incremental CI fast on large trees. Running the cheap global checks even in scoped mode preserves duplicate-ID and prefix-collision signal without the cost of the full graph build. This requirement is draft: the scoped pipeline is planned but not yet implemented.","attrs":{"package":"cmd","priority":"Medium","status":"draft"}},{"id":"SW-VER-001","title":"CTRF report parser","body":"The `internal/verify` package shall parse CTRF JSON reports (top-level `results....","rationale":"CTRF is the open standard for JSON test reports. Using its `extra` extension point for the measure ID survives test renaming and avoids brittle name-parsing. Flaky tests are inconclusive because a pass-after-fail is not a clean pass.","attrs":{"package":"verify","priority":"High","status":"approved"}},{"id":"SW-VER-002","title":"Manual-results markdown loader","body":"The `internal/verify` package shall load manual-results markdown directories via...","rationale":"Reusing the existing document pipeline for manual results avoids a parallel parser and keeps schema validation uniform. Keeping results outside the spec root ensures a normal `check` never sees them.","attrs":{"package":"verify","priority":"High","status":"approved"}},{"id":"SW-VER-003","title":"Result merge and synthesis","body":"The `internal/verify` package shall merge all loaded results by measure ID (stri...","rationale":"Collapsing to one result per measure reflects \"latest verdict wins\" without storing history in-file. The synthetic `RESULT:` prefix lets graph checks distinguish result nodes from authored ones. Preserving the pin on the trace edge makes the existing `version-pin` check detect stale results with no new logic.","attrs":{"package":"verify","priority":"High","status":"approved"}},{"id":"SW-VER-004","title":"Outcome-gated graph checks","body":"The graph shall run two new checks when result pseudo-requirements are present: ...","rationale":"A measure is defined by the `verify` attribute, not by inbound edges — a measure with no result has no inbound result edge, so the check must key on `verify`. Draft measures are skipped because a draft measure is not yet expected to have results.","attrs":{"package":"graph","priority":"High","status":"approved"}},{"id":"SW-FIL-001","title":"Attribute filter engine","body":"The `internal/filter` package shall compile a `--filter` expression once at star...","rationale":"Compile-once/eval-many keeps per-requirement filtering cheap on large trees; the global schema check turns attribute typos into a startup error instead of silent empty matches.","attrs":{"package":"filter","priority":"Medium","status":"approved"}},{"id":"SW-DIS-001","title":"Disjoint-attribute graph check","body":"The graph package shall implement `checkDisjointAttribute` (code `disjoint-attri...","rationale":"The check is a pure graph pass over already-built edges, so it adds no new data structures; naming the attribute per invocation keeps it project-configurable without a new built-in.","attrs":{"package":"graph","priority":"Medium","status":"approved"}},{"id":"SW-STS-001","title":"Status lifecycle enforcement","body":"The schema package shall validate `x-reqmd.additional-status-values` (lowercase-...","rationale":"The status axis is enforced at three points — schema (valid extension values), graph (coverage provider gate), and exporter (status filter visibility) — so the lifecycle is consistent across validation, coverage, and rendered output.","attrs":{"package":"schema","priority":"Medium","status":"approved"}},{"id":"SW-SUP-001","title":"Check suppression","body":"The graph package shall parse a `reqmd-suppress: [\u003ccode\u003e...]` attribute into eac...","rationale":"Suppression is a per-requirement opt-out evaluated at result-collection time, so it composes with every existing and future graph check without touching each check's logic.","attrs":{"package":"graph","priority":"Medium","status":"approved"}},{"id":"SW-LEV-001","title":"Level-typed coverage resolution","body":"The graph package shall index document directories by their `x-reqmd.level` and ...","rationale":"Level indexing is built once at graph construction from data the parser already exposes, so coverage checks stay O(1) per token while remaining correct as directories within a level are added or removed.","attrs":{"package":"graph","priority":"High","status":"approved"}},{"id":"SW-IMP-001","title":"Source-code extraction pipeline","body":"The `reqmd-import` extractor shall walk a source tree, dispatch each file to the...","rationale":"Decoupling the walk from parsing (and parsing from writing) keeps the pipeline independently testable and lets the worker pool absorb per-file tree-sitter cost.","attrs":{"package":"extractor","priority":"High","status":"approved"}},{"id":"SW-IMP-002","title":"Language plugin registry","body":"The `internal/lang` registry shall define the `Language` interface (name, extens...","rationale":"The registry lets a new language land as a single self-registering package with no changes to the extractor or writer; scope rules keep generated IDs unique within a package.","attrs":{"package":"lang","priority":"High","status":"approved"}},{"id":"SW-IMP-003","title":"Proxy requirement writer","body":"The writer shall render per-package `.md` files with one requirement per symbol:...","rationale":"Deterministic output makes re-running the extractor a safe no-op, and the generated-marker guard prevents clobbering manual edits in the same target tree.","attrs":{"package":"writer","priority":"High","status":"approved"}},{"id":"SW-PAR-002","title":"Content-tree parsing","body":"The parser package shall emit a flat node stream per `.md` file — one `model.Nod...","rationale":"The chunked parse path previously split files at root-requirement boundaries, silently discarding the preamble. Assembly after concatenating chunk node streams (instead of per-chunk) preserves nesting across chunk boundaries (e.g. a container in chunk 0 holding a requirement in chunk 1) while keeping parse parallelism.","attrs":{"package":"parser","priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SW-EXP-002","title":"Item-aware export","body":"The exporter package shall render the document tree depth-first: requirement car...","rationale":"The index previously carried only requirement IDs and parent/child lists derived from `ParentID`. Containers need their own anchors and tree edges; keeping the index shape flat (id/type/parentId/children) lets the existing Alpine and vanilla-JS code consume the extended data with minimal client changes.","attrs":{"package":"exporter","priority":"Medium","requires-trace-from":["software-requirements"],"status":"approved"}}]</script>
+<script type="application/json" id="req-filter-index">{"package":["cmd","exporter","extractor","filter","graph","lang","parser","schema","verify","writer"],"priority":["Critical","High","Medium"],"status":["draft","approved"]}</script>
 </div>
 </body>
 </html>

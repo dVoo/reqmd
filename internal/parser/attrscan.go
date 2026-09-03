@@ -49,12 +49,12 @@ func decodeAttrYAML(src string) (map[string]any, error) {
 		}
 
 		// Split key: value.
-		colonIdx := strings.Index(trimmed, ":")
-		if colonIdx < 0 {
+		keyRaw, valueRaw, found := strings.Cut(trimmed, ":")
+		if !found {
 			return nil, fmt.Errorf("missing key:value on line: %q", trimmed)
 		}
-		key := strings.TrimSpace(trimmed[:colonIdx])
-		valuePart := strings.TrimSpace(trimmed[colonIdx+1:])
+		key := strings.TrimSpace(keyRaw)
+		valuePart := strings.TrimSpace(valueRaw)
 
 		if key == "" {
 			return nil, fmt.Errorf("empty key on line: %q", trimmed)
@@ -62,24 +62,27 @@ func decodeAttrYAML(src string) (map[string]any, error) {
 
 		if valuePart != "" {
 			// Scalar value on the same line.
-			if valuePart[0] == '"' || valuePart[0] == '\'' {
+			switch valuePart[0] {
+			case '"', '\'':
 				s, err := unquoteYAML(valuePart)
 				if err != nil {
 					return nil, fmt.Errorf("line %d: %w", i+1, err)
 				}
 				m[key] = s
-			} else if valuePart[0] == '[' {
+			case '[':
 				// Flow sequence: [item1, item2]
 				items, err := parseFlowSeq(valuePart)
 				if err != nil {
 					return nil, fmt.Errorf("line %d: %w", i+1, err)
 				}
 				m[key] = items
-			} else if strings.HasPrefix(valuePart, "#") {
-				// key: #comment → empty value (treat as null/nil)
-				m[key] = nil
-			} else {
-				m[key] = parseScalar(valuePart)
+			default:
+				if strings.HasPrefix(valuePart, "#") {
+					// key: #comment → empty value (treat as null/nil)
+					m[key] = nil
+				} else {
+					m[key] = parseScalar(valuePart)
+				}
 			}
 			continue
 		}
@@ -111,14 +114,17 @@ func decodeAttrYAML(src string) (map[string]any, error) {
 			itemText := strings.TrimSpace(nextTrim[1:])
 			if itemText == "" {
 				items = append(items, nil)
-			} else if itemText[0] == '"' || itemText[0] == '\'' {
-				s, err := unquoteYAML(itemText)
-				if err != nil {
-					return nil, fmt.Errorf("line %d: %w", i+2, err)
-				}
-				items = append(items, s)
 			} else {
-				items = append(items, parseScalar(itemText))
+				switch itemText[0] {
+				case '"', '\'':
+					s, err := unquoteYAML(itemText)
+					if err != nil {
+						return nil, fmt.Errorf("line %d: %w", i+2, err)
+					}
+					items = append(items, s)
+				default:
+					items = append(items, parseScalar(itemText))
+				}
 			}
 			i++
 		}
@@ -279,7 +285,7 @@ func splitFlowItems(s string) []string {
 	depth := 0
 	inQuote := byte(0)
 	start := 0
-	for i := 0; i < len(s); i++ {
+	for i := range len(s) {
 		c := s[i]
 		if inQuote != 0 {
 			if c == inQuote {

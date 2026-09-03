@@ -3,7 +3,6 @@
 ## SYS-001: Boot Sequence
 ```attr
 status: approved
-requires-trace-from: [software, tests]
 trace: [stakeholder/STK-GOAL-001]
 ```
 The system shall execute the boot sequence and display the home screen within 5 seconds.

@@ -48,7 +48,15 @@ disposition-reason: "Deferred to Phase 2 per steering committee 2025-03-14"
 The system shall support over-the-air firmware updates for all ECUs.
 ````
 
-Disposition is orthogonal to trace coverage. Use `requires-trace-from: []` to explicitly state that no downstream coverage is expected.
+Disposition is orthogonal to trace coverage. Use `requires-trace-from: []` to explicitly state that no downstream coverage is expected. When an entire layer expects no downstream coverage, declare it once per document instead of on every requirement:
+
+```yaml
+x-reqmd:
+  document-id: tests
+  requires-trace-from: []
+```
+
+Every requirement in the document inherits the empty default; a requirement may still override it (or the reverse — see [Step 2](/quickstart/02-trace-your-spec/)).
 
 ## Extending the status enum
 

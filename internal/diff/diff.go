@@ -1,3 +1,5 @@
+// Package diff compares two parsed spec snapshots (requirements and
+// schemas) and produces a structured, attribute-level diff result.
 package diff
 
 import (
@@ -5,77 +7,82 @@ import (
 	"sort"
 	"strings"
 
-	r3diff "github.com/r3labs/diff/v3"
-
 	"reqmd/internal/model"
+
+	r3diff "github.com/r3labs/diff/v3"
 )
 
-// DiffCategory describes what happened to a requirement between baselines.
-type DiffCategory string
+// Category describes what happened to a requirement between baselines.
+type Category string
 
+// Requirement diff categories.
 const (
-	Added     DiffCategory = "added"
-	Removed   DiffCategory = "removed"
-	Modified  DiffCategory = "modified"
-	Unchanged DiffCategory = "unchanged"
+	Added     Category = "added"
+	Removed   Category = "removed"
+	Modified  Category = "modified"
+	Unchanged Category = "unchanged"
 )
 
 // AttrChange records a single attribute change within a requirement.
 type AttrChange struct {
-	Key    string
-	OldVal any // nil if attribute was added
-	NewVal any // nil if attribute was removed
+	OldVal any    `json:"oldVal"`
+	NewVal any    `json:"newVal"`
+	Key    string `json:"key"`
 }
 
 // ReqDiff is the diff result for a single requirement.
 type ReqDiff struct {
-	ID          string
-	Category    DiffCategory
-	Title       string
-	DocPath     string
-	AttrChanges []AttrChange
+	ID          string       `json:"id"`
+	Category    Category     `json:"category"`
+	Title       string       `json:"title,omitempty"`
+	DocPath     string       `json:"docPath"`
+	AttrChanges []AttrChange `json:"attrChanges,omitempty"`
 }
 
 // DocDiff is the diff result for a single document directory.
 type DocDiff struct {
-	Path      string
-	Added     int
-	Removed   int
-	Modified  int
-	Unchanged int
-	Reqs      []ReqDiff
+	Path      string    `json:"path"`
+	Reqs      []ReqDiff `json:"requirements,omitempty"`
+	Added     int       `json:"added"`
+	Removed   int       `json:"removed"`
+	Modified  int       `json:"modified"`
+	Unchanged int       `json:"unchanged"`
 }
 
 // SchemaChange describes a single property change in a schema.
 type SchemaChange struct {
-	Path   string // e.g. "properties.priority.enum"
-	OldVal any
-	NewVal any
+	OldVal any    `json:"oldVal"`
+	NewVal any    `json:"newVal"`
+	Path   string `json:"path"`
 }
 
 // SchemaDiff is the diff result for a single document's schema.
 type SchemaDiff struct {
-	Path    string
-	Changes []SchemaChange
-	Added   []string // new top-level keys
-	Removed []string // removed top-level keys
+	Path    string         `json:"path"`
+	Changes []SchemaChange `json:"changes,omitempty"`
+	Added   []string       `json:"added,omitempty"`   // new top-level keys
+	Removed []string       `json:"removed,omitempty"` // removed top-level keys
 }
 
 // SubmoduleChange describes a submodule's pinned-commit change between two baselines.
 type SubmoduleChange struct {
 	Path   string `json:"path"`
-	OldSHA string `json:"old_sha,omitempty"` // empty if submodule was added
-	NewSHA string `json:"new_sha,omitempty"` // empty if submodule was removed
-	Status string `json:"status"`            // "added" | "removed" | "updated"
+	OldSHA string `json:"oldSha,omitempty"` // empty if submodule was added
+	NewSHA string `json:"newSha,omitempty"` // empty if submodule was removed
+	Status string `json:"status"`           // "added" | "removed" | "updated"
 }
 
 // Result is the top-level diff result between two baselines.
 type Result struct {
-	Tag1, Tag2                          string
-	Added, Removed, Modified, Unchanged int
-	Documents                           []DocDiff
-	Schemas                             []SchemaDiff
-	Submodules                          []SubmoduleChange
+	Tag1       string            `json:"tag1"`
+	Tag2       string            `json:"tag2"`
+	Documents  []DocDiff         `json:"documents"`
+	Schemas    []SchemaDiff      `json:"schemas,omitempty"`
+	Submodules []SubmoduleChange `json:"submodules,omitempty"`
+	Added      int               `json:"added"`
+	Removed    int               `json:"removed"`
+	Modified   int               `json:"modified"`
+	Unchanged  int               `json:"unchanged"`
 }
 
 // Diff compares two sets of parsed documents and returns structured diff results.
@@ -169,19 +176,19 @@ func Diff(docs1, docs2 []model.Document, schemas1, schemas2 map[string]map[strin
 		result.Documents = append(result.Documents, dd)
 	}
 
-	result.Schemas = DiffSchemasWithDiffer(differ, schemas1, schemas2)
+	result.Schemas = SchemasWithDiffer(differ, schemas1, schemas2)
 
 	return result
 }
 
-// DiffSchemas compares two sets of schemas and returns per-document schema diffs.
-func DiffSchemas(schemas1, schemas2 map[string]map[string]any) []SchemaDiff {
+// Schemas compares two sets of schemas and returns per-document schema diffs.
+func Schemas(schemas1, schemas2 map[string]map[string]any) []SchemaDiff {
 	differ, _ := r3diff.NewDiffer()
-	return DiffSchemasWithDiffer(differ, schemas1, schemas2)
+	return SchemasWithDiffer(differ, schemas1, schemas2)
 }
 
-// DiffSchemasWithDiffer compares two sets of schemas using the provided differ.
-func DiffSchemasWithDiffer(differ *r3diff.Differ, schemas1, schemas2 map[string]map[string]any) []SchemaDiff {
+// SchemasWithDiffer compares two sets of schemas using the provided differ.
+func SchemasWithDiffer(differ *r3diff.Differ, schemas1, schemas2 map[string]map[string]any) []SchemaDiff {
 	allPaths := make(map[string]bool)
 	for p := range schemas1 {
 		allPaths[p] = true
@@ -197,11 +204,12 @@ func DiffSchemasWithDiffer(differ *r3diff.Differ, schemas1, schemas2 map[string]
 
 		sd := SchemaDiff{Path: path}
 
-		if s1 == nil && s2 != nil {
+		switch {
+		case s1 == nil && s2 != nil:
 			sd.Added = topLevelKeys(s2)
-		} else if s1 != nil && s2 == nil {
+		case s1 != nil && s2 == nil:
 			sd.Removed = topLevelKeys(s1)
-		} else if s1 != nil && s2 != nil {
+		case s1 != nil && s2 != nil:
 			if differ == nil {
 				continue
 			}
@@ -241,11 +249,11 @@ func topLevelKeys(m map[string]any) []string {
 }
 
 // buildReqMap groups requirements by document path.
-func buildReqMap(docs []model.Document) map[string]map[string]model.Requirement {
-	result := make(map[string]map[string]model.Requirement)
+func buildReqMap(docs []model.Document) map[string]map[string]*model.Node {
+	result := make(map[string]map[string]*model.Node)
 	for _, doc := range docs {
-		byID := make(map[string]model.Requirement)
-		for _, req := range doc.Requirements {
+		byID := make(map[string]*model.Node)
+		for _, req := range doc.Requirements() {
 			byID[req.ID] = req
 		}
 		result[doc.Path] = byID
@@ -311,10 +319,10 @@ func diffAttrsManual(old, new map[string]any) []AttrChange {
 	return changes
 }
 
-// DiffSubmodules compares two maps of submodule path → commit SHA and returns
+// Submodules compares two maps of submodule path → commit SHA and returns
 // a sorted list of SubmoduleChange. Submodules with the same SHA at both
 // tags are omitted (no noise). Result is sorted by path for deterministic output.
-func DiffSubmodules(subs1, subs2 map[string]string) []SubmoduleChange {
+func Submodules(subs1, subs2 map[string]string) []SubmoduleChange {
 	seen := make(map[string]bool, len(subs1)+len(subs2))
 	all := make([]string, 0, len(subs1)+len(subs2))
 

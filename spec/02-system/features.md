@@ -39,9 +39,11 @@ trace:
   - ASP-SR-009
   - ASP-SR-015
 ```
-Each document directory shall contain exactly one `schema.yaml` that defines project-specific attributes using JSON Schema 2020-12 (YAML-serialized). An optional `x-reqmd` extension block provides directory-level metadata (level, upstream, id-prefix, external, mandatory-disposition, url, source).
+Each document directory shall contain exactly one `schema.yaml` that defines project-specific attributes using JSON Schema 2020-12 (YAML-serialized). An optional `x-reqmd` extension block provides directory-level metadata (level, document-id, upstream, id-prefix, external, mandatory-disposition, url, source, requires-trace-from, ignore-status, additional-status-values, disjoint-check).
 
 The `external: true` flag marks a directory as a proxy for artefacts originating outside authored reqmd specs (standards, architecture tools, test frameworks). Proxy directories suppress the untraced WARNING globally. The `url` field provides a human-readable link; the `source` block (path + format) drives planned reqmd-scan generation.
+
+`x-reqmd.requires-trace-from` sets a document-wide default coverage expectation: an array of `document-id` or `level` tokens using the same vocabulary as the `requires-trace-from` attribute. Every requirement in the document that does not declare its own `requires-trace-from` attribute inherits this default; a requirement that declares the attribute overrides it entirely (no merging), and `requires-trace-from: []` opts that single requirement out of downstream coverage. A document without a default leaves its requirements on the generic boundary-inference fallback. The default is validated at schema compile time (an array of strings matching the attribute token pattern `^[a-z0-9_-]+$`, no duplicates); an empty default list means every requirement in the document expects no downstream coverage. Default tokens resolve exactly like per-requirement declarations (SYS-FMT-005).
 
 Export output filenames follow the convention `<dirname>-requirements.<ext>`, written alongside each document directory or into `-o <dir>` if specified.
 
@@ -141,7 +143,6 @@ The HTML exporter SHALL produce a standalone `.html` page per document directory
 ```attr
 status: approved
 priority: High
-requires-trace-from: [software-requirements]
 trace:
   - STK-GOAL-002
 ```
@@ -166,7 +167,6 @@ The tool shall provide a `reqmd repin <root>` subcommand that scans the spec tre
 ```attr
 status: approved
 priority: High
-requires-trace-from: [software-requirements]
 trace:
   - STK-GOAL-005
   - ASP-SR-006
@@ -183,7 +183,6 @@ Each merged result is synthesized as a pseudo-requirement (`RESULT:<id>`, `trace
 ```attr
 status: approved
 priority: Medium
-requires-trace-from: [software-requirements]
 trace:
   - STK-GOAL-003
   - STK-GOAL-005
@@ -201,7 +200,6 @@ Coverage checking shall be filter-aware: a filtered-out requirement cannot satis
 ```attr
 status: approved
 priority: Medium
-requires-trace-from: [software-requirements]
 trace:
   - STK-GOAL-003
   - ASP-SR-005
@@ -215,7 +213,6 @@ The `check` command shall accept a repeatable `--disjoint-check <attr>` flag (an
 ```attr
 status: approved
 priority: Medium
-requires-trace-from: [software-requirements]
 trace:
   - STK-GOAL-003
   - STK-GOAL-005
@@ -230,7 +227,6 @@ trace:
 ```attr
 status: approved
 priority: Medium
-requires-trace-from: [software-requirements]
 trace:
   - STK-GOAL-003
   - ASP-SR-008
@@ -243,13 +239,12 @@ Any requirement may declare a `reqmd-suppress: [<check-code>]` attribute listing
 ```attr
 status: approved
 priority: High
-requires-trace-from: [software-requirements]
 trace:
   - STK-GOAL-005
   - ASP-SR-004
   - ASP-SR-020
 ```
-A `requires-trace-from` token shall name either a `document-id` or an `x-reqmd.level`. When a token names a level, reqmd shall resolve it to every document directory that declares that level and check that at least one approved requirement from one of those directories traces back — covering all documents at a V-model layer without listing each `document-id`. A token that matches neither a `document-id` nor a declared level shall produce a WARNING.
+A `requires-trace-from` token shall name either a `document-id` or an `x-reqmd.level`. When a token names a level, reqmd shall resolve it to every document directory that declares that level and check that at least one approved requirement from one of those directories traces back — covering all documents at a V-model layer without listing each `document-id`. A token that matches neither a `document-id` nor a declared level shall produce a WARNING. Coverage tokens inherited from the `x-reqmd.requires-trace-from` document default (SYS-FMT-003) shall resolve identically: a requirement inheriting the default is subject to the same per-token checks, status gate, and filter-awareness as one declaring the tokens in its own `requires-trace-from` attribute.
 
 *Rationale:* Multi-document layers (e.g. several `system-requirements` directories owned by different teams) otherwise force every coverage expectation to enumerate every document-id. Level-typed coverage makes the V-model layer itself a first-class coverage target and stays robust as documents are added or removed within a layer.
 
@@ -257,7 +252,6 @@ A `requires-trace-from` token shall name either a `document-id` or an `x-reqmd.l
 ```attr
 status: approved
 priority: High
-requires-trace-from: [software-requirements]
 trace:
   - STK-GOAL-002
   - STK-GOAL-005
@@ -271,3 +265,27 @@ Generated requirements shall be first-class spec documents: `status: approved`, 
 
 *Rationale:* Software requirements trace down to tests (ASP-SR-006) but not to the implementation that satisfies them. Automatic extraction turns source symbols into requirements in the same ID namespace, so a broken spec→code trace is caught by the same `reqmd check` that catches broken spec refs — and re-running the extractor keeps the code-side of the V-model current without hand-maintained mapping tables.
 
+
+## SYS-CON-001: Content tree — nothing dropped
+```attr
+status: approved
+priority: High
+trace:
+  - STK-GOAL-003
+  - STK-GOAL-005
+  - ASP-SR-008
+```
+The parser shall capture the full document content as a content tree in which every heading is a node except the level-1 document title: a heading followed by an `attr` block is a requirement; a heading without an `attr` block that contains nested nodes is a container; a heading without an `attr` block and no children, or prose preceding the first heading, is an info item. A level-1 heading shall be treated as the document title, not content: it is captured as the document title, is never a content node, and must not carry an `attr` block — requirement headings shall be level 2 or higher, and a level-1 heading with an `attr` block is a parse error. Prose, code blocks, and thematic breaks shall attach to the nearest open node's body. No content shall be dropped: leading prose, requirement-less files, and headings without attributes are all preserved as nodes.
+
+*Rationale:* Requirements documents carry structure and narrative beyond requirement records. Dropping non-requirement content (as early prototypes did) made exported pages silently incomplete. The tree keeps document order and hierarchy faithful to the source so `ls`, `stats`, CSV, and HTML can render the document as written, not just its requirement subset.
+
+## SYS-CON-002: Items in output commands
+```attr
+status: approved
+priority: Medium
+trace:
+  - SYS-CON-001
+```
+Containers and info items shall be visible in `ls` (a leading `Type` column — `req`/`container`/`info` — with item rows showing heading text), `stats` (per-document item counts plus a type breakdown), CSV export (a `Type` column, rows in document order), and HTML export (collapsible folder sections for containers, plain blocks for info items, and sidebar TOC entries). Items shall have no attributes and shall not participate in validation, trace checks, coverage, or `--filter` scoping — filtering prunes requirements only. `check` shall remain requirement-scoped.
+
+*Rationale:* Items are presentation, not specification: they carry no schema-validated data, so no graph check can attach to them. Keeping them out of validation prevents noise while still rendering the authored document faithfully.

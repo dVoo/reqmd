@@ -4,13 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/spf13/cobra"
-
 	"reqmd/internal/exporter"
 	"reqmd/internal/filter"
 	"reqmd/internal/parser"
 	"reqmd/internal/verify"
+
+	"github.com/spf13/cobra"
 )
 
 func newCsvCmd() *cobra.Command {
@@ -31,20 +30,21 @@ func newCsvCmd() *cobra.Command {
 			}
 
 			if filterExpr != "" {
-				f, err := filter.CompileForDocs(docs, filterExpr)
+				var f *filter.Filter
+				f, err = filter.CompileForDocs(docs, filterExpr)
 				if err != nil {
-					return err
+					return fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 				}
 				docs, err = f.FilterDocs(docs)
 				if err != nil {
-					return err
+					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
 				}
 			}
 
 			// Load ephemeral verification results when --results is supplied.
 			_, vVerdicts, _, err := verify.LoadVerdicts(resultsPaths)
 			if err != nil {
-				return err
+				return fmt.Errorf("loading verification results: %w", err)
 			}
 			verdicts := make(map[string]exporter.VerdictInfo, len(vVerdicts))
 			for id, v := range vVerdicts {

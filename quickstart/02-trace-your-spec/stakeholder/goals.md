@@ -3,7 +3,6 @@
 ## STK-GOAL-001: Fast Boot
 ```attr
 priority: High
-requires-trace-from: [system]
 ```
 The system shall boot to the home screen within 5 seconds of ignition on.
 

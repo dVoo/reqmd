@@ -13,3 +13,4 @@ x-reqmd:
   level: system-requirements
   document-id: system
   disjoint-check: variant
+  requires-trace-from: [software-requirements]

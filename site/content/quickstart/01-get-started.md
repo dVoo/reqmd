@@ -27,6 +27,9 @@ A requirement is just a Markdown document — a heading, a YAML `attr` block, an
 ````markdown
 # Requirements
 
+This is a sample requirements document. The `status`, `id`, `title`, and `trace`
+attributes are built-in; `owner` is declared in the schema.
+
 ## REQ-001
 ```attr
 status: draft
@@ -58,6 +61,38 @@ The *Rationale:* paragraph is optional but encouraged — it shows up in the HTM
 
 The ID can also carry a title, e.g. `## REQ-001: Login`. Anything after the first `:` on the heading line is the requirement title. Every requirement ID must be unique across the whole spec tree — reqmd checks that for you.
 
+## Heading structure
+
+The scaffolded file also shows how reqmd treats headings *without* an
+`attr` block: it doesn't drop them. Every heading becomes a node in a
+document tree — with one exception: `#` (level 1) is the **document
+title**, not content.
+
+- **`# Requirements`** is the document title. It renders as the page
+  title in exports and is never a requirement, container, or info node.
+- **`## REQ-001`** and **`## REQ-002`** have `attr` blocks — **requirements**,
+  the only nodes that participate in validation, trace checks, coverage,
+  and `--filter`. Only level-2+ headings can be requirements.
+- A heading such as **`## Notes`** (no `attr` block) with nested nodes is a
+  **container**, a folder-like grouping; without children it's an **info**
+  item.
+- Prose attaches to the nearest heading's body; prose before the first
+  heading becomes a headingless **info** item.
+
+Containers and info items carry no attributes and take no part in
+validation, trace checks, coverage, or `--filter` — they exist so exported
+documents stay faithful to the source. `reqmd check` remains
+requirement-scoped.
+
+Heading levels are flexible from level 2 up: any level works, and a deeper
+heading after a requirement nests under it as a sub-requirement:
+
+```markdown
+## SYS-001                        ← requirement
+### SYS-001.1                     ← sub-requirement (parent = SYS-001)
+### Notes                         ← info item (no attr block)
+```
+
 ## Validate
 
 ```sh
@@ -75,6 +110,21 @@ File   : my-project  (2 requirements)
 
 Summary: 2 total, 2 valid, 0 invalid, 0 parse errors
 ```
+
+`reqmd ls` shows the whole document — the container and its requirements
+side by side:
+
+```text
+=== my-project ===
+Type       | ID                       | owner        | trace        | disposition  | disposition-reason | requires-trace-from | version      | status       |
+-------------------------------------------------------------------------------------------------------------------------------------------------
+container  | Requirements             |              |              |              |              |              |              |              |
+req        | REQ-001                  | Team Alpha   |              |              |              |              |              | draft        |
+req        | REQ-002                  | Team Beta    | ["REQ-001"]  |              |              |              |              | draft        |
+```
+
+The leading `Type` column marks every node: `req` for requirements,
+`container` and `info` for headings without attribute blocks.
 
 ## Try the other presets
 

@@ -21,7 +21,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"sort"
+	"slices"
 	"strings"
 	"sync/atomic"
 	"time"
@@ -35,15 +35,15 @@ type scale struct {
 
 type measurement struct {
 	Scale      string  `json:"scale"`
+	Command    string  `json:"command"`
+	AllWallMs  []int64 `json:"all_wall_ms,omitempty"`
 	Copies     int     `json:"copies"`
 	ReqsPerDoc int     `json:"reqs_per_doc,omitempty"`
 	TotalReqs  int     `json:"total_reqs"`
 	Docs       int     `json:"docs"`
-	Command    string  `json:"command"`
-	WallMs     int64   `json:"wall_ms"`     // median across runs
-	PeakRSSKB  int64   `json:"peak_rss_kb"` // max across runs
+	WallMs     int64   `json:"wall_ms"`
+	PeakRSSKB  int64   `json:"peak_rss_kb"`
 	Runs       int     `json:"runs"`
-	AllWallMs  []int64 `json:"all_wall_ms,omitempty"`
 	ExitCode   int     `json:"exit_code"`
 }
 
@@ -51,20 +51,20 @@ type hardware struct {
 	GoVersion  string `json:"go_version"`
 	OS         string `json:"os"`
 	Arch       string `json:"arch"`
-	NumCPU     int    `json:"num_cpu"`
 	CPUModel   string `json:"cpu_model"`
 	CPUMHz     string `json:"cpu_mhz,omitempty"`
 	Kernel     string `json:"kernel,omitempty"`
 	Hostname   string `json:"hostname,omitempty"`
+	NumCPU     int    `json:"num_cpu"`
 	MemTotalKB int64  `json:"mem_total_kb,omitempty"`
 }
 
 type report struct {
 	Timestamp string        `json:"timestamp"`
-	Hardware  hardware      `json:"hardware"`
 	Baseline  []measurement `json:"baseline"`
 	Scales    []scale       `json:"scales"`
 	Scaling   []measurement `json:"scaling"`
+	Hardware  hardware      `json:"hardware"`
 	DurationS float64       `json:"duration_s"`
 }
 
@@ -92,7 +92,7 @@ func main() {
 	hw := collectHardware()
 
 	var reqsPerDoc []int
-	for _, s := range strings.Split(*scalesFlag, ",") {
+	for s := range strings.SplitSeq(*scalesFlag, ",") {
 		var n int
 		fmt.Sscanf(strings.TrimSpace(s), "%d", &n)
 		if n > 0 {
@@ -227,7 +227,7 @@ func measureN(reqmdBin, cmdName, scaleLabel string, copies, reqsPerDoc, totalReq
 		}
 		m.ExitCode = ec
 	}
-	sort.Slice(allWall, func(i, j int) bool { return allWall[i] < allWall[j] })
+	slices.Sort(allWall)
 	m.WallMs = allWall[len(allWall)/2] // median
 	m.PeakRSSKB = maxRSS
 	if *flagVerbose {
@@ -271,12 +271,15 @@ func countReqs(root string) (int, error) {
 		}
 		b, err := os.ReadFile(p)
 		if err != nil {
-			return nil
+			return fmt.Errorf("reading %s: %w", p, err)
 		}
 		count += strings.Count(string(b), "\n## ")
 		return nil
 	})
-	return count, err
+	if err != nil {
+		return count, fmt.Errorf("walking %s: %w", root, err)
+	}
+	return count, nil
 }
 
 func countDirs(root string) int {
@@ -311,13 +314,14 @@ func readRSSKB(pid int) int64 {
 	if err != nil {
 		return 0
 	}
-	for _, line := range strings.Split(string(data), "\n") {
+	for line := range strings.SplitSeq(string(data), "\n") {
 		if strings.HasPrefix(line, "VmRSS:") {
 			fields := strings.Fields(line)
 			if len(fields) >= 2 {
 				var kb int64
-				fmt.Sscanf(fields[1], "%d", &kb)
-				return kb
+				if _, err := fmt.Sscanf(fields[1], "%d", &kb); err == nil {
+					return kb
+				}
 			}
 		}
 	}
@@ -339,7 +343,7 @@ func collectHardware() hardware {
 
 	// Linux /proc/cpuinfo and /proc/meminfo
 	if data, err := os.ReadFile("/proc/cpuinfo"); err == nil {
-		for _, line := range strings.Split(string(data), "\n") {
+		for line := range strings.SplitSeq(string(data), "\n") {
 			if strings.HasPrefix(line, "model name") {
 				fields := strings.SplitN(line, ":", 2)
 				if len(fields) == 2 {
@@ -356,7 +360,7 @@ func collectHardware() hardware {
 	}
 
 	if data, err := os.ReadFile("/proc/meminfo"); err == nil {
-		for _, line := range strings.Split(string(data), "\n") {
+		for line := range strings.SplitSeq(string(data), "\n") {
 			if strings.HasPrefix(line, "MemTotal:") {
 				fields := strings.Fields(line)
 				if len(fields) >= 2 {

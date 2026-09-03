@@ -111,7 +111,7 @@ func runInit(cfg initConfig) error {
 	}
 
 	// Create directory if needed
-	if err := os.MkdirAll(cfg.Dir, 0755); err != nil {
+	if err := os.MkdirAll(cfg.Dir, 0o755); err != nil {
 		return fmt.Errorf("creating directory %s: %w", cfg.Dir, err)
 	}
 
@@ -145,10 +145,8 @@ func runInit(cfg initConfig) error {
 		if title == "" {
 			title = dirName + " Verification Results"
 		}
-	} else {
-		if title == "" {
-			title = dirName + " Requirements"
-		}
+	} else if title == "" {
+		title = dirName + " Requirements"
 	}
 	data := struct {
 		ID       string
@@ -256,5 +254,8 @@ func writeTemplate(path, name, tmplStr string, data any) error {
 		return fmt.Errorf("creating %s: %w", path, err)
 	}
 	defer f.Close()
-	return tmpl.Execute(f, data)
+	if err := tmpl.Execute(f, data); err != nil {
+		return fmt.Errorf("rendering template to %s: %w", path, err)
+	}
+	return nil
 }

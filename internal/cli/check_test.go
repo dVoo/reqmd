@@ -3,22 +3,21 @@ package cli
 import (
 	"encoding/json"
 	"errors"
+	"reqmd/internal/reporter"
 	"strings"
 	"testing"
-
-	"reqmd/internal/reporter"
 )
 
 // jsonCheckSummary captures the parts of `check --json` output that the
 // filter/disjoint tests assert on.
 type jsonCheckSummary struct {
-	ExitCode int `json:"exit_code"`
-	Summary  struct {
+	Summary struct {
+		Filter   string `json:"filter"`
 		Total    int    `json:"total"`
 		Valid    int    `json:"valid"`
 		Warnings int    `json:"warnings"`
-		Filter   string `json:"filter"`
 	} `json:"summary"`
+	ExitCode int `json:"exit_code"`
 }
 
 func TestCheckCmd_FilterScopesValidation(t *testing.T) {
@@ -30,7 +29,7 @@ func TestCheckCmd_FilterScopesValidation(t *testing.T) {
 		t.Fatalf("unfiltered check failed: %v\n%s", err, out)
 	}
 	var rep jsonCheckSummary
-	if err := json.Unmarshal([]byte(out), &rep); err != nil {
+	if err = json.Unmarshal([]byte(out), &rep); err != nil {
 		t.Fatalf("unmarshal: %v\n%s", err, out)
 	}
 	if rep.Summary.Total != 2 {
@@ -173,5 +172,43 @@ func TestCheckCmd_FilterWithResults(t *testing.T) {
 	}
 	if rep.Summary.Total != 0 {
 		t.Fatalf("Premium-filtered total = %d, want 0", rep.Summary.Total)
+	}
+}
+
+// TestCheckCmd_RequiresTraceFromDocumentDefault verifies the
+// x-reqmd.requires-trace-from document default end-to-end through schema.yaml:
+// a requirement without its own attribute inherits the default.
+func TestCheckCmd_RequiresTraceFromDocumentDefault(t *testing.T) {
+	writeSpec := func(traceToSystem bool) string {
+		root := t.TempDir()
+		writeFile(t, root, "sys/schema.yaml", variantSchema+"\nx-reqmd:\n  document-id: sys\n  level: system\n  requires-trace-from: [software]\n")
+		// SYS-001 declares no requires-trace-from; it inherits [software]
+		// from the document default.
+		writeFile(t, root, "sys/sys.md", "# System\n\n"+mdReq("SYS-001", "Platform", "status: approved\n"))
+		writeFile(t, root, "sw/schema.yaml", variantSchema+"\nx-reqmd:\n  document-id: sw\n  level: software\n  upstream:\n    level: system\n    sources:\n      - ../sys/\n")
+		trace := ""
+		if traceToSystem {
+			trace = "trace: [sys/SYS-001]\n"
+		}
+		writeFile(t, root, "sw/sw.md", "# Software\n\n"+mdReq("SW-001", "Client", "status: approved\n"+trace))
+		return root
+	}
+
+	// Covered: the inherited [software] default is satisfied.
+	out, err := runCmd(t, newCheckCmd(), writeSpec(true))
+	if err != nil {
+		t.Fatalf("check with satisfied document default should pass: %v\n%s", err, out)
+	}
+	if strings.Contains(out, "no upstream trace") {
+		t.Errorf("unexpected coverage warning with satisfied default:\n%s", out)
+	}
+
+	// Uncovered: no software requirement traces to SYS-001 → WARNING (exit 0).
+	out, err = runCmd(t, newCheckCmd(), writeSpec(false))
+	if err != nil {
+		t.Fatalf("coverage warnings should not fail the run: %v\n%s", err, out)
+	}
+	if !strings.Contains(out, `no upstream trace: no approved requirement from "software" traces to this item`) {
+		t.Errorf("expected inherited-default coverage warning, got:\n%s", out)
 	}
 }

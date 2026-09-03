@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>reqmd System Requirements</title>
+<title>reqmd System Features</title>
 <style>
 
 :root {
@@ -1114,6 +1114,17 @@ html.dark .chain-card--current {
   line-height: 1.4;
 }
 
+.req-toc-item-id--item {
+  font-family: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.req-toc-item--child .req-toc-item-id--item {
+  font-weight: 600;
+}
+
 .req-toc-item-title {
   font-size: 0.74rem;
   color: var(--text-secondary);
@@ -1247,29 +1258,96 @@ html.dark .chain-card--current {
   }
 }
 
-/* ── Parent card with children ──────────────────── */
-.req-card--has-children {
-  padding-bottom: 0;
+/* ── Container items (folder-like sections) ─────── */
+.container-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
 }
 
-/* ── Children section within parent card ────────── */
-.req-children {
-  margin-top: 1.25rem;
-  padding-top: 0.25rem;
+.container-item--child {
+  margin-left: 0.75rem;
   padding-left: 0.75rem;
   border-left: 2px solid var(--border);
-  position: relative;
 }
 
-.req-children-header {
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
+.container-item summary {
+  list-style: none;
+  cursor: pointer;
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  user-select: none;
+}
+
+.container-item summary::-webkit-details-marker {
+  display: none;
+}
+
+.container-item summary::before {
+  content: '\25B8';
   color: var(--text-muted);
-  margin-bottom: 0.75rem;
-  padding-bottom: 0.35rem;
-  border-bottom: 1px solid var(--border);
+  font-size: 0.8rem;
+  transition: transform 0.15s ease;
+}
+
+.container-item details[open] > summary::before {
+  transform: rotate(90deg);
+}
+
+.container-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text);
+}
+
+.container-item-anchor {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.container-item:hover .container-item-anchor {
+  opacity: 1;
+}
+
+.container-item-body {
+  margin-top: 0.5rem;
+  color: var(--text-secondary);
+}
+
+/* ── Info items (plain blocks) ───────────────────── */
+.info-item {
+  margin: 1.25rem 0;
+  scroll-margin-top: 1rem;
+  color: var(--text-secondary);
+}
+
+.info-item--child {
+  margin-left: 0.75rem;
+  padding-left: 0.75rem;
+  border-left: 2px solid var(--border);
+}
+
+.info-item-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem;
+  color: var(--text);
+}
+
+.info-item-body {
+  line-height: 1.6;
+}
+
+.info-item-body > :first-child {
+  margin-top: 0;
+}
+
+.info-item-body > :last-child {
+  margin-bottom: 0;
 }
 
 /* ── Child cards ────────────────────────────────── */
@@ -1502,7 +1580,7 @@ html.dark .boundary-badge--leaf {
   <details class="chain-details" open>
     <summary class="chain-summary">
       <span class="chain-summary__label">Traceability Chain</span>
-      <span class="chain-summary__count">3 upstream · 2 downstream</span>
+      <span class="chain-summary__count">3 upstream · 18 downstream</span>
     </summary>
   <div class="chain-stack">
     <div class="chain-zone chain-zone--upstream">
@@ -1538,7 +1616,7 @@ html.dark .boundary-badge--leaf {
     </div>
     <div class="chain-zone chain-zone--current">
       <span class="chain-card chain-card--current" aria-current="page">
-        <span class="chain-card-title">reqmd System Requirements</span>
+        <span class="chain-card-title">reqmd System Features</span>
         <span class="chain-card-meta">02-system</span>
       </span>
     </div>
@@ -1553,7 +1631,7 @@ html.dark .boundary-badge--leaf {
         <div class="chain-tier-label">Downstream</div>
         <div class="chain-tier-cards">
       <a class="chain-card" href="03-software-requirements.html">
-        <span class="chain-card-title">reqmd Software Requirements</span>
+        <span class="chain-card-title">reqmd Software Components</span>
         <span class="chain-card-meta">03-software</span>
       </a>
         </div>
@@ -1561,9 +1639,78 @@ html.dark .boundary-badge--leaf {
       <div class="chain-tier">
         <div class="chain-tier-label">Downstream · 2 levels below</div>
         <div class="chain-tier-cards">
+      <a class="chain-card" href="imported-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">imported</span>
+      </a>
       <a class="chain-card" href="04-tests-requirements.html">
         <span class="chain-card-title">reqmd Test Specifications</span>
         <span class="chain-card-meta">04-tests</span>
+      </a>
+        </div>
+      </div>
+      <div class="chain-tier">
+        <div class="chain-tier-label">Downstream · 3 levels below</div>
+        <div class="chain-tier-cards">
+      <a class="chain-card" href="cli-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">cli</span>
+      </a>
+      <a class="chain-card" href="diff-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">diff</span>
+      </a>
+      <a class="chain-card" href="export-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">export</span>
+      </a>
+      <a class="chain-card" href="exporter-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">exporter</span>
+      </a>
+      <a class="chain-card" href="filter-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">filter</span>
+      </a>
+      <a class="chain-card" href="graph-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">graph</span>
+      </a>
+      <a class="chain-card" href="graph_test-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">graph_test</span>
+      </a>
+      <a class="chain-card" href="main-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">main</span>
+      </a>
+      <a class="chain-card" href="model-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">model</span>
+      </a>
+      <a class="chain-card" href="parser-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">parser</span>
+      </a>
+      <a class="chain-card" href="repin-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">repin</span>
+      </a>
+      <a class="chain-card" href="reporter-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">reporter</span>
+      </a>
+      <a class="chain-card" href="schema-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">schema</span>
+      </a>
+      <a class="chain-card" href="verify-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">verify</span>
+      </a>
+      <a class="chain-card" href="verify_test-requirements.html">
+        <span class="chain-card-title">Auto-imported requirements (reqmd-import)</span>
+        <span class="chain-card-meta">verify_test</span>
       </a>
         </div>
       </div>
@@ -1572,9 +1719,9 @@ html.dark .boundary-badge--leaf {
   </details>
 </nav>
 <header class="doc-header">
-<h1>reqmd System Requirements</h1>
-<p class="doc-count">11 requirements (11 parents, 0 children)</p>
-<div class="status-breakdown"><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-approved)"></span><span class="status-breakdown__label">approved</span><span class="status-breakdown__count">11</span></span></div></header>
+<h1>reqmd System Features</h1>
+<p class="doc-count">19 requirements (19 parents, 0 children)</p>
+<div class="status-breakdown"><span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:var(--status-approved)"></span><span class="status-breakdown__label">approved</span><span class="status-breakdown__count">19</span></span></div></header>
 <div class="search-toolbar" data-default-status="approved" data-additional-status-values="null">
   <div class="search-row">
     <input type="search" class="search-input" placeholder="Search ID, body, rationale, attributes..." autocomplete="off"
@@ -2078,6 +2225,349 @@ html.dark .boundary-badge--leaf {
 </div>
 </div>
 </article>
+<article class="req-card" id="SYS-FIL-001" x-show="isCardVisible('SYS-FIL-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-FIL-001</code>: Generic attribute filtering</h2>
+<a class="req-anchor" href="#SYS-FIL-001" title="Link to this requirement" aria-label="Link to SYS-FIL-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The <code>check</code>, <code>ls</code>, <code>stats</code>, <code>export csv</code>, <code>export html</code>, and <code>serve</code> commands shall accept a <code>--filter &quot;&lt;expr&gt;&quot;</code> flag that scopes the operation to requirements matching an expression evaluated against the requirement's attributes plus the built-in <code>id</code> and <code>title</code> variables. Expressions shall be compiled once at startup into bytecode, and compile-time validation shall reject expressions referencing attributes not declared in any <code>schema.yaml</code> (global typo check). Per-document attribute absence shall evaluate to nil rather than erroring.</p>
+<p>Coverage checking shall be filter-aware: a filtered-out requirement cannot satisfy the <code>requires-trace-from</code> expectation of a filtered-in requirement, so filtered-out requirements do not cause false coverage failures. The graph is always built from the full tree so trace refs to filtered-out requirements still resolve; only per-requirement checks and coverage are scoped. <code>baseline diff</code> shall additionally accept <code>--filter-a</code> and <code>--filter-b</code> to compare two filtered views of a single commit (e.g. &quot;what does Premium add over Base&quot;).</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Large specs make full-tree review and incremental CI expensive. Attribute filtering lets teams scope <code>check</code>, exports, and diffs to the slice of the tree that a change touches, without losing the ability to resolve traces globally. Rejecting undeclared attribute names at compile time catches typos before they silently match nothing, and filter-aware coverage (RFC §3.2) keeps filtered-out requirements from causing false failures.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (5)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-003"><span class="trace-link-id">STK-GOAL-003</span><span class="trace-link-title">Schema-driven validation</span></a>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-005"><span class="trace-link-id">STK-GOAL-005</span><span class="trace-link-title">V-model traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-005"><span class="trace-link-id">ASP-SR-005</span><span class="trace-link-title">Trace chain validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-008"><span class="trace-link-id">ASP-SR-008</span><span class="trace-link-title">Automated quality validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-018"><span class="trace-link-id">ASP-SR-018</span><span class="trace-link-title">Requirement metrics and measurement</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-FIL-001"><span class="trace-link-id">SW-FIL-001</span><span class="trace-link-title">Attribute filter engine</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-CHK-003" x-show="isCardVisible('SYS-CHK-003')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-CHK-003</code>: Disjoint-attribute consistency check</h2>
+<a class="req-anchor" href="#SYS-CHK-003" title="Link to this requirement" aria-label="Link to SYS-CHK-003">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The <code>check</code> command shall accept a repeatable <code>--disjoint-check &lt;attr&gt;</code> flag (and the equivalent <code>x-reqmd.disjoint-check</code> key in <code>schema.yaml</code>, string or array) that, for every trace link, verifies that the source and target requirements have at least one overlapping value for the named array-typed attribute. A zero intersection shall produce an ERROR (<code>disjoint-attribute</code>); an empty or absent value is exempt (&quot;applies to all&quot;). The check shall be suppressible per requirement via <code>reqmd-suppress: [disjoint-attribute]</code>.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Attribute-consistency gates capture cross-cutting invariants that pure trace-structure checks miss — e.g. &quot;a trace link may only connect two requirements that share a product variant or a safety level&quot;. They turn a manual review convention into an enforceable CI check with a single flag, without adding a new built-in attribute.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (3)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-003"><span class="trace-link-id">STK-GOAL-003</span><span class="trace-link-title">Schema-driven validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-005"><span class="trace-link-id">ASP-SR-005</span><span class="trace-link-title">Trace chain validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-011"><span class="trace-link-id">ASP-SR-011</span><span class="trace-link-title">Interdependency analysis</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-DIS-001"><span class="trace-link-id">SW-DIS-001</span><span class="trace-link-title">Disjoint-attribute graph check</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-STS-001" x-show="isCardVisible('SYS-STS-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-STS-001</code>: Requirement status lifecycle</h2>
+<a class="req-anchor" href="#SYS-STS-001" title="Link to this requirement" aria-label="Link to SYS-STS-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p><code>status</code> shall be a built-in attribute with enum <code>[draft, approved]</code>; a missing <code>status</code> shall default to <code>approved</code> (silently). Only <code>approved</code> requirements shall count as upstream coverage providers — a <code>draft</code> requirement referenced by a <code>trace</code> shall NOT satisfy a <code>requires-trace-from</code> expectation. Schemas may extend the enum via <code>x-reqmd.additional-status-values</code> (lowercase-only values, no built-in collision, no duplicates) or opt out of the lifecycle per document via <code>x-reqmd.ignore-status: true</code> (all requirements become coverage providers; the status filter is hidden in HTML export). When a missing-coverage message is produced and at least one inbound was filtered by the status gate, the message shall report how many draft downstreams were ignored.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>A lifecycle axis distinct from <code>disposition</code> lets teams keep in-progress requirements in the spec without letting them (falsely) satisfy coverage. Draft requirements remain traceable and validated, but cannot close a coverage expectation until promoted to <code>approved</code>.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (4)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-003"><span class="trace-link-id">STK-GOAL-003</span><span class="trace-link-title">Schema-driven validation</span></a>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-005"><span class="trace-link-id">STK-GOAL-005</span><span class="trace-link-title">V-model traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-006"><span class="trace-link-id">ASP-SR-006</span><span class="trace-link-title">Requirement-to-verification traceability and result recording</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-008"><span class="trace-link-id">ASP-SR-008</span><span class="trace-link-title">Automated quality validation</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-STS-001"><span class="trace-link-id">SW-STS-001</span><span class="trace-link-title">Status lifecycle enforcement</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-SUP-001" x-show="isCardVisible('SYS-SUP-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-SUP-001</code>: Check suppression</h2>
+<a class="req-anchor" href="#SYS-SUP-001" title="Link to this requirement" aria-label="Link to SYS-SUP-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Any requirement may declare a <code>reqmd-suppress: [&lt;check-code&gt;]</code> attribute listing graph checks to suppress for that requirement (e.g. <code>version-pin</code>, <code>missing-verdict</code>, <code>failing-verdict</code>, <code>disjoint-attribute</code>). Suppressed checks shall emit no result for the declaring requirement, in all commands that run graph checks.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Not every check applies to every requirement; a deliberate, documented exception should not fail CI. Suppression is per-requirement and opt-in, so the default remains strict — an exception is visible in the source and auditable in review.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (2)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-003"><span class="trace-link-id">STK-GOAL-003</span><span class="trace-link-title">Schema-driven validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-008"><span class="trace-link-id">ASP-SR-008</span><span class="trace-link-title">Automated quality validation</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-SUP-001"><span class="trace-link-id">SW-SUP-001</span><span class="trace-link-title">Check suppression</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-FMT-005" x-show="isCardVisible('SYS-FMT-005')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-FMT-005</code>: Level-typed trace coverage</h2>
+<a class="req-anchor" href="#SYS-FMT-005" title="Link to this requirement" aria-label="Link to SYS-FMT-005">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>A <code>requires-trace-from</code> token shall name either a <code>document-id</code> or an <code>x-reqmd.level</code>. When a token names a level, reqmd shall resolve it to every document directory that declares that level and check that at least one approved requirement from one of those directories traces back — covering all documents at a V-model layer without listing each <code>document-id</code>. A token that matches neither a <code>document-id</code> nor a declared level shall produce a WARNING.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Multi-document layers (e.g. several <code>system-requirements</code> directories owned by different teams) otherwise force every coverage expectation to enumerate every document-id. Level-typed coverage makes the V-model layer itself a first-class coverage target and stays robust as documents are added or removed within a layer.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (3)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-005"><span class="trace-link-id">STK-GOAL-005</span><span class="trace-link-title">V-model traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-004"><span class="trace-link-id">ASP-SR-004</span><span class="trace-link-title">Cross-document traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-020"><span class="trace-link-id">ASP-SR-020</span><span class="trace-link-title">V-model refinement levels</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-LEV-001"><span class="trace-link-id">SW-LEV-001</span><span class="trace-link-title">Level-typed coverage resolution</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-IMP-001" x-show="isCardVisible('SYS-IMP-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-IMP-001</code>: Source-code requirement extraction</h2>
+<a class="req-anchor" href="#SYS-IMP-001" title="Link to this requirement" aria-label="Link to SYS-IMP-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The toolchain shall include <code>reqmd-import</code>, a companion extraction tool that walks a source tree, dispatches each file to the tree-sitter language plugin claiming its extension, extracts top-level symbols (functions, methods, types, constants, variables) from C, C++, Go, Python, and Rust source, binds the adjacent doc comment as the requirement body, extracts explicit <code>reqmd:trace</code> markers (and, opt-in via <code>--heuristic-traces</code>, bare requirement IDs from prose), and writes per-package <code>.md</code> requirement files into a target spec directory.</p>
+<p>Generated requirements shall be first-class spec documents: <code>status: approved</code>, <code>x-reqmd.imported: true</code>, provenance attributes (<code>x-reqmd.source-file</code>, <code>x-reqmd.source-line</code>, <code>x-reqmd.symbol-kind</code>), and IDs of the form <code>&lt;id-prefix&gt;&lt;package&gt;-&lt;symbol&gt;-&lt;hash&gt;</code> (hash over package+symbol so IDs survive line shifts). The generated files shall validate, export, and diff like any other spec document, closing the V-model gap from spec to code.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Software requirements trace down to tests (ASP-SR-006) but not to the implementation that satisfies them. Automatic extraction turns source symbols into requirements in the same ID namespace, so a broken spec→code trace is caught by the same <code>reqmd check</code> that catches broken spec refs — and re-running the extractor keeps the code-side of the V-model current without hand-maintained mapping tables.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (5)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-002"><span class="trace-link-id">STK-GOAL-002</span><span class="trace-link-title">Human-readable machine-parsable specs</span></a>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-005"><span class="trace-link-id">STK-GOAL-005</span><span class="trace-link-title">V-model traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-001"><span class="trace-link-id">ASP-SR-001</span><span class="trace-link-title">Structured requirement organization</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-002"><span class="trace-link-id">ASP-SR-002</span><span class="trace-link-title">Schema-based requirement validation</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-022"><span class="trace-link-id">ASP-SR-022</span><span class="trace-link-title">Source-code traceability</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (3)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-IMP-001"><span class="trace-link-id">SW-IMP-001</span><span class="trace-link-title">Source-code extraction pipeline</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-IMP-002"><span class="trace-link-id">SW-IMP-002</span><span class="trace-link-title">Language plugin registry</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-IMP-003"><span class="trace-link-id">SW-IMP-003</span><span class="trace-link-title">Proxy requirement writer</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-CON-001" x-show="isCardVisible('SYS-CON-001')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-CON-001</code>: Content tree — nothing dropped</h2>
+<a class="req-anchor" href="#SYS-CON-001" title="Link to this requirement" aria-label="Link to SYS-CON-001">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>High</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>The parser shall capture the full document content as a content tree in which every heading is a node except the level-1 document title: a heading followed by an <code>attr</code> block is a requirement; a heading without an <code>attr</code> block that contains nested nodes is a container; a heading without an <code>attr</code> block and no children, or prose preceding the first heading, is an info item. A level-1 heading shall be treated as the document title, not content: it is captured as the document title, is never a content node, and must not carry an <code>attr</code> block — requirement headings shall be level 2 or higher, and a level-1 heading with an <code>attr</code> block is a parse error. Prose, code blocks, and thematic breaks shall attach to the nearest open node's body. No content shall be dropped: leading prose, requirement-less files, and headings without attributes are all preserved as nodes.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Requirements documents carry structure and narrative beyond requirement records. Dropping non-requirement content (as early prototypes did) made exported pages silently incomplete. The tree keeps document order and hierarchy faithful to the source so <code>ls</code>, <code>stats</code>, CSV, and HTML can render the document as written, not just its requirement subset.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (3)</div>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-003"><span class="trace-link-id">STK-GOAL-003</span><span class="trace-link-title">Schema-driven validation</span></a>
+<a class="trace-link" href="01-stakeholder-requirements.html#STK-GOAL-005"><span class="trace-link-id">STK-GOAL-005</span><span class="trace-link-title">V-model traceability</span></a>
+<a class="trace-link" href="01a-aspice-stakeholder-requirements.html#ASP-SR-008"><span class="trace-link-id">ASP-SR-008</span><span class="trace-link-title">Automated quality validation</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (2)</div>
+<a class="trace-link" href="#SYS-CON-002"><span class="trace-link-id">SYS-CON-002</span><span class="trace-link-title">Items in output commands</span></a>
+<a class="trace-link" href="03-software-requirements.html#SW-PAR-002"><span class="trace-link-id">SW-PAR-002</span><span class="trace-link-title">Content-tree parsing</span></a>
+</div>
+</div>
+</div>
+</article>
+<article class="req-card" id="SYS-CON-002" x-show="isCardVisible('SYS-CON-002')" x-cloak>
+<div class="req-header">
+<h2 class="req-id"><code>SYS-CON-002</code>: Items in output commands</h2>
+<a class="req-anchor" href="#SYS-CON-002" title="Link to this requirement" aria-label="Link to SYS-CON-002">#</a>
+</div>
+<dl class="req-attrs">
+<div class="attr">
+<dt>Priority</dt>
+<dd>Medium</dd>
+</div>
+<div class="attr">
+<dt>Requires Trace From</dt>
+<dd><span class="attr-pills"><span class="attr-pill">software-requirements</span></span></dd>
+</div>
+<div class="attr">
+<dt>Status</dt>
+<dd>approved</dd>
+</div>
+</dl>
+<div class="req-body">
+<p>Containers and info items shall be visible in <code>ls</code> (a leading <code>Type</code> column — <code>req</code>/<code>container</code>/<code>info</code> — with item rows showing heading text), <code>stats</code> (per-document item counts plus a type breakdown), CSV export (a <code>Type</code> column, rows in document order), and HTML export (collapsible folder sections for containers, plain blocks for info items, and sidebar TOC entries). Items shall have no attributes and shall not participate in validation, trace checks, coverage, or <code>--filter</code> scoping — filtering prunes requirements only. <code>check</code> shall remain requirement-scoped.</p>
+
+</div>
+<div class="req-rationale">
+<strong>Rationale:</strong> <p>Items are presentation, not specification: they carry no schema-validated data, so no graph check can attach to them. Keeping them out of validation prevents noise while still rendering the authored document faithfully.</p>
+
+</div>
+<div class="req-traces">
+<div class="trace-columns">
+<div class="trace-column">
+<div class="trace-column-header">Upstream (1)</div>
+<a class="trace-link" href="#SYS-CON-001"><span class="trace-link-id">SYS-CON-001</span><span class="trace-link-title">Content tree — nothing dropped</span></a>
+</div>
+<div class="trace-column">
+<div class="trace-column-header">Downstream (1)</div>
+<a class="trace-link" href="03-software-requirements.html#SW-EXP-002"><span class="trace-link-id">SW-EXP-002</span><span class="trace-link-title">Item-aware export</span></a>
+</div>
+</div>
+</div>
+</article>
 </main>
 <script>
 
@@ -2106,11 +2596,14 @@ function reqmdApp() {
       }
 
       // Parse the requirement index (used by isCardVisible and the count).
+      // The index contains every node (requirements, containers, info
+      // items); search/filter counts apply to requirements only.
       var indexEl = document.getElementById('req-index');
       if (indexEl) {
         try { this.reqIndex = JSON.parse(indexEl.textContent); } catch (e) { this.reqIndex = []; }
       }
       var self = this;
+      this.reqIndex = this.reqIndex.filter(function (r) { return r.type !== 'container' && r.type !== 'info'; });
       this.reqMap = new Map(this.reqIndex.map(function (r) { return [r.id, r]; }));
       this.totalCount = this.reqIndex.length;
       this.visibleCount = this.totalCount;
@@ -2294,9 +2787,16 @@ document.addEventListener('DOMContentLoaded', function () {
 
       var childCount = 0;
       for (var pid in childMap) childCount += childMap[pid].length;
+      var itemCount = 0;
+      reqs.forEach(function (r) {
+        if (r.type === 'container' || r.type === 'info') itemCount++;
+      });
 
       if (tocCount) {
         tocCount.textContent = reqs.length + ' requirements (' + topLevel.length + ' parents \u00B7 ' + childCount + ' children)';
+        if (itemCount > 0) {
+          tocCount.textContent += ' \u00B7 ' + itemCount + ' items';
+        }
       }
 
       function createTreeItem(r, isChild) {
@@ -2305,12 +2805,13 @@ document.addEventListener('DOMContentLoaded', function () {
         wrapper.setAttribute('data-id', r.id);
 
         var hasKids = r.children && r.children.length > 0;
+        var isItem = r.type === 'container' || r.type === 'info';
 
         if (hasKids) {
           var toggle = document.createElement('button');
           toggle.className = 'req-toc-toggle';
           toggle.textContent = '\u25B6';
-          toggle.setAttribute('aria-label', 'Expand ' + r.id);
+          toggle.setAttribute('aria-label', 'Expand ' + (r.title || r.id));
           toggle.setAttribute('aria-expanded', 'false');
           wrapper.appendChild(toggle);
         }
@@ -2319,11 +2820,16 @@ document.addEventListener('DOMContentLoaded', function () {
         mainDiv.className = 'req-toc-item-main';
 
         var idSpan = document.createElement('span');
-        idSpan.className = 'req-toc-item-id';
-        idSpan.innerHTML = '<code>' + r.id + '</code>';
+        if (isItem) {
+          idSpan.className = 'req-toc-item-id req-toc-item-id--item';
+          idSpan.textContent = r.title || '(untitled)';
+        } else {
+          idSpan.className = 'req-toc-item-id';
+          idSpan.innerHTML = '<code>' + r.id + '</code>';
+        }
         mainDiv.appendChild(idSpan);
 
-        if (r.title) {
+        if (r.title && !isItem) {
           var titleSpan = document.createElement('span');
           titleSpan.className = 'req-toc-item-title';
           titleSpan.textContent = r.title;
@@ -2332,7 +2838,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         var bodySpan = document.createElement('span');
         bodySpan.className = 'req-toc-item-body';
-        bodySpan.textContent = r.body || '(no description)';
+        bodySpan.textContent = r.body || (isItem ? '' : '(no description)');
         mainDiv.appendChild(bodySpan);
 
         wrapper.appendChild(mainDiv);
@@ -2387,7 +2893,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
   // ── Scroll-spy: highlight active TOC item ──
   var tocItems = document.querySelectorAll('.req-toc-item');
-  var cards = document.querySelectorAll('.req-card, .req-card-child');
+  var cards = document.querySelectorAll('.req-card, .req-card-child, .container-item, .info-item');
   if (tocItems.length && cards.length) {
     var observer = new IntersectionObserver(function (entries) {
       entries.forEach(function (entry) {
@@ -2419,8 +2925,8 @@ document.addEventListener('DOMContentLoaded', function () {
   // @click.away on the sidebar, and @keydown.escape.window on <body>.
 });
 </script>
-<script type="application/json" id="req-index">[{"id":"SYS-FMT-001","title":"Markdown requirement format","body":"Each requirement shall be authored as a Markdown heading of any level (e.g., `#`...","rationale":"Dynamic level discovery decouples requirement hierarchy from hardcoded heading depths, making documents easier to generate programmatically. The `isNextAttrBlock` lookahead provides a universal detection mechanism — a heading is a requirement iff its next AST sibling is an attr fence. Sub-requirements express V-model decomposition naturally via Markdown's native heading hierarchy.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-FMT-002","title":"Built-in attribute system","body":"The `attr` block shall support six built-in attributes — `trace`, `status`, `dis...","rationale":"Separation of concerns: project-specific attributes go in `schema.yaml`; tool-level attributes are always available without schema boilerplate. Blocking redefinition prevents ambiguity. Keeping the parent relationship structural avoids redundant data — the heading hierarchy is the source of truth.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-FMT-003","title":"Schema.yaml document configuration","body":"Each document directory shall contain exactly one `schema.yaml` that defines pro...","rationale":"JSON Schema 2020-12 is a widely-supported standard with validators in every language. The `x-reqmd` block keeps reqmd-specific configuration in the same file without breaking standard JSON Schema validators.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-CLI-001","title":"CLI subcommands","body":"The `reqmd` binary shall provide CLI subcommands: `check` (validate), `ls` (list...","rationale":"A single binary that walks the directory tree and handles all document directories in one pass minimizes CI complexity. Distinct exit codes enable pipeline branching (fail build on errors, warn on warnings).","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-VAL-001","title":"Multi-pass validation pipeline","body":"The validation pipeline shall execute four sequential passes: Parse (goldmark AS...","rationale":"Sequential passes ensure each stage has complete information. Parse must finish before validation; graph must be built before trace checks; all results are collected before reporting. Three sub-passes within graph construction guarantee deterministic node initialization before edges are wired.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-TRC-001","title":"Upstream-only trace model","body":"The trace model shall be upstream-only: each requirement declares its parent(s) ...","rationale":"Upstream-only declarations avoid redundancy — if every child names its parent, the full chain is determined without any requirement also listing its children. Version pinning lets PR reviewers detect upstream changes since the trace was last validated. Auto-edges for sub-requirements ensure decomposition hierarchy is always present without manual attribute maintenance. V-model boundaries are inferred from directory topology (upstream.sources), eliminating per-requirement boilerplate.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-FMT-004","title":"YAML frontmatter support","body":"Documents SHOULD support YAML frontmatter (`---`-delimited) parsed via goldmark-...","rationale":"YAML frontmatter is a standard convention across Markdown toolchains (Jekyll, Hugo, GitHub Pages). Supporting it lets authors add document-level context — like an abstract or navigation hint — without requiring a separate file.","attrs":{"priority":"High","status":"approved"}},{"id":"SYS-HTM-001","title":"Standalone HTML export","body":"The HTML exporter SHALL produce a standalone `.html` page per document directory...","rationale":"The HTML export is the primary human-reviewable output for non-technical stakeholders. A self-contained page eliminates server dependencies for distribution.","attrs":{"priority":"High","status":"approved"}},{"id":"SYS-BAS-001","title":"Baseline comparison via git tags","body":"The tool shall provide a `reqmd baseline diff \u003ctag1\u003e \u003ctag2\u003e` subcommand that com...","rationale":"Requirement-level diffs enable change-impact analysis and release notes generation. Using git tags as baseline anchors means the diff inherits the team's existing version-control workflow — no separate baseline store to maintain. `git archive` avoids the need to check out tags in separate worktrees, keeping the operation fast and side-effect-free.","attrs":{"priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-REPIN-001","title":"Bulk version-pin update via reqmd repin","body":"The tool shall provide a `reqmd repin \u003croot\u003e` subcommand that scans the spec tre...","rationale":"The version-pin check (SYS-VAL-001) reports every outdated pin individually; without an apply path users have to hand-edit each `trace:` line. `repin` is the bulk-update counterpart to the check, with a mandatory dry-run/confirm step so the change set is reviewable before files are written. Whole-ref matching (not substring) prevents an unpinned promote from corrupting an already-pinned sibling, e.g. rewriting `UP-001` inside `UP-001~3` to `UP-001~3~3`. Predated findings are excluded from the apply set because they indicate that the upstream itself needs attention (a newer version was rolled back, or the pin is wrong), not that the pin should be lowered.","attrs":{"priority":"High","requires-trace-from":["system-requirements"],"status":"approved"}},{"id":"SYS-VAL-002","title":"Verification result ingestion and outcome-gated checks","body":"The `check` and `serve` commands shall accept a repeatable `--results \u003cpath\u003e` fl...","rationale":"reqmd traces the left side of the V-model (stakeholder → system → software → test specs) but could not represent the right side: verification *results*. Every ASPICE BP that says \"record the verification results including pass/fail status and evaluate\" was unrepresentable. The `status: draft|approved` axis is a lifecycle gate, not a verdict — an approved, implemented test can still fail. Ephemeral results keep CI run-to-run churn out of git and `baseline diff`, while the outcome-gated checks close the V-model right side by enforcing that every approved measure has a passing latest verdict.","attrs":{"priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}}]</script>
-<script type="application/json" id="req-filter-index">{"priority":["Critical","High"],"requires-trace-from":["software-requirements","system-requirements"]}</script>
+<script type="application/json" id="req-index">[{"id":"SYS-FMT-001","title":"Markdown requirement format","body":"Each requirement shall be authored as a Markdown heading of any level (e.g., `#`...","rationale":"Dynamic level discovery decouples requirement hierarchy from hardcoded heading depths, making documents easier to generate programmatically. The `isNextAttrBlock` lookahead provides a universal detection mechanism — a heading is a requirement iff its next AST sibling is an attr fence. Sub-requirements express V-model decomposition naturally via Markdown's native heading hierarchy.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-FMT-002","title":"Built-in attribute system","body":"The `attr` block shall support six built-in attributes — `trace`, `status`, `dis...","rationale":"Separation of concerns: project-specific attributes go in `schema.yaml`; tool-level attributes are always available without schema boilerplate. Blocking redefinition prevents ambiguity. Keeping the parent relationship structural avoids redundant data — the heading hierarchy is the source of truth.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-FMT-003","title":"Schema.yaml document configuration","body":"Each document directory shall contain exactly one `schema.yaml` that defines pro...","rationale":"JSON Schema 2020-12 is a widely-supported standard with validators in every language. The `x-reqmd` block keeps reqmd-specific configuration in the same file without breaking standard JSON Schema validators.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-CLI-001","title":"CLI subcommands","body":"The `reqmd` binary shall provide CLI subcommands: `check` (validate), `ls` (list...","rationale":"A single binary that walks the directory tree and handles all document directories in one pass minimizes CI complexity. Distinct exit codes enable pipeline branching (fail build on errors, warn on warnings).","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-VAL-001","title":"Multi-pass validation pipeline","body":"The validation pipeline shall execute four sequential passes: Parse (goldmark AS...","rationale":"Sequential passes ensure each stage has complete information. Parse must finish before validation; graph must be built before trace checks; all results are collected before reporting. Three sub-passes within graph construction guarantee deterministic node initialization before edges are wired.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-TRC-001","title":"Upstream-only trace model","body":"The trace model shall be upstream-only: each requirement declares its parent(s) ...","rationale":"Upstream-only declarations avoid redundancy — if every child names its parent, the full chain is determined without any requirement also listing its children. Version pinning lets PR reviewers detect upstream changes since the trace was last validated. Auto-edges for sub-requirements ensure decomposition hierarchy is always present without manual attribute maintenance. V-model boundaries are inferred from directory topology (upstream.sources), eliminating per-requirement boilerplate.","attrs":{"priority":"Critical","status":"approved"}},{"id":"SYS-FMT-004","title":"YAML frontmatter support","body":"Documents SHOULD support YAML frontmatter (`---`-delimited) parsed via goldmark-...","rationale":"YAML frontmatter is a standard convention across Markdown toolchains (Jekyll, Hugo, GitHub Pages). Supporting it lets authors add document-level context — like an abstract or navigation hint — without requiring a separate file.","attrs":{"priority":"High","status":"approved"}},{"id":"SYS-HTM-001","title":"Standalone HTML export","body":"The HTML exporter SHALL produce a standalone `.html` page per document directory...","rationale":"The HTML export is the primary human-reviewable output for non-technical stakeholders. A self-contained page eliminates server dependencies for distribution.","attrs":{"priority":"High","status":"approved"}},{"id":"SYS-BAS-001","title":"Baseline comparison via git tags","body":"The tool shall provide a `reqmd baseline diff \u003ctag1\u003e \u003ctag2\u003e` subcommand that com...","rationale":"Requirement-level diffs enable change-impact analysis and release notes generation. Using git tags as baseline anchors means the diff inherits the team's existing version-control workflow — no separate baseline store to maintain. `git archive` avoids the need to check out tags in separate worktrees, keeping the operation fast and side-effect-free.","attrs":{"priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-REPIN-001","title":"Bulk version-pin update via reqmd repin","body":"The tool shall provide a `reqmd repin \u003croot\u003e` subcommand that scans the spec tre...","rationale":"The version-pin check (SYS-VAL-001) reports every outdated pin individually; without an apply path users have to hand-edit each `trace:` line. `repin` is the bulk-update counterpart to the check, with a mandatory dry-run/confirm step so the change set is reviewable before files are written. Whole-ref matching (not substring) prevents an unpinned promote from corrupting an already-pinned sibling, e.g. rewriting `UP-001` inside `UP-001~3` to `UP-001~3~3`. Predated findings are excluded from the apply set because they indicate that the upstream itself needs attention (a newer version was rolled back, or the pin is wrong), not that the pin should be lowered.","attrs":{"priority":"High","requires-trace-from":["system-requirements"],"status":"approved"}},{"id":"SYS-VAL-002","title":"Verification result ingestion and outcome-gated checks","body":"The `check` and `serve` commands shall accept a repeatable `--results \u003cpath\u003e` fl...","rationale":"reqmd traces the left side of the V-model (stakeholder → system → software → test specs) but could not represent the right side: verification *results*. Every ASPICE BP that says \"record the verification results including pass/fail status and evaluate\" was unrepresentable. The `status: draft|approved` axis is a lifecycle gate, not a verdict — an approved, implemented test can still fail. Ephemeral results keep CI run-to-run churn out of git and `baseline diff`, while the outcome-gated checks close the V-model right side by enforcing that every approved measure has a passing latest verdict.","attrs":{"priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-FIL-001","title":"Generic attribute filtering","body":"The `check`, `ls`, `stats`, `export csv`, `export html`, and `serve` commands sh...","rationale":"Large specs make full-tree review and incremental CI expensive. Attribute filtering lets teams scope `check`, exports, and diffs to the slice of the tree that a change touches, without losing the ability to resolve traces globally. Rejecting undeclared attribute names at compile time catches typos before they silently match nothing, and filter-aware coverage (RFC §3.2) keeps filtered-out requirements from causing false failures.","attrs":{"priority":"Medium","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-CHK-003","title":"Disjoint-attribute consistency check","body":"The `check` command shall accept a repeatable `--disjoint-check \u003cattr\u003e` flag (an...","rationale":"Attribute-consistency gates capture cross-cutting invariants that pure trace-structure checks miss — e.g. \"a trace link may only connect two requirements that share a product variant or a safety level\". They turn a manual review convention into an enforceable CI check with a single flag, without adding a new built-in attribute.","attrs":{"priority":"Medium","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-STS-001","title":"Requirement status lifecycle","body":"`status` shall be a built-in attribute with enum `[draft, approved]`; a missing ...","rationale":"A lifecycle axis distinct from `disposition` lets teams keep in-progress requirements in the spec without letting them (falsely) satisfy coverage. Draft requirements remain traceable and validated, but cannot close a coverage expectation until promoted to `approved`.","attrs":{"priority":"Medium","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-SUP-001","title":"Check suppression","body":"Any requirement may declare a `reqmd-suppress: [\u003ccheck-code\u003e]` attribute listing...","rationale":"Not every check applies to every requirement; a deliberate, documented exception should not fail CI. Suppression is per-requirement and opt-in, so the default remains strict — an exception is visible in the source and auditable in review.","attrs":{"priority":"Medium","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-FMT-005","title":"Level-typed trace coverage","body":"A `requires-trace-from` token shall name either a `document-id` or an `x-reqmd.l...","rationale":"Multi-document layers (e.g. several `system-requirements` directories owned by different teams) otherwise force every coverage expectation to enumerate every document-id. Level-typed coverage makes the V-model layer itself a first-class coverage target and stays robust as documents are added or removed within a layer.","attrs":{"priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-IMP-001","title":"Source-code requirement extraction","body":"The toolchain shall include `reqmd-import`, a companion extraction tool that wal...","rationale":"Software requirements trace down to tests (ASP-SR-006) but not to the implementation that satisfies them. Automatic extraction turns source symbols into requirements in the same ID namespace, so a broken spec→code trace is caught by the same `reqmd check` that catches broken spec refs — and re-running the extractor keeps the code-side of the V-model current without hand-maintained mapping tables.","attrs":{"priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-CON-001","title":"Content tree — nothing dropped","body":"The parser shall capture the full document content as a content tree in which ev...","rationale":"Requirements documents carry structure and narrative beyond requirement records. Dropping non-requirement content (as early prototypes did) made exported pages silently incomplete. The tree keeps document order and hierarchy faithful to the source so `ls`, `stats`, CSV, and HTML can render the document as written, not just its requirement subset.","attrs":{"priority":"High","requires-trace-from":["software-requirements"],"status":"approved"}},{"id":"SYS-CON-002","title":"Items in output commands","body":"Containers and info items shall be visible in `ls` (a leading `Type` column — `r...","rationale":"Items are presentation, not specification: they carry no schema-validated data, so no graph check can attach to them. Keeping them out of validation prevents noise while still rendering the authored document faithfully.","attrs":{"priority":"Medium","requires-trace-from":["software-requirements"],"status":"approved"}}]</script>
+<script type="application/json" id="req-filter-index">{"priority":["Critical","High","Medium"],"requires-trace-from":["software-requirements","system-requirements"]}</script>
 </div>
 </body>
 </html>

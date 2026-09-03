@@ -28,13 +28,12 @@ import (
 	"fmt"
 	"path/filepath"
 	"regexp"
+	"reqmd/internal/model"
 	"sort"
 	"strings"
 
 	jsonschema "github.com/google/jsonschema-go/jsonschema"
 	"gopkg.in/yaml.v3"
-
-	"reqmd/internal/model"
 )
 
 // Compiled holds a compiled schema ready for validation and property introspection.
@@ -67,6 +66,13 @@ func Compile(schemaRaw any, schemaPath string) (*Compiled, error) {
 		return nil, err
 	}
 
+	// Validate x-reqmd.requires-trace-from (the document-wide default
+	// coverage expectation) so a malformed default fails fast instead of
+	// being silently ignored by graph coverage checks.
+	if _, err := collectRequiresTraceFromDefault(normMap, schemaPath); err != nil {
+		return nil, err
+	}
+
 	InjectBuiltins(normMap)
 	applyStatusAdditions(normMap, additions)
 	norm = normMap
@@ -77,7 +83,7 @@ func Compile(schemaRaw any, schemaPath string) (*Compiled, error) {
 	}
 
 	var s jsonschema.Schema
-	if err := json.Unmarshal(schemaBytes, &s); err != nil {
+	if err = json.Unmarshal(schemaBytes, &s); err != nil {
 		return nil, fmt.Errorf("unmarshaling schema: %w", err)
 	}
 
@@ -101,6 +107,64 @@ func Compile(schemaRaw any, schemaPath string) (*Compiled, error) {
 // x-reqmd.additional-status-values entries: starts with a lowercase letter,
 // then lowercase letters, digits, hyphen, or underscore.
 var statusAdditionPattern = regexp.MustCompile(`^[a-z][a-z0-9_-]*$`)
+
+// requiresTraceFromTokenPattern mirrors the built-in requires-trace-from
+// item pattern: lowercase letters, digits, hyphen, or underscore. Document
+// defaults name document-ids or levels, which follow the same shape.
+var requiresTraceFromTokenPattern = regexp.MustCompile(`^[a-z0-9_-]+$`)
+
+// collectRequiresTraceFromDefault reads x-reqmd.requires-trace-from (the
+// document-wide default coverage expectation) from a normalized schema map,
+// validates each token, and returns the cleaned slice. A bare string is
+// accepted and treated as a one-token list. The empty list is allowed (it
+// means every requirement in the document opts out of downstream coverage).
+// Returns nil (no error) when the key is absent.
+func collectRequiresTraceFromDefault(normMap map[string]any, schemaPath string) ([]string, error) {
+	xr, ok := normMap["x-reqmd"].(map[string]any)
+	if !ok {
+		return nil, nil
+	}
+	raw, ok := xr["requires-trace-from"]
+	if !ok {
+		return nil, nil
+	}
+
+	var tokens []string
+	switch v := raw.(type) {
+	case string:
+		tokens = []string{v}
+	case []any:
+		for _, item := range v {
+			s, ok := item.(string)
+			if !ok {
+				return nil, fmt.Errorf("%s/schema.yaml: x-reqmd.requires-trace-from: every entry must be a string, got %T", schemaPath, item)
+			}
+			tokens = append(tokens, s)
+		}
+	case []string:
+		tokens = append(tokens, v...)
+	default:
+		return nil, fmt.Errorf("%s/schema.yaml: x-reqmd.requires-trace-from: must be an array of strings (or a single string), got %T", schemaPath, raw)
+	}
+
+	seen := make(map[string]bool, len(tokens))
+	out := make([]string, 0, len(tokens))
+	for _, s := range tokens {
+		s = strings.TrimSpace(s)
+		if s == "" {
+			return nil, fmt.Errorf("%s/schema.yaml: x-reqmd.requires-trace-from: empty/whitespace-only token rejected", schemaPath)
+		}
+		if !requiresTraceFromTokenPattern.MatchString(s) {
+			return nil, fmt.Errorf("%s/schema.yaml: x-reqmd.requires-trace-from: invalid token %q: must be lowercase alphanumeric+hyphen+underscore, matching ^[a-z0-9_-]+$", schemaPath, s)
+		}
+		if seen[s] {
+			return nil, fmt.Errorf("%s/schema.yaml: x-reqmd.requires-trace-from: duplicate token %q", schemaPath, s)
+		}
+		seen[s] = true
+		out = append(out, s)
+	}
+	return out, nil
+}
 
 // collectStatusAdditions reads x-reqmd.additional-status-values from a
 // normalized schema map, validates each entry (lowercase only, no
@@ -251,7 +315,7 @@ func (c *Compiled) Validate(attrs map[string]any) error {
 	if _, hasStatus := attrs[model.AttrStatus]; hasStatus && strings.Contains(err.Error(), "status") {
 		return fmt.Errorf("%w\n  → hint: did you mean \"draft\" or \"approved\"?", err)
 	}
-	return err
+	return fmt.Errorf("validating attributes: %w", err)
 }
 
 // Normalize validates a schema and checks for built-in redefinition.
@@ -308,9 +372,9 @@ func ExtractProperties(schemaRaw any) (propNames []string) {
 	return orderedPropertyNames(required, optional)
 }
 
-// SchemaTitle extracts a human-readable title from a parsed schema.
+// Title extracts a human-readable title from a parsed schema.
 // Uses "$id — title", "$id", or "title" from the JSON Schema.
-func SchemaTitle(schema any) string {
+func Title(schema any) string {
 	if m, ok := schema.(map[string]any); ok {
 		id, _ := m["$id"].(string)
 		title, _ := m["title"].(string)
@@ -341,8 +405,14 @@ func ExtractXReqmd(schema any) *model.XReqmd {
 
 	// Normalize disjoint-check: accept both string and array forms.
 	// A bare string is converted to a single-element array so the
-	// yaml.Unmarshal into []string succeeds.
-	if xrMap, ok := raw.(map[string]any); ok {
+	// yaml.Unmarshal into []string succeeds. Normalization happens on a
+	// shallow copy so the caller's schema map (used later for Compile
+	// validation) is left pristine.
+	if xrSrc, ok := raw.(map[string]any); ok {
+		xrMap := make(map[string]any, len(xrSrc))
+		for k, v := range xrSrc {
+			xrMap[k] = v
+		}
 		if dc, ok := xrMap["disjoint-check"]; ok {
 			switch v := dc.(type) {
 			case string:
@@ -355,19 +425,55 @@ func ExtractXReqmd(schema any) *model.XReqmd {
 				// Already array form — keep as-is.
 			}
 		}
+
+		// Normalize requires-trace-from the same way: accept a bare
+		// string (wrapped into a one-element array), an array of
+		// strings, or an empty array (document-wide opt-out, kept
+		// distinct from an absent key). Malformed values are dropped
+		// from the parsed metadata only; the original value stays in the
+		// caller's schema so Compile validation can report it.
+		if rtf, ok := xrMap["requires-trace-from"]; ok {
+			switch v := rtf.(type) {
+			case string:
+				if v != "" {
+					xrMap["requires-trace-from"] = []string{v}
+				} else {
+					delete(xrMap, "requires-trace-from")
+				}
+			case []any:
+				strs := make([]string, 0, len(v))
+				for _, item := range v {
+					if s, ok := item.(string); ok {
+						strs = append(strs, s)
+					}
+				}
+				xrMap["requires-trace-from"] = strs
+			default:
+				delete(xrMap, "requires-trace-from")
+			}
+		}
+
+		// Re-marshal the nested map to YAML bytes, then unmarshal into
+		// model.XReqmd. This approach handles all field types cleanly
+		// via yaml struct tags.
+		b, err := yaml.Marshal(xrMap)
+		if err != nil {
+			return nil
+		}
+
+		var xr model.XReqmd
+		if err := yaml.Unmarshal(b, &xr); err != nil {
+			return nil
+		}
+
+		// An explicitly-empty document default must survive the
+		// round-trip as a non-nil empty slice (opt-out), never as nil.
+		if _, present := xrMap["requires-trace-from"]; present && xr.RequiresTraceFrom == nil {
+			xr.RequiresTraceFrom = []string{}
+		}
+
+		return &xr
 	}
 
-	// Marshal the nested map to YAML bytes, then unmarshal into model.XReqmd.
-	// This approach handles all field types cleanly via yaml struct tags.
-	b, err := yaml.Marshal(raw)
-	if err != nil {
-		return nil
-	}
-
-	var xr model.XReqmd
-	if err := yaml.Unmarshal(b, &xr); err != nil {
-		return nil
-	}
-
-	return &xr
+	return nil
 }

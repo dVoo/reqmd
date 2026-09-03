@@ -40,11 +40,12 @@ The `enum` gives you free validation: a typo like `variant: [Premuim]` fails `re
 ```attr
 status: approved
 variant: [Sport]
-requires-trace-from: [software-requirements]
 ```
 ````
 
 A requirement can belong to several configurations (`variant: [Base, Premium]`). A requirement with no `variant` attribute is "common to all" — it appears in every view.
+
+Downstream coverage is declared once for the whole layer in `x-reqmd.requires-trace-from` in `system/schema.yaml` (`[software-requirements]`); every system requirement inherits it. See [Step 2](/quickstart/02-trace-your-spec/).
 
 ## 3. Scope commands with --filter
 

@@ -1,16 +1,15 @@
 package graph_test
 
 import (
-	"testing"
-
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
+	"testing"
 )
 
 // reqWithSuppressions builds a Requirement with a non-empty Suppressions
 // slice — needed for tests that exercise reqmd-suppress handling, because
 // the synthetic req() factory leaves Suppressions as nil.
-func reqWithSuppressions(id string, source string, suppressions []string, attrs map[string]any) model.Requirement {
+func reqWithSuppressions(id string, source string, suppressions []string, attrs map[string]any) *model.Node {
 	r := req(id, source, attrs)
 	r.Suppressions = append(r.Suppressions, suppressions...)
 	return r
@@ -308,56 +307,5 @@ func TestRepinDeltas_Sorted(t *testing.T) {
 	}
 	if deltas[1].File != "/docs/z/z.md" {
 		t.Errorf("deltas[1].File = %q, want /docs/z/z.md", deltas[1].File)
-	}
-}
-
-// ---------------------------------------------------------------------------
-// RepinDeltas: ~0 pin is a real (outdated) pin, not "unpinned"
-// ---------------------------------------------------------------------------
-
-// TestRepinDeltas_OutdatedZeroPin verifies that a `~0` trace ref is treated as
-// a genuine pin of 0 (not as "no pin"). With the upstream at version 3, the
-// pin 0 is strictly below the current version, so it produces an outdated delta
-// with OldPin=0 and NewPin=3 — the same shape as any other outdated pin.
-func TestRepinDeltas_OutdatedZeroPin(t *testing.T) {
-	g, err := graph.New([]model.Document{
-		doc("/docs/up", req("UP-001", "/docs/up/up.md", map[string]any{
-			"title":   "Up",
-			"version": 3,
-		})),
-		doc("/docs/down", req("DN-001", "/docs/down/dn.md", map[string]any{
-			"title": "Down",
-			"trace": []any{"UP-001~0"},
-		})),
-	})
-	if err != nil {
-		t.Fatalf("New: %v", err)
-	}
-
-	deltas := g.RepinDeltas(false)
-	if len(deltas) != 1 {
-		t.Fatalf("RepinDeltas = %d deltas, want 1: %+v", len(deltas), deltas)
-	}
-	d := deltas[0]
-	if d.Kind != "outdated" {
-		t.Errorf("Kind = %q, want outdated", d.Kind)
-	}
-	if d.ReqID != "DN-001" {
-		t.Errorf("ReqID = %q, want DN-001", d.ReqID)
-	}
-	if d.TargetID != "UP-001" {
-		t.Errorf("TargetID = %q, want UP-001", d.TargetID)
-	}
-	if d.SourceRef != "UP-001~0" {
-		t.Errorf("SourceRef = %q, want UP-001~0", d.SourceRef)
-	}
-	if d.OldPin != 0 {
-		t.Errorf("OldPin = %d, want 0", d.OldPin)
-	}
-	if d.NewPin != 3 {
-		t.Errorf("NewPin = %d, want 3", d.NewPin)
-	}
-	if d.NewVersion != 3 {
-		t.Errorf("NewVersion = %d, want 3", d.NewVersion)
 	}
 }

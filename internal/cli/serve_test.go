@@ -2,10 +2,9 @@ package cli
 
 import (
 	"path/filepath"
+	"reqmd/internal/graph"
 	"strings"
 	"testing"
-
-	"reqmd/internal/graph"
 )
 
 // findResult reports whether any check result for reqID mentions substr.
@@ -47,8 +46,8 @@ func TestServeDiscover_Filter(t *testing.T) {
 	// The returned docs are scoped too: the sw doc has no matching reqs.
 	for _, d := range docs {
 		if filepath.Base(d.Path) == "sw" {
-			if len(d.Requirements) != 0 {
-				t.Fatalf("filtered sw doc should have 0 reqs, got %d", len(d.Requirements))
+			if len(d.Requirements()) != 0 {
+				t.Fatalf("filtered sw doc should have 0 reqs, got %d", len(d.Requirements()))
 			}
 		}
 	}

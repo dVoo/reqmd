@@ -20,22 +20,20 @@ type ctrfResults struct {
 }
 
 type ctrfTest struct {
+	Extra    map[string]any  `json:"extra"`
 	Name     string          `json:"name"`
 	Status   string          `json:"status"`
-	Stop     int64           `json:"stop"`     // ms-epoch
-	Start    int64           `json:"start"`    // ms-epoch
-	Flaky    bool            `json:"flaky"`
-	Extra    map[string]any  `json:"extra"`    // extension point
-	// RawExtra keeps the original extra object so future fields can be
-	// harvested without re-decoding.
 	RawExtra json.RawMessage `json:"-"`
+	Stop     int64           `json:"stop"`
+	Start    int64           `json:"start"`
+	Flaky    bool            `json:"flaky"`
 }
 
 // loadCTRFFile parses one CTRF JSON file into Results.
 func loadCTRFFile(path string) ([]Result, []string, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("reading %s: %w", path, err)
 	}
 	return loadCTRFData(data, path)
 }

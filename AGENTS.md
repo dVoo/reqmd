@@ -9,7 +9,7 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 
 - `SPEC.md` — authoritative design spec (if absent, the spec tree under `spec/` is the source of truth)
 - `spec/workspace.dsl` — C4 model (Structurizr DSL) for architecture visualization
-- `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 doc dirs, 233 total reqs, V-model dogfood fixture
+- `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 doc dirs, 269 total reqs, V-model dogfood fixture
 - `quickstart/` — step-by-step tutorial (01-get-started, 02-trace-your-spec, 03-export, 04-live-preview, 05-status-disposition, 06-ci-integration, 07-version-pins, 08-repin, 09-baseline-diff, 10-submodule-configuration, 11-verification-results-ctrf, 12-review-documentation, 13-custom-templates, 14-variant-management)
 - `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli, filter)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
@@ -47,15 +47,45 @@ go run ./cmd/reqmd repin <root> --yes     # apply version-pin changes in place
 go run ./cmd/reqmd repin <root> --json    # machine-readable change list
 ```
 
+## Content model
+
+reqmd parses the full document content into a **content tree** — nothing is
+dropped. Every heading is a `model.Node` except the level-1 document title:
+`#` (h1) is captured as `model.Document.Title` (first h1 of the first file),
+is never a node, and can never be a requirement — requirement headings must
+be level 2 or higher (a level-1 heading with an `attr` block is a parse
+error):
+
+- `KindRequirement` — heading (h2+) followed by an `attr` block (the zero
+  value). Only these participate in validation, trace checks, coverage,
+  filtering.
+- `KindContainer` — heading without an `attr` block that has children
+  (folder-like grouping; promoted from KindInfo during tree assembly).
+- `KindInfo` — heading without an `attr` block and no children, or
+  headingless leading prose (Level 0).
+
+`model.Document.Nodes` holds the ordered tree roots; `doc.Requirements()`
+walks it depth-first to return requirement nodes (pointers into the tree,
+so in-place mutation updates the document). Prose attaches to the nearest
+open heading's body; `*Rationale:` extracts into the node. Thematic breaks
+are kept in the body. `ParentID` is the nearest ancestor *requirement* —
+containers are never requirement parents.
+
+Items appear in `ls`/`stats` (Type column / counts + type breakdown), CSV
+(Type column, document order), HTML (collapsible sections / plain blocks,
+sidebar TOC folders), and survive `--filter` (which prunes only
+requirements; filtered views shallow-copy nodes so multiple views of the
+same docs stay independent). `check` remains requirement-scoped.
+
 ## Commands (implemented)
 
 | Command | Description |
 |---------|-------------|
 | `reqmd check <root>` | Recursive walk for `schema.yaml`, check all `.md` |
-| `reqmd ls <root>` | Table of all requirements with all schema attributes. `--filter "<expr>"` scopes to matching requirements. |
-| `reqmd stats <root>` | Attribute-value breakdown per document directory. `--filter "<expr>"` scopes to matching requirements. |
-| `reqmd export csv <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | CSV export (`<dirname>-requirements.csv`). `--results` adds `Verdict` and `Verdict Source` columns from ephemeral verification results. `--filter` exports only matching requirements. |
-| `reqmd export html <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | HTML export with water.css CDN. `--results` renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter` exports only matching requirements. |
+| `reqmd ls <root>` | Table of all content in document order: leading `Type` column (`req`/`container`/`info`), requirements with all schema attributes, items with heading text. `--filter "<expr>"` scopes to matching requirements (items always shown). |
+| `reqmd stats <root>` | Attribute-value breakdown per document directory plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements. |
+| `reqmd export csv <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | CSV export (`<dirname>-requirements.csv`) with a `Type` column; rows emitted in document order for requirements and items. `--results` adds `Verdict` and `Verdict Source` columns from ephemeral verification results. `--filter` exports only matching requirements. |
+| `reqmd export html <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | HTML export: requirement cards, collapsible container sections, info blocks, sidebar TOC with folders. `--results` renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter` exports only matching requirements. |
 | `reqmd export graph <root> [-o <dir>] [--results <path>...]` | LadybugDB graph export (requires `-tags ladybug`). `--results` includes `RESULT:` nodes with `outcome`/`source` properties for graph traversal from requirements to verification results. |
 | `reqmd check --json <root>` | JSON validation report with requirements, pass/fail, trace checks |
 | `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs with `schema.yaml`) and run outcome-gated checks (`missing-verdict`, `failing-verdict`). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. |
@@ -85,6 +115,10 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
 
 - **Parser**: Recursive tree walk. Every dir with `schema.yaml` is a document dir.
   Files parsed in parallel via worker pool (`runtime.NumCPU()` goroutines).
+  Each file yields a flat node stream (every heading = a node, except the
+  level-1 document title, which becomes `Document.Title`); `assembleTree`
+  builds the content tree and derives `ParentID` (nearest ancestor requirement).
+  Results are merged in file order (deterministic).
 - **Schema**: YAML → map → JSON marshal → `jsonschema.Schema.UnmarshalJSON` → `Resolve()`.
   Base URI set to `file://<absolute-path>/schema.yaml`.
 - **Properties order**: Required fields first (in schema's `required` order),
@@ -93,6 +127,17 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   Pass 1 validation. Every value in the `trace` attribute is checked against all requirement IDs
   across all documents. Missing refs appear as WARNING-level results, cycles appear as ERROR-level.
   WARNING/INFO do not affect exit code; ERROR does.
+- **requires-trace-from document default**: A document may declare
+  `x-reqmd.requires-trace-from` in `schema.yaml` as its default downstream
+  coverage expectation. At graph build (Pass 1) each requirement's effective
+  `requires-trace-from` is its own attribute when declared, otherwise a copy of
+  the document default when set. `[]` at either level means explicit opt-out
+  ("no downstream coverage expected"); a requirement with neither its own attr
+  nor a document default keeps `nil` and falls back to the generic
+  untraced/no-downstream boundary checks. Document defaults are validated at
+  schema compile time (token pattern `^[a-z0-9_-]+$`, no duplicates), accept a
+  scalar string or an array, and resolve through the same doc-id/level index as
+  per-requirement tokens (status gate and `--filter` apply identically).
 - **Status lifecycle (built-in)**: `status` is a built-in enum `[draft, approved]`.
   Missing status defaults to `approved` (silent). Only `approved` requirements count
   as upstream coverage providers — a `draft` requirement can be referenced by a

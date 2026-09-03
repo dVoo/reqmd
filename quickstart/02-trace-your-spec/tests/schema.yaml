@@ -1,6 +1,7 @@
 x-reqmd:
   level: test-specs
   document-id: tests
+  requires-trace-from: []
   upstream:
     level: software-requirements
     sources:

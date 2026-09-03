@@ -1,10 +1,9 @@
 package graph_test
 
 import (
-	"testing"
-
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
+	"testing"
 )
 
 // ---------------------------------------------------------------------------
@@ -134,6 +133,56 @@ func TestFilterAwareCoverage_FilteredInProviderSatisfies(t *testing.T) {
 	}
 }
 
+// TestFilterAwareCoverage_DocumentDefault verifies filter-aware coverage
+// interacts with the x-reqmd.requires-trace-from document default: an
+// inherited expectation behaves like a per-requirement one under --filter.
+func TestFilterAwareCoverage_DocumentDefault(t *testing.T) {
+	docs := []model.Document{
+		docWithXReqmd("/spec/sys", &model.XReqmd{
+			Level:             "system",
+			DocumentID:        "sys",
+			RequiresTraceFrom: []string{"software"},
+		},
+			req("SYS-001", "/spec/sys/sys.md", map[string]any{
+				"status":  "approved",
+				"variant": []any{"Base"},
+			}),
+		),
+		docWithXReqmd("/spec/sw", &model.XReqmd{
+			Level:      "software",
+			DocumentID: "software",
+			Upstream:   &model.TraceUpstream{Level: "system", Sources: []string{"/spec/sys"}},
+		},
+			req("SW-001", "/spec/sw/sw.md", map[string]any{
+				"status":  "approved",
+				"variant": []any{"Sport"},
+				"trace":   []any{"sys/SYS-001"},
+			}),
+		),
+	}
+
+	g, err := graph.New(docs)
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+
+	// Without filter: the sole inbound SW-001 satisfies the inherited default.
+	if w := filterByMessage(g.CheckResults(), "no upstream trace"); len(w) != 0 {
+		t.Fatalf("without filter: expected no coverage warnings, got %v", w)
+	}
+
+	// Filter "Base": SYS-001 in, SW-001 (Sport) out → inherited default now
+	// reports missing coverage, with no broken-ref warning.
+	g.SetFilter(map[string]struct{}{"SYS-001": {}})
+	results := g.CheckResults()
+	if w := filterByMessage(results, "no upstream trace"); len(w) != 1 {
+		t.Fatalf("with filter: expected 1 coverage warning, got %d: %v", len(w), w)
+	}
+	if w := filterByMessage(results, "broken reference"); len(w) != 0 {
+		t.Fatalf("with filter: expected no broken-ref warnings, got %d", len(w))
+	}
+}
+
 // TestFilter_NoFilter_ParityWithUnfiltered verifies that an empty filter
 // set produces identical results to no filter at all.
 func TestFilter_NoFilter_ParityWithUnfiltered(t *testing.T) {
@@ -209,7 +258,7 @@ func TestDisjointAttribute_ZeroIntersection_Errors(t *testing.T) {
 	g.SetDisjointAttrs([]string{"variant"})
 
 	results := g.CheckResults()
-	disjointErrors := filterByCode(results, graph.CodeDisjointAttribute)
+	disjointErrors := filterByCode(results)
 	if len(disjointErrors) == 0 {
 		t.Fatal("expected disjoint-attribute ERROR for SW-042→SYS-014 with zero overlap")
 	}
@@ -247,7 +296,7 @@ func TestDisjointAttribute_PartialOverlap_NoError(t *testing.T) {
 	g.SetDisjointAttrs([]string{"variant"})
 
 	results := g.CheckResults()
-	disjointErrors := filterByCode(results, graph.CodeDisjointAttribute)
+	disjointErrors := filterByCode(results)
 	if len(disjointErrors) != 0 {
 		t.Fatalf("expected no disjoint error (partial overlap on Base), got %d", len(disjointErrors))
 	}
@@ -279,7 +328,7 @@ func TestDisjointAttribute_EmptyAttribute_Exempt(t *testing.T) {
 	g.SetDisjointAttrs([]string{"variant"})
 
 	results := g.CheckResults()
-	disjointErrors := filterByCode(results, graph.CodeDisjointAttribute)
+	disjointErrors := filterByCode(results)
 	if len(disjointErrors) != 0 {
 		t.Fatalf("expected no disjoint error (SYS-014 has no variant = exempt), got %d", len(disjointErrors))
 	}
@@ -310,7 +359,7 @@ func TestDisjointAttribute_NoAttrsSet_NoCheck(t *testing.T) {
 	}
 	// No SetDisjointAttrs — check should be off.
 	results := g.CheckResults()
-	disjointErrors := filterByCode(results, graph.CodeDisjointAttribute)
+	disjointErrors := filterByCode(results)
 	if len(disjointErrors) != 0 {
 		t.Fatalf("expected no disjoint check without SetDisjointAttrs, got %d", len(disjointErrors))
 	}
@@ -330,10 +379,10 @@ func filterByMessage(results []graph.CheckResult, substr string) []graph.CheckRe
 	return out
 }
 
-func filterByCode(results []graph.CheckResult, code string) []graph.CheckResult {
+func filterByCode(results []graph.CheckResult) []graph.CheckResult {
 	var out []graph.CheckResult
 	for _, r := range results {
-		if r.Code == code {
+		if r.Code == graph.CodeDisjointAttribute {
 			out = append(out, r)
 		}
 	}

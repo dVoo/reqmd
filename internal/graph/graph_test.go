@@ -2,49 +2,49 @@ package graph_test
 
 import (
 	"regexp"
-	"strings"
-	"testing"
-
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
 	"reqmd/internal/parser"
 	"reqmd/internal/schema"
+	"strings"
+	"testing"
 )
 
 // ---------------------------------------------------------------------------
 // Helper factories
 // ---------------------------------------------------------------------------
 
-func req(id string, source string, attrs map[string]any) model.Requirement {
-	return model.Requirement{
+func req(id string, source string, attrs map[string]any) *model.Node {
+	return &model.Node{
+		Kind:   model.KindRequirement,
 		ID:     id,
 		Source: source,
 		Attrs:  attrs,
 	}
 }
 
-func doc(path string, reqs ...model.Requirement) model.Document {
+func doc(path string, reqs ...*model.Node) model.Document {
 	return model.Document{
 		Path: path,
 		Schema: map[string]any{
 			"$id":   path + "/schema.yaml",
 			"title": "Test",
 		},
-		Requirements: reqs,
-		XReqmd:       &model.XReqmd{Level: "test"},
+		Nodes:  reqs,
+		XReqmd: &model.XReqmd{Level: "test"},
 	}
 }
 
 // docWithXReqmd creates a document with a custom XReqmd configuration.
-func docWithXReqmd(path string, xr *model.XReqmd, reqs ...model.Requirement) model.Document {
+func docWithXReqmd(path string, xr *model.XReqmd, reqs ...*model.Node) model.Document {
 	return model.Document{
 		Path: path,
 		Schema: map[string]any{
 			"$id":   path + "/schema.yaml",
 			"title": "Test",
 		},
-		Requirements: reqs,
-		XReqmd:       xr,
+		Nodes:  reqs,
+		XReqmd: xr,
 	}
 }
 
@@ -423,10 +423,10 @@ func TestNew_DispositionSuppressesOrphan(t *testing.T) {
 	results := g.CheckResults()
 	var orphans, missingDispo int
 	for _, r := range results {
-		switch {
-		case r.Message == "untraced: no downstream reference":
+		switch r.Message {
+		case "untraced: no downstream reference":
 			orphans++
-		case r.Message == "no upstream reference":
+		case "no upstream reference":
 			missingDispo++
 		}
 	}
@@ -681,6 +681,246 @@ func TestNew_NeedsSuppressesGenericOrphan(t *testing.T) {
 	}
 }
 
+// ---------------------------------------------------------------------------
+// x-reqmd.requires-trace-from document default (SYS-FMT-003)
+// ---------------------------------------------------------------------------
+
+func TestXReqmdDefault_InheritedAndSatisfied(t *testing.T) {
+	// STK-001 does not declare requires-trace-from; the stakeholder
+	// document's default [system] is inherited and satisfied by SYS-001.
+	stkDoc := docWithXReqmd("/docs/stk", &model.XReqmd{
+		Level:             "stakeholder-needs",
+		DocumentID:        "stakeholder",
+		RequiresTraceFrom: []string{"system"},
+	},
+		req("STK-001", "/docs/stk/needs.md", map[string]any{}),
+	)
+	sysDoc := docWithXReqmd("/docs/sys", &model.XReqmd{
+		Level:      "system-requirements",
+		DocumentID: "system",
+	},
+		req("SYS-001", "/docs/sys/features.md", map[string]any{
+			"trace": []any{"stakeholder/STK-001"},
+		}),
+	)
+	g, err := graph.New([]model.Document{stkDoc, sysDoc})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if w := filterByMessage(g.CheckResults(), "no upstream trace"); len(w) != 0 {
+		t.Errorf("inherited default should be satisfied, got warnings: %v", w)
+	}
+}
+
+func TestXReqmdDefault_InheritedMissingCoverageWarns(t *testing.T) {
+	// Two requirements inherit the [system] default; the system doc does
+	// not trace to either, so both report missing coverage.
+	stkDoc := docWithXReqmd("/docs/stk", &model.XReqmd{
+		Level:             "stakeholder-needs",
+		DocumentID:        "stakeholder",
+		RequiresTraceFrom: []string{"system"},
+	},
+		req("STK-001", "/docs/stk/needs.md", map[string]any{}),
+		req("STK-002", "/docs/stk/needs.md", map[string]any{}),
+	)
+	sysDoc := docWithXReqmd("/docs/sys", &model.XReqmd{
+		Level:      "system-requirements",
+		DocumentID: "system",
+	},
+		req("SYS-001", "/docs/sys/features.md", map[string]any{}),
+	)
+	g, err := graph.New([]model.Document{stkDoc, sysDoc})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := filterByMessage(g.CheckResults(), `no upstream trace: no approved requirement from "system" traces to this item`)
+	if len(w) != 2 {
+		t.Errorf("missing-coverage warnings = %d, want 2 (one per inheriting requirement); results: %v", len(w), g.CheckResults())
+	}
+}
+
+func TestXReqmdDefault_EmptyDefaultOptsOutDocument(t *testing.T) {
+	// An empty document default means every requirement in the document
+	// expects no downstream coverage: neither coverage warnings nor the
+	// generic boundary fallback fire, even with no inbound/outbound.
+	stkDoc := docWithXReqmd("/docs/stk", &model.XReqmd{
+		Level:             "stakeholder-needs",
+		DocumentID:        "stakeholder",
+		RequiresTraceFrom: []string{},
+	},
+		req("STK-001", "/docs/stk/needs.md", map[string]any{}),
+		req("STK-002", "/docs/stk/needs.md", map[string]any{}),
+	)
+	g, err := graph.New([]model.Document{stkDoc})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	res := g.CheckResults()
+	if w := filterByMessage(res, "no upstream trace"); len(w) != 0 {
+		t.Errorf("empty default should suppress coverage warnings: %v", w)
+	}
+	if w := filterByMessage(res, "untraced"); len(w) != 0 {
+		t.Errorf("empty default should suppress generic untraced: %v", w)
+	}
+	if w := filterByMessage(res, "no upstream reference"); len(w) != 0 {
+		t.Errorf("empty default should suppress generic no-downstream: %v", w)
+	}
+}
+
+func TestXReqmdDefault_RequirementEmptyOverridesDefault(t *testing.T) {
+	// STK-002 declares requires-trace-from: [] — it opts out of the [system]
+	// document default. Only STK-001 (which inherits) reports missing coverage.
+	stkDoc := docWithXReqmd("/docs/stk", &model.XReqmd{
+		Level:             "stakeholder-needs",
+		DocumentID:        "stakeholder",
+		RequiresTraceFrom: []string{"system"},
+	},
+		req("STK-001", "/docs/stk/needs.md", map[string]any{}),
+		req("STK-002", "/docs/stk/needs.md", map[string]any{
+			"requires-trace-from": []any{},
+		}),
+	)
+	sysDoc := docWithXReqmd("/docs/sys", &model.XReqmd{
+		Level:      "system-requirements",
+		DocumentID: "system",
+	},
+		req("SYS-001", "/docs/sys/features.md", map[string]any{}),
+	)
+	g, err := graph.New([]model.Document{stkDoc, sysDoc})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := filterByMessage(g.CheckResults(), `no upstream trace: no approved requirement from "system" traces to this item`)
+	if len(w) != 1 {
+		t.Errorf("missing-coverage warnings = %d, want 1 (only the inheriting STK-001); results: %v", len(w), g.CheckResults())
+	}
+	if len(w) == 1 && w[0].ReqID != "STK-001" {
+		t.Errorf("missing-coverage warning should be for STK-001, got %q", w[0].ReqID)
+	}
+}
+
+func TestXReqmdDefault_RequirementTokensOverrideDefault(t *testing.T) {
+	// STK-002 overrides the [system] document default with [software]. Its
+	// coverage is satisfied by a software-level inbound; STK-001 inherits the
+	// default and is satisfied by a system-level inbound.
+	stkDoc := docWithXReqmd("/docs/stk", &model.XReqmd{
+		Level:             "stakeholder-needs",
+		DocumentID:        "stakeholder",
+		RequiresTraceFrom: []string{"system"},
+	},
+		req("STK-001", "/docs/stk/needs.md", map[string]any{}),
+		req("STK-002", "/docs/stk/needs.md", map[string]any{
+			"requires-trace-from": []any{"software"},
+		}),
+	)
+	sysDoc := docWithXReqmd("/docs/sys", &model.XReqmd{
+		Level:      "system-requirements",
+		DocumentID: "system",
+	},
+		req("SYS-001", "/docs/sys/features.md", map[string]any{
+			"trace": []any{"stakeholder/STK-001"},
+		}),
+	)
+	swDoc := docWithXReqmd("/docs/sw", &model.XReqmd{
+		Level:      "software-requirements",
+		DocumentID: "software",
+	},
+		req("SW-001", "/docs/sw/components.md", map[string]any{
+			"trace": []any{"stakeholder/STK-002"},
+		}),
+	)
+	g, err := graph.New([]model.Document{stkDoc, sysDoc, swDoc})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if w := filterByMessage(g.CheckResults(), "no upstream trace"); len(w) != 0 {
+		t.Errorf("override should satisfy coverage independently of the default, got warnings: %v", w)
+	}
+}
+
+func TestXReqmdDefault_LevelTokenResolves(t *testing.T) {
+	// The document default may name a level; it expands to every document
+	// declaring that level (two software docs at the same level here).
+	stkDoc := docWithXReqmd("/docs/stk", &model.XReqmd{
+		Level:             "stakeholder-needs",
+		DocumentID:        "stakeholder",
+		RequiresTraceFrom: []string{"software-requirements"},
+	},
+		req("STK-001", "/docs/stk/needs.md", map[string]any{}),
+	)
+	swDocA := docWithXReqmd("/docs/sw-a", &model.XReqmd{
+		Level:      "software-requirements",
+		DocumentID: "software-a",
+	},
+		req("SW-A-001", "/docs/sw-a/components.md", map[string]any{
+			"trace": []any{"stakeholder/STK-001"},
+		}),
+	)
+	swDocB := docWithXReqmd("/docs/sw-b", &model.XReqmd{
+		Level:      "software-requirements",
+		DocumentID: "software-b",
+	},
+		req("SW-B-001", "/docs/sw-b/components.md", map[string]any{}),
+	)
+	g, err := graph.New([]model.Document{stkDoc, swDocA, swDocB})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if w := filterByMessage(g.CheckResults(), "no upstream trace"); len(w) != 0 {
+		t.Errorf("level-token default should be satisfied by any doc at the level, got warnings: %v", w)
+	}
+}
+
+func TestXReqmdDefault_UnknownTokenWarns(t *testing.T) {
+	stkDoc := docWithXReqmd("/docs/stk", &model.XReqmd{
+		Level:             "stakeholder-needs",
+		DocumentID:        "stakeholder",
+		RequiresTraceFrom: []string{"nonexistent"},
+	},
+		req("STK-001", "/docs/stk/needs.md", map[string]any{}),
+	)
+	g, err := graph.New([]model.Document{stkDoc})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := filterByMessage(g.CheckResults(), `unknown coverage source: "nonexistent"`)
+	if len(w) != 1 {
+		t.Errorf("unknown-coverage warnings = %d, want 1; results: %v", len(w), g.CheckResults())
+	}
+}
+
+func TestXReqmdDefault_StatusGateAppliesToInheritedDefault(t *testing.T) {
+	// STK-001 inherits the [system] default. Its only inbound, SYS-001, is
+	// draft — so coverage is missing and the message reports the draft ignored.
+	stkDoc := docWithXReqmd("/docs/stk", &model.XReqmd{
+		Level:             "stakeholder-needs",
+		DocumentID:        "stakeholder",
+		RequiresTraceFrom: []string{"system"},
+	},
+		req("STK-001", "/docs/stk/needs.md", map[string]any{}),
+	)
+	sysDoc := docWithXReqmd("/docs/sys", &model.XReqmd{
+		Level:      "system-requirements",
+		DocumentID: "system",
+	},
+		req("SYS-001", "/docs/sys/features.md", map[string]any{
+			"status": "draft",
+			"trace":  []any{"stakeholder/STK-001"},
+		}),
+	)
+	g, err := graph.New([]model.Document{stkDoc, sysDoc})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	w := filterByMessage(g.CheckResults(), "no upstream trace")
+	if len(w) != 1 {
+		t.Fatalf("missing-coverage warnings = %d, want 1 (draft inbound ignored); results: %v", len(w), g.CheckResults())
+	}
+	if !strings.Contains(w[0].Message, "(1 draft downstreams ignored)") {
+		t.Errorf("message should report the ignored draft inbound, got %q", w[0].Message)
+	}
+}
+
 func TestNew_QualifiedTraceByDocumentID(t *testing.T) {
 	// Reference uses document-id (not directory path) to disambiguate
 	// the trace target.
@@ -798,10 +1038,10 @@ func TestNeighbors_NonExistent(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
-// 14. SchemaTitle
+// 14. Title
 // ---------------------------------------------------------------------------
 
-func TestSchemaTitle(t *testing.T) {
+func TestTitle(t *testing.T) {
 	tests := []struct {
 		name   string
 		schema any
@@ -856,9 +1096,9 @@ func TestSchemaTitle(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got := schema.SchemaTitle(tt.schema)
+			got := schema.Title(tt.schema)
 			if got != tt.want {
-				t.Errorf("SchemaTitle = %q, want %q", got, tt.want)
+				t.Errorf("Title = %q, want %q", got, tt.want)
 			}
 		})
 	}
@@ -979,19 +1219,12 @@ func TestNew_ExternalSuppressesOrphan(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestNew_ChildSuppressesOrphan(t *testing.T) {
-	g, err := graph.New([]model.Document{
-		doc("/docs/sys",
-			req("SYS-001", "/docs/sys/sys.md", map[string]any{
-				"title": "System requirement",
-			}),
-		),
-	})
 	// Manually set ParentID to simulate a sub-requirement
 	g2docs := []model.Document{
 		{
 			Path:   "/docs/sys",
 			Schema: map[string]any{"$id": "/docs/sys/schema.yaml", "title": "Test"},
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "SYS-001", Source: "/docs/sys/sys.md", Attrs: map[string]any{"title": "Parent"}},
 				{ID: "SYS-001-001", ParentID: "SYS-001", Source: "/docs/sys/sys.md", Attrs: map[string]any{"title": "Child"}},
 			},
@@ -1002,9 +1235,6 @@ func TestNew_ChildSuppressesOrphan(t *testing.T) {
 	if err != nil {
 		t.Fatalf("New returned error: %v", err)
 	}
-
-	// _ = g  // suppress unused var warning — actually we should use g
-	_ = g
 
 	results := g2.CheckResults()
 	for _, r := range results {
@@ -1290,7 +1520,7 @@ func TestNew_VersionPinChildWithPin(t *testing.T) {
 		{
 			Path:   "/docs/sys",
 			Schema: map[string]any{"$id": "/docs/sys/schema.yaml", "title": "Test"},
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "PARENT", Source: "/docs/sys/sys.md", Attrs: map[string]any{
 					"version": 3,
 				}},
@@ -1716,7 +1946,7 @@ func TestStatus_AdditionalPropertiesFalseGraphBuilds(t *testing.T) {
 				"title":                "T15",
 				"additionalProperties": false,
 			},
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "X-001", Source: "/docs/x/x.md", Attrs: map[string]any{
 					"status": "approved",
 				}},

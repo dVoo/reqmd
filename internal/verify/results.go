@@ -11,17 +11,16 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
-	"strings"
-	"time"
-
 	"reqmd/internal/model"
 	"reqmd/internal/parser"
+	"strings"
+	"time"
 )
 
 // Outcome is the reqmd verdict axis derived from a verification result.
 type Outcome string
 
+// Verification result outcomes.
 const (
 	OutcomePass         Outcome = "pass"
 	OutcomeFail         Outcome = "fail"
@@ -97,8 +96,8 @@ func LoadMerged(paths []string) (map[string]Result, []string, error) {
 
 // LoadVerdicts loads results, merges by measure ID, and converts to
 // a Verdict map. This is the shared results-loading path for check,
-// serve, and export csv/html/graph. Returns (nil, nil, nil, nil) when
-// paths is empty.
+// serve, and export csv/html/graph. Returns all nil when paths is
+// empty.
 func LoadVerdicts(paths []string) (merged map[string]Result, verdicts map[string]Verdict, warnings []string, err error) {
 	merged, warnings, err = LoadMerged(paths)
 	if err != nil || merged == nil {
@@ -214,7 +213,7 @@ func loadDir(dir string) ([]Result, []string, error) {
 		return nil
 	})
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, fmt.Errorf("walking %s: %w", dir, err)
 	}
 
 	for _, cf := range ctrfFiles {
@@ -242,12 +241,12 @@ func loadDir(dir string) ([]Result, []string, error) {
 func loadManualDir(dir string) ([]Result, error) {
 	docs, err := parser.Discover(dir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("discovering %s: %w", dir, err)
 	}
 	var results []Result
 	for _, doc := range docs {
-		for _, req := range doc.Requirements {
-			r, ok := resultFromReq(req, dir)
+		for _, req := range doc.Requirements() {
+			r, ok := resultFromReq(req)
 			if !ok {
 				continue
 			}
@@ -259,7 +258,7 @@ func loadManualDir(dir string) ([]Result, error) {
 
 // resultFromReq builds a Result from a parsed manual-results requirement.
 // Returns ok=false if the requirement has no `outcome` attr (not a result).
-func resultFromReq(req model.Requirement, dir string) (Result, bool) {
+func resultFromReq(req *model.Node) (Result, bool) {
 	outcomeRaw, ok := req.Attrs["outcome"]
 	if !ok {
 		return Result{}, false
@@ -293,15 +292,4 @@ func resultFromReq(req model.Requirement, dir string) (Result, bool) {
 		}
 	}
 	return r, true
-}
-
-// sortResults orders results by measure ID then by VerifiedAt for stable
-// debugging output. Not used in merge (MergeLatest handles ordering).
-func sortResults(rs []Result) {
-	sort.Slice(rs, func(i, j int) bool {
-		if rs[i].MeasureID != rs[j].MeasureID {
-			return rs[i].MeasureID < rs[j].MeasureID
-		}
-		return rs[i].VerifiedAt.Before(rs[j].VerifiedAt)
-	})
 }

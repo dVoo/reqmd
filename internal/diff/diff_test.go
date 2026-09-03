@@ -1,9 +1,8 @@
 package diff
 
 import (
-	"testing"
-
 	"reqmd/internal/model"
+	"testing"
 )
 
 func TestDiff_Empty(t *testing.T) {
@@ -28,7 +27,7 @@ func TestDiff_Added(t *testing.T) {
 	docs1 := []model.Document{{Path: "doc"}}
 	docs2 := []model.Document{{
 		Path: "doc",
-		Requirements: []model.Requirement{{
+		Nodes: []*model.Node{{
 			ID:    "REQ-001",
 			Title: "New Requirement",
 			Attrs: map[string]any{"status": "draft"},
@@ -56,7 +55,7 @@ func TestDiff_Added(t *testing.T) {
 func TestDiff_Removed(t *testing.T) {
 	docs1 := []model.Document{{
 		Path: "doc",
-		Requirements: []model.Requirement{{
+		Nodes: []*model.Node{{
 			ID:    "REQ-001",
 			Title: "Old Requirement",
 			Attrs: map[string]any{"status": "approved"},
@@ -82,7 +81,7 @@ func TestDiff_Removed(t *testing.T) {
 func TestDiff_Modified(t *testing.T) {
 	docs1 := []model.Document{{
 		Path: "doc",
-		Requirements: []model.Requirement{{
+		Nodes: []*model.Node{{
 			ID:    "REQ-001",
 			Title: "Requirement",
 			Attrs: map[string]any{"status": "draft"},
@@ -90,7 +89,7 @@ func TestDiff_Modified(t *testing.T) {
 	}}
 	docs2 := []model.Document{{
 		Path: "doc",
-		Requirements: []model.Requirement{{
+		Nodes: []*model.Node{{
 			ID:    "REQ-001",
 			Title: "Requirement",
 			Attrs: map[string]any{"status": "approved"},
@@ -128,7 +127,7 @@ func TestDiff_Modified(t *testing.T) {
 func TestDiff_Unchanged(t *testing.T) {
 	docs := []model.Document{{
 		Path: "doc",
-		Requirements: []model.Requirement{{
+		Nodes: []*model.Node{{
 			ID:    "REQ-001",
 			Title: "Requirement",
 			Attrs: map[string]any{"status": "approved"},
@@ -155,14 +154,14 @@ func TestDiff_Mixed(t *testing.T) {
 	docs1 := []model.Document{
 		{
 			Path: "a",
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "REQ-A1", Title: "A1", Attrs: map[string]any{"status": "approved"}},
 				{ID: "REQ-A2", Title: "A2", Attrs: map[string]any{"status": "approved"}},
 			},
 		},
 		{
 			Path: "b",
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "REQ-B1", Title: "B1", Attrs: map[string]any{"status": "approved"}},
 			},
 		},
@@ -171,14 +170,14 @@ func TestDiff_Mixed(t *testing.T) {
 	docs2 := []model.Document{
 		{
 			Path: "a",
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "REQ-A1", Title: "A1", Attrs: map[string]any{"status": "approved"}},
 				{ID: "REQ-A2", Title: "A2", Attrs: map[string]any{"status": "draft"}},
 			},
 		},
 		{
 			Path: "c",
-			Requirements: []model.Requirement{
+			Nodes: []*model.Node{
 				{ID: "REQ-C1", Title: "C1", Attrs: map[string]any{"status": "draft"}},
 			},
 		},
@@ -204,14 +203,14 @@ func TestDiff_Mixed(t *testing.T) {
 	}
 }
 
-func TestDiffSchemas_AddedProperty(t *testing.T) {
+func TestSchemas_AddedProperty(t *testing.T) {
 	schemas1 := map[string]map[string]any{
 		"doc1": {"properties": map[string]any{"a": "string"}},
 	}
 	schemas2 := map[string]map[string]any{
 		"doc1": {"properties": map[string]any{"a": "string", "b": "string"}},
 	}
-	result := DiffSchemas(schemas1, schemas2)
+	result := Schemas(schemas1, schemas2)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 schema diff, got %d", len(result))
 	}
@@ -220,71 +219,71 @@ func TestDiffSchemas_AddedProperty(t *testing.T) {
 	}
 }
 
-func TestDiffSchemas_RemovedProperty(t *testing.T) {
+func TestSchemas_RemovedProperty(t *testing.T) {
 	schemas1 := map[string]map[string]any{
 		"doc1": {"properties": map[string]any{"a": "string", "b": "string"}},
 	}
 	schemas2 := map[string]map[string]any{
 		"doc1": {"properties": map[string]any{"a": "string"}},
 	}
-	result := DiffSchemas(schemas1, schemas2)
+	result := Schemas(schemas1, schemas2)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 schema diff, got %d", len(result))
 	}
 }
 
-func TestDiffSchemas_ChangedRequired(t *testing.T) {
+func TestSchemas_ChangedRequired(t *testing.T) {
 	schemas1 := map[string]map[string]any{
 		"doc1": {"required": []any{"a"}},
 	}
 	schemas2 := map[string]map[string]any{
 		"doc1": {"required": []any{"a", "b"}},
 	}
-	result := DiffSchemas(schemas1, schemas2)
+	result := Schemas(schemas1, schemas2)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 schema diff, got %d", len(result))
 	}
 }
 
-func TestDiffSchemas_NoChange(t *testing.T) {
+func TestSchemas_NoChange(t *testing.T) {
 	schemas1 := map[string]map[string]any{
 		"doc1": {"properties": map[string]any{"a": "string"}},
 	}
 	schemas2 := map[string]map[string]any{
 		"doc1": {"properties": map[string]any{"a": "string"}},
 	}
-	result := DiffSchemas(schemas1, schemas2)
+	result := Schemas(schemas1, schemas2)
 	if len(result) != 0 {
 		t.Fatalf("expected 0 schema diffs, got %d", len(result))
 	}
 }
 
-func TestDiffSubmodules_Empty(t *testing.T) {
-	result := DiffSubmodules(map[string]string{}, map[string]string{})
+func TestSubmodules_Empty(t *testing.T) {
+	result := Submodules(map[string]string{}, map[string]string{})
 	if len(result) != 0 {
 		t.Errorf("expected empty result, got %d entries", len(result))
 	}
 }
 
-func TestDiffSubmodules_NilMaps(t *testing.T) {
-	result := DiffSubmodules(nil, nil)
+func TestSubmodules_NilMaps(t *testing.T) {
+	result := Submodules(nil, nil)
 	if len(result) != 0 {
 		t.Errorf("expected empty result from nil maps, got %d entries", len(result))
 	}
 }
 
-func TestDiffSubmodules_NoChange(t *testing.T) {
+func TestSubmodules_NoChange(t *testing.T) {
 	subs := map[string]string{
 		"vendor/a": "aaa1111111111111111111111111111111111111",
 		"vendor/b": "bbb2222222222222222222222222222222222222",
 	}
-	result := DiffSubmodules(subs, subs)
+	result := Submodules(subs, subs)
 	if len(result) != 0 {
 		t.Errorf("expected empty result (no changes), got %d entries", len(result))
 	}
 }
 
-func TestDiffSubmodules_Added(t *testing.T) {
+func TestSubmodules_Added(t *testing.T) {
 	subs1 := map[string]string{
 		"vendor/a": "aaa1111111111111111111111111111111111111",
 	}
@@ -292,7 +291,7 @@ func TestDiffSubmodules_Added(t *testing.T) {
 		"vendor/a": "aaa1111111111111111111111111111111111111",
 		"vendor/b": "bbb2222222222222222222222222222222222222",
 	}
-	result := DiffSubmodules(subs1, subs2)
+	result := Submodules(subs1, subs2)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 change, got %d", len(result))
 	}
@@ -310,7 +309,7 @@ func TestDiffSubmodules_Added(t *testing.T) {
 	}
 }
 
-func TestDiffSubmodules_Removed(t *testing.T) {
+func TestSubmodules_Removed(t *testing.T) {
 	subs1 := map[string]string{
 		"vendor/a": "aaa1111111111111111111111111111111111111",
 		"vendor/b": "bbb2222222222222222222222222222222222222",
@@ -318,7 +317,7 @@ func TestDiffSubmodules_Removed(t *testing.T) {
 	subs2 := map[string]string{
 		"vendor/a": "aaa1111111111111111111111111111111111111",
 	}
-	result := DiffSubmodules(subs1, subs2)
+	result := Submodules(subs1, subs2)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 change, got %d", len(result))
 	}
@@ -336,14 +335,14 @@ func TestDiffSubmodules_Removed(t *testing.T) {
 	}
 }
 
-func TestDiffSubmodules_Updated(t *testing.T) {
+func TestSubmodules_Updated(t *testing.T) {
 	subs1 := map[string]string{
 		"vendor/a": "aaa1111111111111111111111111111111111111",
 	}
 	subs2 := map[string]string{
 		"vendor/a": "ccc3333333333333333333333333333333333333",
 	}
-	result := DiffSubmodules(subs1, subs2)
+	result := Submodules(subs1, subs2)
 	if len(result) != 1 {
 		t.Fatalf("expected 1 change, got %d", len(result))
 	}
@@ -361,7 +360,7 @@ func TestDiffSubmodules_Updated(t *testing.T) {
 	}
 }
 
-func TestDiffSubmodules_Mixed(t *testing.T) {
+func TestSubmodules_Mixed(t *testing.T) {
 	subs1 := map[string]string{
 		"vendor/a": "aaa1111111111111111111111111111111111111",
 		"vendor/b": "bbb2222222222222222222222222222222222222",
@@ -373,7 +372,7 @@ func TestDiffSubmodules_Mixed(t *testing.T) {
 		// vendor/c removed
 		"vendor/d": "eee5555555555555555555555555555555555555", // added
 	}
-	result := DiffSubmodules(subs1, subs2)
+	result := Submodules(subs1, subs2)
 	if len(result) != 3 {
 		t.Fatalf("expected 3 changes, got %d", len(result))
 	}
@@ -389,7 +388,7 @@ func TestDiffSubmodules_Mixed(t *testing.T) {
 	}
 }
 
-func TestDiffSubmodules_SortedOutput(t *testing.T) {
+func TestSubmodules_SortedOutput(t *testing.T) {
 	subs1 := map[string]string{
 		"z/vendor": "aaa1111111111111111111111111111111111111",
 		"a/vendor": "bbb2222222222222222222222222222222222222",
@@ -400,7 +399,7 @@ func TestDiffSubmodules_SortedOutput(t *testing.T) {
 		"a/vendor": "eee5555555555555555555555555555555555555",
 		"m/vendor": "fff6666666666666666666666666666666666666",
 	}
-	result := DiffSubmodules(subs1, subs2)
+	result := Submodules(subs1, subs2)
 	if len(result) != 3 {
 		t.Fatalf("expected 3 changes, got %d", len(result))
 	}

@@ -2,11 +2,10 @@ package verify
 
 import (
 	"fmt"
+	"reqmd/internal/model"
 	"sort"
 	"strings"
 	"time"
-
-	"reqmd/internal/model"
 )
 
 // resultDocLevel is the x-reqmd level assigned to synthesized
@@ -35,28 +34,28 @@ func Synthesize(merged map[string]Result) model.Document {
 	}
 	sort.Strings(ids)
 
-	reqs := make([]model.Requirement, 0, len(ids))
+	nodes := make([]*model.Node, 0, len(ids))
 	for _, id := range ids {
 		r := merged[id]
-		reqs = append(reqs, synthesizeOne(id, r))
+		nodes = append(nodes, synthesizeOne(id, r))
 	}
 
 	return model.Document{
-		Path:         "<verify-results>", // synthetic; not a real dir
-		Requirements:  reqs,
-		XReqmd:       &model.XReqmd{Level: resultDocLevel},
-		Properties:   []string{"outcome", model.AttrTrace, model.AttrStatus, "verifier", "evidence", "verified-at"},
+		Path:       "<verify-results>", // synthetic; not a real dir
+		Nodes:      nodes,
+		XReqmd:     &model.XReqmd{Level: resultDocLevel},
+		Properties: []string{"outcome", model.AttrTrace, model.AttrStatus, "verifier", "evidence", "verified-at"},
 	}
 }
 
-// synthesizeOne builds a single pseudo-requirement from a result.
+// synthesizeOne builds a single pseudo-requirement node from a result.
 // The measure ID (with its `~N` pin preserved) becomes the trace target.
-func synthesizeOne(measureID string, r Result) model.Requirement {
+func synthesizeOne(measureID string, r Result) *model.Node {
 	attrs := map[string]any{
 		"outcome": string(r.Outcome),
 		// trace with the original (pinned) measure ID so version-pin
 		// checks fire on stale pins.
-		model.AttrTrace: []any{r.MeasureID},
+		model.AttrTrace:  []any{r.MeasureID},
 		model.AttrStatus: model.StatusApproved,
 	}
 	if r.Verifier != "" {
@@ -69,11 +68,11 @@ func synthesizeOne(measureID string, r Result) model.Requirement {
 		attrs["verified-at"] = r.VerifiedAt.Format(time.DateOnly)
 	}
 
-	return model.Requirement{
+	return &model.Node{
+		Kind:   model.KindRequirement,
 		ID:     synthID(measureID),
 		Title:  outcomeTitle(r),
 		Attrs:  attrs,
-		Body:   "",
 		Source: r.Source,
 	}
 }

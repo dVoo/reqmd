@@ -9,9 +9,9 @@ trace:
   - SYS-FMT-001
   - SYS-FMT-004
 ```
-The parser package shall use goldmark to walk the Markdown AST, extracting requirement ID from headings and YAML attributes from fenced ` ```attr ``` ` blocks. The first heading+attr pair encountered determines the requirement level (`reqLevel`); headings at `reqLevel` with an adjacent attr block are top-level requirements, and headings at `reqLevel+1` with an adjacent attr block are sub-requirements (`ParentID` set to the active parent). Non-attr headings are body text. The parser SHALL also extract YAML frontmatter from `.md` files, with first-file-wins merge semantics across files in the same document directory. Parsing shall run in parallel across files via a worker pool sized to `runtime.NumCPU()`.
+The parser package shall use goldmark to walk the Markdown AST, extracting requirement IDs from headings and YAML attributes from fenced ` ```attr ``` ` blocks. The package shall also extract YAML frontmatter from `.md` files, with first-file-wins merge semantics across files in the same document directory, and parse files in parallel via a worker pool sized to `runtime.NumCPU()` with deterministic (file-order) result merging. Heading structure, parent chains, and content capture are defined in SW-PAR-002.
 
-*Rationale:* Dynamic `reqLevel` discovery decouples requirement detection from hardcoded heading levels. The `isNextAttrBlock()` lookahead provides a universal gate. First-file-wins merge avoids metadata conflicts. Parallel worker pools maximize throughput on multi-document repositories.
+*Rationale:* goldmark provides a battle-tested CommonMark AST. Deterministic merge ordering keeps output stable regardless of goroutine scheduling. Content-tree semantics live in SW-PAR-002.
 
 ## SW-SCH-001: JSON Schema compilation
 ```attr
@@ -35,7 +35,9 @@ priority: Critical
 trace:
   - SYS-VAL-001
 ```
-The graph package shall build a pure Go in-memory directed graph from all parsed requirements via three sub-passes: Pass 1 creates `CachedNode` structs with typed fields (ReqID, Root, Leaf, IsChild, Disposition, External, IDPrefix, Inbound/Outbound slices); Pass 2 builds adjacency from manual `trace` attributes; Pass 3 builds parent-child edges from the parser-set `ParentID` field. Broken parent references in Pass 3 produce ERROR-level results. No external graph database is used at runtime.
+The graph package shall build a pure Go in-memory directed graph from all parsed requirements via three sub-passes: Pass 1 creates `CachedNode` structs with typed fields (ReqID, Root, Leaf, IsChild, Disposition, External, IDPrefix, RequiresTraceFrom, Inbound/Outbound slices); Pass 2 builds adjacency from manual `trace` attributes; Pass 3 builds parent-child edges from the parser-set `ParentID` field. Broken parent references in Pass 3 produce ERROR-level results. No external graph database is used at runtime.
+
+During Pass 1 each node's `requires-trace-from` expectation shall be resolved to its effective value: the requirement's own attribute when declared, otherwise the enclosing document's `x-reqmd.requires-trace-from` default when set. A requirement-level `requires-trace-from: []` and an empty document default both mean "no downstream coverage expected"; a node whose requirement declares nothing in a document without a default keeps `nil` so the generic boundary-inference fallback applies.
 
 *Rationale:* Three sub-passes guarantee deterministic node initialization before edge construction. The `IsChild` flag propagates into untraced-check suppression. Pure Go adjacency eliminates temp-directory I/O and serialization overhead.
 
@@ -271,7 +273,7 @@ priority: High
 trace:
   - SYS-FMT-005
 ```
-The graph package shall index document directories by their `x-reqmd.level` and resolve each `requires-trace-from` token against that index: a token matching a declared level expands to every directory at that level (any approved inbound from any of them satisfies coverage), a token matching a `document-id` resolves as today, and a token matching neither shall produce a WARNING.
+The graph package shall index document directories by their `x-reqmd.level` and resolve each `requires-trace-from` token against that index: a token matching a declared level expands to every directory at that level (any approved inbound from any of them satisfies coverage), a token matching a `document-id` resolves as today, and a token matching neither shall produce a WARNING. Coverage tokens inherited from the `x-reqmd.requires-trace-from` document default (resolved onto the node during Pass 1, SYS-FMT-003) shall be resolved through the same index and are indistinguishable from per-requirement declarations downstream of node creation.
 
 *Rationale:* Level indexing is built once at graph construction from data the parser already exposes, so coverage checks stay O(1) per token while remaining correct as directories within a level are added or removed.
 
@@ -310,3 +312,29 @@ trace:
 The writer shall render per-package `.md` files with one requirement per symbol: ID `<id-prefix><package>-<symbol>-<7charhash>`, `status: approved`, `x-reqmd.imported: true`, provenance (`x-reqmd.source-file`, `x-reqmd.source-line`, `x-reqmd.symbol-kind`), and `###` children for methods nested under their parent type. Output shall be byte-deterministic and idempotent: existing files are only rewritten when their content changes, and hand-authored files (no generated marker) are never touched.
 
 *Rationale:* Deterministic output makes re-running the extractor a safe no-op, and the generated-marker guard prevents clobbering manual edits in the same target tree.
+
+## SW-PAR-002: Content-tree parsing
+```attr
+status: approved
+package: parser
+priority: High
+requires-trace-from: [software-requirements]
+trace:
+  - SYS-CON-001
+```
+The parser package shall emit a flat node stream per `.md` file — one `model.Node` per heading (kind requirement, container, or info) except the level-1 document title, which is captured as the file title and excluded from the stream — with prose, rationales, code blocks, and thematic breaks attached to the open node's body — and assemble it into the document content tree with `assembleTree`: parent = nearest preceding heading with a shallower level; `ParentID` set for requirements to the nearest ancestor requirement; info nodes with children promoted to `KindContainer`. Requirement headings shall be level 2 or higher; a level-1 heading with an `attr` block shall be rejected as a parse error. Multi-file documents shall merge per-file trees in `mdFiles` (sorted) order so output ordering is deterministic regardless of parse parallelism, take the document title from the first file's h1 heading, and the parallel chunked path shall include the file preamble in chunk 0 so leading prose and headings are never dropped.
+
+*Rationale:* The chunked parse path previously split files at root-requirement boundaries, silently discarding the preamble. Assembly after concatenating chunk node streams (instead of per-chunk) preserves nesting across chunk boundaries (e.g. a container in chunk 0 holding a requirement in chunk 1) while keeping parse parallelism.
+
+## SW-EXP-002: Item-aware export
+```attr
+status: approved
+package: exporter
+priority: Medium
+requires-trace-from: [software-requirements]
+trace:
+  - SYS-CON-002
+```
+The exporter package shall render the document tree depth-first: requirement cards with child cards nested, containers as collapsible folder sections with stable `info-N` anchors, and info items as plain blocks. The embedded JSON index shall include every node with a `type` discriminator and tree references (parent/children anchors) so the sidebar TOC renders folders and scroll-spy covers item blocks; the client-side search/filter shall count requirements only. CSV export shall emit a `Type` column and rows for all nodes in document order.
+
+*Rationale:* The index previously carried only requirement IDs and parent/child lists derived from `ParentID`. Containers need their own anchors and tree edges; keeping the index shape flat (id/type/parentId/children) lets the existing Alpine and vanilla-JS code consume the extended data with minimal client changes.

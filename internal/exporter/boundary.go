@@ -1,8 +1,9 @@
+// Package exporter renders parsed reqmd documents into portable formats:
+// standalone HTML, CSV, and the LadybugDB graph export.
 package exporter
 
 import (
 	"path/filepath"
-
 	"reqmd/internal/model"
 )
 

@@ -1,14 +1,14 @@
 package exporter
 
 import (
-	"testing"
-
 	"reqmd/internal/model"
+	"strings"
+	"testing"
 )
 
 func TestBuildRenderData(t *testing.T) {
 	doc := model.Document{
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{
 				ID:    "REQ-001",
 				Title: "First",
@@ -17,6 +17,21 @@ func TestBuildRenderData(t *testing.T) {
 					"asil":   "B",
 				},
 				Body: "First body.",
+				Children: []*model.Node{
+					{
+						// Single-value attr (same on both) must be dropped from filter set.
+						ID:       "REQ-003",
+						ParentID: "REQ-001",
+						Attrs: map[string]any{
+							"asil":      "B",
+							"maturity":  "released",
+							"trace":     []string{"REQ-002"},
+							"req-only":  "same",
+							"req-only2": "same",
+						},
+						Body: "Third body.",
+					},
+				},
 			},
 			{
 				ID:    "REQ-002",
@@ -28,17 +43,8 @@ func TestBuildRenderData(t *testing.T) {
 				Body: "Second body.",
 			},
 			{
-				// Single-value attr (same on both) must be dropped from filter set.
-				ID:       "REQ-003",
-				ParentID: "REQ-001",
-				Attrs: map[string]any{
-					"asil":      "B",
-					"maturity":  "released",
-					"trace":     []string{"REQ-002"},
-					"req-only":  "same",
-					"req-only2": "same",
-				},
-				Body: "Third body.",
+				Kind:  model.KindContainer,
+				Title: "Section",
 			},
 		},
 	}
@@ -48,15 +54,31 @@ func TestBuildRenderData(t *testing.T) {
 		t.Fatal("buildRenderData returned nil")
 	}
 
-	// TopLevel: requirements without ParentID.
-	if len(rd.TopLevel) != 2 {
-		t.Errorf("TopLevel: got %d, want 2", len(rd.TopLevel))
+	// Root nodes: REQ-001 (with child), REQ-002, Section.
+	if len(rd.Nodes) != 3 {
+		t.Errorf("Nodes: got %d, want 3", len(rd.Nodes))
 	}
 
-	// ChildrenOf: REQ-003 → REQ-001.
-	kids, ok := rd.ChildrenOf["REQ-001"]
-	if !ok || len(kids) != 1 || kids[0].ID != "REQ-003" {
-		t.Errorf("ChildrenOf[REQ-001] = %v, want [REQ-003]", kids)
+	// Anchors: requirements anchor on their ID, items on info-N.
+	if rd.Anchors[doc.Nodes[0]] != "REQ-001" {
+		t.Errorf("anchor[REQ-001] = %q, want REQ-001", rd.Anchors[doc.Nodes[0]])
+	}
+	if rd.Anchors[doc.Nodes[2]] != "info-1" {
+		t.Errorf("anchor[Section] = %q, want info-1", rd.Anchors[doc.Nodes[2]])
+	}
+
+	// Index: 4 entries (roots + child REQ-003), tree-linked.
+	if len(rd.Index) != 4 {
+		t.Fatalf("Index len = %d, want 4", len(rd.Index))
+	}
+	if len(rd.Index[0].Children) != 1 || rd.Index[0].Children[0] != "REQ-003" {
+		t.Errorf("Index[0].Children = %v, want [REQ-003]", rd.Index[0].Children)
+	}
+	if rd.Index[1].ParentID != "REQ-001" {
+		t.Errorf("Index[1].ParentID = %q, want REQ-001", rd.Index[1].ParentID)
+	}
+	if rd.Index[3].Type != "container" {
+		t.Errorf("Index[3].Type = %q, want container", rd.Index[3].Type)
 	}
 
 	// StatusCounts: 1 approved (REQ-001) + 1 default-approved (REQ-003, no status)
@@ -161,7 +183,7 @@ func TestNormalizeAttrValue(t *testing.T) {
 
 func TestBuildTraceCache(t *testing.T) {
 	doc := model.Document{
-		Requirements: []model.Requirement{
+		Nodes: []*model.Node{
 			{ID: "REQ-001"},
 			{ID: "REQ-002"},
 		},
@@ -196,18 +218,22 @@ func TestBuildTraceCache(t *testing.T) {
 }
 
 func TestBuildIndexEntry(t *testing.T) {
-	req := model.Requirement{
-		ID:    "REQ-007",
-		Title: "A title",
-		Attrs: map[string]any{
-			"status": "approved",
-			"asil":   "D",
-			"trace":  []string{"X-1"}, // should be dropped from entry attrs
-		},
+	kid1 := &model.Node{ID: "REQ-007-1"}
+	kid2 := &model.Node{ID: "REQ-007-2"}
+	req := &model.Node{
+		ID:        "REQ-007",
+		Title:     "A title",
+		Attrs:     map[string]any{"status": "approved", "asil": "D", "trace": []string{"X-1"}},
 		Body:      "body",
 		Rationale: "why",
+		Children:  []*model.Node{kid1, kid2},
 	}
-	entry := buildIndexEntry(req, nil)
+	anchors := map[*model.Node]string{
+		req:  "REQ-007",
+		kid1: "REQ-007-1",
+		kid2: "REQ-007-2",
+	}
+	entry := buildIndexEntry(req, "REQ-007", "", anchors)
 
 	if entry.ID != "REQ-007" {
 		t.Errorf("ID = %q, want REQ-007", entry.ID)
@@ -231,33 +257,29 @@ func TestBuildIndexEntry(t *testing.T) {
 		t.Error("trace attr should be omitted from index entry attrs")
 	}
 
-	// With children.
-	childEntry := buildIndexEntry(req, map[string][]model.Requirement{
-		"REQ-007": {{ID: "REQ-007-1"}, {ID: "REQ-007-2"}},
-	})
+	// Children come from the tree, resolved via the anchor map.
 	wantKids := []string{"REQ-007-1", "REQ-007-2"}
-	if len(childEntry.Children) != len(wantKids) {
-		t.Fatalf("Children len = %d, want %d", len(childEntry.Children), len(wantKids))
+	if len(entry.Children) != len(wantKids) {
+		t.Fatalf("Children len = %d, want %d", len(entry.Children), len(wantKids))
 	}
 	for i, k := range wantKids {
-		if childEntry.Children[i] != k {
-			t.Errorf("Children[%d] = %q, want %q", i, childEntry.Children[i], k)
+		if entry.Children[i] != k {
+			t.Errorf("Children[%d] = %q, want %q", i, entry.Children[i], k)
 		}
 	}
 
-	// Body truncation at 80 runes.
-	longBody := ""
-	for i := 0; i < 100; i++ {
-		longBody += "x"
+	// Parent anchor is recorded.
+	childEntry := buildIndexEntry(kid1, "REQ-007-1", "REQ-007", anchors)
+	if childEntry.ParentID != "REQ-007" {
+		t.Errorf("child ParentID = %q, want REQ-007", childEntry.ParentID)
 	}
+
+	// Body truncation at 80 runes.
+	longBody := strings.Repeat("x", 100)
 	truncReq := req
 	truncReq.Body = longBody
-	trunc := buildIndexEntry(truncReq, nil)
-	wantBody := ""
-	for i := 0; i < 80; i++ {
-		wantBody += "x"
-	}
-	wantBody += "..."
+	trunc := buildIndexEntry(truncReq, "REQ-007", "", anchors)
+	wantBody := strings.Repeat("x", 80) + "..."
 	if trunc.Body != wantBody {
 		t.Errorf("truncated Body = %q (len %d), want len %d", trunc.Body, len(trunc.Body), len(wantBody))
 	}
@@ -320,6 +342,43 @@ func TestSortedStatusValues(t *testing.T) {
 				if got[i] != v {
 					t.Errorf("[%d] got %q, want %q (full: %v)", i, got[i], v, got)
 				}
+			}
+		})
+	}
+}
+
+func TestItemHeadingTagNativeLevels(t *testing.T) {
+	cases := []struct {
+		want  string
+		level int
+	}{
+		{level: 1, want: "h2"}, // defensive: h1 is the document title, never content
+		{level: 2, want: "h2"},
+		{level: 3, want: "h3"},
+		{level: 4, want: "h4"},
+		{level: 6, want: "h6"},
+	}
+	for _, tc := range cases {
+		if got := itemHeadingTag(tc.level); got != tc.want {
+			t.Errorf("itemHeadingTag(%d) = %q, want %q", tc.level, got, tc.want)
+		}
+	}
+}
+
+func TestDocTitleFallback(t *testing.T) {
+	cases := []struct {
+		name string
+		want string
+		doc  model.Document
+	}{
+		{name: "parsed h1 title wins", doc: model.Document{Title: "From h1", Schema: map[string]any{"title": "Schema"}}, want: "From h1"},
+		{name: "schema title fallback", doc: model.Document{Schema: map[string]any{"title": "Schema"}}, want: "Schema"},
+		{name: "empty", doc: model.Document{}, want: ""},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := docTitle(tc.doc); got != tc.want {
+				t.Errorf("docTitle = %q, want %q", got, tc.want)
 			}
 		})
 	}

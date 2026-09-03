@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-
-	"github.com/spf13/cobra"
-
 	"reqmd/internal/diff"
 	"reqmd/internal/filter"
 	"reqmd/internal/model"
 	"reqmd/internal/parser"
 	"reqmd/internal/reporter"
+
+	"github.com/spf13/cobra"
 )
 
 func newBaselineCmd() *cobra.Command {
@@ -75,7 +74,7 @@ func runBaselineDiff(cmd *cobra.Command, args []string, jsonOutput bool, filterE
 	}
 
 	// Validate we're in a git repo.
-	if err := exec.Command("git", "-C", root, "rev-parse", "--is-inside-work-tree").Run(); err != nil {
+	if err = exec.Command("git", "-C", root, "rev-parse", "--is-inside-work-tree").Run(); err != nil {
 		return fmt.Errorf("baseline diff requires a git repository")
 	}
 
@@ -126,7 +125,7 @@ func runBaselineDiff(cmd *cobra.Command, args []string, jsonOutput bool, filterE
 		return fmt.Errorf("listing submodules at %s: %w", tag2, err)
 	}
 
-	result.Submodules = diff.DiffSubmodules(subs1, subs2)
+	result.Submodules = diff.Submodules(subs1, subs2)
 
 	// Format output.
 	var output string
@@ -139,7 +138,9 @@ func runBaselineDiff(cmd *cobra.Command, args []string, jsonOutput bool, filterE
 		output = reporter.FormatDiff(result)
 	}
 
-	fmt.Fprint(cmd.OutOrStdout(), output)
+	if _, err := fmt.Fprint(cmd.OutOrStdout(), output); err != nil {
+		return fmt.Errorf("writing output: %w", err)
+	}
 	return nil
 }
 
@@ -178,7 +179,9 @@ func runBaselineDiffFilteredViews(cmd *cobra.Command, root string, args []string
 		output = reporter.FormatDiff(result)
 	}
 
-	fmt.Fprint(cmd.OutOrStdout(), output)
+	if _, err := fmt.Fprint(cmd.OutOrStdout(), output); err != nil {
+		return fmt.Errorf("writing output: %w", err)
+	}
 	return nil
 }
 
@@ -187,7 +190,11 @@ func runBaselineDiffFilteredViews(cmd *cobra.Command, root string, args []string
 func applyFilter(docs []model.Document, expr string) ([]model.Document, error) {
 	f, err := filter.CompileForDocs(docs, expr)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("compiling filter %q: %w", expr, err)
 	}
-	return f.FilterDocs(docs)
+	filtered, err := f.FilterDocs(docs)
+	if err != nil {
+		return nil, fmt.Errorf("applying filter %q: %w", expr, err)
+	}
+	return filtered, nil
 }

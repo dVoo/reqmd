@@ -23,21 +23,27 @@ This folder contains a complete four-level V-model spec tree:
 ## How trace links work
 
 Each requirement has a `trace` attribute listing its upstream IDs. reqmd
-validates that every trace target exists:
+validates that every trace target exists.
+
+Downstream coverage expectations are declared **once per document** in the
+`x-reqmd.requires-trace-from` key of `schema.yaml`, and every requirement in
+that document that does not declare its own `requires-trace-from` attribute
+inherits it:
 
 ```yaml
-## SYS-001: Boot Sequence
-```attr
-status: approved
-requires-trace-from: [software, tests]
-trace: [stakeholder/STK-GOAL-001]
-```
+# system/schema.yaml
+x-reqmd:
+  level: system-requirements
+  document-id: system
+  requires-trace-from: [software, tests]   # SYS-001 inherits this
 ```
 
-The `requires-trace-from` attribute declares which downstream levels must trace
-back to this requirement. reqmd checks coverage both ways.
+A requirement may override the document default by declaring the attribute
+itself, and `requires-trace-from: []` opts a single requirement out. Here the
+`tests/` layer sets an empty document default — a bottom-of-V layer expects no
+further downstream coverage. reqmd checks coverage both ways.
 
-> **Hint:** The tokens here (`software`, `tests`) are `document-id`s. A
+> **Hint:** The tokens above (`software`, `tests`) are `document-id`s. A
 > `requires-trace-from` token can also name a `level` (e.g.
 > `software-requirements`) to match every document at that layer — see the
 > [x-reqmd options](https://reqmd.dev/cheat-sheet/#x-reqmd-options) and the
@@ -52,8 +58,13 @@ reqmd check 02-trace-your-spec/
 Expected output:
 
 ```
-Summary: 5 total, 5 valid, 0 invalid, 0 parse errors
+Summary: 5 total, 5 valid, 0 invalid, 0 parse errors, 1 warnings
 ```
+
+The single warning is `SYS-001`: its only `software`-level inbound (`SW-001`)
+is still `draft`, and a draft requirement does not close a coverage
+expectation. Promote `SW-001` to `approved` to make it green — see
+[Step 5 — Status & Disposition](../05-status-disposition/).
 
 ## List all requirements
 
