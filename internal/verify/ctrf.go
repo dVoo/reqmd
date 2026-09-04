@@ -8,7 +8,8 @@ import (
 )
 
 // CTRF top-level report shape. Only the fields reqmd needs are decoded;
-// the per-test `extra` extension point is where `x-reqmd.id` lives.
+// the per-test `extra` extension point carries the reqmd binding fields
+// (id, case, verifies, description).
 //
 // Reference: https://ctrf.io/docs/full-schema
 type ctrfReport struct {
@@ -17,16 +18,16 @@ type ctrfReport struct {
 
 type ctrfResults struct {
 	Tests []ctrfTest `json:"tests"`
+	Suite string     `json:"suite"`
 }
 
 type ctrfTest struct {
-	Extra    map[string]any  `json:"extra"`
-	Name     string          `json:"name"`
-	Status   string          `json:"status"`
-	RawExtra json.RawMessage `json:"-"`
-	Stop     int64           `json:"stop"`
-	Start    int64           `json:"start"`
-	Flaky    bool            `json:"flaky"`
+	Extra  map[string]any `json:"extra"`
+	Name   string         `json:"name"`
+	Status string         `json:"status"`
+	Stop   int64          `json:"stop"`
+	Start  int64          `json:"start"`
+	Flaky  bool           `json:"flaky"`
 }
 
 // loadCTRFFile parses one CTRF JSON file into Results.
@@ -40,6 +41,15 @@ func loadCTRFFile(path string) ([]Result, []string, error) {
 
 // loadCTRFData parses CTRF JSON bytes into Results. The path is
 // used only for error messages and evidence attribution.
+//
+// Binding (extra.x-reqmd):
+//   - id present → the result binds directly to that requirement ID
+//     (patterns A/C); an explicit `case` is recorded on the result.
+//   - no id but verifies present → a test case is synthesized under the
+//     case key (explicit `case`, else normalized (suite, name)) with trace
+//     edges to each verifies ref (patterns D/E).
+//   - x-reqmd present but nothing bindable → an "unbound-result" warning.
+//   - no x-reqmd block → skipped silently.
 func loadCTRFData(data []byte, path string) ([]Result, []string, error) {
 	if !looksLikeCTRF(data) {
 		return nil, nil, fmt.Errorf("not a CTRF report: missing top-level results object")
@@ -53,39 +63,92 @@ func loadCTRFData(data []byte, path string) ([]Result, []string, error) {
 	var results []Result
 	var warnings []string
 	for _, t := range report.Results.Tests {
-		id := extractXReqmdID(t.Extra)
-		if id == "" {
-			warnings = append(warnings, fmt.Sprintf("CTRF test %q in %s has no x-reqmd.id; skipped", t.Name, path))
+		fields := extractXReqmd(t.Extra)
+		if !fields.present {
+			// Uninstrumented test — silent skip (incremental adoption).
 			continue
 		}
-		results = append(results, Result{
-			MeasureID:  id,
-			Outcome:    ctrfStatusToOutcome(t.Status, t.Flaky),
-			VerifiedAt: msEpochToTime(t.Stop, t.Start),
-			Evidence:   path,
-			Source:     path,
-			Name:       t.Name,
-		})
+		result := Result{
+			Outcome:     ctrfStatusToOutcome(t.Status, t.Flaky),
+			VerifiedAt:  msEpochToTime(t.Stop, t.Start),
+			Evidence:    path,
+			Source:      path,
+			Name:        t.Name,
+			Description: fields.Description,
+			Verifies:    fields.Verifies,
+		}
+		switch {
+		case fields.ID != "":
+			result.MeasureID = fields.ID
+			result.CaseKey = fields.Case
+		case len(fields.Verifies) > 0:
+			caseKey := fields.Case
+			if caseKey == "" {
+				caseKey = implicitCaseKey(report.Results.Suite, t.Name)
+			}
+			result.CaseKey = caseKey
+			result.MeasureID = testCasePrefix + caseKey
+		default:
+			warnings = append(warnings, fmt.Sprintf("unbound-result: CTRF test %q in %s declares x-reqmd but binds nothing (need id or verifies)", t.Name, path))
+			continue
+		}
+		results = append(results, result)
 	}
 	return results, warnings, nil
 }
 
-// extractXReqmdID reads the `x-reqmd.id` field from a CTRF test's `extra`
-// object. Returns "" when absent (the test is unmapped).
-func extractXReqmdID(extra map[string]any) string {
+// xreqmdFields holds the reqmd binding fields from a CTRF test's
+// extra.x-reqmd block. present is true when the block exists.
+type xreqmdFields struct {
+	present     bool
+	ID          string
+	Case        string
+	Verifies    []string
+	Description string
+}
+
+// extractXReqmd reads the reqmd binding fields from a CTRF test's `extra`
+// object. Returns present=false when there is no x-reqmd block.
+func extractXReqmd(extra map[string]any) xreqmdFields {
 	if extra == nil {
-		return ""
+		return xreqmdFields{}
 	}
 	v, ok := extra["x-reqmd"]
 	if !ok {
-		return ""
+		return xreqmdFields{}
 	}
 	m, ok := v.(map[string]any)
 	if !ok {
-		return ""
+		return xreqmdFields{}
 	}
-	id, _ := m["id"].(string)
-	return id
+	f := xreqmdFields{present: true}
+	if id, ok := m["id"].(string); ok {
+		f.ID = id
+	}
+	if c, ok := m["case"].(string); ok {
+		f.Case = c
+	}
+	if d, ok := m["description"].(string); ok {
+		f.Description = d
+	}
+	if verifies, ok := m["verifies"].([]any); ok {
+		for _, item := range verifies {
+			if s, ok := item.(string); ok {
+				f.Verifies = append(f.Verifies, s)
+			}
+		}
+	}
+	return f
+}
+
+// implicitCaseKey derives a stable case key from the report suite and test
+// name for verifies-only bindings (pattern E): suite + "/" + name, or the
+// bare name when the report has no suite.
+func implicitCaseKey(suite, name string) string {
+	if suite == "" {
+		return name
+	}
+	return suite + "/" + name
 }
 
 // ctrfStatusToOutcome maps CTRF status to reqmd outcome. A flaky test is

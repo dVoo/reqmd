@@ -14,6 +14,7 @@ import (
 	"reqmd/internal/schema"
 	"reqmd/internal/verify"
 	"runtime"
+	"strings"
 	"sync"
 
 	"github.com/spf13/cobra"
@@ -27,6 +28,7 @@ func newCheckCmd() *cobra.Command {
 	var resultsPaths []string
 	var filterExpr string
 	var disjointChecks []string
+	var ignoreUnboundResults bool
 
 	cmd := &cobra.Command{
 		Use:     "check <dir>",
@@ -61,7 +63,7 @@ duration of this run.`,
 				}
 				return err
 			}
-			output, err := validateDir(path, jsonOutput, relaxedVersions, resultsPaths, filterExpr, disjointChecks)
+			output, err := validateDir(path, jsonOutput, relaxedVersions, resultsPaths, filterExpr, disjointChecks, ignoreUnboundResults)
 			if output != "" {
 				if _, werr := fmt.Fprint(cmd.OutOrStdout(), output); werr != nil {
 					return fmt.Errorf("writing output: %w", werr)
@@ -77,6 +79,7 @@ duration of this run.`,
 	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF .ctrf.json or manual-results dirs with schema.yaml) and run outcome-gated checks. Repeatable. May be a dir (walked, auto-detected) or a single CTRF file.")
 	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression (e.g. '\"Premium\" in variant'). Only matching requirements are checked and reported.")
 	cmd.Flags().StringArrayVar(&disjointChecks, "disjoint-check", nil, "Check that trace-linked requirements have overlapping values for the named array-typed attribute (e.g. variant). Repeatable. Also settable via x-reqmd.disjoint-check in schema.yaml.")
+	cmd.Flags().BoolVar(&ignoreUnboundResults, "ignore-unbound-results", false, "Suppress unbound-result warnings for verification entries that declare x-reqmd but bind to nothing.")
 	return cmd
 }
 
@@ -87,7 +90,7 @@ duration of this run.`,
 // relaxedVersions, when true, demotes "outdated" version-pin findings from
 // ERROR to WARNING. Predated findings (pin ahead of upstream) stay ERROR
 // because they are a data integrity issue, not a process issue.
-func runValidationPipeline(docs []model.Document, root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, disjointChecks []string) (string, error) {
+func runValidationPipeline(docs []model.Document, root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, disjointChecks []string, ignoreUnboundResults bool) (string, error) {
 	report := &reporter.Report{}
 
 	// Compile the filter expression (if any) once at startup.
@@ -283,9 +286,13 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 			if relaxedVersions {
 				demoteOutdatedVersionPins(report.GraphChecks)
 			}
-			// Surface unmapped-CTRF-test warnings as WARNING graph
-			// checks so they appear in both text and JSON output.
+			// Surface result-loader warnings as WARNING graph checks so
+			// they appear in both text and JSON output. Unbound-result
+			// warnings are suppressed when --ignore-unbound-results is set.
 			for _, w := range resultWarnings {
+				if ignoreUnboundResults && strings.HasPrefix(w, "unbound-result:") {
+					continue
+				}
 				report.GraphChecks = append(report.GraphChecks, graph.CheckResult{
 					Level:   graph.LevelWarning,
 					Message: w,
@@ -314,12 +321,12 @@ func demoteOutdatedVersionPins(checks []graph.CheckResult) {
 	}
 }
 
-func validateDir(root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, disjointChecks []string) (string, error) {
+func validateDir(root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, disjointChecks []string, ignoreUnboundResults bool) (string, error) {
 	docs, err := parser.Discover(root)
 	if err != nil {
 		return "", fmt.Errorf("discovering documents: %w", err)
 	}
-	return runValidationPipeline(docs, root, jsonOutput, relaxedVersions, resultsPaths, filterExpr, disjointChecks)
+	return runValidationPipeline(docs, root, jsonOutput, relaxedVersions, resultsPaths, filterExpr, disjointChecks, ignoreUnboundResults)
 }
 
 func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions bool) (string, error) {
@@ -344,7 +351,7 @@ func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions
 		Nodes:  reqs,
 	}
 
-	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions, nil, "", nil)
+	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions, nil, "", nil, false)
 }
 
 // collectDisjointAttrs merges disjoint-check attribute names from CLI flags

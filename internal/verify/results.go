@@ -77,34 +77,50 @@ type Result struct {
 	Description string
 }
 
-// MergeLatest returns, for each measure ID, the result with the latest
-// VerifiedAt. Ties are broken by lexical order of Source for determinism.
-// The `~N` pin is stripped from the key so results pinned to different
-// versions of the same measure collapse to one entry (the pin is preserved
-// on the synthesized trace edge, not the result identity).
-func MergeLatest(results []Result) map[string]Result {
-	byID := make(map[string]Result)
+// ResultKey identifies a merged verification slot: the binding target
+// (an authored requirement ID, or a synthesized test-case ID "TC:<case>")
+// plus the test-case key. Case is empty for the degenerate single-result
+// model (patterns A/B/F); two results sharing a key collapse into one via
+// latest-wins merging.
+type ResultKey struct {
+	Target string // binding target, pin stripped
+	Case   string // test-case key ("" = single-result-per-target model)
+}
+
+// resultKeyFor computes the merge key for a result.
+func resultKeyFor(r Result) ResultKey {
+	bare, _, _ := model.StripPin(r.MeasureID)
+	return ResultKey{Target: bare, Case: r.CaseKey}
+}
+
+// MergeLatest returns, for each (target, case) key, the result with the
+// latest VerifiedAt. Ties are broken by lexical order of Source for
+// determinism. The `~N` pin is stripped from the key so results pinned to
+// different versions of the same measure collapse to one entry (the pin is
+// preserved on the synthesized trace edge, not the result identity).
+func MergeLatest(results []Result) map[ResultKey]Result {
+	byKey := make(map[ResultKey]Result)
 	for _, r := range results {
-		id, _, _ := model.StripPin(r.MeasureID)
-		if existing, ok := byID[id]; ok {
+		key := resultKeyFor(r)
+		if existing, ok := byKey[key]; ok {
 			if r.VerifiedAt.After(existing.VerifiedAt) {
-				byID[id] = r
+				byKey[key] = r
 			} else if r.VerifiedAt.Equal(existing.VerifiedAt) && r.Source < existing.Source {
-				byID[id] = r
+				byKey[key] = r
 			}
 		} else {
-			byID[id] = r
+			byKey[key] = r
 		}
 	}
-	return byID
+	return byKey
 }
 
 // LoadMerged is a convenience wrapper that loads results from the
-// given paths and merges them by measure ID (latest verdict wins).
+// given paths and merges them by (target, case) key (latest verdict wins).
 // Returns the merged map, any warnings, and an error. When paths
 // is empty/nil, returns (nil, nil, nil) — callers should check for
 // nil before calling Synthesize.
-func LoadMerged(paths []string) (map[string]Result, []string, error) {
+func LoadMerged(paths []string) (map[ResultKey]Result, []string, error) {
 	if len(paths) == 0 {
 		return nil, nil, nil
 	}
@@ -115,21 +131,35 @@ func LoadMerged(paths []string) (map[string]Result, []string, error) {
 	return MergeLatest(results), warnings, nil
 }
 
-// LoadVerdicts loads results, merges by measure ID, and converts to
-// a Verdict map. This is the shared results-loading path for check,
-// serve, and export csv/html/graph. Returns all nil when paths is
-// empty.
-func LoadVerdicts(paths []string) (merged map[string]Result, verdicts map[string]Verdict, warnings []string, err error) {
+// LoadVerdicts loads results, merges by (target, case) key, and converts
+// to a per-target Verdict map for exporters that render per-measure badges
+// before roll-up semantics land. For targets with several cases the verdict
+// is the latest result across those cases (by VerifiedAt); rolled-up verdict
+// computation is a graph concern in the evidence-set phase. This is the
+// shared results-loading path for check, serve, and export csv/html/graph.
+// Returns all nil when paths is empty.
+func LoadVerdicts(paths []string) (merged map[ResultKey]Result, verdicts map[string]Verdict, warnings []string, err error) {
 	merged, warnings, err = LoadMerged(paths)
 	if err != nil || merged == nil {
 		return nil, nil, nil, err
 	}
 	verdicts = make(map[string]Verdict, len(merged))
-	for measureID, r := range merged {
-		verdicts[measureID] = Verdict{
-			Outcome: string(r.Outcome),
-			Source:  r.Source,
+	type latestVerdict struct {
+		at      time.Time
+		verdict Verdict
+	}
+	latest := make(map[string]latestVerdict, len(merged))
+	for key, r := range merged {
+		cur, ok := latest[key.Target]
+		if !ok || r.VerifiedAt.After(cur.at) || (r.VerifiedAt.Equal(cur.at) && r.Source < cur.verdict.Source) {
+			latest[key.Target] = latestVerdict{
+				at:      r.VerifiedAt,
+				verdict: Verdict{Outcome: string(r.Outcome), Source: r.Source},
+			}
 		}
+	}
+	for target, lv := range latest {
+		verdicts[target] = lv.verdict
 	}
 	return merged, verdicts, warnings, nil
 }

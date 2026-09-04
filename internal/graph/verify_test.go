@@ -211,3 +211,94 @@ func staleResultReq(pinnedMeasureID, outcome string) *model.Node {
 		},
 	}
 }
+
+// ---------------------------------------------------------------------------
+// case-keyed chains (patterns C/D/E): cased results + synthesized TC nodes
+// ---------------------------------------------------------------------------
+
+// casedResultReq builds a result node with a case-suffixed ID tracing to
+// the given target.
+func casedResultReq(target, caseKey, outcome string) *model.Node {
+	id := "RESULT:" + target
+	if caseKey != "" {
+		id += "#" + caseKey
+	}
+	return &model.Node{
+		ID:     id,
+		Source: "run.ctrf.json",
+		Attrs: map[string]any{
+			"outcome":        outcome,
+			model.AttrTrace:  []any{target},
+			model.AttrStatus: model.StatusApproved,
+		},
+	}
+}
+
+// tcNodeReq builds a synthesized test-case node tracing to its verifies refs.
+func tcNodeReq(tcID string, verifies ...string) *model.Node {
+	trace := make([]any, 0, len(verifies))
+	for _, v := range verifies {
+		trace = append(trace, v)
+	}
+	return &model.Node{
+		ID:     tcID,
+		Source: "run.ctrf.json",
+		Attrs:  map[string]any{model.AttrTrace: trace},
+	}
+}
+
+// A cased result (pattern C) attaches to an authored measure and flows
+// through the existing checks like any other result.
+func TestCaseKeyedResult_MeasureChecks(t *testing.T) {
+	g, err := graph.New([]model.Document{
+		measureDoc(measureReq(model.StatusApproved)),
+		resultDoc(casedResultReq("TST-001", "BOOT-TIME", "fail")),
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	results := g.CheckResults()
+	if w := filterByMessage(results, "missing verdict"); len(w) != 0 {
+		t.Errorf("cased passing? measure has a result; unexpected missing-verdict: %v", w)
+	}
+	var failFound bool
+	for _, r := range results {
+		if r.Code == graph.CodeFailingVerdict {
+			failFound = true
+			if r.ReqID != "TST-001" {
+				t.Errorf("failing-verdict should be attributed to the measure, got %q", r.ReqID)
+			}
+		}
+	}
+	if !failFound {
+		t.Errorf("expected failing-verdict for the failing cased result; got %v", results)
+	}
+}
+
+// A synthesized test case (patterns D/E) traces to the requirements it
+// verifies; result → case → requirement edges resolve without broken refs
+// and a failing case result is attributed to the case, not the requirement.
+func TestSynthChain_TCToRequirement_NoBrokenRefs(t *testing.T) {
+	req := docWithXReqmd("/docs/sys", &model.XReqmd{Level: "system-requirements"},
+		req("SYS-001", "/docs/sys/sys.md", map[string]any{
+			"verify": "Test",
+		}),
+	)
+	results := resultDoc(
+		tcNodeReq("TC:BOOT-TIME", "SYS-001"),
+		casedResultReq("TC:BOOT-TIME", "BOOT-TIME", "pass"),
+	)
+	g, err := graph.New([]model.Document{req, results})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	checkResults := g.CheckResults()
+	if w := filterByMessage(checkResults, "broken reference"); len(w) != 0 {
+		t.Errorf("synthesized case chain should resolve, got broken refs: %v", w)
+	}
+	// SYS-001 is a measure but no result traces directly to it in this
+	// phase (roll-up lands in the evidence-set phase) → missing-verdict.
+	if w := filterByMessage(checkResults, "missing verdict"); len(w) != 1 {
+		t.Errorf("missing-verdict = %d, want 1 (SYS-001 has no direct result yet)", len(w))
+	}
+}

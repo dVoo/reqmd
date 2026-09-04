@@ -3,7 +3,9 @@ package verify_test
 import (
 	"os"
 	"path/filepath"
+	"strings"
 
+	"reqmd/internal/model"
 	"reqmd/internal/verify"
 	"testing"
 	"time"
@@ -70,7 +72,10 @@ func TestLoadCTRF_PassFail(t *testing.T) {
 	}
 }
 
-func TestLoadCTRF_UnmappedTestWarns(t *testing.T) {
+// An uninstrumented test (no extra.x-reqmd block) is skipped silently:
+// the old per-test "no x-reqmd.id" warning is gone so suites can adopt
+// reqmd incrementally without spamming every uninstrumented test.
+func TestLoadCTRF_UninstrumentedTestSkippedSilently(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "report.ctrf.json")
 	writeFixture(t, path, ctrfReport(`{
@@ -85,10 +90,37 @@ func TestLoadCTRF_UnmappedTestWarns(t *testing.T) {
 		t.Fatalf("LoadResults: %v", err)
 	}
 	if len(results) != 0 {
-		t.Errorf("results = %d, want 0 (unmapped)", len(results))
+		t.Errorf("results = %d, want 0 (uninstrumented)", len(results))
+	}
+	if len(warnings) != 0 {
+		t.Fatalf("warnings = %d, want 0 (silent skip)", len(warnings))
+	}
+}
+
+// A test with an x-reqmd block but nothing bindable (no id, no verifies)
+// yields an unbound-result warning.
+func TestLoadCTRF_UnboundResultWarns(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "report.ctrf.json")
+	writeFixture(t, path, ctrfReport(`{
+		"name": "TestOnlyCase",
+		"status": "passed",
+		"duration": 10,
+		"extra": {"x-reqmd": {"case": "BOOT-TIME"}}
+	}`))
+
+	results, warnings, err := verify.LoadResults([]string{path})
+	if err != nil {
+		t.Fatalf("LoadResults: %v", err)
+	}
+	if len(results) != 0 {
+		t.Errorf("results = %d, want 0", len(results))
 	}
 	if len(warnings) != 1 {
 		t.Fatalf("warnings = %d, want 1", len(warnings))
+	}
+	if !strings.HasPrefix(warnings[0], "unbound-result:") {
+		t.Errorf("warning should carry unbound-result prefix, got %q", warnings[0])
 	}
 }
 
@@ -147,8 +179,8 @@ func TestMergeLatest_LatestByVerifiedAt(t *testing.T) {
 	if len(merged) != 1 {
 		t.Fatalf("merged = %d, want 1", len(merged))
 	}
-	if merged["TST-001"].Outcome != verify.OutcomePass {
-		t.Errorf("latest outcome = %q, want pass", merged["TST-001"].Outcome)
+	if merged[verify.ResultKey{Target: "TST-001"}].Outcome != verify.OutcomePass {
+		t.Errorf("latest outcome = %q, want pass", merged[verify.ResultKey{Target: "TST-001"}].Outcome)
 	}
 }
 
@@ -208,10 +240,13 @@ func TestLoadResults_PlainJsonCTRFShapeAccepted(t *testing.T) {
 // ---------------------------------------------------------------------------
 
 func TestSynthesize_ResultNodeIDAndTrace(t *testing.T) {
-	merged := map[string]verify.Result{
-		"TST-001": {MeasureID: "TST-001~3", Outcome: verify.OutcomePass, Source: "run.ctrf.json"},
+	merged := map[verify.ResultKey]verify.Result{
+		{Target: "TST-001"}: {MeasureID: "TST-001~3", Outcome: verify.OutcomePass, Source: "run.ctrf.json"},
 	}
 	doc := verify.Synthesize(merged)
+	if !doc.Synthetic {
+		t.Error("synthesized document must be marked Synthetic")
+	}
 	reqs := doc.Requirements()
 	if len(reqs) != 1 {
 		t.Fatalf("reqs = %d, want 1", len(reqs))
@@ -242,6 +277,172 @@ func TestIsResultNode(t *testing.T) {
 	for _, c := range cases {
 		if got := verify.IsResultNode(c.id); got != c.want {
 			t.Errorf("IsResultNode(%q) = %v, want %v", c.id, got, c.want)
+		}
+	}
+}
+
+// ---------------------------------------------------------------------------
+// v2 binding (patterns C/D/E)
+// ---------------------------------------------------------------------------
+
+func TestLoadCTRF_IDWithCase_RecordsCaseKey(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "report.ctrf.json")
+	writeFixture(t, path, ctrfReport(`{
+		"name": "Boot time",
+		"status": "failed",
+		"duration": 10,
+		"extra": {"x-reqmd": {"id": "TEST-001", "case": "BOOT-TIME"}}
+	}`))
+
+	results, _, err := verify.LoadResults([]string{path})
+	if err != nil {
+		t.Fatalf("LoadResults: %v", err)
+	}
+	if len(results) != 1 {
+		t.Fatalf("results = %d, want 1", len(results))
+	}
+	r := results[0]
+	if r.MeasureID != "TEST-001" {
+		t.Errorf("MeasureID = %q, want TEST-001", r.MeasureID)
+	}
+	if r.CaseKey != "BOOT-TIME" {
+		t.Errorf("CaseKey = %q, want BOOT-TIME", r.CaseKey)
+	}
+}
+
+func TestLoadCTRF_CaseAndVerifies_SynthesizesCaseBinding(t *testing.T) {
+	dir := t.TempDir()
+	path := filepath.Join(dir, "report.ctrf.json")
+	writeFixture(t, path, ctrfReport(`{
+		"name": "Boot time",
+		"status": "passed",
+		"duration": 10,
+		"extra": {"x-reqmd": {
+			"case": "BOOT-TIME",
+			"verifies": ["SYS-001~2"],
+			"description": "Measures boot time on reference HW."
+		}}
+	}`))
+
+	results, _, err := verify.LoadResults([]string{path})
+	if err != nil {
+		t.Fatalf("LoadResults: %v", err)
+	}
+	if len(results) != 1 {
+		t.Fatalf("results = %d, want 1", len(results))
+	}
+	r := results[0]
+	if r.MeasureID != "TC:BOOT-TIME" {
+		t.Errorf("MeasureID = %q, want TC:BOOT-TIME", r.MeasureID)
+	}
+	if r.CaseKey != "BOOT-TIME" {
+		t.Errorf("CaseKey = %q, want BOOT-TIME", r.CaseKey)
+	}
+	if len(r.Verifies) != 1 || r.Verifies[0] != "SYS-001~2" {
+		t.Errorf("Verifies = %v, want [SYS-001~2]", r.Verifies)
+	}
+	if r.Description == "" {
+		t.Error("Description should be captured")
+	}
+}
+
+func TestLoadCTRF_VerifiesOnly_ImplicitCaseFromSuiteName(t *testing.T) {
+	dir := t.TempDir()
+	// Two reports, two suites, same test name → distinct case keys.
+	for _, suite := range []string{"boot", "media"} {
+		writeFixture(t, filepath.Join(dir, suite+".ctrf.json"), `{
+			"results": {
+				"suite": "`+suite+`",
+				"tests": [{
+					"name": "Startup", "status": "passed", "duration": 1,
+					"extra": {"x-reqmd": {"verifies": ["SYS-001"]}}
+				}]
+			}
+		}`)
+	}
+	results, _, err := verify.LoadResults([]string{dir})
+	if err != nil {
+		t.Fatalf("LoadResults: %v", err)
+	}
+	if len(results) != 2 {
+		t.Fatalf("results = %d, want 2 (one per suite)", len(results))
+	}
+	seen := map[string]bool{}
+	for _, r := range results {
+		if r.CaseKey != "boot/Startup" && r.CaseKey != "media/Startup" {
+			t.Errorf("CaseKey = %q, want boot/Startup or media/Startup", r.CaseKey)
+		}
+		if r.MeasureID != "TC:"+r.CaseKey {
+			t.Errorf("MeasureID = %q, want TC:%s", r.MeasureID, r.CaseKey)
+		}
+		seen[r.CaseKey] = true
+	}
+	if len(seen) != 2 {
+		t.Errorf("distinct case keys = %d, want 2 (same test name in two suites stays distinct)", len(seen))
+	}
+}
+
+func TestSynthesize_CaseKeyedCreatesTCAndCasedResults(t *testing.T) {
+	merged := map[verify.ResultKey]verify.Result{
+		{Target: "TEST-001", Case: "BOOT-TIME"}: {
+			MeasureID: "TEST-001", CaseKey: "BOOT-TIME", Outcome: verify.OutcomeFail, Source: "run.ctrf.json",
+		},
+		{Target: "TC:BOOT-TIME", Case: "BOOT-TIME"}: {
+			MeasureID:   "TC:BOOT-TIME",
+			CaseKey:     "BOOT-TIME",
+			Outcome:     verify.OutcomePass,
+			Source:      "run.ctrf.json",
+			Name:        "Boot time",
+			Verifies:    []string{"SYS-001~2"},
+			Description: "Measures boot time on reference HW.",
+		},
+	}
+	doc := verify.Synthesize(merged)
+	reqs := doc.Requirements()
+	if len(reqs) != 3 {
+		t.Fatalf("reqs = %d, want 3 (cased result, TC, TC result)", len(reqs))
+	}
+	byID := make(map[string]*model.Node, len(reqs))
+	for _, r := range reqs {
+		byID[r.ID] = r
+	}
+	if byID["RESULT:TEST-001#BOOT-TIME"] == nil {
+		t.Error("missing RESULT:TEST-001#BOOT-TIME node")
+	}
+	tc := byID["TC:BOOT-TIME"]
+	if tc == nil {
+		t.Fatal("missing TC:BOOT-TIME node")
+	}
+	if tc.Body != "Measures boot time on reference HW." {
+		t.Errorf("TC body = %q", tc.Body)
+	}
+	trace, _ := tc.Attrs["trace"].([]any)
+	if len(trace) != 1 || trace[0] != "SYS-001~2" {
+		t.Errorf("TC trace = %v, want [SYS-001~2]", trace)
+	}
+	resTC := byID["RESULT:TC:BOOT-TIME#BOOT-TIME"]
+	if resTC == nil {
+		t.Fatal("missing RESULT:TC:BOOT-TIME#BOOT-TIME node")
+	}
+	resTrace, _ := resTC.Attrs["trace"].([]any)
+	if len(resTrace) != 1 || resTrace[0] != "TC:BOOT-TIME" {
+		t.Errorf("TC result trace = %v, want [TC:BOOT-TIME]", resTrace)
+	}
+}
+
+func TestIsTestCaseNode(t *testing.T) {
+	cases := []struct {
+		id   string
+		want bool
+	}{
+		{"TC:BOOT-TIME", true},
+		{"TC-001", false},
+		{"RESULT:TST-001", false},
+	}
+	for _, c := range cases {
+		if got := verify.IsTestCaseNode(c.id); got != c.want {
+			t.Errorf("IsTestCaseNode(%q) = %v, want %v", c.id, got, c.want)
 		}
 	}
 }

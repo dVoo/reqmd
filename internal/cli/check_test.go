@@ -212,3 +212,49 @@ func TestCheckCmd_RequiresTraceFromDocumentDefault(t *testing.T) {
 		t.Errorf("expected inherited-default coverage warning, got:\n%s", out)
 	}
 }
+
+// writeUnboundResultsDir creates a results dir containing one CTRF report
+// whose test declares x-reqmd but binds to nothing (case only). Returns the
+// results dir path.
+func writeUnboundResultsDir(t *testing.T) string {
+	t.Helper()
+	dir := t.TempDir()
+	writeFile(t, dir, "run.ctrf.json", `{
+		"results": {
+			"tool": {"name": "gotest"},
+			"summary": {"tests": 1, "passed": 1},
+			"tests": [{
+				"name": "Boot", "status": "passed", "duration": 1,
+				"extra": {"x-reqmd": {"case": "BOOT-TIME"}}
+			}]
+		}
+	}`)
+	return dir
+}
+
+// TestCheckCmd_IgnoreUnboundResults verifies unbound-result warnings surface
+// by default and are suppressed by --ignore-unbound-results.
+func TestCheckCmd_IgnoreUnboundResults(t *testing.T) {
+	root := writeMeasureSpec(t)
+	results := writeUnboundResultsDir(t)
+
+	countWarnings := func(args ...string) int {
+		t.Helper()
+		out, err := runCmd(t, newCheckCmd(), append(args, "--json", root)...)
+		if err != nil {
+			t.Fatalf("check should pass: %v\n%s", err, out)
+		}
+		var rep jsonCheckSummary
+		if err := json.Unmarshal([]byte(out), &rep); err != nil {
+			t.Fatalf("unmarshal: %v\n%s", err, out)
+		}
+		return rep.Summary.Warnings
+	}
+
+	if w := countWarnings("--results", results); w != 1 {
+		t.Errorf("warnings without flag = %d, want 1 (unbound-result)", w)
+	}
+	if w := countWarnings("--results", results, "--ignore-unbound-results"); w != 0 {
+		t.Errorf("warnings with --ignore-unbound-results = %d, want 0", w)
+	}
+}
