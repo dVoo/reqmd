@@ -25,7 +25,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
                 exporter     = component "Exporter"        "Renders standalone HTML (cards, collapsible container sections, info blocks, sidebar TOC with folders), CSV (Type column, document order), and LadybugDB graph outputs" "Go"
                 reporter     = component "Reporter"        "Aggregates Pass 1/2/3 results, emits formatted or JSON output, sets exit code" "Go"
                 differ       = component "Baseline Differ" "Compares requirements and schemas between two git tags via git archive, using r3labs/diff for attribute-level changes" "Go / r3labs-diff"
-                verifyLoader = component "Verify Loader"   "Loads ephemeral verification results (CTRF JSON + manual markdown), synthesizes RESULT: pseudo-requirements, feeds them to the graph for outcome-gated checks" "Go / stdlib"
+                verifyLoader = component "Verify Loader"   "Loads ephemeral verification results (CTRF JSON + manual markdown), binds entries via x-reqmd id/case/verifies, synthesizes RESULT: pseudo-requirements and TC:<case> test-case nodes (marked Synthetic), feeds them to the graph for rolled-up outcome-gated checks" "Go / stdlib"
                 repinner     = component "Repinner"        "Computes version-pin deltas from the graph and rewrites ```attr blocks in place to update ~N pins to the upstream's current version" "Go / stdlib"
             }
         }

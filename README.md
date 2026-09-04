@@ -462,7 +462,8 @@ in both parsing and HTML export, with these extensions enabled:
 | `reqmd check <file> -s <schema>` | Validate a single file against an explicit schema |
 | `reqmd check --json <root>` | JSON validation report |
 | `reqmd check --relaxed-versions <root>` | Demote outdated version-pin findings from ERROR to WARNING (predated stays ERROR) |
-| `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs) and run outcome-gated checks (missing-verdict, failing-verdict). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. |
+| `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs) and run outcome-gated checks (missing-verdict, failing-verdict). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. Verdicts roll up over downstream test cases. |
+| `reqmd check --ignore-unbound-results <root>` | Suppress `unbound-result` warnings for verification entries that declare `x-reqmd` but bind to nothing. |
 | `reqmd check --filter "<expr>" <root>` | Scope validation to requirements matching an [expr-lang](https://expr-lang.org) expression (e.g. `"Premium" in variant`). Coverage checking becomes filter-aware: filtered-out requirements cannot cause false coverage failures. `--json` adds a `"filter"` field to the summary. |
 | `reqmd check --disjoint-check <attr> <root>` | Check that trace-linked requirements have overlapping values for the named array-typed attribute (e.g. `variant`). Zero intersection → ERROR; empty/absent = "applies to all" (exempt). Repeatable. Also settable via `x-reqmd.disjoint-check` in `schema.yaml`. |
 | `reqmd init <dir>` | Scaffold a new requirements directory with schema.yaml and example file. Presets: `generic` (default), `aspice`, `results` (manual verification results), or a custom preset directory path. Flags: `--preset`, `--id-prefix`, `--id`, `--title`, `--level`, `--force` |
@@ -875,9 +876,20 @@ Each `--results` path is auto-detected:
 
 ### CTRF mapping (automated tests)
 
-Each CTRF `results.tests[]` entry maps to a measure via the `x-reqmd.id`
-extra field. The test framework's reporter emits this field per test; it
-carries the reqmd measure requirement ID (with optional `~N` version pin).
+Each CTRF `results.tests[]` entry carries an `extra.x-reqmd` block that
+binds the run to the spec. All fields are optional:
+
+| Field | What it does |
+|---|---|
+| `id` | Binds the result directly to a measure requirement ID (optional `~N` pin). The requirement itself is the verification measure. |
+| `case` | A stable test-case identity for this run. With `id`, it keys the result (several cases may attach to one measure); without `id` it names a synthesized test case. |
+| `verifies` | Upstream requirement IDs the test exercises (optional `~N` pins). With `case` it synthesizes a test case that traces to these requirements. |
+| `description` | Markdown body for a synthesized test case (used only when the result binds to a case, never to an authored node). |
+
+A test with neither `id` nor `verifies` is uninstrumented and skipped
+silently, so suites can adopt reqmd incrementally. A test that declares
+`x-reqmd` but binds nothing (e.g. `case` only) yields an `unbound-result`
+WARNING (suppressible with `--ignore-unbound-results`).
 
 CTRF `status` → reqmd `outcome`:
 
@@ -892,8 +904,6 @@ CTRF `status` → reqmd `outcome`:
 The CTRF file itself (duration, logs, extra fields) is the "corresponding
 verification measure data" every ASPICE record BP requires; it is linked
 from the result's `evidence` field.
-
-Unmapped tests (no `x-reqmd.id` in `extra`) are skipped with a WARNING.
 
 ### Manual results (review / inspection / analysis)
 
@@ -930,25 +940,33 @@ Parser review passed.
 
 ### Outcome-gated checks
 
-When `--results` is supplied, two new checks run alongside the existing
-trace checks:
+When `--results` is supplied, checks run against each measure's rolled-up
+**evidence set**: its own attached results plus the results of approved
+downstream test cases (authored or synthesized) in its inbound trace
+closure. Aggregation is strict — any `fail` → fail, else inconclusive →
+inconclusive, else skipped → skipped, else pass. Draft measures and
+deferred/rejected dispositions are skipped.
 
 | Check | Level | Condition | Suppression |
 |---|---|---|---|
-| **missing-verdict** | WARNING | An approved verification measure has no result tracing to it. Draft measures are skipped. | `reqmd-suppress: [missing-verdict]` |
-| **failing-verdict** | ERROR | A measure's latest result has outcome `fail`. | `reqmd-suppress: [failing-verdict]` |
+| **missing-verdict** | WARNING | An approved measure's evidence set is empty. Draft downstream cases are reported as ignored. | `reqmd-suppress: [missing-verdict]` |
+| **failing-verdict** | ERROR | A measure's rolled-up verdict is `fail`; the message names the failing case(s). | `reqmd-suppress: [failing-verdict]` |
 
-The existing **version-pin** check also applies to result→measure traces:
-pin a result with `MEASURE-ID~3` against a measure now at `version: 4` and
-the `outdated` finding fires (demotable via `--relaxed-versions`). This is
-how stale-verdict is detected — no new check, just the existing one on a
-new edge type.
+Result-attributed findings (stale version pins on result edges,
+`unbound-result`) are reported in a dedicated **Verification results**
+section of `check` output and in the JSON `results` array.
+
+The existing **version-pin** check also applies to result→measure and
+case→requirement traces: pin a result with `MEASURE-ID~3` against a measure
+now at `version: 4` and the `outdated` finding fires (demotable via
+`--relaxed-versions`). This is how stale-verdict is detected — no new check,
+just the existing one on a new edge type.
 
 ### History
 
 Result history is not stored in-file. Each run loads the latest CTRF /
 manual results; the previous run's results are discarded. Across all
-`--results` inputs, the latest verdict per measure wins by CTRF
+`--results` inputs, the latest result per (measure, case) wins by CTRF
 `tests[].stop` (ms-epoch) or manual `verified-at`. Run-to-run history lives
 in CI artifacts, not in reqmd.
 
@@ -958,8 +976,8 @@ All export formats support `--results`:
 
 | Format | What `--results` adds |
 |--------|----------------------|
-| **CSV** | Two extra columns: `Verdict` (pass/fail/skipped/inconclusive) and `Verdict Source` (file path) |
-| **HTML** | Color-coded verdict badges on measure cards — green (pass), red (fail), orange (inconclusive), gray (skipped). Tooltip shows outcome + source file. |
+| **CSV** | Two extra columns: `Verdict` (rolled-up pass/fail/skipped/inconclusive) and `Verdict Source` (result file) |
+| **HTML** | Color-coded verdict badges on measure cards — green (pass), red (fail), orange (inconclusive), gray (skipped). Badge reflects the rolled-up verdict; tooltip shows outcome + source. |
 | **Graph** | `RESULT:` pseudo-nodes with `outcome` and `source` properties, connected via `TracesTo` edges to their measures. Enables Cypher traversal from requirements through measures to verification results. |
 
 ```sh

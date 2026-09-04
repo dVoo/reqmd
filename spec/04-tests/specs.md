@@ -96,7 +96,9 @@ trace:
 ```
 Unit tests shall cover the `missing-verdict` and `failing-verdict` graph checks: no-op when no result nodes present, missing-verdict fires for approved measures without results, missing-verdict skips draft measures, failing-verdict fires for fail outcome at ERROR, failing-verdict does not fire for pass, and version-pin fires on stale result pins.
 
-*Rationale:* The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives.
+Unit tests shall also cover case-keyed binding and evidence roll-up: `extra.x-reqmd.case`/`verifies`/`description` parsing and silent skip of uninstrumented tests, latest-wins per (measure, case) by `stop`, synthesized `TC:<case>` nodes with `trace` edges and description bodies, cased `RESULT:` identities, roll-up over authored and synthesized downstream test cases (mixed evidence with one failing case fails the requirement), draft downstream cases reported as ignored by missing-verdict, filter-aware evidence, deferred/rejected measure exemption, `unbound-result` warnings and their `--ignore-unbound-results` suppression, and the JSON/text `results` section.
+
+*Rationale:* The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives. Case-keyed binding and roll-up change the merge, synthesis, and check semantics together, so they need dedicated coverage.
 
 ## TST-SRV-001: Serve with results integration tests
 ```attr

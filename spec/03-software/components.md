@@ -215,7 +215,9 @@ trace:
 ```
 The graph shall run two new checks when result pseudo-requirements are present: `missing-verdict` (WARNING — an approved verification measure, identified by a non-empty `verify` attribute, has no result tracing to it; draft measures are skipped) and `failing-verdict` (ERROR — a measure's latest result has outcome `fail`). Both checks are no-ops when no result nodes exist. Both are suppressible via `reqmd-suppress`.
 
-*Rationale:* A measure is defined by the `verify` attribute, not by inbound edges — a measure with no result has no inbound result edge, so the check must key on `verify`. Draft measures are skipped because a draft measure is not yet expected to have results.
+Each check shall operate on the measure's rolled-up evidence set: its own attached results plus the results attached to approved, in-filter nodes in its inbound trace closure (authored downstream test specs and synthesized test cases). Aggregation is strict — any fail → fail, else inconclusive → inconclusive, else skipped → skipped, else empty → none, else pass — computed bottom-up and memoized so a check pass stays linear. `missing-verdict` messages report the count of draft downstream cases ignored; `failing-verdict` names the failing case(s) and their source file(s). Deferred/rejected measures (expectsVerification) are exempt from both checks. The `MeasureVerdicts` accessor shall expose the rolled-up verdict per node for exporters.
+
+*Rationale:* A measure is defined by the `verify` attribute, not by inbound edges — a measure with no result has no inbound result edge, so the check must key on `verify`. Draft measures are skipped because a draft measure is not yet expected to have results. Roll-up closes the V-model gap where requirements are verified through downstream test specs or CI cases rather than a direct result edge; the severity lattice is associative, so bottom-up memoization keeps large trees linear.
 
 ## SW-FIL-001: Attribute filter engine
 ```attr

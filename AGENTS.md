@@ -176,10 +176,25 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   slice before `graph.New`. Two new graph checks fire when result nodes are
   present: `missing-verdict` (approved measure with no result, WARNING) and
   `failing-verdict` (latest result is fail, ERROR). The existing
-  `version-pin` check applies to result→measure traces via `~N` pins,
+  `  version-pin` check applies to result→measure traces via `~N` pins,
   reusing stale-verdict detection with no new logic. CTRF→measure mapping
   via the `x-reqmd.id` extra field per test. Suppression:
   `reqmd-suppress: [missing-verdict]`, `[failing-verdict]`.
+
+  Results may also bind through test cases: `extra.x-reqmd.case` +
+  `verifies` (or `verifies` alone, keyed by the normalized `(suite, name)`)
+  synthesizes a `TC:<case>` node with `trace` edges to the verified
+  requirements and a `description` body; results merge latest-wins per
+  (measure, case) by CTRF `stop`. The synthetic document (RESULT + TC
+  nodes) is marked `Document.Synthetic`; repin skips synthetic nodes. The
+  outcome-gated checks roll up a measure's evidence over its own results
+  and approved, in-filter downstream cases (strict lattice: fail >
+  inconclusive > skipped > pass; empty = none) with a memoized
+  bottom-up pass; `missing-verdict`/`failing-verdict` skip draft and
+  deferred/rejected measures, and failing-verdict names the failing
+  case(s). `--ignore-unbound-results` suppresses `unbound-result` warnings
+  (x-reqmd present but nothing bindable); result-attributed findings render
+  in the report's "Verification results" section / JSON `results` array.
 - **Baseline diff (`reqmd baseline diff`)**: Loads the spec tree at two git tags
   via `git archive | tar` (no checkout), parses both with the standard pipeline,
   and produces a semantic diff of requirements (added/removed/modified with

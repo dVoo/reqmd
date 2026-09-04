@@ -27,6 +27,8 @@ reqmd check spec/ --disjoint-check variant # error on cross-configuration trace 
 
 **Checks run:** schema validation, broken references, circular dependencies, missing coverage (`requires-trace-from`), version-pin staleness, missing verdict, failing verdict, disjoint attributes (`--disjoint-check`).
 
+**Verification results:** CTRF `extra.x-reqmd` supports `id` (bind directly to a measure), `case` (stable case identity), `verifies` (requirements a synthesized test case exercises) and `description` (case body). Verdicts roll up strictly over a measure's own results plus its approved downstream test cases (any `fail` → fail, else inconclusive → inconclusive, else skipped → skipped, else pass); deferred/rejected measures are skipped. Uninstrumented tests are skipped silently; a test that declares `x-reqmd` but binds nothing warns as `unbound-result` (suppress with `--ignore-unbound-results`). Result-attributed findings appear in the `Verification results` section / JSON `results` array.
+
 **Filters:** `--filter "<expr>"` scopes the check to requirements matching an expr-lang expression (see [Filter expressions](#filter-expressions)). Coverage is computed within the filtered subset, so a filtered-out requirement can neither require nor provide coverage. `--disjoint-check <attr>` verifies that every trace link has at least one overlapping value for the named array attribute (zero intersection → ERROR). With `--json`, the summary gains a `"filter"` field recording the active expression.
 
 {{< details summary="Example output" >}}
@@ -429,7 +431,7 @@ no version-pin changes needed
 
 | Command | What it does | Key flags |
 |---------|-------------|-----------|
-| `check <dir>` | Validate + trace checks | `--json`, `--results`, `--relaxed-versions`, `--filter`, `--disjoint-check`, `-s` |
+| `check <dir>` | Validate + trace checks | `--json`, `--results`, `--relaxed-versions`, `--filter`, `--disjoint-check`, `--ignore-unbound-results`, `-s` |
 | `ls <dir>` | List all requirements | `--json`, `--filter` |
 | `stats <dir>` | Stats per document | `--json`, `--filter` |
 | `init <dir>` | Scaffold a new project | `--preset`, `--id-prefix`, `--force` |
