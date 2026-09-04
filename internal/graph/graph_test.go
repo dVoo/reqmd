@@ -1415,6 +1415,72 @@ func TestNew_VersionPinPredated(t *testing.T) {
 	}
 }
 
+func TestNew_VersionPinDeterministicOrder(t *testing.T) {
+	// Two downstream requirements each pin two upstreams at stale versions.
+	// Findings must be emitted sorted by (ReqID, targetID) regardless of
+	// Go's randomized map iteration order, and be identical across runs.
+	g, err := graph.New([]model.Document{
+		doc("/docs/up",
+			req("UP-001", "/docs/up/up.md", map[string]any{"version": 5}),
+			req("UP-002", "/docs/up/up.md", map[string]any{"version": 4}),
+		),
+		doc("/docs/down",
+			req("DN-001", "/docs/down/down.md", map[string]any{
+				"trace": []any{"UP-001~3", "UP-002~2"},
+			}),
+			req("DN-002", "/docs/down/down.md", map[string]any{
+				"trace": []any{"UP-002~2", "UP-001~3"},
+			}),
+		),
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	collect := func() []string {
+		var vp []string
+		for _, r := range g.CheckResults() {
+			if r.Code == "version-pin" {
+				vp = append(vp, r.ReqID+" "+r.Message)
+			}
+		}
+		return vp
+	}
+	first := collect()
+	if len(first) != 4 {
+		t.Fatalf("version-pin findings = %d, want 4; results: %v", len(first), first)
+	}
+	want := []string{
+		"DN-001 outdated version pin: upstream UP-001 is at v5, this requirement still pins ~3",
+		"DN-001 outdated version pin: upstream UP-002 is at v4, this requirement still pins ~2",
+		"DN-002 outdated version pin: upstream UP-001 is at v5, this requirement still pins ~3",
+		"DN-002 outdated version pin: upstream UP-002 is at v4, this requirement still pins ~2",
+	}
+	for i := range want {
+		if first[i] != want[i] {
+			t.Fatalf("finding %d = %q, want %q; all: %v", i, first[i], want[i], first)
+		}
+	}
+	// Repeat: same Graph, fresh iteration -> identical order.
+	for i := 0; i < 10; i++ {
+		if got := collect(); !slicesEqual(got, first) {
+			t.Fatalf("run %d order changed: %v", i, got)
+		}
+	}
+}
+
+// slicesEqual is a tiny string-slice equality helper for the test above.
+func slicesEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
 func TestNew_VersionPinNoPinIsClean(t *testing.T) {
 	// No pin at all → check is silent (no finding).
 	g, err := graph.New([]model.Document{

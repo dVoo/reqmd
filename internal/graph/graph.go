@@ -105,34 +105,22 @@ type CachedNode struct {
 // Graph wraps an in-memory adjacency map with a typed node cache. It is
 // built once from parsed documents and queried by Pass 2 check methods.
 type Graph struct {
-	docs             []model.Document          // original documents, kept for boundary inference in CheckResults
-	nodes            map[string]*CachedNode    // reqID → CachedNode (first definition wins)
-	nodesByIDDir     map[[2]string]*CachedNode // (docIDorDir, reqID) → CachedNode (used for both document-id and dir resolution)
-	idDirs           map[string][]string       // reqID → list of directory paths containing it
-	docByID          map[string]string         // document-id → directory path
-	docByDir         map[string]string         // directory path → document-id
-	docByLevel       map[string][]string       // level → list of directory paths
+	filter           map[string]struct{}
+	ignoreStatusDirs map[string]bool
+	nodesByIDDir     map[[2]string]*CachedNode
+	idDirs           map[string][]string
+	docByID          map[string]string
+	docByDir         map[string]string
+	nodes            map[string]*CachedNode
+	docByLevel       map[string][]string
+	sevCache         map[string]severity
+	cachedLeafDirs   map[string]bool
+	cachedRootDirs   map[string]bool
 	dangling         []CheckResult
-	duplicateIDs     []CheckResult   // duplicate requirement IDs across documents
-	ignoreStatusDirs map[string]bool // dir path → true if document opts out of status lifecycle
-	// Cached boundary maps computed once in CheckResults; RootDirs/LeafDirs
-	// return these instead of recomputing inferBoundaries on every call.
-	cachedRootDirs map[string]bool
-	cachedLeafDirs map[string]bool
-	// filter is the set of requirement IDs that match the active --filter.
-	// nil means no filter is active (check everything — current behavior).
-	// non-nil means only requirements in this set are checked/reported.
-	filter map[string]struct{}
-	// disjointAttrs names array-typed attributes whose values must overlap
-	// between every trace-linked source and target. Empty = no disjoint check.
-	disjointAttrs []string
-	// hasResults is true when at least one synthesized result
-	// pseudo-requirement (RESULT:*) is present. Set once in Pass 1 so the
-	// outcome-gated checks short-circuit without re-scanning all nodes.
-	hasResults bool
-	// sevCache memoizes rolled-up evidence severity per requirement ID
-	// within a check pass; invalidated whenever the active filter changes.
-	sevCache map[string]severity
+	docs             []model.Document
+	disjointAttrs    []string
+	duplicateIDs     []CheckResult
+	hasResults       bool
 }
 
 // SetFilter restricts per-requirement checks to the given set of requirement
@@ -218,7 +206,11 @@ func New(docs []model.Document) (*Graph, error) {
 			// the generic boundary-inference fallback still applies.
 			rtf := getStringSlice(req.Attrs, model.AttrRequiresTraceFrom)
 			if rtf == nil && xr != nil && xr.RequiresTraceFrom != nil {
-				rtf = slices.Clone(xr.RequiresTraceFrom)
+				// Share the document-level default slice. RequiresTraceFrom is
+				// treated as read-only after New (only iterated by
+				// checkRequiresTraceFromCoverage), so many requirements in one
+				// document can safely reference the same backing array.
+				rtf = xr.RequiresTraceFrom
 			}
 			node := &CachedNode{
 				ReqID:             req.ID,
@@ -861,11 +853,15 @@ func (g *Graph) pinStatus(node *CachedNode, targetID string, pin int, pinned boo
 // Skip rules are shared with RepinDeltas via pinStatus.
 func (g *Graph) checkVersionPins() []CheckResult {
 	var results []CheckResult
-	for _, node := range g.nodes {
+	// Iterate nodes and pinned targets in sorted order so findings are
+	// deterministic across runs (map iteration order is randomized).
+	for _, nodeID := range sortedKeys(g.nodes) {
+		node := g.nodes[nodeID]
 		if !g.inFilter(node.ReqID) {
 			continue
 		}
-		for targetID, pin := range node.OutboundPins {
+		for _, targetID := range sortedKeys(node.OutboundPins) {
+			pin := node.OutboundPins[targetID]
 			direction, ok := g.pinStatus(node, targetID, pin, true)
 			if !ok {
 				continue
@@ -1420,6 +1416,14 @@ func (g *Graph) LeafDirs() []string {
 }
 
 func mapKeysSorted(m map[string]bool) []string {
+	return sortedKeys(m)
+}
+
+// sortedKeys returns the keys of a string-keyed map in sorted order.
+// Map iteration order is randomized in Go, so any code path that turns a
+// map into an ordered result (findings, listings) must sort to stay
+// deterministic.
+func sortedKeys[V any](m map[string]V) []string {
 	out := make([]string, 0, len(m))
 	for k := range m {
 		out = append(out, k)
