@@ -170,10 +170,14 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   invocation (never persisted in the spec repo) from CTRF JSON reports
   (automated tests) or manual-results markdown dirs (review/inspection/
   analysis). `internal/verify` parses both into a `measureID → latestResult`
-  map (latest by CTRF `tests[].stop` or manual `verified-at`), synthesizes
-  one pseudo-requirement per result (`RESULT:<id>`, `trace: [MEASURE-ID~N]`,
-  `outcome: pass|fail|skipped|inconclusive`), and appends them to the doc
-  slice before `graph.New`. Two new graph checks fire when result nodes are
+  map (latest by CTRF `tests[].stop` or manual `x-reqmd.verified-at`),
+  synthesizes one pseudo-requirement per result (`RESULT:<id>`,
+  `trace: [MEASURE-ID~N]`, `x-reqmd.outcome: pass|fail|skipped|inconclusive`,
+  plus `x-reqmd.verifier`/`x-reqmd.evidence`/`x-reqmd.verified-at`), and
+  appends them to the doc slice before `graph.New`. Result attributes are
+  tool-owned and namespaced under `x-reqmd.*` (same convention as the
+  reqmd-import provenance attributes) so they never collide with authored
+  schema attributes. Two new graph checks fire when result nodes are
   present: `missing-verdict` (approved measure with no result, WARNING) and
   `failing-verdict` (latest result is fail, ERROR). The existing
   `  version-pin` check applies to result→measure traces via `~N` pins,

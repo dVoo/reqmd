@@ -870,8 +870,8 @@ Each `--results` path is auto-detected:
   - Plain `.json` with a CTRF top-level `results` object → parsed as CTRF.
   - Other `.json` (coverage.json, junit exports) → skipped silently.
   - Subdirectories with a `schema.yaml` → loaded as **manual results**
-    (markdown `attr` blocks with `outcome`, `verifier`, `evidence`,
-    `verified-at`, `trace: [MEASURE-ID]`).
+    (markdown `attr` blocks with `x-reqmd.outcome`, `x-reqmd.verifier`,
+    `x-reqmd.evidence`, `x-reqmd.verified-at`, `trace: [MEASURE-ID]`).
 - **File**: parsed as CTRF (`.ctrf.json` or CTRF-shaped `.json`).
 
 ### CTRF mapping (automated tests)
@@ -903,7 +903,7 @@ CTRF `status` → reqmd `outcome`:
 
 The CTRF file itself (duration, logs, extra fields) is the "corresponding
 verification measure data" every ASPICE record BP requires; it is linked
-from the result's `evidence` field.
+from the result's `x-reqmd.evidence` field.
 
 ### Manual results (review / inspection / analysis)
 
@@ -916,12 +916,12 @@ $schema: "https://json-schema.org/draft/2020-12/schema"
 $id: "verify-results"
 title: "Verification Results"
 type: object
-required: [outcome, verifier, verified-at]
+required: [x-reqmd.outcome, x-reqmd.verifier, x-reqmd.verified-at]
 properties:
-  outcome: { enum: [pass, fail, skipped, inconclusive] }
-  verifier: { type: string }
-  evidence: { type: string, description: "URI/path to minutes, record, or CTRF file" }
-  verified-at: { type: string, format: date }
+  x-reqmd.outcome: { enum: [pass, fail, skipped, inconclusive] }
+  x-reqmd.verifier: { type: string }
+  x-reqmd.evidence: { type: string, description: "URI/path to minutes, record, or CTRF file" }
+  x-reqmd.verified-at: { type: string, format: date }
 additionalProperties: false
 x-reqmd:
   level: verify-results
@@ -930,9 +930,9 @@ x-reqmd:
 ```markdown
 ## VR-001: Parser review result
 ```attr
-outcome: pass
-verifier: "D. Author"
-verified-at: 2026-07-15
+x-reqmd.outcome: pass
+x-reqmd.verifier: "D. Author"
+x-reqmd.verified-at: 2026-07-15
 trace: [TST-FIX-001]
 ```
 Parser review passed.
@@ -967,7 +967,7 @@ just the existing one on a new edge type.
 Result history is not stored in-file. Each run loads the latest CTRF /
 manual results; the previous run's results are discarded. Across all
 `--results` inputs, the latest result per (measure, case) wins by CTRF
-`tests[].stop` (ms-epoch) or manual `verified-at`. Run-to-run history lives
+`tests[].stop` (ms-epoch) or manual `x-reqmd.verified-at`. Run-to-run history lives
 in CI artifacts, not in reqmd.
 
 ### Exporting results
@@ -998,7 +998,7 @@ reqmd init my-results/ --preset results
 reqmd init my-results/ --preset results --id-prefix REV
 ```
 
-This creates `schema.yaml` (with `level: verify-results`, required `outcome`/`verifier`/`verified-at` attributes) and `results.md` (one example result). See the [Commands](#commands) table for all `init` flags.
+This creates `schema.yaml` (with `level: verify-results`, required `x-reqmd.outcome`/`x-reqmd.verifier`/`x-reqmd.verified-at` attributes) and `results.md` (one example result). See the [Commands](#commands) table for all `init` flags.
 
 ### Custom presets
 

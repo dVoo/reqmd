@@ -308,9 +308,10 @@ func loadManualDir(dir string) ([]Result, error) {
 }
 
 // resultFromReq builds a Result from a parsed manual-results requirement.
-// Returns ok=false if the requirement has no `outcome` attr (not a result).
+// Returns ok=false if the requirement has no `x-reqmd.outcome` attr (not a
+// result). Result attributes are tool-owned and namespaced under x-reqmd.*.
 func resultFromReq(req *model.Node) (Result, bool) {
-	outcomeRaw, ok := req.Attrs["outcome"]
+	outcomeRaw, ok := req.Attrs[model.AttrResultOutcome]
 	if !ok {
 		return Result{}, false
 	}
@@ -331,13 +332,13 @@ func resultFromReq(req *model.Node) (Result, bool) {
 	if r.MeasureID == "" {
 		r.MeasureID = req.ID
 	}
-	if ev, ok := req.Attrs["evidence"].(string); ok {
+	if ev, ok := req.Attrs[model.AttrResultEvidence].(string); ok {
 		r.Evidence = ev
 	}
-	if v, ok := req.Attrs["verifier"].(string); ok {
+	if v, ok := req.Attrs[model.AttrResultVerifier].(string); ok {
 		r.Verifier = v
 	}
-	if va, ok := req.Attrs["verified-at"].(string); ok {
+	if va, ok := req.Attrs[model.AttrResultVerifiedAt].(string); ok {
 		if t, err := time.Parse("2006-01-02", va); err == nil {
 			r.VerifiedAt = t
 		}

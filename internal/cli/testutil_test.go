@@ -140,14 +140,14 @@ func writeManualResult(t *testing.T, measureID, outcome string) string {
 title: "Manual Results"
 type: object
 properties:
-  outcome:
+  x-reqmd.outcome:
     type: string
     enum: [pass, fail, skipped, inconclusive]
-  verified-at:
+  x-reqmd.verified-at:
     type: string
 additionalProperties: false
 `)
-	writeFile(t, dir, "results.md", "# Results\n\n"+mdReq("RESULT-1", "review", fmt.Sprintf("outcome: %s\nverified-at: 2025-01-15\ntrace: [%s]\n", outcome, measureID)))
+	writeFile(t, dir, "results.md", "# Results\n\n"+mdReq("RESULT-1", "review", fmt.Sprintf("x-reqmd.outcome: %s\nx-reqmd.verified-at: 2025-01-15\ntrace: [%s]\n", outcome, measureID)))
 	return dir
 }
 

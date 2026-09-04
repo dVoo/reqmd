@@ -20,29 +20,30 @@ but the schema declares result-specific attributes:
 # schema.yaml
 x-reqmd:
   level: verify-results
-required: [outcome, verifier, verified-at]
+required: [x-reqmd.outcome, x-reqmd.verifier, x-reqmd.verified-at]
 properties:
-  outcome:
+  x-reqmd.outcome:
     type: string
     enum: [pass, fail, skipped, inconclusive]
-  verifier:
+  x-reqmd.verifier:
     type: string
-  evidence:
+  x-reqmd.evidence:
     type: string
-  verified-at:
+  x-reqmd.verified-at:
     type: string
 ```
 
-Each result is a heading with an `attr` block:
+Each result is a heading with an `attr` block. Result attributes are
+tool-owned and namespaced under `x-reqmd.*`:
 
 ```markdown
 ## VR-001: Boot Sequence Design Review Result
 ```attr
 status: approved
-outcome: pass
-verifier: "A. Reviewer"
-evidence: minutes/2026-07-15-boot-review.md
-verified-at: "2026-07-15"
+x-reqmd.outcome: pass
+x-reqmd.verifier: "A. Reviewer"
+x-reqmd.evidence: minutes/2026-07-15-boot-review.md
+x-reqmd.verified-at: "2026-07-15"
 trace: [TEST-002]
 ```
 ```
@@ -76,7 +77,7 @@ reqmd check 02-trace-your-spec/ \
 ```
 
 Both result sources are merged — if a measure has results from both CTRF and
-manual sources, the latest `verified-at` wins per (measure, case).
+manual sources, the latest `x-reqmd.verified-at` wins per (measure, case).
 
 ## Export with manual verdicts
 

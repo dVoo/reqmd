@@ -15,21 +15,21 @@ $id: "{{ .ID }}"
 title: "{{ .Title }}"
 type: object
 required:
-  - outcome
-  - verifier
-  - verified-at
+  - x-reqmd.outcome
+  - x-reqmd.verifier
+  - x-reqmd.verified-at
 properties:
-  outcome:
+  x-reqmd.outcome:
     type: string
     enum: [pass, fail, skipped, inconclusive]
     description: "Verification verdict for this result"
-  verifier:
+  x-reqmd.verifier:
     type: string
     description: "Person or tool that produced this result"
-  evidence:
+  x-reqmd.evidence:
     type: string
     description: "URI/path to review minutes, inspection record, or analysis report"
-  verified-at:
+  x-reqmd.verified-at:
     type: string
     description: "Date the verification was performed (YYYY-MM-DD)"
 additionalProperties: false

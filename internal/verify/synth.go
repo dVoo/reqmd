@@ -67,7 +67,7 @@ func Synthesize(merged map[ResultKey]Result) model.Document {
 		Path:       "<verify-results>", // synthetic; not a real dir
 		Nodes:      nodes,
 		XReqmd:     &model.XReqmd{Level: resultDocLevel},
-		Properties: []string{"outcome", model.AttrTrace, model.AttrStatus, "verifier", "evidence", "verified-at"},
+		Properties: []string{model.AttrResultOutcome, model.AttrTrace, model.AttrStatus, model.AttrResultVerifier, model.AttrResultEvidence, model.AttrResultVerifiedAt},
 		Synthetic:  true,
 	}
 }
@@ -96,20 +96,20 @@ func synthesizeTestCase(tcID string, r Result) *model.Node {
 // node ID so several cases can attach to the same authored measure.
 func synthesizeResult(k ResultKey, r Result) *model.Node {
 	attrs := map[string]any{
-		"outcome": string(r.Outcome),
+		model.AttrResultOutcome: string(r.Outcome),
 		// trace with the original (pinned) target so version-pin checks
 		// fire on stale pins.
 		model.AttrTrace:  []any{r.MeasureID},
 		model.AttrStatus: model.StatusApproved,
 	}
 	if r.Verifier != "" {
-		attrs["verifier"] = r.Verifier
+		attrs[model.AttrResultVerifier] = r.Verifier
 	}
 	if r.Evidence != "" {
-		attrs["evidence"] = r.Evidence
+		attrs[model.AttrResultEvidence] = r.Evidence
 	}
 	if !r.VerifiedAt.IsZero() {
-		attrs["verified-at"] = r.VerifiedAt.Format(time.DateOnly)
+		attrs[model.AttrResultVerifiedAt] = r.VerifiedAt.Format(time.DateOnly)
 	}
 
 	id := resultNodeID(k)
@@ -166,7 +166,7 @@ func IsTestCaseNode(reqID string) bool {
 // ResultOutcome extracts the outcome attribute from a synthesized result
 // node's requirement attrs. Returns "" if not present.
 func ResultOutcome(attrs map[string]any) Outcome {
-	v, ok := attrs["outcome"].(string)
+	v, ok := attrs[model.AttrResultOutcome].(string)
 	if !ok {
 		return ""
 	}

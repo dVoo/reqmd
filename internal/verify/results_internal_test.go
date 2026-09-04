@@ -25,18 +25,18 @@ $id: "results/schema.yaml"
 title: "Manual Results"
 type: object
 required:
-  - outcome
-  - verifier
-  - verified-at
+  - x-reqmd.outcome
+  - x-reqmd.verifier
+  - x-reqmd.verified-at
 properties:
-  outcome:
+  x-reqmd.outcome:
     type: string
     enum: [pass, fail, skipped, inconclusive]
-  verifier:
+  x-reqmd.verifier:
     type: string
-  evidence:
+  x-reqmd.evidence:
     type: string
-  verified-at:
+  x-reqmd.verified-at:
     type: string
 additionalProperties: false
 `
@@ -48,10 +48,10 @@ additionalProperties: false
 
 ## RES-001: Review result
 ` + "```attr" + `
-outcome: pass
-verifier: Jane
-evidence: report.md
-verified-at: "2024-01-15"
+x-reqmd.outcome: pass
+x-reqmd.verifier: Jane
+x-reqmd.evidence: report.md
+x-reqmd.verified-at: "2024-01-15"
 trace:
   - MEAS-001~3
 ` + "```" + `
@@ -102,10 +102,10 @@ func TestResultFromReq_HappyPath(t *testing.T) {
 		ID:     "RES-001",
 		Source: "/results/r.md",
 		Attrs: map[string]any{
-			"outcome":     "pass",
-			"verifier":    "Jane",
-			"evidence":    "report.md",
-			"verified-at": "2024-01-15",
+			model.AttrResultOutcome:    "pass",
+			model.AttrResultVerifier:   "Jane",
+			model.AttrResultEvidence:   "report.md",
+			model.AttrResultVerifiedAt: "2024-01-15",
 			model.AttrTrace: []any{
 				"MEAS-001~3",
 			},
@@ -142,8 +142,8 @@ func TestResultFromReq_NoOutcomeNotAResult(t *testing.T) {
 		ID:     "REQ-001",
 		Source: "/docs/r.md",
 		Attrs: map[string]any{
-			"verifier":      "Jane",
-			model.AttrTrace: []any{"MEAS-001~3"},
+			model.AttrResultVerifier: "Jane",
+			model.AttrTrace:          []any{"MEAS-001~3"},
 		},
 	}
 	if _, ok := resultFromReq(req); ok {
@@ -157,9 +157,9 @@ func TestResultFromReq_EmptyTraceFallsBackToReqID(t *testing.T) {
 		ID:     "RES-001",
 		Source: "/results/r.md",
 		Attrs: map[string]any{
-			"outcome":     "pass",
-			"verifier":    "Jane",
-			"verified-at": "2024-01-15",
+			model.AttrResultOutcome:    "pass",
+			model.AttrResultVerifier:   "Jane",
+			model.AttrResultVerifiedAt: "2024-01-15",
 			// no trace attr → MeasureID must fall back to the requirement ID
 		},
 	}

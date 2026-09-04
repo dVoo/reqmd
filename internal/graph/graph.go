@@ -233,7 +233,7 @@ func New(docs []model.Document) (*Graph, error) {
 				OutboundRefs:      nil, // lazily allocated in Pass 2
 				Suppressions:      req.Suppressions,
 				Status:            getString(req.Attrs, model.AttrStatus),
-				Outcome:           getString(req.Attrs, "outcome"),
+				Outcome:           getString(req.Attrs, model.AttrResultOutcome),
 				Verify:            getString(req.Attrs, "verify"),
 				Body:              req.Body,
 				IsResult:          strings.HasPrefix(req.ID, "RESULT:"),

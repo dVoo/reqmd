@@ -5,16 +5,16 @@ $schema: "https://json-schema.org/draft/2020-12/schema"
 $id: "verify-results"
 title: "Manual Verification Results"
 type: object
-required: [outcome, verifier, verified-at]
+required: [x-reqmd.outcome, x-reqmd.verifier, x-reqmd.verified-at]
 properties:
-  outcome:
+  x-reqmd.outcome:
     type: string
     enum: [pass, fail, skipped, inconclusive]
-  verifier:
+  x-reqmd.verifier:
     type: string
-  evidence:
+  x-reqmd.evidence:
     type: string
     description: "URI/path to review minutes, inspection record, or analysis report"
-  verified-at:
+  x-reqmd.verified-at:
     type: string
 additionalProperties: false

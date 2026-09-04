@@ -14,9 +14,9 @@ func resultReq(measureID, outcome string) *model.Node {
 		ID:     "RESULT:" + measureID,
 		Source: measureID + ".ctrf.json",
 		Attrs: map[string]any{
-			"outcome":        outcome,
-			model.AttrTrace:  []any{measureID},
-			model.AttrStatus: model.StatusApproved,
+			model.AttrResultOutcome: outcome,
+			model.AttrTrace:         []any{measureID},
+			model.AttrStatus:        model.StatusApproved,
 		},
 	}
 }
@@ -205,9 +205,9 @@ func staleResultReq(pinnedMeasureID, outcome string) *model.Node {
 		ID:     "RESULT:" + strip,
 		Source: "run.ctrf.json",
 		Attrs: map[string]any{
-			"outcome":        outcome,
-			model.AttrTrace:  []any{pinnedMeasureID},
-			model.AttrStatus: model.StatusApproved,
+			model.AttrResultOutcome: outcome,
+			model.AttrTrace:         []any{pinnedMeasureID},
+			model.AttrStatus:        model.StatusApproved,
 		},
 	}
 }
@@ -227,9 +227,9 @@ func casedResultReq(target, caseKey, outcome string) *model.Node {
 		ID:     id,
 		Source: "run.ctrf.json",
 		Attrs: map[string]any{
-			"outcome":        outcome,
-			model.AttrTrace:  []any{target},
-			model.AttrStatus: model.StatusApproved,
+			model.AttrResultOutcome: outcome,
+			model.AttrTrace:         []any{target},
+			model.AttrStatus:        model.StatusApproved,
 		},
 	}
 }

@@ -64,7 +64,7 @@ func ExportGraph(docs []model.Document, outDir string) error {
 		for _, req := range doc.Requirements() {
 			escID := escapeCypherString(req.ID)
 			escFile := escapeCypherString(req.Source)
-			outcome, _ := req.Attrs["outcome"].(string)
+			outcome, _ := req.Attrs[model.AttrResultOutcome].(string)
 			source := req.Source
 			if outcome != "" {
 				escOutcome := escapeCypherString(outcome)

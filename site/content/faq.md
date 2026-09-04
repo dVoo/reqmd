@@ -105,7 +105,7 @@ Requirements can also carry a `disposition`: `implemented` (actively developed),
 Two formats, both loaded with the `--results` flag (repeatable):
 
 - **CTRF JSON** — from automated test runs. Each test's `extra.x-reqmd` block binds it to the spec: `id` attaches the result directly to a measure; `case` + `verifies` (or `verifies` alone, keyed by suite+name) synthesizes a test case that traces to the requirements it exercises, with an optional `description` body.
-- **Manual markdown** — review/inspection/analysis results with `outcome`, `verifier`, `evidence`, `verified-at`, and a `trace` to the measure (or to a synthesized `TC:<case>`).
+- **Manual markdown** — review/inspection/analysis results with `x-reqmd.outcome`, `x-reqmd.verifier`, `x-reqmd.evidence`, `x-reqmd.verified-at`, and a `trace` to the measure (or to a synthesized `TC:<case>`).
 
 reqmd merges results latest-wins per (measure, case), synthesizes pseudo-requirements, and rolls each measure's verdict up over its own results plus its approved downstream test cases (any fail → fail, else inconclusive, else skipped, else pass). `missing-verdict` (no evidence) and `failing-verdict` (rolled-up fail) are the outcome-gated checks; draft and deferred/rejected measures are skipped. The HTML export shows verdict badges and an expandable evidence list on every measure card. Uninstrumented tests are skipped silently; tests that declare `x-reqmd` but bind nothing warn as `unbound-result` (`--ignore-unbound-results` suppresses them).
 {{< /details >}}

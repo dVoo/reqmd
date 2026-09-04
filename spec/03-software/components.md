@@ -189,7 +189,7 @@ priority: High
 trace:
   - SYS-VAL-002
 ```
-The `internal/verify` package shall load manual-results markdown directories via `parser.Discover`, extracting `outcome`, `verifier`, `evidence`, `verified-at`, and `trace` from each requirement's attr block. Manual-results dirs live outside the spec root and carry their own user-supplied `schema.yaml`.
+The `internal/verify` package shall load manual-results markdown directories via `parser.Discover`, extracting `x-reqmd.outcome`, `x-reqmd.verifier`, `x-reqmd.evidence`, `x-reqmd.verified-at`, and `trace` from each requirement's attr block. Manual-results dirs live outside the spec root and carry their own user-supplied `schema.yaml`.
 
 *Rationale:* Reusing the existing document pipeline for manual results avoids a parallel parser and keeps schema validation uniform. Keeping results outside the spec root ensures a normal `check` never sees them.
 
@@ -201,7 +201,7 @@ priority: High
 trace:
   - SYS-VAL-002
 ```
-The `internal/verify` package shall merge all loaded results by measure ID (stripping `~N` pins from the key), keeping the latest verdict per measure by CTRF `tests[].stop` (ms-epoch) or manual `verified-at`. Each merged result shall be synthesized as a pseudo-requirement with ID `RESULT:<measure-id>`, `trace: [MEASURE-ID~N]` (pin preserved for version-pin checks), `outcome: <verdict>`, and `status: approved`, then appended to the document slice before `graph.New`.
+The `internal/verify` package shall merge all loaded results by (measure, case) key (stripping `~N` pins from the key), keeping the latest result per key by CTRF `tests[].stop` (ms-epoch) or manual `x-reqmd.verified-at`. Each merged result shall be synthesized as a pseudo-requirement with ID `RESULT:<target>`, `trace: [MEASURE-ID~N]` (pin preserved for version-pin checks), `x-reqmd.outcome: <verdict>`, and `status: approved`, then appended to the document slice before `graph.New`. Result attributes (`x-reqmd.outcome`, `x-reqmd.verifier`, `x-reqmd.evidence`, `x-reqmd.verified-at`) are tool-owned and namespaced under `x-reqmd.*` so they never collide with authored schema attributes.
 
 *Rationale:* Collapsing to one result per measure reflects "latest verdict wins" without storing history in-file. The synthetic `RESULT:` prefix lets graph checks distinguish result nodes from authored ones. Preserving the pin on the trace edge makes the existing `version-pin` check detect stale results with no new logic.
 

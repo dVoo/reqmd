@@ -263,8 +263,8 @@ func TestRepinDeltas_ResultSkipped(t *testing.T) {
 			"verify":  "Test",
 		})),
 		doc("/docs/results", req("RESULT:MEAS-001", "/docs/results/r.md", map[string]any{
-			"trace":   []any{"MEAS-001~1"},
-			"outcome": "pass",
+			"trace":           []any{"MEAS-001~1"},
+			"x-reqmd.outcome": "pass",
 		})),
 	})
 	if err != nil {

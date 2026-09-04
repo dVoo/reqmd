@@ -17,6 +17,17 @@ const (
 	AttrRequiresTraceFrom = "requires-trace-from"
 )
 
+// Tool-owned attribute keys used on synthesized verification-result
+// pseudo-requirements (internal/verify). They are namespaced under
+// x-reqmd.* — the same convention as reqmd-import's provenance attributes —
+// so they can never collide with authored schema attributes.
+const (
+	AttrResultOutcome    = "x-reqmd.outcome"
+	AttrResultVerifier   = "x-reqmd.verifier"
+	AttrResultEvidence   = "x-reqmd.evidence"
+	AttrResultVerifiedAt = "x-reqmd.verified-at"
+)
+
 // StripPin removes a trailing `~N` version pin from a requirement ref.
 // Returns the bare ref, the pin value, and true if a numeric pin was
 // present. A `~` followed by a non-numeric suffix is NOT treated as a
