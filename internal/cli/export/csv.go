@@ -30,13 +30,19 @@ func newCsvCmd() *cobra.Command {
 				return fmt.Errorf("discovering documents: %w", err)
 			}
 
+			// exportDocs is the set of documents to export. When --filter
+			// is active, only matching requirements are exported; the graph
+			// is still built from the full docs so trace links and verdict
+			// roll-ups resolve against the unfiltered tree (same as the
+			// HTML export).
+			exportDocs := docs
 			if filterExpr != "" {
 				var f *filter.Filter
 				f, err = filter.CompileForDocs(docs, filterExpr)
 				if err != nil {
 					return fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 				}
-				docs, err = f.FilterDocs(docs)
+				exportDocs, err = f.FilterDocs(docs)
 				if err != nil {
 					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
 				}
@@ -44,7 +50,8 @@ func newCsvCmd() *cobra.Command {
 
 			// Load ephemeral verification results when --results is supplied.
 			// Verdicts (rolled up over downstream test cases) come from the
-			// graph, so we build it like the HTML export does.
+			// graph, which is built like the HTML export does: from the
+			// unfiltered docs plus synthesized results.
 			var hasResults bool
 			graphDocs := docs
 			if len(resultsPaths) > 0 {
@@ -71,7 +78,7 @@ func newCsvCmd() *cobra.Command {
 			var exp exporter.CSV
 			exp.SetVerdicts(verdicts)
 
-			for _, doc := range docs {
+			for _, doc := range exportDocs {
 				props := doc.Properties
 				dirName := filepath.Base(doc.Path)
 				outPath := dirName + "-requirements.csv"

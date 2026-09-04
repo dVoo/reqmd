@@ -218,6 +218,14 @@ func parseFiles(files []string) ([]*model.Node, string, map[string]any, []error)
 	return all, title, mergedMeta, errs
 }
 
+// parseParallelThreshold is the minimum file size (in bytes) for which the
+// root-split pre-scan + intra-file chunk parallelism is worth it. Below
+// this size the file is parsed serially: the pre-scan is an extra full
+// line scan plus a frontmatter YAML parse, and a small file parses in
+// well under a millisecond so chunking cannot help. Cross-file parallelism
+// (the worker pool in parseFiles) still applies.
+const parseParallelThreshold = 256 << 10
+
 // parseMD parses a single .md file and returns the assembled content tree
 // roots, the file title (the first h1 heading, when present), and any YAML
 // frontmatter as a map.
@@ -227,8 +235,8 @@ func parseFiles(files []string) ([]*model.Node, string, map[string]any, []error)
 // captured as the file title; the tree assembled from the remaining nodes
 // starts at the content heading level.
 //
-// For files with multiple root-level requirements (parent=nil), the file
-// is split at root requirement boundaries and chunks are parsed in
+// For large files with multiple root-level requirements (parent=nil), the
+// file is split at root requirement boundaries and chunks are parsed in
 // parallel. Each chunk yields a flat node stream in source order; the
 // streams are concatenated and assembled into the tree afterwards so
 // nesting across chunk boundaries (e.g. a container in chunk 0 with a
@@ -236,6 +244,18 @@ func parseFiles(files []string) ([]*model.Node, string, map[string]any, []error)
 // points is a cheap line scan that replicates the stack logic without
 // building a goldmark AST.
 func parseMD(src []byte, sourcePath string) ([]*model.Node, string, map[string]any, error) {
+	// Small files: skip the root-split pre-scan entirely. The serial path
+	// produces the same tree (assembleTree on one flat stream) and gets
+	// frontmatter from goldmark's meta extension instead of a second,
+	// independent YAML parse.
+	if len(src) < parseParallelThreshold {
+		nodes, title, fm, err := parseMDChunk(src, sourcePath)
+		if err != nil {
+			return nil, "", fm, err
+		}
+		return assembleTree(nodes), title, fm, nil
+	}
+
 	splits, frontmatter := findRootSplits(src)
 
 	// No splits or a single root → parse the whole file serially.
@@ -248,10 +268,10 @@ func parseMD(src []byte, sourcePath string) ([]*model.Node, string, map[string]a
 		return assembleTree(nodes), title, fm, nil
 	}
 
-	// Batch root requirements into ~NumCPU chunks to amortize goldmark
-	// init overhead (~490ns per parse) while still getting parallelism.
-	// Each chunk contains multiple consecutive root requirements + their
-	// descendants. Chunks are balanced by root count, not byte size.
+	// Batch root requirements into ~NumCPU chunks: repeated goldmark
+	// parses of smaller chunks run in parallel, which pays off only for
+	// files large enough to split (see parseParallelThreshold).
+	// Chunks are balanced by root count, not byte size.
 	nCPU := runtime.NumCPU()
 	nChunks := min(nRoots, nCPU)
 

@@ -3,10 +3,9 @@ package verify_test
 import (
 	"os"
 	"path/filepath"
-	"strings"
-
 	"reqmd/internal/model"
 	"reqmd/internal/verify"
+	"strings"
 	"testing"
 	"time"
 )
@@ -232,6 +231,45 @@ func TestLoadResults_PlainJsonCTRFShapeAccepted(t *testing.T) {
 	}
 	if len(results) != 1 {
 		t.Errorf("results = %d, want 1 (CTRF-shaped .json accepted)", len(results))
+	}
+}
+
+func TestLoadCTRF_ResultsArrayRejected(t *testing.T) {
+	// A file whose top-level `results` is an array, not an object, is not
+	// a CTRF report → explicit error on the .ctrf.json path.
+	dir := t.TempDir()
+	writeFixture(t, filepath.Join(dir, "report.ctrf.json"), `{"results": []}`)
+
+	_, _, err := verify.LoadResults([]string{dir})
+	if err == nil || !strings.Contains(err.Error(), "not a CTRF report") {
+		t.Fatalf("err = %v, want error containing %q", err, "not a CTRF report")
+	}
+}
+
+func TestLoadCTRF_ResultsArrayJsonSkippedSilently(t *testing.T) {
+	// Plain .json with an array `results` is shape-rejected by the probe
+	// and skipped like any other non-CTRF .json.
+	dir := t.TempDir()
+	writeFixture(t, filepath.Join(dir, "coverage.json"), `{"results": []}`)
+
+	results, _, err := verify.LoadResults([]string{dir})
+	if err != nil {
+		t.Fatalf("LoadResults: %v", err)
+	}
+	if len(results) != 0 {
+		t.Errorf("results = %d, want 0 (array-results .json skipped)", len(results))
+	}
+}
+
+func TestLoadCTRF_MalformedJSONError(t *testing.T) {
+	// Malformed JSON in a .ctrf.json file surfaces the parse error, not
+	// a shape error.
+	dir := t.TempDir()
+	writeFixture(t, filepath.Join(dir, "report.ctrf.json"), `{.`)
+
+	_, _, err := verify.LoadResults([]string{dir})
+	if err == nil || !strings.Contains(err.Error(), "parsing CTRF") {
+		t.Fatalf("err = %v, want error containing %q", err, "parsing CTRF")
 	}
 }
 

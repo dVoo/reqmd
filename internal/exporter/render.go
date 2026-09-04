@@ -437,9 +437,12 @@ func renderDocHeader(b *bufio.Writer, doc model.Document, title string, isRoot, 
 	_, _ = b.WriteString("<header class=\"doc-header\">\n")
 	_, _ = fmt.Fprintf(b, "<h1>%s</h1>\n", html.EscapeString(title))
 
-	count := len(doc.Requirements())
+	// Single tree walk: the requirement list is reused for the count, the
+	// parent/child split, and the status breakdown.
+	reqs := doc.Requirements()
+	count := len(reqs)
 	var parentCount, childCount int
-	for _, req := range doc.Requirements() {
+	for _, req := range reqs {
 		if req.ParentID == "" {
 			parentCount++
 		} else {
@@ -460,7 +463,7 @@ func renderDocHeader(b *bufio.Writer, doc model.Document, title string, isRoot, 
 		if doc.XReqmd != nil {
 			additions = doc.XReqmd.AdditionalStatusValues
 		}
-		breakdown := countStatusBreakdown(doc.Requirements(), additions)
+		breakdown := countStatusBreakdown(reqs, additions)
 		if len(breakdown) > 0 {
 			b.WriteString(`<div class="status-breakdown">`)
 			for _, item := range breakdown {
@@ -652,7 +655,13 @@ func renderInfoBlock(b *bufio.Writer, node *model.Node, anchor string, isChild b
 // upstream or downstream link and tc is non-nil.
 func renderCard(b *bufio.Writer, req *model.Node, propOrder []string, traceCache map[string]tracePair, tc *TraceResolver, ignoreStatus, isChild bool, verdicts map[string]VerdictInfo) {
 	escID := html.EscapeString(req.ID)
-	renderedBody := renderMarkdown(req.Body)
+	// Only render the body markdown when there is a body to render — the
+	// goldmark parse is the most expensive single step of a card and empty
+	// bodies are common (requirements with attrs but no prose).
+	var renderedBody string
+	if req.Body != "" {
+		renderedBody = renderMarkdown(req.Body)
+	}
 
 	cardClass := "req-card"
 	if isChild {

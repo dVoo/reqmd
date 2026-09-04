@@ -1,21 +1,20 @@
 package verify
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
 	"time"
 )
 
-// CTRF top-level report shape. Only the fields reqmd needs are decoded;
-// the per-test `extra` extension point carries the reqmd binding fields
-// (id, case, verifies, description).
+// CTRF report shape. Only the fields reqmd needs are decoded; the per-test
+// `extra` extension point carries the reqmd binding fields (id, case,
+// verifies, description). `results` is kept as raw JSON at first so the
+// top-level shape can be validated without decoding the (potentially very
+// large) test list more than once.
 //
 // Reference: https://ctrf.io/docs/full-schema
-type ctrfReport struct {
-	Results ctrfResults `json:"results"`
-}
-
 type ctrfResults struct {
 	Tests []ctrfTest `json:"tests"`
 	Suite string     `json:"suite"`
@@ -51,18 +50,23 @@ func loadCTRFFile(path string) ([]Result, []string, error) {
 //   - x-reqmd present but nothing bindable → an "unbound-result" warning.
 //   - no x-reqmd block → skipped silently.
 func loadCTRFData(data []byte, path string) ([]Result, []string, error) {
-	if !looksLikeCTRF(data) {
+	var probe struct {
+		Results json.RawMessage `json:"results"`
+	}
+	if err := json.Unmarshal(data, &probe); err != nil {
+		return nil, nil, fmt.Errorf("parsing CTRF: %w", err)
+	}
+	if !isCTRFResultsObject(probe.Results) {
 		return nil, nil, fmt.Errorf("not a CTRF report: missing top-level results object")
 	}
-
-	var report ctrfReport
-	if err := json.Unmarshal(data, &report); err != nil {
+	var report ctrfResults
+	if err := json.Unmarshal(probe.Results, &report); err != nil {
 		return nil, nil, fmt.Errorf("parsing CTRF: %w", err)
 	}
 
 	var results []Result
 	var warnings []string
-	for _, t := range report.Results.Tests {
+	for _, t := range report.Tests {
 		fields := extractXReqmd(t.Extra)
 		if !fields.present {
 			// Uninstrumented test — silent skip (incremental adoption).
@@ -84,7 +88,7 @@ func loadCTRFData(data []byte, path string) ([]Result, []string, error) {
 		case len(fields.Verifies) > 0:
 			caseKey := fields.Case
 			if caseKey == "" {
-				caseKey = implicitCaseKey(report.Results.Suite, t.Name)
+				caseKey = implicitCaseKey(report.Suite, t.Name)
 			}
 			result.CaseKey = caseKey
 			result.MeasureID = testCasePrefix + caseKey
@@ -190,8 +194,9 @@ func isCTRFFileData(data []byte) bool {
 }
 
 // looksLikeCTRF reports whether the JSON bytes decode to an object with a
-// top-level `results` object. Used to skip non-CTRF `.json` files in a
-// results dir without a brittle full-schema parse.
+// top-level `results` object. The probe decodes only the top-level key and
+// keeps `results` as raw bytes — the potentially huge test list is NOT
+// decoded into Go values here (that happens once, in loadCTRFData).
 func looksLikeCTRF(data []byte) bool {
 	var probe struct {
 		Results json.RawMessage `json:"results"`
@@ -199,11 +204,20 @@ func looksLikeCTRF(data []byte) bool {
 	if err := json.Unmarshal(data, &probe); err != nil {
 		return false
 	}
-	if len(probe.Results) == 0 {
+	return isCTRFResultsObject(probe.Results)
+}
+
+// isCTRFResultsObject reports whether the raw `results` value is a non-empty
+// object (CTRF's results is an object containing `tests[]`, never an array).
+// This is a byte-level check — no JSON decode of the contents.
+func isCTRFResultsObject(raw json.RawMessage) bool {
+	if len(raw) == 0 {
 		return false
 	}
-	// `results` must be an object, not an array — CTRF's results is an
-	// object containing `tests[]`.
-	var obj map[string]any
-	return json.Unmarshal(probe.Results, &obj) == nil
+	// Fast path: CTRF reports don't put whitespace before the object.
+	if raw[0] == '{' {
+		return true
+	}
+	trimmed := bytes.TrimLeft(raw, " \t\r\n")
+	return len(trimmed) > 0 && trimmed[0] == '{'
 }
