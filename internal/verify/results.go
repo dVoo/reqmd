@@ -37,9 +37,15 @@ type Verdict struct {
 	Source  string
 }
 
-// Result is one verification result, already mapped to a measure ID.
-// Multiple results for the same measure are merged by VerifiedAt (latest
-// wins) before synthesis.
+// Result is one verification result, already mapped to a measure ID (and,
+// for case-keyed runs, to a test-case identity). Multiple results for the
+// same measure are merged by VerifiedAt (latest wins) before synthesis.
+//
+// The identity fields (Name, CaseKey, Verifies, Description) back the
+// requirement → test-case → result chain model. Today only MeasureID is
+// populated and Name is captured from CTRF; CaseKey/Verifies/Description
+// are the v2 fields parsed in the binding phase that introduces synthesized
+// test cases.
 type Result struct {
 	// MeasureID is the verification-measure requirement ID this result
 	// applies to. May include a `~N` version pin (e.g. "TST-UNT-001~3").
@@ -54,6 +60,21 @@ type Result struct {
 	// Source is the file path the result was loaded from (for error
 	// messages and graph node File field).
 	Source string
+	// Name is the human-readable test/case name from the source report
+	// (e.g. CTRF tests[].name). Used as the synthesized case title.
+	Name string
+	// CaseKey is the stable test-case identity when the run is case-keyed
+	// (explicit extra.x-reqmd.case, or the normalized (suite, name)).
+	// Empty for the degenerate single-result-per-measure model (pattern A).
+	CaseKey string
+	// Verifies lists the upstream requirement IDs this result's test case
+	// exercises (extra.x-reqmd.verifies), with optional `~N` pins. Empty
+	// when the result binds directly to MeasureID.
+	Verifies []string
+	// Description is the Markdown body of the synthesized test case
+	// (extra.x-reqmd.description). Used only when the result binds to a
+	// synthesized case, never when it binds to an authored node.
+	Description string
 }
 
 // MergeLatest returns, for each measure ID, the result with the latest

@@ -232,27 +232,30 @@ func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string
 	}
 
 	var verdicts map[string]exporter.VerdictInfo
+	var hasResults bool
 	graphDocs := docs
 	if len(resultsPaths) > 0 {
-		var (
-			merged    map[string]verify.Result
-			vVerdicts map[string]verify.Verdict
-		)
-		merged, vVerdicts, _, err = verify.LoadVerdicts(resultsPaths)
+		merged, _, err := verify.LoadMerged(resultsPaths)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("loading results: %w", err)
 		}
 		resultDoc := verify.Synthesize(merged)
 		graphDocs = append(graphDocs, resultDoc)
-		verdicts = make(map[string]exporter.VerdictInfo, len(vVerdicts))
-		for id, v := range vVerdicts {
-			verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
-		}
+		hasResults = true
 	}
 
 	g, err := graph.New(graphDocs)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("building graph: %w", err)
+	}
+
+	// Badge verdicts come from graph adjacency (single source of truth),
+	// not the raw merged results map.
+	if hasResults {
+		verdicts = make(map[string]exporter.VerdictInfo)
+		for id, v := range g.MeasureVerdicts() {
+			verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
+		}
 	}
 
 	// Apply filter to the graph (filter-aware checks) and to the exported docs.

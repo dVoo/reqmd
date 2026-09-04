@@ -276,6 +276,36 @@ func TestRepinDeltas_ResultSkipped(t *testing.T) {
 }
 
 // ---------------------------------------------------------------------------
+// RepinDeltas: any node from a Synthetic document is not a source
+// (future synthesized test-case nodes must not be rewritten in the report)
+// ---------------------------------------------------------------------------
+
+func TestRepinDeltas_SyntheticSkipped(t *testing.T) {
+	g, err := graph.New([]model.Document{
+		doc("/docs/up", req("UP-001", "/docs/up/up.md", map[string]any{
+			"version": 3,
+		})),
+		{
+			Path:      "/docs/results",
+			Synthetic: true,
+			Nodes: []*model.Node{
+				// A synthesized node whose ID is NOT RESULT:-prefixed (as a
+				// future synthesized test case would be) must still be skipped.
+				req("TC:BOOT-001", "/docs/results/t.md", map[string]any{
+					"trace": []any{"UP-001~1"},
+				}),
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	if deltas := g.RepinDeltas(false); len(deltas) != 0 {
+		t.Errorf("RepinDeltas = %+v, want empty (Synthetic nodes are skipped)", deltas)
+	}
+}
+
+// ---------------------------------------------------------------------------
 // RepinDeltas: stable sort by file → reqID → sourceRef
 // ---------------------------------------------------------------------------
 

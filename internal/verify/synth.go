@@ -45,6 +45,7 @@ func Synthesize(merged map[string]Result) model.Document {
 		Nodes:      nodes,
 		XReqmd:     &model.XReqmd{Level: resultDocLevel},
 		Properties: []string{"outcome", model.AttrTrace, model.AttrStatus, "verifier", "evidence", "verified-at"},
+		Synthetic:  true,
 	}
 }
 

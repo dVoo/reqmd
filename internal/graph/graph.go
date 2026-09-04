@@ -93,6 +93,12 @@ type CachedNode struct {
 	External             bool
 	IsResult             bool
 	IsChild              bool
+	// Synthetic marks nodes that come from a synthetic document (produced
+	// by internal/verify), not from authored Markdown on disk. Synthetic
+	// nodes have no schema, no ID prefix, and no source file that tooling
+	// may rewrite in place (repin skips them). RESULT: pseudo-requirements
+	// are synthetic; future synthesized test-case nodes will be too.
+	Synthetic bool
 }
 
 // Graph wraps an in-memory adjacency map with a typed node cache. It is
@@ -225,6 +231,7 @@ func New(docs []model.Document) (*Graph, error) {
 				Outcome:           getString(req.Attrs, "outcome"),
 				Verify:            getString(req.Attrs, "verify"),
 				IsResult:          strings.HasPrefix(req.ID, "RESULT:"),
+				Synthetic:         doc.Synthetic,
 			}
 			if len(req.Suppressions) > 0 {
 				node.suppressionsSet = make(map[string]struct{}, len(req.Suppressions))
@@ -884,10 +891,11 @@ func (g *Graph) checkVersionPins() []CheckResult {
 }
 
 // checkMissingVerdict flags approved verification measures that have no
-// verification result tracing to them. A "measure" is any non-result node
-// that is the target of at least one inbound result edge — i.e. a
-// requirement that verification results trace to. Draft measures are
-// skipped (a draft measure is not expected to have results yet).
+// verification result tracing to them. A "measure" is any approved,
+// non-result node carrying a `verify` attribute (see isMeasure) — i.e. a
+// requirement that declares how it is verified, regardless of whether any
+// result currently traces to it. Draft measures are skipped (a draft
+// measure is not expected to have results yet).
 //
 // The check runs only when result pseudo-requirements are present in the
 // graph (loaded via `check --results`). With no results loaded, no node
@@ -985,8 +993,8 @@ func (g *Graph) hasResultNodes() bool {
 
 // isMeasure reports whether a node is a verification measure — a
 // requirement authored with a `verify` attribute (e.g. verify: Test,
-// verify: Review) that verification results trace to. Result nodes are
-// not measures.
+// verify: Review). Whether a result currently traces to it is irrelevant to
+// the definition (see checkMissingVerdict). Result nodes are not measures.
 func (g *Graph) isMeasure(node *CachedNode) bool {
 	if node.IsResult {
 		return false
@@ -1066,6 +1074,38 @@ func (g *Graph) checkVerdicts() []CheckResult {
 // ("", false) if the measure has no result or is not a measure.
 func (g *Graph) MeasureOutcome(measureID string) (string, string, bool) {
 	return g.latestOutcomeFor(measureID)
+}
+
+// NodeVerdict is the outcome and result source file for a single node as
+// resolved by the graph. This is the graph-side transport used to feed
+// exporters and reporters; a later phase extends it to rolled-up verdicts
+// aggregated over downstream test cases.
+type NodeVerdict struct {
+	Outcome string
+	Source  string
+}
+
+// MeasureVerdicts returns, for every non-synthetic node that a verification
+// result traces to, the latest outcome and the result's source file. The
+// set is keyed by requirement ID and mirrors today's merged per-measure
+// verdicts, but is computed from graph adjacency so a single source of
+// truth feeds all outputs. Returns nil when no results are loaded.
+func (g *Graph) MeasureVerdicts() map[string]NodeVerdict {
+	if !g.hasResultNodes() {
+		return nil
+	}
+	out := make(map[string]NodeVerdict)
+	for id, node := range g.nodes {
+		if node.IsResult || node.Synthetic {
+			continue
+		}
+		outcome, src, ok := g.latestOutcomeFor(id)
+		if !ok {
+			continue
+		}
+		out[id] = NodeVerdict{Outcome: outcome, Source: src}
+	}
+	return out
 }
 
 // HasResults reports whether the graph contains any synthesized result
@@ -1231,7 +1271,10 @@ func (n *CachedNode) effectiveStatus() string {
 // current version" — the caller is expected to opt in deliberately.
 //
 // Rules shared with checkVersionPins:
-//   - Skip result pseudo-requirements (synthesized in-memory only).
+//   - Skip synthetic nodes (result pseudo-requirements and future
+//     synthesized test cases — they exist in memory only, so there is no
+//     source file to rewrite). IsResult is kept for nodes built directly
+//     in tests that predate the Synthetic document marker.
 //   - Skip nodes that suppress the version-pin check.
 //   - Skip refs whose target is external (versions out of our control).
 //   - Skip refs whose target has no version (no ground truth).
@@ -1241,7 +1284,7 @@ func (n *CachedNode) effectiveStatus() string {
 func (g *Graph) RepinDeltas(promoteUnpinned bool) []RepinDelta {
 	var deltas []RepinDelta
 	for _, node := range g.nodes {
-		if node.IsResult {
+		if node.Synthetic || node.IsResult {
 			continue
 		}
 		for targetID, originalRef := range node.OutboundRefs {

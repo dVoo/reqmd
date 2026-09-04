@@ -64,6 +64,7 @@ func loadCTRFData(data []byte, path string) ([]Result, []string, error) {
 			VerifiedAt: msEpochToTime(t.Stop, t.Start),
 			Evidence:   path,
 			Source:     path,
+			Name:       t.Name,
 		})
 	}
 	return results, warnings, nil

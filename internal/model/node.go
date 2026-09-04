@@ -90,6 +90,12 @@ type SourceConfig struct {
 // the ordered content tree; every heading in every .md file is a node
 // except the level-1 document title (see parser). Title is the first
 // file's h1 heading, when present.
+//
+// Synthetic marks documents that do not originate from authored Markdown
+// on disk — currently the pseudo-document of verification results
+// synthesized by internal/verify, later also synthesized test cases. Nodes
+// of a synthetic document carry no schema, no ID prefix, and no source file
+// that tooling may rewrite (e.g. repin must skip them).
 type Document struct {
 	Schema     any
 	XReqmd     *XReqmd
@@ -98,6 +104,7 @@ type Document struct {
 	Title      string
 	Nodes      []*Node
 	Properties []string
+	Synthetic  bool
 }
 
 // Requirements returns all requirement-kind nodes in document order

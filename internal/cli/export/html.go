@@ -49,31 +49,33 @@ func newHTMLCmd() *cobra.Command {
 			// Load ephemeral verification results when --results is supplied.
 			// Results are synthesized into pseudo-requirements appended to
 			// the doc slice so the graph builds result→measure edges and
-			// outcome-gated checks run. The verdicts map is extracted for
-			// rendering badges on measure cards.
-			var verdicts map[string]exporter.VerdictInfo
+			// outcome-gated checks run. Badge verdicts are derived from the
+			// graph after construction (single source of truth) rather than
+			// from the raw merged map.
+			var hasResults bool
 			graphDocs := docs
 			if len(resultsPaths) > 0 {
-				var (
-					merged    map[string]verify.Result
-					vVerdicts map[string]verify.Verdict
-				)
-				merged, vVerdicts, _, err = verify.LoadVerdicts(resultsPaths)
+				merged, _, err := verify.LoadMerged(resultsPaths)
 				if err != nil {
 					return fmt.Errorf("loading results: %w", err)
 				}
 				resultDoc := verify.Synthesize(merged)
 				graphDocs = append(graphDocs, resultDoc)
-				verdicts = make(map[string]exporter.VerdictInfo, len(vVerdicts))
-				for id, v := range vVerdicts {
-					verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
-				}
+				hasResults = true
 			}
 
 			// Build the trace graph for upstream/downstream links
 			g, err := graph.New(graphDocs)
 			if err != nil {
 				return fmt.Errorf("building trace graph: %w", err)
+			}
+
+			var verdicts map[string]exporter.VerdictInfo
+			if hasResults {
+				verdicts = make(map[string]exporter.VerdictInfo)
+				for id, v := range g.MeasureVerdicts() {
+					verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
+				}
 			}
 
 			titleMap := exporter.BuildTitleMap(docs)
