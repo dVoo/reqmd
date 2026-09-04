@@ -615,3 +615,37 @@ func TestFormatStatsJSON(t *testing.T) {
 		t.Errorf("draft count = %v, want 1", statusCounts["draft"])
 	}
 }
+
+func TestFormat_ResultsSection(t *testing.T) {
+	r := &Report{}
+	r.GraphChecks = []graph.CheckResult{
+		{Level: graph.LevelWarning, Message: "unbound-result: CTRF test Boot declares x-reqmd but binds nothing"},
+		{Level: graph.LevelError, Code: graph.CodeVersionPin, ReqID: "RESULT:TEST-001", Message: "outdated version pin: upstream TEST-001 is at v4, this requirement still pins ~3"},
+	}
+
+	text := r.Format()
+	if !strings.Contains(text, "Verification results") {
+		t.Error("text report should include a Verification results section")
+	}
+	if !strings.Contains(text, "unbound-result:") || !strings.Contains(text, "RESULT:TEST-001") {
+		t.Error("text results section should list the findings")
+	}
+
+	var parsed struct {
+		Results []struct {
+			ID      string `json:"id"`
+			Level   string `json:"level"`
+			Message string `json:"message"`
+		} `json:"results"`
+	}
+	raw := r.FormatJSON()
+	if err := json.Unmarshal([]byte(raw), &parsed); err != nil {
+		t.Fatalf("unmarshal: %v\n%s", err, raw)
+	}
+	if len(parsed.Results) != 2 {
+		t.Fatalf("results = %d, want 2", len(parsed.Results))
+	}
+	if parsed.Results[0].ID != "" || parsed.Results[1].ID != "RESULT:TEST-001" {
+		t.Errorf("results IDs = %q, %q; want '' and RESULT:TEST-001", parsed.Results[0].ID, parsed.Results[1].ID)
+	}
+}

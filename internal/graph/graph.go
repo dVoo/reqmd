@@ -129,6 +129,9 @@ type Graph struct {
 	// pseudo-requirement (RESULT:*) is present. Set once in Pass 1 so the
 	// outcome-gated checks short-circuit without re-scanning all nodes.
 	hasResults bool
+	// sevCache memoizes rolled-up evidence severity per requirement ID
+	// within a check pass; invalidated whenever the active filter changes.
+	sevCache map[string]severity
 }
 
 // SetFilter restricts per-requirement checks to the given set of requirement
@@ -141,6 +144,7 @@ type Graph struct {
 // per-req check/report loop is scoped.
 func (g *Graph) SetFilter(ids map[string]struct{}) {
 	g.filter = ids
+	g.sevCache = nil // roll-up results depend on the active filter
 }
 
 // SetDisjointAttrs enables the disjoint-attribute check for the named
@@ -890,12 +894,12 @@ func (g *Graph) checkVersionPins() []CheckResult {
 	return results
 }
 
-// checkMissingVerdict flags approved verification measures that have no
-// verification result tracing to them. A "measure" is any approved,
-// non-result node carrying a `verify` attribute (see isMeasure) — i.e. a
-// requirement that declares how it is verified, regardless of whether any
-// result currently traces to it. Draft measures are skipped (a draft
-// measure is not expected to have results yet).
+// checkMissingVerdict flags approved verification measures whose rolled-up
+// evidence set is empty. A measure is any approved, non-result node carrying
+// a `verify` attribute (see isMeasure). Evidence is the union of the
+// measure's own attached results and the results of approved, in-filter
+// nodes in its inbound trace closure (downstream test cases). Draft measures
+// are skipped (a draft measure is not expected to have results yet).
 //
 // The check runs only when result pseudo-requirements are present in the
 // graph (loaded via `check --results`). With no results loaded, no node
@@ -920,8 +924,6 @@ func (g *Graph) checkMissingVerdict() []CheckResult {
 		if node.isSuppressed(CodeMissingVerdict) {
 			continue
 		}
-		// Only measures (nodes that results trace to) are checked. A
-		// node is a measure if at least one result traces to it.
 		if !g.isMeasure(node) {
 			continue
 		}
@@ -929,25 +931,35 @@ func (g *Graph) checkMissingVerdict() []CheckResult {
 		if !g.isCoverageProvider(node.ReqID) {
 			continue
 		}
-		if g.hasVerdictFor(node.ReqID) {
+		// Deferred/rejected measures are not expected to be verified.
+		if !expectsVerification(node) {
 			continue
+		}
+		_, all, drafts := g.measureEvidence(node.ReqID)
+		if len(all) > 0 {
+			continue
+		}
+		msg := "missing verdict: no verification result or downstream test-case result covers this measure"
+		if drafts > 0 {
+			msg += fmt.Sprintf(" (%d draft downstreams ignored)", drafts)
 		}
 		results = append(results, CheckResult{
 			Code:    CodeMissingVerdict,
 			Level:   LevelWarning,
 			ReqID:   node.ReqID,
 			File:    node.File,
-			Message: "missing verdict: no verification result traces to this measure",
+			Message: msg,
 		})
 	}
 	return results
 }
 
-// checkFailingVerdict flags measures whose latest verification result is a
-// fail. Like checkMissingVerdict, it is a no-op when no result nodes are
-// present. A measure with a failing result that has a later non-failing
-// result does not trigger (latest verdict wins, computed at the result
-// layer; here we observe the single merged result node per measure).
+// checkFailingVerdict flags approved measures whose rolled-up verdict is
+// fail. Like checkMissingVerdict it is a no-op when no result nodes are
+// present. Draft measures are skipped (a draft measure is not expected to
+// gate on results), mirroring the missing-verdict draft gate.
+//
+// The message names the failing case(s) and their source file(s).
 //
 // Severity: ERROR. Suppress per-node with
 // `reqmd-suppress: [failing-verdict]`. Code: "failing-verdict".
@@ -966,20 +978,34 @@ func (g *Graph) checkFailingVerdict() []CheckResult {
 		if !g.isMeasure(node) {
 			continue
 		}
-		// Find the latest result tracing to this measure.
-		latestOutcome, _, found := g.latestOutcomeFor(node.ReqID)
-		if !found {
-			continue // missing-verdict handles the no-result case.
-		}
-		if latestOutcome != "fail" {
+		if !g.isCoverageProvider(node.ReqID) {
 			continue
+		}
+		if !expectsVerification(node) {
+			continue
+		}
+		if g.measureSeverity(node.ReqID) != sevFail {
+			continue
+		}
+		failures := g.failingEvidence(node.ReqID)
+		msg := "failing verdict: rolled-up verification result is fail"
+		if len(failures) > 0 {
+			parts := make([]string, 0, len(failures))
+			for _, f := range failures {
+				if f.Case != "" {
+					parts = append(parts, fmt.Sprintf("%s (%s)", f.Case, f.File))
+				} else {
+					parts = append(parts, f.File)
+				}
+			}
+			msg += ": " + strings.Join(parts, ", ")
 		}
 		results = append(results, CheckResult{
 			Code:    CodeFailingVerdict,
 			Level:   LevelError,
 			ReqID:   node.ReqID,
 			File:    node.File,
-			Message: "failing verdict: latest verification result for this measure is fail",
+			Message: msg,
 		})
 	}
 	return results
@@ -1000,6 +1026,223 @@ func (g *Graph) isMeasure(node *CachedNode) bool {
 		return false
 	}
 	return node.Verify != ""
+}
+
+// expectsVerification reports whether a measure's disposition still expects
+// verification results. A deferred or rejected measure is not expected to be
+// verified, so it is exempt from the outcome-gated checks (mirroring how
+// such dispositions suppress the generic trace warnings).
+func expectsVerification(node *CachedNode) bool {
+	switch node.Disposition {
+	case "deferred", "rejected":
+		return false
+	}
+	return true
+}
+
+// ---------------------------------------------------------------------------
+// Evidence-set roll-up (strict aggregation)
+// ---------------------------------------------------------------------------
+
+// severity ranks verification outcomes for strict roll-up aggregation:
+// any fail → fail, else inconclusive → inconclusive, else skipped →
+// skipped, else pass; an empty evidence set has severity none.
+type severity int
+
+const (
+	sevNone severity = iota
+	sevPass
+	sevSkipped
+	sevInconclusive
+	sevFail
+)
+
+// outcomeSeverity maps an outcome string onto the severity lattice.
+func outcomeSeverity(outcome string) severity {
+	switch outcome {
+	case "pass":
+		return sevPass
+	case "skipped":
+		return sevSkipped
+	case "inconclusive":
+		return sevInconclusive
+	case "fail":
+		return sevFail
+	default:
+		return sevNone
+	}
+}
+
+// severityOutcome maps a severity back to its outcome string ("" for none).
+func severityOutcome(s severity) string {
+	switch s {
+	case sevPass:
+		return "pass"
+	case sevSkipped:
+		return "skipped"
+	case sevInconclusive:
+		return "inconclusive"
+	case sevFail:
+		return "fail"
+	default:
+		return ""
+	}
+}
+
+// EvidenceItem is one verification result contributing to a measure's
+// evidence set: its case key ("" for direct, uncased results), outcome, and
+// source report file.
+type EvidenceItem struct {
+	Case    string
+	Outcome string
+	File    string
+}
+
+// evidenceItem derives an EvidenceItem from a synthesized result node.
+func (g *Graph) evidenceItem(in *CachedNode) EvidenceItem {
+	return EvidenceItem{Case: g.evidenceCase(in), Outcome: in.Outcome, File: in.File}
+}
+
+// evidenceCase resolves the case key of a result node: the `#case` suffix on
+// a case-keyed result, or the case key of the synthesized test case the
+// result traces to, or "" for a direct (uncased) result.
+func (g *Graph) evidenceCase(in *CachedNode) string {
+	if i := strings.IndexByte(in.ReqID, '#'); i >= 0 {
+		return in.ReqID[i+1:]
+	}
+	for _, outID := range in.Outbound {
+		if out := g.nodes[outID]; out != nil && out.Synthetic && strings.HasPrefix(outID, "TC:") {
+			return strings.TrimPrefix(outID, "TC:")
+		}
+	}
+	return ""
+}
+
+// measureEvidence gathers the evidence set of a requirement: its own
+// attached results plus the results of approved, in-filter nodes in its
+// inbound trace closure (downstream authored test cases and synthesized
+// cases). Draft in-filter intermediaries are not contributors and are
+// reported in the returned draft count. self holds the results attached
+// directly to the requirement; items is the deduplicated union (by case
+// key, keeping the higher severity).
+func (g *Graph) measureEvidence(reqID string) (self, items []EvidenceItem, drafts int) {
+	seen := make(map[string]bool)
+	var rec func(id string) int
+	rec = func(id string) int {
+		node := g.nodes[id]
+		if node == nil {
+			return 0
+		}
+		d := 0
+		for _, inID := range node.Inbound {
+			in := g.nodes[inID]
+			if in == nil {
+				continue
+			}
+			if in.IsResult {
+				it := g.evidenceItem(in)
+				if id == reqID {
+					self = append(self, it)
+				}
+				items = append(items, it)
+				continue
+			}
+			if seen[inID] {
+				continue
+			}
+			seen[inID] = true
+			if !g.inFilter(inID) {
+				continue
+			}
+			if !g.isCoverageProvider(inID) {
+				d++
+				continue
+			}
+			d += rec(inID)
+		}
+		return d
+	}
+	drafts = rec(reqID)
+
+	// De-duplicate by case key, keeping the higher severity; sort for
+	// deterministic message/export ordering.
+	if len(items) > 1 {
+		keep := make(map[string]EvidenceItem, len(items))
+		for _, it := range items {
+			cur, ok := keep[it.Case]
+			if !ok || outcomeSeverity(it.Outcome) > outcomeSeverity(cur.Outcome) {
+				keep[it.Case] = it
+			}
+		}
+		items = items[:0]
+		for _, it := range keep {
+			items = append(items, it)
+		}
+		sort.Slice(items, func(i, j int) bool { return items[i].Case < items[j].Case })
+	}
+	return self, items, drafts
+}
+
+// failingEvidence returns the evidence items whose outcome is fail.
+func (g *Graph) failingEvidence(reqID string) []EvidenceItem {
+	_, items, _ := g.measureEvidence(reqID)
+	var fails []EvidenceItem
+	for _, it := range items {
+		if it.Outcome == "fail" {
+			fails = append(fails, it)
+		}
+	}
+	return fails
+}
+
+// severityOf computes the rolled-up severity of a node's evidence set,
+// recursing through approved, in-filter intermediaries. Results are cached
+// on the graph (invalidated by SetFilter) so a whole check pass stays cheap.
+func (g *Graph) severityOf(reqID string, visiting map[string]bool) severity {
+	if g.sevCache == nil {
+		g.sevCache = make(map[string]severity)
+	}
+	if s, ok := g.sevCache[reqID]; ok {
+		return s
+	}
+	if visiting[reqID] {
+		return sevNone // cycle guard; circular refs are already errors
+	}
+	visiting[reqID] = true
+	best := sevNone
+	node := g.nodes[reqID]
+	if node != nil {
+		for _, inID := range node.Inbound {
+			in := g.nodes[inID]
+			if in == nil {
+				continue
+			}
+			if in.IsResult {
+				if s := outcomeSeverity(in.Outcome); s > best {
+					best = s
+				}
+				continue
+			}
+			if !g.inFilter(inID) {
+				continue
+			}
+			if !g.isCoverageProvider(inID) {
+				continue
+			}
+			if s := g.severityOf(inID, visiting); s > best {
+				best = s
+			}
+		}
+	}
+	visiting[reqID] = false
+	g.sevCache[reqID] = best
+	return best
+}
+
+// measureSeverity returns the rolled-up severity of a measure's evidence
+// set (sevNone when the set is empty).
+func (g *Graph) measureSeverity(reqID string) severity {
+	return g.severityOf(reqID, make(map[string]bool))
 }
 
 // hasVerdictFor reports whether any result node traces to the given
@@ -1032,10 +1275,11 @@ func (g *Graph) latestOutcomeFor(measureID string) (string, string, bool) {
 }
 
 // checkVerdicts emits an INFO-level result for each measure that has a
-// verification result, showing the latest outcome. This makes passing
-// verdicts visible in the output — without it, a clean run with --results
-// looks identical to a run without --results. Measures without results are
-// covered by checkMissingVerdict and emit no verdict line here.
+// non-empty rolled-up evidence set, showing the rolled-up outcome. This
+// makes passing verdicts visible in the output — without it, a clean run
+// with --results looks identical to a run without --results. Measures
+// without evidence are covered by checkMissingVerdict and emit no verdict
+// line here.
 //
 // Severity: INFO (never affects exit code). Code: "verdict".
 func (g *Graph) checkVerdicts() []CheckResult {
@@ -1053,16 +1297,31 @@ func (g *Graph) checkVerdicts() []CheckResult {
 		if !g.isMeasure(node) {
 			continue
 		}
-		outcome, sourceFile, found := g.latestOutcomeFor(node.ReqID)
-		if !found {
+		if !expectsVerification(node) {
 			continue
 		}
+		self, items, _ := g.measureEvidence(node.ReqID)
+		if len(items) == 0 {
+			continue
+		}
+		sev := sevNone
+		file := ""
+		for _, it := range items {
+			if s := outcomeSeverity(it.Outcome); s > sev {
+				sev = s
+				file = it.File
+			}
+		}
+		if len(self) > 0 {
+			file = self[0].File
+		}
+		outcome := severityOutcome(sev)
 		results = append(results, CheckResult{
 			Code:    CodeVerdict,
 			Level:   LevelInfo,
 			Outcome: outcome,
 			ReqID:   node.ReqID,
-			File:    sourceFile,
+			File:    file,
 			Message: fmt.Sprintf("verified: %s", outcome),
 		})
 	}
@@ -1076,20 +1335,20 @@ func (g *Graph) MeasureOutcome(measureID string) (string, string, bool) {
 	return g.latestOutcomeFor(measureID)
 }
 
-// NodeVerdict is the outcome and result source file for a single node as
-// resolved by the graph. This is the graph-side transport used to feed
-// exporters and reporters; a later phase extends it to rolled-up verdicts
-// aggregated over downstream test cases.
+// NodeVerdict is the rolled-up verdict and a representative result source
+// file for a single node, resolved by the graph. It feeds exporters and
+// reporters; Outcome is the strict roll-up over the node's evidence set
+// (own attached results plus approved downstream test cases).
 type NodeVerdict struct {
 	Outcome string
-	Source  string
+	Source  string // representative result source file ("" when none)
 }
 
-// MeasureVerdicts returns, for every non-synthetic node that a verification
-// result traces to, the latest outcome and the result's source file. The
-// set is keyed by requirement ID and mirrors today's merged per-measure
-// verdicts, but is computed from graph adjacency so a single source of
-// truth feeds all outputs. Returns nil when no results are loaded.
+// MeasureVerdicts returns, for every non-synthetic node with a non-empty
+// rolled-up evidence set, the rolled-up outcome and a representative source
+// file. The set is keyed by requirement ID and computed from graph
+// adjacency, so a single source of truth feeds all outputs. Returns nil when
+// no results are loaded.
 func (g *Graph) MeasureVerdicts() map[string]NodeVerdict {
 	if !g.hasResultNodes() {
 		return nil
@@ -1099,11 +1358,22 @@ func (g *Graph) MeasureVerdicts() map[string]NodeVerdict {
 		if node.IsResult || node.Synthetic {
 			continue
 		}
-		outcome, src, ok := g.latestOutcomeFor(id)
-		if !ok {
+		self, items, _ := g.measureEvidence(id)
+		if len(items) == 0 {
 			continue
 		}
-		out[id] = NodeVerdict{Outcome: outcome, Source: src}
+		sev := sevNone
+		file := ""
+		for _, it := range items {
+			if s := outcomeSeverity(it.Outcome); s > sev {
+				sev = s
+				file = it.File
+			}
+		}
+		if len(self) > 0 {
+			file = self[0].File
+		}
+		out[id] = NodeVerdict{Outcome: severityOutcome(sev), Source: file}
 	}
 	return out
 }

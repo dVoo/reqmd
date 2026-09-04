@@ -108,6 +108,24 @@ func (r *Report) counts() (warnings, errors int) {
 	return warnings, errors
 }
 
+// resultFindings returns graph checks that belong to the verification
+// results layer rather than to an authored requirement: findings attributed
+// to synthesized nodes (RESULT:/TC: IDs) and loader warnings attached
+// without a ReqID (e.g. unbound-result). These are rendered in a dedicated
+// results section, never as requirement-attributed findings.
+func (r *Report) resultFindings() []graph.CheckResult {
+	var out []graph.CheckResult
+	for _, gc := range r.GraphChecks {
+		switch {
+		case gc.ReqID == "":
+			out = append(out, gc)
+		case strings.HasPrefix(gc.ReqID, "RESULT:"), strings.HasPrefix(gc.ReqID, "TC:"):
+			out = append(out, gc)
+		}
+	}
+	return out
+}
+
 // Format produces the per-file, per-requirement validation report
 // as specified in the spec tree under spec/.
 func (r *Report) Format() string {
@@ -192,6 +210,29 @@ func (r *Report) Format() string {
 				}
 				fmt.Fprintf(&b, "  %s  %s  %s\n", prefix, reqID, g.Message)
 			}
+		}
+		b.WriteString("\n")
+	}
+
+	// Verification results section (findings attributed to synthesized
+	// nodes or loader warnings) — distinct from requirement findings.
+	if findings := r.resultFindings(); len(findings) > 0 {
+		b.WriteString("=\n")
+		b.WriteString("Verification results\n")
+		b.WriteString("=\n")
+		for _, f := range findings {
+			prefix := "⚠"
+			switch f.Level {
+			case graph.LevelError:
+				prefix = "❌"
+			case graph.LevelInfo:
+				prefix = "✅"
+			}
+			label := ""
+			if f.ReqID != "" {
+				label = f.ReqID + "  "
+			}
+			fmt.Fprintf(&b, "  %s  %s%s\n", prefix, label, f.Message)
 		}
 		b.WriteString("\n")
 	}
@@ -342,6 +383,7 @@ func sortedKeys(m map[string]int) []string {
 type jsonReport struct {
 	Documents   []jsonDocSection `json:"documents"`
 	ParseErrors []jsonParseErr   `json:"parse_errors"`
+	Results     []jsonChk        `json:"results,omitempty"`
 	Summary     jsonSummary      `json:"summary"`
 	Version     int              `json:"version"`
 	ExitCode    int              `json:"exit_code"`
@@ -370,6 +412,7 @@ type jsonReqResult struct {
 }
 
 type jsonChk struct {
+	ID        string `json:"id,omitempty"`
 	Level     string `json:"level"`
 	Code      string `json:"code,omitempty"`
 	Direction string `json:"direction,omitempty"`
@@ -478,6 +521,18 @@ func (r *Report) FormatJSON() string {
 
 	for _, pe := range r.ParseErrors {
 		jr.ParseErrors = append(jr.ParseErrors, jsonParseErr(pe))
+	}
+
+	for _, gc := range r.resultFindings() {
+		jr.Results = append(jr.Results, jsonChk{
+			ID:        gc.ReqID,
+			Level:     gc.Level,
+			Code:      gc.Code,
+			Direction: gc.Direction,
+			Outcome:   gc.Outcome,
+			Source:    gc.File,
+			Message:   gc.Message,
+		})
 	}
 
 	b, err := json.MarshalIndent(jr, "", "  ")
