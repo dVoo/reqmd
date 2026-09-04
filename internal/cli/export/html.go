@@ -74,7 +74,7 @@ func newHTMLCmd() *cobra.Command {
 			if hasResults {
 				verdicts = make(map[string]exporter.VerdictInfo)
 				for id, v := range g.MeasureVerdicts() {
-					verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
+					verdicts[id] = exporter.VerdictInfoFromGraph(v)
 				}
 			}
 

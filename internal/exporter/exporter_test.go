@@ -1030,3 +1030,86 @@ func TestHTMLExportItems(t *testing.T) {
 		t.Error("index missing container entry")
 	}
 }
+
+func TestCSVExportVerdicts(t *testing.T) {
+	propOrder := []string{"status"}
+	doc := model.Document{
+		Path:   "/test/doc",
+		Schema: schemaWithTitle("Test Export"),
+		Nodes: []*model.Node{
+			{ID: "REQ-001", Attrs: map[string]any{"status": "approved"}, Body: "B"},
+		},
+	}
+
+	var buf strings.Builder
+	var c CSV
+	c.SetVerdicts(map[string]VerdictInfo{
+		"REQ-001": {
+			Outcome: "fail",
+			Source:  "ci/run.ctrf.json",
+			Cases:   []string{"BOOT-TIME", "SUSPEND-OK"},
+		},
+	})
+	if err := c.Export(&buf, doc, propOrder); err != nil {
+		t.Fatalf("CSV export: %v", err)
+	}
+	lines := strings.Split(strings.TrimRight(buf.String(), "\n"), "\n")
+	if len(lines) != 2 {
+		t.Fatalf("lines = %d, want 2", len(lines))
+	}
+	header := lines[0]
+	if !strings.Contains(header, "Verdict,Verdict Source,Verdict Cases") {
+		t.Errorf("header missing verdict columns: %q", header)
+	}
+	row := lines[1]
+	if !strings.Contains(row, "fail,ci/run.ctrf.json,BOOT-TIME; SUSPEND-OK") {
+		t.Errorf("row missing verdict cells: %q", row)
+	}
+}
+
+func TestHTMLExportEvidenceList(t *testing.T) {
+	doc := model.Document{
+		Path:   "/test/doc",
+		Schema: schemaWithTitle("Test Export"),
+		Nodes: []*model.Node{
+			{
+				ID:    "REQ-001",
+				Attrs: map[string]any{"status": "approved"},
+				Body:  "The system shall boot.",
+			},
+		},
+	}
+
+	var h HTML
+	h.SetVerdicts(map[string]VerdictInfo{
+		"REQ-001": {
+			Outcome: "pass",
+			Source:  "ci/run.ctrf.json",
+			Evidence: []EvidenceItem{
+				{
+					Case:        "BOOT-TIME",
+					Outcome:     "pass",
+					File:        "ci/run.ctrf.json",
+					Description: "Measures boot time.\n\n```go\nboot()\n```",
+				},
+			},
+		},
+	})
+	var buf strings.Builder
+	if err := h.Export(&buf, doc, nil); err != nil {
+		t.Fatalf("HTML export: %v", err)
+	}
+	output := buf.String()
+	if !strings.Contains(output, "verdict-evidence") {
+		t.Error("output missing verdict-evidence block")
+	}
+	if !strings.Contains(output, "Evidence (1)") {
+		t.Error("output missing evidence summary count")
+	}
+	if !strings.Contains(output, "BOOT-TIME") {
+		t.Error("output missing evidence case key")
+	}
+	if !strings.Contains(output, "evidence-desc") {
+		t.Error("output missing rendered evidence description")
+	}
+}

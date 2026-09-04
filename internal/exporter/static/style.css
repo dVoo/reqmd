@@ -227,6 +227,56 @@ main {
   border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
+/* ── Evidence list ───────────────────────────────── */
+
+.verdict-evidence {
+  margin: 0 0 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.06);
+}
+.verdict-evidence--child {
+  font-size: 0.85rem;
+}
+.verdict-evidence summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.verdict-evidence .evidence-item {
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--border);
+}
+.verdict-evidence .evidence-item:first-of-type {
+  border-top: none;
+}
+.verdict-evidence .evidence-outcome {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  margin-right: 0.5rem;
+}
+.verdict-evidence .evidence-outcome--pass { color: #22c55e; }
+.verdict-evidence .evidence-outcome--fail { color: #ef4444; }
+.verdict-evidence .evidence-outcome--skipped { color: #94a3b8; }
+.verdict-evidence .evidence-outcome--inconclusive { color: #f97316; }
+.verdict-evidence .evidence-case,
+.verdict-evidence .evidence-file {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-right: 0.75rem;
+}
+.verdict-evidence .evidence-desc {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+}
+
 /* ── Attributes grid ────────────────────────────── */
 
 .req-attrs {

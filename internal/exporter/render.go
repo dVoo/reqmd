@@ -677,6 +677,7 @@ func renderCard(b *bufio.Writer, req *model.Node, propOrder []string, traceCache
 
 	renderCardHeader(b, req, isChild)
 	renderVerdictBadge(b, req, verdicts, isChild)
+	renderEvidenceList(b, req, verdicts, isChild)
 	renderAttrGrid(b, req, propOrder, isChild)
 
 	// Body
@@ -754,6 +755,42 @@ func renderVerdictBadge(b *bufio.Writer, req *model.Node, verdicts map[string]Ve
 	}
 	fmt.Fprintf(b, "<span class=\"%s\" title=\"%s\">%s</span>\n",
 		class, html.EscapeString(title), html.EscapeString(v.Outcome))
+}
+
+// renderEvidenceList writes an expandable evidence list under a measure
+// card showing the rolled-up results that determined its verdict: case,
+// outcome, source file, and the synthesized test case's rendered Markdown
+// description. Synthesized case descriptions are rendered through the same
+// goldmark pipeline as authored prose.
+func renderEvidenceList(b *bufio.Writer, req *model.Node, verdicts map[string]VerdictInfo, isChild bool) {
+	if verdicts == nil {
+		return
+	}
+	v, ok := verdicts[req.ID]
+	if !ok || len(v.Evidence) == 0 {
+		return
+	}
+	detailsClass := "verdict-evidence"
+	if isChild {
+		detailsClass += " verdict-evidence--child"
+	}
+	fmt.Fprintf(b, "<details class=\"%s\">\n<summary>Evidence (%d)</summary>\n", detailsClass, len(v.Evidence))
+	for _, it := range v.Evidence {
+		b.WriteString("<div class=\"evidence-item\">\n")
+		fmt.Fprintf(b, "<span class=\"evidence-outcome evidence-outcome--%s\">%s</span>\n",
+			html.EscapeString(it.Outcome), html.EscapeString(it.Outcome))
+		if it.Case != "" {
+			fmt.Fprintf(b, "<code class=\"evidence-case\">%s</code>\n", html.EscapeString(it.Case))
+		}
+		if it.File != "" {
+			fmt.Fprintf(b, "<span class=\"evidence-file\">%s</span>\n", html.EscapeString(it.File))
+		}
+		if it.Description != "" {
+			fmt.Fprintf(b, "<div class=\"evidence-desc\">\n%s\n</div>\n", renderMarkdown(it.Description))
+		}
+		b.WriteString("</div>\n")
+	}
+	b.WriteString("</details>\n")
 }
 
 // renderAttrGrid writes the <dl class="req-attrs"> attribute grid,

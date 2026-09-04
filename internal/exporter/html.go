@@ -42,10 +42,23 @@ func mustReadStatic(name string) string {
 	return "\n" + string(b)
 }
 
-// VerdictInfo carries the verification result for a single measure.
+// EvidenceItem is one verification result contributing to a measure's
+// rolled-up evidence set, ready for rendering in exports.
+type EvidenceItem struct {
+	Case        string
+	Outcome     string
+	File        string
+	Description string
+}
+
+// VerdictInfo carries the rolled-up verification verdict for a single
+// measure: the outcome, a representative source file, the case keys that
+// contributed (for CSV), and the full evidence list (for HTML).
 type VerdictInfo struct {
-	Outcome string // pass | fail | skipped | inconclusive
-	Source  string // CTRF file path or manual-results markdown path
+	Outcome  string // pass | fail | skipped | inconclusive
+	Source   string // CTRF file path or manual-results markdown path
+	Cases    []string
+	Evidence []EvidenceItem
 }
 
 // HTML exports requirements as standalone HTML with card-based layout.

@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reqmd/internal/exporter"
 	"reqmd/internal/filter"
+	"reqmd/internal/graph"
 	"reqmd/internal/parser"
 	"reqmd/internal/verify"
 
@@ -42,13 +43,29 @@ func newCsvCmd() *cobra.Command {
 			}
 
 			// Load ephemeral verification results when --results is supplied.
-			_, vVerdicts, _, err := verify.LoadVerdicts(resultsPaths)
-			if err != nil {
-				return fmt.Errorf("loading verification results: %w", err)
+			// Verdicts (rolled up over downstream test cases) come from the
+			// graph, so we build it like the HTML export does.
+			var hasResults bool
+			graphDocs := docs
+			if len(resultsPaths) > 0 {
+				merged, _, err := verify.LoadMerged(resultsPaths)
+				if err != nil {
+					return fmt.Errorf("loading verification results: %w", err)
+				}
+				graphDocs = append(graphDocs, verify.Synthesize(merged))
+				hasResults = true
 			}
-			verdicts := make(map[string]exporter.VerdictInfo, len(vVerdicts))
-			for id, v := range vVerdicts {
-				verdicts[id] = exporter.VerdictInfo{Outcome: v.Outcome, Source: v.Source}
+
+			var verdicts map[string]exporter.VerdictInfo
+			if hasResults {
+				g, err := graph.New(graphDocs)
+				if err != nil {
+					return fmt.Errorf("building trace graph: %w", err)
+				}
+				verdicts = make(map[string]exporter.VerdictInfo)
+				for id, v := range g.MeasureVerdicts() {
+					verdicts[id] = exporter.VerdictInfoFromGraph(v)
+				}
 			}
 
 			var exp exporter.CSV
@@ -82,7 +99,7 @@ func newCsvCmd() *cobra.Command {
 	}
 
 	cmd.Flags().StringVarP(&outputDir, "output", "o", "", "Output directory for CSV files")
-	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF or manual) to add Verdict and Verdict Source columns. Repeatable.")
+	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF or manual) to add Verdict, Verdict Source, and Verdict Cases columns. Repeatable.")
 	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are exported.")
 	return cmd
 }

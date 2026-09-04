@@ -44,15 +44,15 @@ The resulting database can be browsed or queried with the LadybugDB CLI:
 			// Load ephemeral verification results when --results is supplied.
 			// Result pseudo-requirements (RESULT:<id>) are appended to the doc
 			// slice so ExportGraph creates nodes and TracesTo edges for them.
-		graphDocs := docs
-		if len(resultsPaths) > 0 {
-			merged, _, _, err := verify.LoadVerdicts(resultsPaths)
-			if err != nil {
-				return fmt.Errorf("loading results: %w", err)
+			graphDocs := docs
+			if len(resultsPaths) > 0 {
+				merged, _, _, err := verify.LoadVerdicts(resultsPaths)
+				if err != nil {
+					return fmt.Errorf("loading results: %w", err)
+				}
+				resultDoc := verify.Synthesize(merged)
+				graphDocs = append(graphDocs, resultDoc)
 			}
-			resultDoc := verify.Synthesize(merged)
-			graphDocs = append(graphDocs, resultDoc)
-		}
 
 			outPath := outputDir
 			if outPath == "" {

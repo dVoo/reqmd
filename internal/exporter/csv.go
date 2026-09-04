@@ -5,16 +5,19 @@ import (
 	"fmt"
 	"io"
 	"reqmd/internal/model"
+	"strings"
 )
 
 // CSV exports document content as comma-separated values. When verdicts
-// are set via SetVerdicts, two extra columns are appended per row.
+// are set via SetVerdicts, extra columns (Verdict, Verdict Source, Verdict
+// Cases) are appended per row.
 type CSV struct {
 	verdicts map[string]VerdictInfo
 }
 
 // SetVerdicts stores verification verdicts for CSV export. When non-nil,
-// two extra columns (Verdict, Verdict Source) are appended to the output.
+// extra columns (Verdict, Verdict Source, Verdict Cases) are appended to
+// the output.
 func (c *CSV) SetVerdicts(v map[string]VerdictInfo) {
 	c.verdicts = v
 }
@@ -23,14 +26,14 @@ func (c *CSV) Export(w io.Writer, doc model.Document, propOrder []string) error 
 	cw := csv.NewWriter(w)
 	defer cw.Flush()
 
-	// Header: Type, ID, Title, properties..., Body, Rationale, [Verdict, Verdict Source]
+	// Header: Type, ID, Title, properties..., Body, Rationale, [Verdict, Verdict Source, Verdict Cases]
 	hasVerdicts := c.verdicts != nil
-	header := make([]string, 0, 4+len(propOrder)+2+2)
+	header := make([]string, 0, 4+len(propOrder)+2+3)
 	header = append(header, "Type", "ID", "Title")
 	header = append(header, propOrder...)
 	header = append(header, "Body", "Rationale")
 	if hasVerdicts {
-		header = append(header, "Verdict", "Verdict Source")
+		header = append(header, "Verdict", "Verdict Source", "Verdict Cases")
 	}
 	if err := cw.Write(header); err != nil {
 		return fmt.Errorf("writing CSV header: %w", err)
@@ -57,9 +60,9 @@ func (c *CSV) Export(w io.Writer, doc model.Document, propOrder []string) error 
 		row = append(row, n.Body, n.Rationale)
 		if hasVerdicts {
 			if v, ok := c.verdicts[n.ID]; ok {
-				row = append(row, v.Outcome, v.Source)
+				row = append(row, v.Outcome, v.Source, strings.Join(v.Cases, "; "))
 			} else {
-				row = append(row, "", "")
+				row = append(row, "", "", "")
 			}
 		}
 		if err := cw.Write(row); err != nil {

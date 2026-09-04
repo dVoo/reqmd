@@ -430,3 +430,41 @@ func TestVerdict_DeferredDispositionSuppresses(t *testing.T) {
 		}
 	}
 }
+
+// The evidence items surfaced by MeasureVerdicts carry the synthesized test
+// case's Markdown description, so exporters can render it inline.
+func TestMeasureVerdicts_EvidenceCarriesDescription(t *testing.T) {
+	sys := docWithXReqmd("/docs/sys", &model.XReqmd{Level: "system-requirements"},
+		req("SYS-001", "/docs/sys/sys.md", map[string]any{"verify": "Test"}),
+	)
+	tc := &model.Node{
+		ID:     "TC:BOOT-TIME",
+		Source: "run.ctrf.json",
+		Body:   "Measures boot time on reference HW.",
+		Attrs:  map[string]any{model.AttrTrace: []any{"SYS-001"}},
+	}
+	results := resultDoc(
+		tc,
+		casedResultReq("TC:BOOT-TIME", "BOOT-TIME", "pass"),
+	)
+	g, err := graph.New([]model.Document{sys, results})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	nv, ok := g.MeasureVerdicts()["SYS-001"]
+	if !ok {
+		t.Fatal("SYS-001 should have a rolled-up verdict")
+	}
+	if nv.Outcome != "pass" {
+		t.Errorf("outcome = %q, want pass", nv.Outcome)
+	}
+	if len(nv.Evidence) != 1 {
+		t.Fatalf("evidence = %d, want 1", len(nv.Evidence))
+	}
+	if nv.Evidence[0].Description != "Measures boot time on reference HW." {
+		t.Errorf("evidence description = %q", nv.Evidence[0].Description)
+	}
+	if nv.Evidence[0].Case != "BOOT-TIME" {
+		t.Errorf("evidence case = %q, want BOOT-TIME", nv.Evidence[0].Case)
+	}
+}

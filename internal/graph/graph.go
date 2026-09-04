@@ -81,6 +81,7 @@ type CachedNode struct {
 	DispositionReason    string
 	Verify               string
 	Outcome              string
+	Body                 string
 	IDPrefix             string
 	Status               string
 	ReqID                string
@@ -234,6 +235,7 @@ func New(docs []model.Document) (*Graph, error) {
 				Status:            getString(req.Attrs, model.AttrStatus),
 				Outcome:           getString(req.Attrs, "outcome"),
 				Verify:            getString(req.Attrs, "verify"),
+				Body:              req.Body,
 				IsResult:          strings.HasPrefix(req.ID, "RESULT:"),
 				Synthetic:         doc.Synthetic,
 			}
@@ -1090,17 +1092,26 @@ func severityOutcome(s severity) string {
 }
 
 // EvidenceItem is one verification result contributing to a measure's
-// evidence set: its case key ("" for direct, uncased results), outcome, and
-// source report file.
+// evidence set: its case key ("" for direct, uncased results), outcome,
+// source report file, and the synthesized test case's Markdown description
+// (empty for direct results and authored test cases).
 type EvidenceItem struct {
-	Case    string
-	Outcome string
-	File    string
+	Case        string
+	Outcome     string
+	File        string
+	Description string
 }
 
 // evidenceItem derives an EvidenceItem from a synthesized result node.
 func (g *Graph) evidenceItem(in *CachedNode) EvidenceItem {
-	return EvidenceItem{Case: g.evidenceCase(in), Outcome: in.Outcome, File: in.File}
+	it := EvidenceItem{Case: g.evidenceCase(in), Outcome: in.Outcome, File: in.File}
+	for _, outID := range in.Outbound {
+		if out := g.nodes[outID]; out != nil && strings.HasPrefix(outID, "TC:") {
+			it.Description = out.Body
+			break
+		}
+	}
+	return it
 }
 
 // evidenceCase resolves the case key of a result node: the `#case` suffix on
@@ -1338,17 +1349,20 @@ func (g *Graph) MeasureOutcome(measureID string) (string, string, bool) {
 // NodeVerdict is the rolled-up verdict and a representative result source
 // file for a single node, resolved by the graph. It feeds exporters and
 // reporters; Outcome is the strict roll-up over the node's evidence set
-// (own attached results plus approved downstream test cases).
+// (own attached results plus approved downstream test cases), and Evidence
+// lists the deduplicated items that make up that set (case, outcome, file,
+// description).
 type NodeVerdict struct {
-	Outcome string
-	Source  string // representative result source file ("" when none)
+	Outcome  string
+	Source   string // representative result source file ("" when none)
+	Evidence []EvidenceItem
 }
 
 // MeasureVerdicts returns, for every non-synthetic node with a non-empty
-// rolled-up evidence set, the rolled-up outcome and a representative source
-// file. The set is keyed by requirement ID and computed from graph
-// adjacency, so a single source of truth feeds all outputs. Returns nil when
-// no results are loaded.
+// rolled-up evidence set, the rolled-up outcome, a representative source
+// file, and the deduplicated evidence items. The set is keyed by requirement
+// ID and computed from graph adjacency, so a single source of truth feeds
+// all outputs. Returns nil when no results are loaded.
 func (g *Graph) MeasureVerdicts() map[string]NodeVerdict {
 	if !g.hasResultNodes() {
 		return nil
@@ -1373,7 +1387,11 @@ func (g *Graph) MeasureVerdicts() map[string]NodeVerdict {
 		if len(self) > 0 {
 			file = self[0].File
 		}
-		out[id] = NodeVerdict{Outcome: severityOutcome(sev), Source: file}
+		out[id] = NodeVerdict{
+			Outcome:  severityOutcome(sev),
+			Source:   file,
+			Evidence: items,
+		}
 	}
 	return out
 }
