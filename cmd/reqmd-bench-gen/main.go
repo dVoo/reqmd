@@ -143,7 +143,10 @@ func rewriteTree(src, dst, tag string, rename map[string]string) {
 		rel, _ := filepath.Rel(src, p)
 		target := filepath.Join(dst, rel)
 		if d.IsDir() {
-			return fmt.Errorf("creating dir %s: %w", target, os.MkdirAll(target, 0o755))
+			if err := os.MkdirAll(target, 0o755); err != nil {
+				return fmt.Errorf("creating dir %s: %w", target, err)
+			}
+			return nil
 		}
 		body, err := os.ReadFile(p)
 		if err != nil {
@@ -182,10 +185,12 @@ func replicatePerDoc(root string, multiplier int) {
 			mdPath := filepath.Join(p, e.Name())
 			b, err := os.ReadFile(mdPath)
 			if err != nil {
+				fmt.Fprintf(os.Stderr, "warning: replicatePerDoc: reading %s: %v\n", mdPath, err)
 				continue
 			}
 			expanded := expandContent(string(b), multiplier)
 			if err := os.WriteFile(mdPath, []byte(expanded), 0o644); err != nil {
+				fmt.Fprintf(os.Stderr, "warning: replicatePerDoc: writing %s: %v\n", mdPath, err)
 				continue
 			}
 		}
