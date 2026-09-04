@@ -47,7 +47,9 @@ trace: [TEST-002]
 ```
 ```
 
-The `trace` attribute links the result to the measure it verifies.
+The `trace` attribute links the result to the measure it verifies. It may
+also target a synthesized test case (`TC:<case>`) from a CTRF report loaded
+in the same run, so a manual review result joins that case's evidence.
 
 ## Scaffold a results directory
 
@@ -74,7 +76,7 @@ reqmd check 02-trace-your-spec/ \
 ```
 
 Both result sources are merged — if a measure has results from both CTRF and
-manual sources, the latest `verified-at` wins.
+manual sources, the latest `verified-at` wins per (measure, case).
 
 ## Export with manual verdicts
 
