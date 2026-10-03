@@ -721,7 +721,9 @@ func paragraphText(p *ast.Paragraph, src []byte) string {
 	var b strings.Builder
 	for i := range p.Lines().Len() {
 		seg := p.Lines().At(i)
-		b.WriteString(strings.TrimRight(string(seg.Value(src)), "\n\r"))
+		// Write the segment bytes directly (trimmed in place) instead of
+		// converting each line to a string first — the conversion copies.
+		_, _ = b.Write(bytes.TrimRight(seg.Value(src), "\r\n"))
 	}
 	return strings.TrimSpace(b.String())
 }

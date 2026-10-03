@@ -255,62 +255,54 @@ func formatAttrHTML(v any) string {
 func renderChainGraph(b *bufio.Writer, g DocChainGraph) {
 	_, _ = b.WriteString("  <div class=\"chain-stack\">\n")
 
-	// ── Upstream zone ──
 	if len(g.Upstream) > 0 {
-		b.WriteString("    <div class=\"chain-zone chain-zone--upstream\">\n")
-		b.WriteString("      <div class=\"chain-zone-header\">Upstream Sources</div>\n")
-		for _, tier := range g.Upstream {
-			b.WriteString("      <div class=\"chain-tier\">\n")
-			b.WriteString("        <div class=\"chain-tier-label\">")
-			b.WriteString(html.EscapeString(tier.Label))
-			b.WriteString("</div>\n")
-			b.WriteString("        <div class=\"chain-tier-cards\">\n")
-			for _, card := range tier.Cards {
-				renderChainCard(b, card)
-			}
-			b.WriteString("        </div>\n")
-			b.WriteString("      </div>\n")
-		}
-		b.WriteString("    </div>\n")
-
-		b.WriteString("    <div class=\"chain-separator\" aria-hidden=\"true\">\n")
-		b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
-		b.WriteString("      <div class=\"chain-separator-chevron\">&#9662;</div>\n")
-		b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
-		b.WriteString("    </div>\n")
+		renderChainZone(b, "chain-zone--upstream", "Upstream Sources", g.Upstream)
+		renderChainSeparator(b)
 	}
 
-	// ── Current zone ──
 	b.WriteString("    <div class=\"chain-zone chain-zone--current\">\n")
 	renderChainCard(b, g.Current)
 	b.WriteString("    </div>\n")
 
-	// ── Downstream zone ──
 	if len(g.Downstream) > 0 {
-		b.WriteString("    <div class=\"chain-separator\" aria-hidden=\"true\">\n")
-		b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
-		b.WriteString("      <div class=\"chain-separator-chevron\">&#9662;</div>\n")
-		b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
-		b.WriteString("    </div>\n")
-
-		b.WriteString("    <div class=\"chain-zone chain-zone--downstream\">\n")
-		b.WriteString("      <div class=\"chain-zone-header\">Downstream Consumers</div>\n")
-		for _, tier := range g.Downstream {
-			b.WriteString("      <div class=\"chain-tier\">\n")
-			b.WriteString("        <div class=\"chain-tier-label\">")
-			b.WriteString(html.EscapeString(tier.Label))
-			b.WriteString("</div>\n")
-			b.WriteString("        <div class=\"chain-tier-cards\">\n")
-			for _, card := range tier.Cards {
-				renderChainCard(b, card)
-			}
-			b.WriteString("        </div>\n")
-			b.WriteString("      </div>\n")
-		}
-		b.WriteString("    </div>\n")
+		renderChainSeparator(b)
+		renderChainZone(b, "chain-zone--downstream", "Downstream Consumers", g.Downstream)
 	}
 
 	b.WriteString("  </div>\n")
+}
+
+// renderChainZone writes one horizontal zone (upstream or downstream)
+// with its header and stacked tiers.
+func renderChainZone(b *bufio.Writer, zoneClass, header string, tiers []ChainTier) {
+	b.WriteString("    <div class=\"chain-zone ")
+	b.WriteString(zoneClass)
+	b.WriteString("\">\n")
+	b.WriteString("      <div class=\"chain-zone-header\">")
+	b.WriteString(header)
+	b.WriteString("</div>\n")
+	for _, tier := range tiers {
+		b.WriteString("      <div class=\"chain-tier\">\n")
+		b.WriteString("        <div class=\"chain-tier-label\">")
+		b.WriteString(html.EscapeString(tier.Label))
+		b.WriteString("</div>\n")
+		b.WriteString("        <div class=\"chain-tier-cards\">\n")
+		for _, card := range tier.Cards {
+			renderChainCard(b, card)
+		}
+		b.WriteString("        </div>\n")
+		b.WriteString("      </div>\n")
+	}
+	b.WriteString("    </div>\n")
+}
+
+// renderChainSeparator writes the chevron rule between chain zones.
+func renderChainSeparator(b *bufio.Writer) {
+	b.WriteString("    <div class=\"chain-separator\" aria-hidden=\"true\">\n")
+	b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
+	b.WriteString("      <div class=\"chain-separator-chevron\">&#9662;</div>\n")
+	b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
+	b.WriteString("    </div>\n")
 }
 
 // renderChainCard writes one <a> (or <span> for the current doc) card.

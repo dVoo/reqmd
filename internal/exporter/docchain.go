@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"path/filepath"
 	"reqmd/internal/model"
-	"strconv"
 )
 
 // BuildTitleMap builds a reqID → title map across all documents, for use as
@@ -267,35 +266,35 @@ func (r *RenderContext) BuildChainGraph(doc model.Document) DocChainGraph {
 }
 
 func upstreamTierLabel(level int) string {
-	if level == -1 {
-		return "Upstream"
-	}
-	return upstreamTierPlural(-level)
-}
-
-func upstreamTierPlural(n int) string {
-	switch n {
-	case 2:
-		return "Upstream · 2 levels above"
-	case 3:
-		return "Upstream · 3 levels above"
-	default:
-		// fallback for deeper graphs
-		return "Upstream · " + strconv.Itoa(n) + " levels above"
-	}
+	return tierLabel("Upstream", -level, "above")
 }
 
 func downstreamTierLabel(level int) string {
-	if level == 1 {
-		return "Downstream"
+	return tierLabel("Downstream", level, "below")
+}
+
+// tierLabel formats a chain tier header: the bare noun at one level of
+// distance, otherwise "<noun> · N levels <direction>".
+func tierLabel(noun string, levels int, direction string) string {
+	if levels == 1 {
+		return noun
 	}
-	switch level {
-	case 2:
-		return "Downstream · 2 levels below"
-	case 3:
-		return "Downstream · 3 levels below"
-	default:
-		return "Downstream · " + strconv.Itoa(level) + " levels below"
+	return fmt.Sprintf("%s · %d levels %s", noun, levels, direction)
+}
+
+// eachChainCard calls fn for every card in the graph's upstream and
+// downstream tiers (never the current card). Shared by the three card
+// path-rewriting functions below.
+func eachChainCard(g *DocChainGraph, fn func(*ChainCard)) {
+	if g == nil {
+		return
+	}
+	for _, tiers := range [][]ChainTier{g.Upstream, g.Downstream} {
+		for i := range tiers {
+			for j := range tiers[i].Cards {
+				fn(&tiers[i].Cards[j])
+			}
+		}
 	}
 }
 
@@ -307,24 +306,15 @@ func downstreamTierLabel(level int) string {
 // dir), so they supply the mapping. Relative card paths are then produced
 // by RelativizeChainGraph.
 func ResolveChainOutputs(g *DocChainGraph, outPath func(dirName string) string) {
-	if g == nil || outPath == nil {
+	if outPath == nil {
 		return
 	}
-	resolveTier := func(t *ChainTier) {
-		for i := range t.Cards {
-			c := &t.Cards[i]
-			if c.IsCurrent || c.DirName == "" {
-				continue
-			}
-			c.Path = outPath(c.DirName)
+	eachChainCard(g, func(c *ChainCard) {
+		if c.IsCurrent || c.DirName == "" {
+			return
 		}
-	}
-	for i := range g.Upstream {
-		resolveTier(&g.Upstream[i])
-	}
-	for i := range g.Downstream {
-		resolveTier(&g.Downstream[i])
-	}
+		c.Path = outPath(c.DirName)
+	})
 }
 
 // RelativizeChainGraph rewrites every non-current card's Path to be
@@ -332,49 +322,24 @@ func ResolveChainOutputs(g *DocChainGraph, outPath func(dirName string) string) 
 // in other packages can use it without exposing the unexported fields
 // of DocChainGraph.
 func RelativizeChainGraph(g *DocChainGraph, baseDir string) {
-	if g == nil {
-		return
-	}
-	relativizeTier := func(t *ChainTier) {
-		for i := range t.Cards {
-			c := &t.Cards[i]
-			if c.IsCurrent || c.Path == "" {
-				continue
-			}
-			rel, err := filepath.Rel(baseDir, c.Path)
-			if err == nil {
-				c.Path = rel
-			}
+	eachChainCard(g, func(c *ChainCard) {
+		if c.IsCurrent || c.Path == "" {
+			return
 		}
-	}
-	for i := range g.Upstream {
-		relativizeTier(&g.Upstream[i])
-	}
-	for i := range g.Downstream {
-		relativizeTier(&g.Downstream[i])
-	}
+		if rel, err := filepath.Rel(baseDir, c.Path); err == nil {
+			c.Path = rel
+		}
+	})
 }
 
 // BasenameChainGraph collapses every non-current card's Path to its
 // basename. Useful when all HTML files are served at a single URL root
 // (the dev server).
 func BasenameChainGraph(g *DocChainGraph) {
-	if g == nil {
-		return
-	}
-	basenameTier := func(t *ChainTier) {
-		for i := range t.Cards {
-			c := &t.Cards[i]
-			if c.IsCurrent || c.Path == "" {
-				continue
-			}
-			c.Path = filepath.Base(c.Path)
+	eachChainCard(g, func(c *ChainCard) {
+		if c.IsCurrent || c.Path == "" {
+			return
 		}
-	}
-	for i := range g.Upstream {
-		basenameTier(&g.Upstream[i])
-	}
-	for i := range g.Downstream {
-		basenameTier(&g.Downstream[i])
-	}
+		c.Path = filepath.Base(c.Path)
+	})
 }

@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 )
 
 // TraceResolver bundles the four callback hooks used to render upstream /
@@ -398,9 +399,20 @@ func statusColor(value string) string {
 // containers and info items carry no attrs and a type marker.
 func buildIndexEntry(n *model.Node, anchor, parentAnchor string, anchors map[*model.Node]string) indexEntry {
 	body := n.Body
-	runes := []rune(body)
-	if len(runes) > 80 {
-		body = string(runes[:80]) + "..."
+	if utf8.RuneCountInString(body) > 80 {
+		// Truncate on the 81st rune boundary rather than converting the
+		// whole body to []rune — large bodies would otherwise allocate a
+		// rune slice proportional to their full length for every card.
+		end := len(body)
+		n := 0
+		for i := range body {
+			if n == 80 {
+				end = i
+				break
+			}
+			n++
+		}
+		body = body[:end] + "..."
 	}
 	entry := indexEntry{
 		ID:        anchor,
@@ -864,41 +876,32 @@ func renderTraceLinks(b *bufio.Writer, req *model.Node, traceCache map[string]tr
 	renderTraces(b, pair.up, pair.down, tc, linkClass)
 }
 
+// renderTraceColumn writes one Upstream/Downstream column with its
+// header count and link list. Shared by renderTraces for both columns.
+func renderTraceColumn(b *bufio.Writer, header string, links []traceLink, tc *TraceResolver, linkClass string) {
+	b.WriteString("<div class=\"trace-column\">\n")
+	fmt.Fprintf(b, "<div class=\"trace-column-header\">%s (%d)</div>\n", header, len(links))
+	for _, link := range links {
+		href := html.EscapeString(tc.linkHref(link.ID))
+		escID := html.EscapeString(link.ID)
+		if link.Title != "" {
+			escTitle := html.EscapeString(link.Title)
+			fmt.Fprintf(b, "<a class=\"%s\" href=\"%s\"><span class=\"trace-link-id\">%s</span><span class=\"trace-link-title\">%s</span></a>\n", linkClass, href, escID, escTitle)
+		} else {
+			fmt.Fprintf(b, "<a class=\"%s\" href=\"%s\"><span class=\"trace-link-id\">%s</span></a>\n", linkClass, href, escID)
+		}
+	}
+	b.WriteString("</div>\n")
+}
+
 // renderTraces writes the upstream/downstream trace columns. The link
 // class is supplied by the caller ("trace-link" for parents, plus
 // "trace-link--child" for child cards).
 func renderTraces(b *bufio.Writer, up, down []traceLink, tc *TraceResolver, linkClass string) {
 	b.WriteString("<div class=\"req-traces\">\n")
 	b.WriteString("<div class=\"trace-columns\">\n")
-
-	b.WriteString("<div class=\"trace-column\">\n")
-	fmt.Fprintf(b, "<div class=\"trace-column-header\">Upstream (%d)</div>\n", len(up))
-	for _, link := range up {
-		href := html.EscapeString(tc.linkHref(link.ID))
-		escID := html.EscapeString(link.ID)
-		if link.Title != "" {
-			escTitle := html.EscapeString(link.Title)
-			fmt.Fprintf(b, "<a class=\"%s\" href=\"%s\"><span class=\"trace-link-id\">%s</span><span class=\"trace-link-title\">%s</span></a>\n", linkClass, href, escID, escTitle)
-		} else {
-			fmt.Fprintf(b, "<a class=\"%s\" href=\"%s\"><span class=\"trace-link-id\">%s</span></a>\n", linkClass, href, escID)
-		}
-	}
-	b.WriteString("</div>\n")
-
-	b.WriteString("<div class=\"trace-column\">\n")
-	fmt.Fprintf(b, "<div class=\"trace-column-header\">Downstream (%d)</div>\n", len(down))
-	for _, link := range down {
-		href := html.EscapeString(tc.linkHref(link.ID))
-		escID := html.EscapeString(link.ID)
-		if link.Title != "" {
-			escTitle := html.EscapeString(link.Title)
-			fmt.Fprintf(b, "<a class=\"%s\" href=\"%s\"><span class=\"trace-link-id\">%s</span><span class=\"trace-link-title\">%s</span></a>\n", linkClass, href, escID, escTitle)
-		} else {
-			fmt.Fprintf(b, "<a class=\"%s\" href=\"%s\"><span class=\"trace-link-id\">%s</span></a>\n", linkClass, href, escID)
-		}
-	}
-	b.WriteString("</div>\n")
-
+	renderTraceColumn(b, "Upstream", up, tc, linkClass)
+	renderTraceColumn(b, "Downstream", down, tc, linkClass)
 	b.WriteString("</div>\n")
 	b.WriteString("</div>\n")
 }
