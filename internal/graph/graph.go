@@ -111,6 +111,7 @@ type Graph struct {
 	idDirs           map[string][]string
 	docByID          map[string]string
 	docByDir         map[string]string
+	docOfReqFile     map[string]string
 	nodes            map[string]*CachedNode
 	docByLevel       map[string][]string
 	sevCache         map[string]severity
@@ -118,6 +119,7 @@ type Graph struct {
 	cachedRootDirs   map[string]bool
 	dangling         []CheckResult
 	docs             []model.Document
+	reqsByDoc        [][]*model.Node
 	disjointAttrs    []string
 	duplicateIDs     []CheckResult
 	hasResults       bool
@@ -163,15 +165,28 @@ func (g *Graph) inFilter(reqID string) bool {
 //   - "ID" — resolved against the global ID map; emits an ERROR ambiguity
 //     warning if the ID exists in multiple documents.
 func New(docs []model.Document) (*Graph, error) {
+	// Flatten each document's requirement list once; every pass below (and
+	// later check methods) reuses these slices instead of re-walking the
+	// content tree. The slices reference the tree, so they stay current as
+	// long as the tree is not mutated (graph callers never mutate it).
+	reqsByDoc := make([][]*model.Node, len(docs))
+	totalReqs := 0
+	for i := range docs {
+		reqsByDoc[i] = docs[i].Requirements()
+		totalReqs += len(reqsByDoc[i])
+	}
+
 	g := &Graph{
 		docs:             docs,
-		nodes:            make(map[string]*CachedNode),
-		nodesByIDDir:     make(map[[2]string]*CachedNode),
-		idDirs:           make(map[string][]string),
-		docByID:          make(map[string]string),
-		docByDir:         make(map[string]string),
-		docByLevel:       make(map[string][]string),
-		ignoreStatusDirs: make(map[string]bool),
+		reqsByDoc:        reqsByDoc,
+		nodes:            make(map[string]*CachedNode, totalReqs),
+		nodesByIDDir:     make(map[[2]string]*CachedNode, totalReqs),
+		idDirs:           make(map[string][]string, totalReqs),
+		docByID:          make(map[string]string, len(docs)),
+		docByDir:         make(map[string]string, len(docs)),
+		docOfReqFile:     make(map[string]string, totalReqs),
+		docByLevel:       make(map[string][]string, len(docs)),
+		ignoreStatusDirs: make(map[string]bool, len(docs)),
 	}
 
 	// Build document-id → directory path map, level → directories map,
@@ -192,13 +207,21 @@ func New(docs []model.Document) (*Graph, error) {
 		}
 	}
 
+	// requirement source file → owning document directory, for resolving
+	// inbound-edge origins against coverage-source directories.
+	for i, doc := range docs {
+		for _, req := range reqsByDoc[i] {
+			g.docOfReqFile[req.Source] = doc.Path
+		}
+	}
+
 	// Pass 1: create one CachedNode per requirement
-	for _, doc := range docs {
+	for i, doc := range docs {
 		var xr *model.XReqmd
 		if doc.XReqmd != nil {
 			xr = doc.XReqmd
 		}
-		for _, req := range doc.Requirements() {
+		for _, req := range reqsByDoc[i] {
 			// Effective coverage expectation: the requirement's own
 			// `requires-trace-from` attribute when declared; otherwise
 			// inherit the document's x-reqmd.requires-trace-from default
@@ -265,8 +288,8 @@ func New(docs []model.Document) (*Graph, error) {
 	}
 
 	// Pass 2: build Inbound/Outbound adjacency from trace attrs
-	for _, doc := range docs {
-		for _, req := range doc.Requirements() {
+	for i := range docs {
+		for _, req := range reqsByDoc[i] {
 			traceVal, ok := req.Attrs[model.AttrTrace]
 			if !ok {
 				continue
@@ -368,8 +391,8 @@ func New(docs []model.Document) (*Graph, error) {
 	}
 
 	// Pass 3: build parent-child edges from heading hierarchy
-	for _, doc := range docs {
-		for _, req := range doc.Requirements() {
+	for i := range docs {
+		for _, req := range reqsByDoc[i] {
 			if req.ParentID == "" {
 				continue
 			}
@@ -465,10 +488,9 @@ func (g *Graph) resolveCoverageSource(from string) []string {
 		return []string{dir}
 	}
 	if dirs, ok := g.docByLevel[from]; ok {
-		// Return a copy to avoid mutating the map's slice.
-		out := make([]string, len(dirs))
-		copy(out, dirs)
-		return out
+		// Return the map's slice directly. Callers only read it (len/range),
+		// and the map is not mutated after New.
+		return dirs
 	}
 	return nil
 }
@@ -504,7 +526,7 @@ func (g *Graph) CheckResults() []CheckResult {
 	results = append(results, g.checkCircular()...)
 
 	g.cachedRootDirs, g.cachedLeafDirs = g.inferBoundaries(g.docs)
-	results = append(results, g.checkRequiresTraceFromCoverage(g.docs, g.cachedRootDirs, g.cachedLeafDirs)...)
+	results = append(results, g.checkRequiresTraceFromCoverage(g.cachedRootDirs, g.cachedLeafDirs)...)
 
 	results = append(results, g.checkDispositionReason()...)
 	results = append(results, g.checkMandatoryDisposition()...)
@@ -521,8 +543,8 @@ func (g *Graph) CheckResults() []CheckResult {
 // Returns ERROR results when a cycle is detected.
 func (g *Graph) checkCircular() []CheckResult {
 	var results []CheckResult
-	visited := make(map[string]bool)
-	onStack := make(map[string]bool)
+	visited := make(map[string]bool, len(g.nodes))
+	onStack := make(map[string]bool, len(g.nodes))
 
 	var dfs func(reqID string)
 	dfs = func(reqID string) {
@@ -567,17 +589,8 @@ func (g *Graph) checkCircular() []CheckResult {
 //     to the generic untraced / no-downstream checks using the V-model
 //     boundary inference so a top-level or bottom-level document stays
 //     clean.
-func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, leafDirs map[string]bool) []CheckResult {
+func (g *Graph) checkRequiresTraceFromCoverage(rootDirs, leafDirs map[string]bool) []CheckResult {
 	var results []CheckResult
-
-	// Build a lookup from requirement source file to its document directory
-	// for resolving inbound-edge origins against coverage-source directories.
-	docByReqFile := make(map[string]string, len(docs))
-	for _, doc := range docs {
-		for _, req := range doc.Requirements() {
-			docByReqFile[req.Source] = doc.Path
-		}
-	}
 
 	for _, node := range g.nodes {
 		// Filter guard: only check requirements in the active filter set.
@@ -604,11 +617,8 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 					})
 					continue
 				}
-				// Build a set for O(1) membership testing in the inbound loop.
-				dirSet := make(map[string]bool, len(dirs))
-				for _, d := range dirs {
-					dirSet[d] = true
-				}
+				// dirs is usually a single directory, so a linear scan beats
+				// allocating a set per (requirement, coverage source).
 				covered := false
 				draftCount := 0
 				for _, inboundID := range node.Inbound {
@@ -628,11 +638,11 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 						draftCount++
 						continue
 					}
-					inboundDir, ok := docByReqFile[inboundNode.File]
+					inboundDir, ok := g.docOfReqFile[inboundNode.File]
 					if !ok {
 						continue
 					}
-					if dirSet[inboundDir] {
+					if slices.Contains(dirs, inboundDir) {
 						covered = true
 						break
 					}
@@ -655,7 +665,7 @@ func (g *Graph) checkRequiresTraceFromCoverage(docs []model.Document, rootDirs, 
 
 		// Case 2: `requires-trace-from` not declared — fall back to generic
 		// boundary-aware untraced and no-downstream checks.
-		dir := docByReqFile[node.File]
+		dir := g.docOfReqFile[node.File]
 		isRoot := rootDirs[dir]
 		isLeaf := leafDirs[dir]
 
@@ -1645,14 +1655,14 @@ func (g *Graph) checkDisjointAttribute() []CheckResult {
 	if len(g.disjointAttrs) == 0 {
 		return nil
 	}
-	// Build reqID → attr → []string lookup once from g.docs. The map is
+	// Build reqID → attr → []string lookup once from g.reqsByDoc. The map is
 	// allocated lazily per requirement: most requirements do not declare
 	// the disjoint attribute, and an absent value means "applies to all"
 	// (exempt) — an empty map entry is indistinguishable from a miss.
 	type attrVals = map[string][]string
 	lookup := make(map[string]attrVals, len(g.nodes))
-	for _, doc := range g.docs {
-		for _, req := range doc.Requirements() {
+	for i := range g.docs {
+		for _, req := range g.reqsByDoc[i] {
 			var vals attrVals
 			for _, attr := range g.disjointAttrs {
 				if s := getStringSlice(req.Attrs, attr); len(s) > 0 {

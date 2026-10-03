@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 
 	"reqmd/internal/filter"
 	"reqmd/internal/graph"
@@ -379,6 +380,7 @@ func collectDisjointAttrs(docs []model.Document, cliFlags []string) []string {
 	for attr := range seen {
 		out = append(out, attr)
 	}
+	slices.Sort(out)
 	return out
 }
 
