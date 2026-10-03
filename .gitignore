@@ -53,6 +53,7 @@ reqmd-import/reqmd-import
 .opencode/
 .commandcode/
 .omp/
+.pi/
 
 # .slim/deepwork
 .slim/deepwork/

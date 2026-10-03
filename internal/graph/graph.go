@@ -1252,17 +1252,6 @@ func (g *Graph) measureSeverity(reqID string) severity {
 	return g.severityOf(reqID, make(map[string]bool))
 }
 
-// hasVerdictFor reports whether any result node traces to the given
-// measure ID.
-func (g *Graph) hasVerdictFor(measureID string) bool {
-	for _, inID := range g.nodes[measureID].Inbound {
-		if in, ok := g.nodes[inID]; ok && in.IsResult {
-			return true
-		}
-	}
-	return false
-}
-
 // latestOutcomeFor returns the outcome and source file of the result node
 // tracing to the given measure. Since the result layer
 // (internal/verify.MergeLatest) already collapses to one result per
@@ -1307,29 +1296,17 @@ func (g *Graph) checkVerdicts() []CheckResult {
 		if !expectsVerification(node) {
 			continue
 		}
-		self, items, _ := g.measureEvidence(node.ReqID)
-		if len(items) == 0 {
+		nv, ok := g.rollupVerdict(node.ReqID)
+		if !ok {
 			continue
 		}
-		sev := sevNone
-		file := ""
-		for _, it := range items {
-			if s := outcomeSeverity(it.Outcome); s > sev {
-				sev = s
-				file = it.File
-			}
-		}
-		if len(self) > 0 {
-			file = self[0].File
-		}
-		outcome := severityOutcome(sev)
 		results = append(results, CheckResult{
 			Code:    CodeVerdict,
 			Level:   LevelInfo,
-			Outcome: outcome,
+			Outcome: nv.Outcome,
 			ReqID:   node.ReqID,
-			File:    file,
-			Message: fmt.Sprintf("verified: %s", outcome),
+			File:    nv.Source,
+			Message: fmt.Sprintf("verified: %s", nv.Outcome),
 		})
 	}
 	return results
@@ -1354,6 +1331,31 @@ type NodeVerdict struct {
 	Evidence []EvidenceItem
 }
 
+// rollupVerdict computes the strict verdict roll-up for a node from its
+// evidence set: the highest-severity outcome plus a representative source
+// file (the node's own attached result when present, else the file of the
+// highest-severity downstream item). ok is false when the evidence set is
+// empty. Shared by checkVerdicts and MeasureVerdicts so the roll-up rule
+// lives in one place.
+func (g *Graph) rollupVerdict(reqID string) (NodeVerdict, bool) {
+	self, items, _ := g.measureEvidence(reqID)
+	if len(items) == 0 {
+		return NodeVerdict{}, false
+	}
+	sev := sevNone
+	file := ""
+	for _, it := range items {
+		if s := outcomeSeverity(it.Outcome); s > sev {
+			sev = s
+			file = it.File
+		}
+	}
+	if len(self) > 0 {
+		file = self[0].File
+	}
+	return NodeVerdict{Outcome: severityOutcome(sev), Source: file, Evidence: items}, true
+}
+
 // MeasureVerdicts returns, for every non-synthetic node with a non-empty
 // rolled-up evidence set, the rolled-up outcome, a representative source
 // file, and the deduplicated evidence items. The set is keyed by requirement
@@ -1368,26 +1370,11 @@ func (g *Graph) MeasureVerdicts() map[string]NodeVerdict {
 		if node.IsResult || node.Synthetic {
 			continue
 		}
-		self, items, _ := g.measureEvidence(id)
-		if len(items) == 0 {
+		nv, ok := g.rollupVerdict(id)
+		if !ok {
 			continue
 		}
-		sev := sevNone
-		file := ""
-		for _, it := range items {
-			if s := outcomeSeverity(it.Outcome); s > sev {
-				sev = s
-				file = it.File
-			}
-		}
-		if len(self) > 0 {
-			file = self[0].File
-		}
-		out[id] = NodeVerdict{
-			Outcome:  severityOutcome(sev),
-			Source:   file,
-			Evidence: items,
-		}
+		out[id] = nv
 	}
 	return out
 }
@@ -1403,7 +1390,7 @@ func (g *Graph) HasResults() bool {
 // boundaries from CheckResults; returns empty if CheckResults has not been
 // called.
 func (g *Graph) RootDirs() []string {
-	return mapKeysSorted(g.cachedRootDirs)
+	return sortedKeys(g.cachedRootDirs)
 }
 
 // LeafDirs returns a sorted slice of document directory paths that are at
@@ -1412,11 +1399,7 @@ func (g *Graph) RootDirs() []string {
 // Uses the cached boundaries from CheckResults; returns empty if CheckResults
 // has not been called.
 func (g *Graph) LeafDirs() []string {
-	return mapKeysSorted(g.cachedLeafDirs)
-}
-
-func mapKeysSorted(m map[string]bool) []string {
-	return sortedKeys(m)
+	return sortedKeys(g.cachedLeafDirs)
 }
 
 // sortedKeys returns the keys of a string-keyed map in sorted order.
@@ -1543,10 +1526,6 @@ func (n *CachedNode) effectiveStatus() string {
 	return model.StatusDefault
 }
 
-// isCoverageProvider reports whether a node counts as a valid upstream
-// coverage source for downstream requirements. A node is a coverage
-// provider when:
-
 // RepinDeltas computes the list of version-pin changes the repin
 // command would propose (or apply) against this graph.
 //
@@ -1638,6 +1617,10 @@ func (g *Graph) RepinDeltas(promoteUnpinned bool) []RepinDelta {
 	return deltas
 }
 
+// isCoverageProvider reports whether a node counts as a valid upstream
+// coverage source for downstream requirements. A node is a coverage
+// provider when its document has opted out of the status lifecycle
+// (x-reqmd.ignore-status) or its effective status is "approved".
 func (g *Graph) isCoverageProvider(reqID string) bool {
 	node, ok := g.nodes[reqID]
 	if !ok {
