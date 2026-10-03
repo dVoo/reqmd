@@ -35,7 +35,9 @@ reqmd check 14-variant-management/ --filter '"Sport" in variant or variant == ni
 # Per-configuration exports
 reqmd export html 14-variant-management/ --filter '"Premium" in variant' -o html-out/premium/
 
-# The disjoint-attribute check fires on a cross-configuration trace link
+# The disjoint-attribute check is on by default (both schemas declare it).
+# Every trace in this tree is variant-consistent, so it stays green. Change
+# SW-005's trace to system/SYS-002 to see it fire.
 reqmd check 14-variant-management/ --disjoint-check variant
 ```
 

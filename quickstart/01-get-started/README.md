@@ -103,29 +103,32 @@ reqmd check my-project/
 You should see both sample requirements pass validation:
 
 ```
+=
 Schema : my-project — my-project Requirements
 File   : my-project  (2 requirements)
-
+=
   ✅  REQ-001  all attributes valid
   ✅  REQ-002  all attributes valid
 
 Summary: 2 total, 2 valid, 0 invalid, 0 parse errors
 ```
 
-`reqmd ls` shows the whole document — the container and its requirements
-side by side:
+`reqmd ls` shows every node in the document — including the leading prose
+info item and both requirements:
 
 ```text
 === my-project ===
 Type       | ID                       | owner        | trace        | disposition  | disposition-reason | requires-trace-from | version      | status       |
 -------------------------------------------------------------------------------------------------------------------------------------------------
-container  | Requirements             |              |              |              |              |              |              |              |
+info       |                          |              |              |              |              |              |              |              |
 req        | REQ-001                  | Team Alpha   |              |              |              |              |              | draft        |
 req        | REQ-002                  | Team Beta    | ["REQ-001"]  |              |              |              |              | draft        |
 ```
 
 The leading `Type` column marks every node: `req` for requirements,
-`container` and `info` for headings without attribute blocks.
+`container` and `info` for headings without attribute blocks. The level-1
+`# Requirements` heading is the document title, so it never appears as a node
+— the `info` row here is the prose paragraph before `REQ-001`.
 
 ## Try the other presets
 

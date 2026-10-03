@@ -49,10 +49,10 @@ A requirement may override the document default with its own
 
 ## Validate the assembled example
 
-From the repository root, run:
+From the `quickstart/` directory, run:
 
 ```sh
-reqmd check quickstart/10-submodule-configuration/
+reqmd check 10-submodule-configuration/
 ```
 
 The command discovers all three schemas below one root and resolves their

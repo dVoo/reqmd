@@ -1,58 +1,69 @@
 # ReqMD
 
-**ReqMD** (pronounced "req-em-dee") is a lightweight CLI tool for writing, validating, and exporting
-requirement specifications in plain Markdown. Designed for teams that want Git-native, text-first
-requirements management without a heavy toolchain.
+**ReqMD** (pronounced "req-em-dee") is a lightweight CLI tool for writing,
+validating, and exporting requirement specifications in plain Markdown. Designed
+for teams that want Git-native, text-first requirements management without a
+heavy toolchain.
 
 ```
-$ reqmd check example/
+$ reqmd check quickstart/02-trace-your-spec/
 =
-Schema : ivi-requirements — IVI Requirements
-File   : example  (3 requirements)
+Schema : software-requirements — Software Requirements
+File   : quickstart/02-trace-your-spec/software  (1 requirements)
 =
-  ⚠  IVI-FUN-001  attributes valid (see trace checks below)
-  ⚠  IVI-FUN-001  broken reference: target "SYS-001" not found
-  ⚠  IVI-FUN-001  broken reference: target "SAFE-003" not found
-  ⚠  IVI-FUN-001  no upstream reference
-  ⚠  IVI-FUN-002  attributes valid (see trace checks below)
-  ⚠  IVI-FUN-002  broken reference: target "SYS-007" not found
-  ❌  IVI-FUN-003  validating ivi-requirements: required: missing properties: ["asil"]
-  ⚠  IVI-FUN-003  untraced: no downstream reference
-  ⚠  IVI-FUN-003  no upstream reference
+  ✅  SW-001  all attributes valid
 
-Summary: 3 total, 2 valid, 1 invalid, 0 parse errors, 6 warnings
+=
+Schema : stakeholder-goals — Stakeholder Goals
+File   : quickstart/02-trace-your-spec/stakeholder  (1 requirements)
+=
+  ✅  STK-GOAL-001  all attributes valid
+
+=
+Schema : system-requirements — System Requirements
+File   : quickstart/02-trace-your-spec/system  (1 requirements)
+=
+  ⚠  SYS-001  attributes valid (see trace checks below)
+  ⚠  SYS-001  no upstream trace: no approved requirement from "software" traces to this item (1 draft downstreams ignored)
+
+=
+Schema : test-specs — Test Specifications
+File   : quickstart/02-trace-your-spec/tests  (2 requirements)
+=
+  ✅  TEST-001  all attributes valid
+  ✅  TEST-002  all attributes valid
+
+Summary: 5 total, 5 valid, 0 invalid, 0 parse errors, 1 warnings
 ```
+
+---
+
+## Contents
+
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Core concepts](#core-concepts)
+- [Commands](#commands)
+- [Baseline diff](#baseline-diff)
+- [Trace validation in detail](#trace-validation-in-detail)
+- [FAQ](#faq)
+- [Disposition workflow](#disposition-workflow)
+- [Verification & validation results](#verification--validation-results)
+- [Exit codes](#exit-codes)
+- [Real-world workflow](#real-world-workflow)
+- [Design principles](#design-principles)
+- [Self-hosted requirements](#self-hosted-requirements)
 
 ---
 
 ## Installation
 
-```sh
-git clone <your-repo>
-cd mdreq
-go build -o reqmd ./cmd/reqmd
-go build -o reqmd-import ./reqmd-import/cmd/reqmd-import   # extraction tool
-```
-
-The repo is a Go workspace (`go.work`) linking both modules, so `go build ./...`
-and `go test ./...` from the root cover reqmd and reqmd-import together:
-
-```sh
-go test ./...        # tests for both modules
-```
-
-Each module keeps its own `go.mod` and dependencies; install either
-independently with `go install ./cmd/reqmd` or
-`go install ./reqmd-import/cmd/reqmd-import`.
-
-Requires Go 1.26+. The graph export subcommand requires Cgo support;
-build with `go build -tags ladybug -o reqmd ./cmd/reqmd` to include it.
-
 ### Pre-built binaries
 
 Each tagged release publishes pre-built `reqmd` and `reqmd-import` binaries
 for Linux (amd64), Windows (amd64), and macOS (arm64) plus a `SHA256SUMS.txt`
-file. Download them from the [Releases page](../../releases) and verify with:
+file. Download them from the [Releases page](https://github.com/dVoo/reqmd/releases)
+and verify with:
 
 ```sh
 sha256sum -c SHA256SUMS.txt --ignore-missing
@@ -65,37 +76,73 @@ sha256sum -c SHA256SUMS.txt --ignore-missing
 > from source with `-tags ladybug` (requires liblbug; see
 > [go-ladybug's docs](https://github.com/LadybugDB/go-ladybug#installation)).
 
+### Build from source
+
+Requires Go 1.26 or newer.
+
+```sh
+git clone https://github.com/dVoo/reqmd
+cd reqmd
+go build -o reqmd ./cmd/reqmd
+go build -o reqmd-import ./reqmd-import/cmd/reqmd-import   # extraction tool
+```
+
+To install into `$(go env GOPATH)/bin` instead of building in place:
+
+```sh
+go install ./cmd/reqmd
+go install ./reqmd-import/cmd/reqmd-import
+```
+
+The repo is a Go workspace (`go.work`) linking both modules, so `go build ./...`
+and `go test ./...` from the root cover reqmd and reqmd-import together:
+
+```sh
+go test ./...        # tests for both modules
+```
+
+The graph export subcommand requires Cgo support; build with
+`go build -tags ladybug -o reqmd ./cmd/reqmd` to include it.
+
 ---
 
-## Quick Start
+## Quick start
 
-The repo ships with an example you can try immediately:
-
-```sh
-go run ./cmd/reqmd check example/
-go run ./cmd/reqmd ls example/
-go run ./cmd/reqmd stats example/
-go run ./cmd/reqmd check --json example/
-go run ./cmd/reqmd export csv example/ -o /tmp/out/
-go run ./cmd/reqmd export html example/ -o /tmp/out/
-```
-
-Scaffold a new requirements project — choose a built-in preset or use your own template directory:
+Scaffold a project and validate it — no clone required if you installed the
+binary:
 
 ```sh
-reqmd init my-requirements/                              # generic preset (default)
-reqmd init my-requirements/ --preset aspice               # automotive SPICE template
-reqmd init my-results/ --preset results --id-prefix VR    # manual verification results
-reqmd init my-project/ --preset ./my-preset/              # custom preset directory
-reqmd check my-requirements/
+reqmd init demo/
+reqmd check demo/
+reqmd ls demo/
+reqmd stats demo/
+reqmd check --json demo/
+reqmd export csv demo/ -o /tmp/out/
+reqmd export html demo/ -o /tmp/out/
 ```
 
-Watch for changes and serve a live-reloading HTML preview:
+`reqmd init` supports the `generic` (default), `aspice`, and `results` presets,
+plus custom preset directories:
 
 ```sh
-go run ./cmd/reqmd serve spec/          # opens browser
-go run ./cmd/reqmd serve spec/ --headless   # terminal-only
+reqmd init my-requirements/                            # generic preset (default)
+reqmd init my-requirements/ --preset aspice            # automotive SPICE template
+reqmd init my-results/ --preset results --id-prefix VR # manual verification results
+reqmd init my-project/ --preset ./my-preset/           # custom preset directory
 ```
+
+The repo ships a worked tutorial with a complete four-level V-model tree. From
+a clone, validate it and watch it live:
+
+```sh
+reqmd check quickstart/02-trace-your-spec/   # 5 requirements, one trace warning
+reqmd serve quickstart/02-trace-your-spec/   # opens a live-reloading HTML preview
+reqmd serve quickstart/02-trace-your-spec/ --headless   # terminal-only
+```
+
+New here? The [10-minute QUICKSTART.md](QUICKSTART.md) walks through a
+three-document trace chain, and the [`quickstart/`](quickstart/) tree has a
+numbered step for every feature.
 
 ---
 
@@ -481,40 +528,35 @@ in both parsing and HTML export, with these extensions enabled:
 
 Aliases: `check` = `validate` or `v`; `ls` = `list` or `l`.
 
+The examples below use a project scaffolded with `reqmd init demo/`, so every
+line is reproducible.
+
 ### Example: `check`
 
 ```
 =
-Schema : ivi-requirements — IVI Requirements
-File   : example  (3 requirements)
+Schema : demo — demo Requirements
+File   : demo  (2 requirements)
 =
-  ⚠  IVI-FUN-001  attributes valid (see trace checks below)
-  ⚠  IVI-FUN-001  broken reference: target "SYS-001" not found
-  ⚠  IVI-FUN-001  broken reference: target "SAFE-003" not found
-  ⚠  IVI-FUN-001  no upstream reference
-  ⚠  IVI-FUN-002  attributes valid (see trace checks below)
-  ⚠  IVI-FUN-002  broken reference: target "SYS-007" not found
-  ❌  IVI-FUN-003  validating ivi-requirements: required: missing properties: ["asil"]
-  ⚠  IVI-FUN-003  untraced: no downstream reference
-  ⚠  IVI-FUN-003  no upstream reference
+  ✅  REQ-001  all attributes valid
+  ✅  REQ-002  all attributes valid
 
-Summary: 3 total, 2 valid, 1 invalid, 0 parse errors, 6 warnings
+Summary: 2 total, 2 valid, 0 invalid, 0 parse errors
 ```
 
+- `✅` — every attribute passed schema validation and every trace check
 - `⚠` — trace validation warning (broken reference, untraced, no upstream reference, disposition without reason)
-- `❌` — schema validation error (missing required, wrong type, invalid enum)
-- IVI-FUN-001 traces to external targets (broken references; untraced suppressed by `requires-trace-from: []`)
-- IVI-FUN-002 uses `disposition: deferred` (requires `disposition-reason`)
+- `❌` — schema validation error (missing required, wrong type, invalid enum); sets exit code 1
 
 ### Example: `ls`
 
 ```
-=== example ===
-Type       | ID                       | asil         | maturity     | status       | verify       | owner        | priority     | safety_relevant | trace        | disposition  | disposition-reason | version  |
-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-req        | IVI-FUN-001              | QM           | Production   | approved     | Test         | TierOneSupplierA |              |              | ["SYS-001","SAFE-003"] |              |              | 1            |
-req        | IVI-FUN-002              | B            | Prototype    | draft        | Test         | TierOneSupplierA |              |              | ["SYS-007"]  | deferred     | Moved to Phase 2 — serial peripheral interface requires next PCB revision |              |
-req        | IVI-FUN-003              |              | Concept      | draft        | Test         |              |              |              |                   |              |              |              |
+=== demo ===
+Type       | ID                       | owner        | trace        | disposition  | disposition-reason | requires-trace-from | version      | status       |
+-------------------------------------------------------------------------------------------------------------------------------------------------
+info       |                          |              |              |              |              |              |              |              |
+req        | REQ-001                  | Team Alpha   |              |              |              |              |              | draft        |
+req        | REQ-002                  | Team Beta    | ["REQ-001"]  |              |              |              |              | draft        |
 ```
 
 Every node appears in document order with a leading `Type` column —
@@ -527,84 +569,57 @@ booleans) are formatted automatically.
 ### Example: `stats`
 
 ```
-Requirements: 3
+Requirements: 2
 Documents:    1
 
-=== example (3 reqs) ===
-  asil:
-    B                    1
-    QM                   1
-  maturity:
-    Concept              1
-    Production           1
-    Prototype            1
-  status:
-    approved             1
-    draft                2
-  verify:
-    Test                 3
+=== demo (2 reqs, 1 item) ===
+  type:
+    info                 1
+    req                  2
   owner:
-    TierOneSupplierA     2
-  disposition:
-    deferred             1
-  disposition-reason:
-    Moved to Phase 2...  1
+    Team Alpha           1
+    Team Beta            1
+  status:
+    draft                2
 ```
 
 ### Example: `check --json`
 
 ```json
 {
-  "version": 1,
-  "exit_code": 1,
-  "summary": {
-    "total": 3,
-    "valid": 2,
-    "invalid": 1,
-    "parse_errors": 0,
-    "warnings": 6
-  },
   "documents": [
     {
-      "path": "example",
-      "schema_title": "ivi-requirements — IVI Requirements",
-      "req_count": 3,
+      "path": "demo",
+      "schema_title": "demo — demo Requirements",
       "requirements": [
         {
-          "id": "IVI-FUN-001",
-          "valid": true,
-          "checks": [
-            {"level": "WARNING", "message": "broken reference: target \"SYS-001\" not found"},
-            {"level": "WARNING", "message": "broken reference: target \"SAFE-003\" not found"},
-            {"level": "WARNING", "message": "no upstream reference"}
-          ]
+          "id": "REQ-001",
+          "valid": true
         },
         {
-          "id": "IVI-FUN-002",
-          "valid": true,
-          "checks": [
-            {"level": "WARNING", "message": "broken reference: target \"SYS-007\" not found"}
-          ]
-        },
-        {
-          "id": "IVI-FUN-003",
-          "valid": false,
-          "checks": [
-            {"level": "ERROR", "message": "validating ivi-requirements: required: missing properties: [\"asil\"]"},
-            {"level": "WARNING", "message": "untraced: no downstream reference"},
-            {"level": "WARNING", "message": "no upstream reference"}
-          ]
+          "id": "REQ-002",
+          "valid": true
         }
-      ]
+      ],
+      "req_count": 2
     }
   ],
-  "parse_errors": []
+  "parse_errors": [],
+  "summary": {
+    "total": 2,
+    "valid": 2,
+    "invalid": 0,
+    "parse_errors": 0,
+    "warnings": 0
+  },
+  "version": 1,
+  "exit_code": 0
 }
 ```
 
 ---
 
-## 8. Baseline diff
+## Baseline diff
 
 Compare two requirement baselines anchored by git tags without checking either
 one out. `reqmd baseline diff <tag1> <tag2>` extracts the repository at each tag
@@ -1119,9 +1134,10 @@ Wrote /tmp/out/01a-aspice-stakeholder-requirements.html
 Wrote /tmp/out/02-system-requirements.html
 Wrote /tmp/out/03-software-requirements.html
 Wrote /tmp/out/04-tests-requirements.html
+... plus one page per imported component directory (22 pages total)
 ```
 
-The 196 warnings are expected — external base practices (`00-aspice`) and
+The 23 warnings are expected — external base practices (`00-aspice`) and
 stakeholder goals (`01-stakeholder`) have no upstream traces (untraced warnings
 suppressed by boundary inference and `external: true`). The ASPICE proxy layer
 (`01a-aspice-stakeholder`) is the first fully-traced tier.

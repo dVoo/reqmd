@@ -49,7 +49,7 @@ trace: []
 BenchmarkRunValidationPipeline measures the cost of the full
 validation pipeline (Pass 1 schema compile + per-req validation,
 plus Pass 2 graph build + trace checks) against the spec/ fixture
-(6 documents, 249 requirements).
+(22 documents, 274 requirements).
 ````
 
 The ID format is `IMP-<package>-<symbol>-<7charhash>`. The hash is computed over `(package, symbol name)` so IDs survive line-number shifts — a refactor that moves code around does not invalidate the trace.

@@ -235,6 +235,56 @@ main {
   border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
+/* ── Evidence list ───────────────────────────────── */
+
+.verdict-evidence {
+  margin: 0 0 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: rgba(148, 163, 184, 0.06);
+}
+.verdict-evidence--child {
+  font-size: 0.85rem;
+}
+.verdict-evidence summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+.verdict-evidence .evidence-item {
+  padding: 0.4rem 0;
+  border-top: 1px solid var(--border);
+}
+.verdict-evidence .evidence-item:first-of-type {
+  border-top: none;
+}
+.verdict-evidence .evidence-outcome {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+  margin-right: 0.5rem;
+}
+.verdict-evidence .evidence-outcome--pass { color: #22c55e; }
+.verdict-evidence .evidence-outcome--fail { color: #ef4444; }
+.verdict-evidence .evidence-outcome--skipped { color: #94a3b8; }
+.verdict-evidence .evidence-outcome--inconclusive { color: #f97316; }
+.verdict-evidence .evidence-case,
+.verdict-evidence .evidence-file {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-right: 0.75rem;
+}
+.verdict-evidence .evidence-desc {
+  margin-top: 0.35rem;
+  font-size: 0.85rem;
+}
+
 /* ── Attributes grid ────────────────────────────── */
 
 .req-attrs {
@@ -1979,10 +2029,11 @@ html.dark .boundary-badge--leaf {
 </dl>
 <div class="req-body">
 <p>Unit tests shall cover the <code>missing-verdict</code> and <code>failing-verdict</code> graph checks: no-op when no result nodes present, missing-verdict fires for approved measures without results, missing-verdict skips draft measures, failing-verdict fires for fail outcome at ERROR, failing-verdict does not fire for pass, and version-pin fires on stale result pins.</p>
+<p>Unit tests shall also cover case-keyed binding and evidence roll-up: <code>extra.x-reqmd.case</code>/<code>verifies</code>/<code>description</code> parsing and silent skip of uninstrumented tests, latest-wins per (measure, case) by <code>stop</code>, synthesized <code>TC:&lt;case&gt;</code> nodes with <code>trace</code> edges and description bodies, cased <code>RESULT:</code> identities, roll-up over authored and synthesized downstream test cases (mixed evidence with one failing case fails the requirement), draft downstream cases reported as ignored by missing-verdict, filter-aware evidence, deferred/rejected measure exemption, <code>unbound-result</code> warnings and their <code>--ignore-unbound-results</code> suppression, and the JSON/text <code>results</code> section.</p>
 
 </div>
 <div class="req-rationale">
-<strong>Rationale:</strong> <p>The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives.</p>
+<strong>Rationale:</strong> <p>The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives. Case-keyed binding and roll-up change the merge, synthesis, and check semantics together, so they need dedicated coverage.</p>
 
 </div>
 <div class="req-traces">
@@ -2197,6 +2248,7 @@ html.dark .boundary-badge--leaf {
 </dl>
 <div class="req-body">
 <p>Unit tests shall cover level-typed <code>requires-trace-from</code>: a level token expands to every document declaring it, coverage is satisfied by any approved inbound from those documents, document-id tokens still resolve, and unknown tokens produce a WARNING.</p>
+<p>Unit tests shall also cover the <code>x-reqmd.requires-trace-from</code> document default (SYS-FMT-003): a requirement that does not declare the attribute inherits the document default and is checked against it; a requirement that declares its own attribute overrides the default; <code>requires-trace-from: []</code> opts a requirement out even under a non-empty default; an empty document default opts every requirement in the document out; and a document without a default leaves its requirements on the generic boundary-inference fallback.</p>
 
 </div>
 <div class="req-rationale">
@@ -2617,7 +2669,7 @@ document.addEventListener('DOMContentLoaded', function () {
   // @click.away on the sidebar, and @keydown.escape.window on <body>.
 });
 </script>
-<script type="application/json" id="req-index">[{"id":"TST-UNT-001","title":"Core package unit tests","body":"Unit tests shall cover the parser, schema, and graph packages with inline fixtur...","rationale":"Inline fixtures keep tests self-contained and fast. These packages constitute the core validation pipeline and require the highest confidence. Each validation check has distinct logic paths exercised independently.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-INT-001","title":"End-to-end integration tests","body":"Integration tests shall run the full pipeline end-to-end: parse a multi-level re...","rationale":"Integration tests catch cross-package contract violations that unit tests miss. The reqmd's own `spec/` directory serves as the primary integration test fixture, and should exercise the sub-requirement hierarchy.","attrs":{"disposition":"implemented","status":"draft","test-type":"integration","verify":"Test"}},{"id":"TST-FIX-001","title":"Build and test gate","body":"The project shall build cleanly with `go build ./...` and all tests shall pass w...","rationale":"A build-and-test gate in CI prevents regressions. Existing tests must be maintained and extended as features are added.","attrs":{"disposition":"implemented","status":"approved","test-type":"build","verify":"Test"}},{"id":"TST-UNT-002","title":"Frontmatter, parsing, and rendering tests","body":"Unit tests SHALL verify: frontmatter extraction via goldmark-meta with correct `...","rationale":"These features have distinct logic paths requiring dedicated test coverage. Frontmatter parsing touches the parser AST pipeline; content-tree parsing drives the tree assembly and parent-chain semantics; tree TOC and search/filter are client-side JS features tested via rendered HTML output.","attrs":{"disposition":"implemented","status":"draft","test-type":"unit","verify":"Test"}},{"id":"TST-UNT-003","title":"Content-tree and item tests","body":"Unit tests shall cover the content tree: preamble prose captured as a headingles...","rationale":"The content tree is the parser's core contract — content must never be dropped and nesting must stay faithful to the source. Item-aware output crosses the parser, reporter, and exporter packages, so it needs dedicated end-to-end coverage.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-VER-001","title":"Verify package tests","body":"Unit tests shall cover the `internal/verify` package: CTRF JSON parsing (status→...","rationale":"The verify package is the entry point for the V\u0026V results feature. Each parsing path (CTRF, manual, auto-detection) has distinct logic that must be exercised independently. The merge semantics (latest-wins, pin stripping) are load-bearing for correctness.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-VER-002","title":"Outcome-gated graph checks tests","body":"Unit tests shall cover the `missing-verdict` and `failing-verdict` graph checks:...","rationale":"The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-SRV-001","title":"Serve with results integration tests","body":"Integration tests shall verify that `serve --results \u003cpath\u003e` loads verification ...","rationale":"The `serve --results` feature combines the live-reload watcher with the verify pipeline. Both the fsnotify and polling watcher paths must be exercised to ensure result-file changes trigger rebuilds in both modes. The verdict badge rendering must be verified in the HTML output, not just the graph checks.","attrs":{"disposition":"implemented","status":"approved","test-type":"integration","verify":"Test"}},{"id":"TST-FIL-001","title":"Filter package tests","body":"Unit tests shall cover the `internal/filter` package: expression compilation (in...","rationale":"The filter engine is the gate for scoping `check`, exports, and diffs. Compile-time typo rejection and filter-aware coverage semantics are load-bearing and must be pinned by tests.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-DIS-001","title":"Disjoint-attribute check tests","body":"Unit tests shall cover the `disjoint-attribute` graph check: zero intersection p...","rationale":"The check gates cross-cutting attribute consistency (variants, safety levels) that other trace checks do not; both the intersection logic and the exemption/suppression paths need coverage.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-STS-001","title":"Status lifecycle tests","body":"Unit tests shall cover the status lifecycle: missing status defaults to approved...","rationale":"The lifecycle is enforced across schema, graph, and exporter; the coverage-provider gate is the behavior that changes validation outcomes and must be regression-tested.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-LEV-001","title":"Level-typed coverage tests","body":"Unit tests shall cover level-typed `requires-trace-from`: a level token expands ...","rationale":"Level resolution changes coverage semantics for multi-document layers; the expansion and fallback paths must be verified independently.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-IMP-001","title":"reqmd-import extraction tests","body":"Unit tests shall cover the `reqmd-import` pipeline: language plugin parse/classi...","rationale":"reqmd-import closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the writer's determinism is what makes re-running the extractor safe in CI.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}}]</script>
+<script type="application/json" id="req-index">[{"id":"TST-UNT-001","title":"Core package unit tests","body":"Unit tests shall cover the parser, schema, and graph packages with inline fixtur...","rationale":"Inline fixtures keep tests self-contained and fast. These packages constitute the core validation pipeline and require the highest confidence. Each validation check has distinct logic paths exercised independently.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-INT-001","title":"End-to-end integration tests","body":"Integration tests shall run the full pipeline end-to-end: parse a multi-level re...","rationale":"Integration tests catch cross-package contract violations that unit tests miss. The reqmd's own `spec/` directory serves as the primary integration test fixture, and should exercise the sub-requirement hierarchy.","attrs":{"disposition":"implemented","status":"draft","test-type":"integration","verify":"Test"}},{"id":"TST-FIX-001","title":"Build and test gate","body":"The project shall build cleanly with `go build ./...` and all tests shall pass w...","rationale":"A build-and-test gate in CI prevents regressions. Existing tests must be maintained and extended as features are added.","attrs":{"disposition":"implemented","status":"approved","test-type":"build","verify":"Test"}},{"id":"TST-UNT-002","title":"Frontmatter, parsing, and rendering tests","body":"Unit tests SHALL verify: frontmatter extraction via goldmark-meta with correct `...","rationale":"These features have distinct logic paths requiring dedicated test coverage. Frontmatter parsing touches the parser AST pipeline; content-tree parsing drives the tree assembly and parent-chain semantics; tree TOC and search/filter are client-side JS features tested via rendered HTML output.","attrs":{"disposition":"implemented","status":"draft","test-type":"unit","verify":"Test"}},{"id":"TST-UNT-003","title":"Content-tree and item tests","body":"Unit tests shall cover the content tree: preamble prose captured as a headingles...","rationale":"The content tree is the parser's core contract — content must never be dropped and nesting must stay faithful to the source. Item-aware output crosses the parser, reporter, and exporter packages, so it needs dedicated end-to-end coverage.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-VER-001","title":"Verify package tests","body":"Unit tests shall cover the `internal/verify` package: CTRF JSON parsing (status→...","rationale":"The verify package is the entry point for the V\u0026V results feature. Each parsing path (CTRF, manual, auto-detection) has distinct logic that must be exercised independently. The merge semantics (latest-wins, pin stripping) are load-bearing for correctness.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-VER-002","title":"Outcome-gated graph checks tests","body":"Unit tests shall cover the `missing-verdict` and `failing-verdict` graph checks:...","rationale":"The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives. Case-keyed binding and roll-up change the merge, synthesis, and check semantics together, so they need dedicated coverage.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-SRV-001","title":"Serve with results integration tests","body":"Integration tests shall verify that `serve --results \u003cpath\u003e` loads verification ...","rationale":"The `serve --results` feature combines the live-reload watcher with the verify pipeline. Both the fsnotify and polling watcher paths must be exercised to ensure result-file changes trigger rebuilds in both modes. The verdict badge rendering must be verified in the HTML output, not just the graph checks.","attrs":{"disposition":"implemented","status":"approved","test-type":"integration","verify":"Test"}},{"id":"TST-FIL-001","title":"Filter package tests","body":"Unit tests shall cover the `internal/filter` package: expression compilation (in...","rationale":"The filter engine is the gate for scoping `check`, exports, and diffs. Compile-time typo rejection and filter-aware coverage semantics are load-bearing and must be pinned by tests.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-DIS-001","title":"Disjoint-attribute check tests","body":"Unit tests shall cover the `disjoint-attribute` graph check: zero intersection p...","rationale":"The check gates cross-cutting attribute consistency (variants, safety levels) that other trace checks do not; both the intersection logic and the exemption/suppression paths need coverage.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-STS-001","title":"Status lifecycle tests","body":"Unit tests shall cover the status lifecycle: missing status defaults to approved...","rationale":"The lifecycle is enforced across schema, graph, and exporter; the coverage-provider gate is the behavior that changes validation outcomes and must be regression-tested.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-LEV-001","title":"Level-typed coverage tests","body":"Unit tests shall cover level-typed `requires-trace-from`: a level token expands ...","rationale":"Level resolution changes coverage semantics for multi-document layers; the expansion and fallback paths must be verified independently.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}},{"id":"TST-IMP-001","title":"reqmd-import extraction tests","body":"Unit tests shall cover the `reqmd-import` pipeline: language plugin parse/classi...","rationale":"reqmd-import closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the writer's determinism is what makes re-running the extractor safe in CI.","attrs":{"disposition":"implemented","status":"approved","test-type":"unit","verify":"Test"}}]</script>
 <script type="application/json" id="req-filter-index">{"status":["draft","approved"],"test-type":["build","integration","unit"]}</script>
 </div>
 </body>

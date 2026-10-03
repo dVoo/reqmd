@@ -46,7 +46,7 @@ and/or manual markdown results from outside the spec root) and runs
 outcome-gated checks (missing-verdict, failing-verdict) in addition to
 the standard trace checks. Results are not persisted; they live for the
 duration of this run.`,
-		Example: `  reqmd check example/
+		Example: `  reqmd check spec/
   reqmd check path/to/file.md -s path/to/schema.yaml
   reqmd check spec/ --results ./ci-out/ --results ./reviews/`,
 		Args: cobra.ExactArgs(1),

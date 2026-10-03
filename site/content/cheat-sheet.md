@@ -4,7 +4,7 @@ description: "Full reqmd command reference with example outputs and schema.yaml 
 weight: 4
 ---
 
-A quick reference for every reqmd command and every `schema.yaml` option. Each command shows real output from the bundled `spec/` tree. Bookmark this page.
+A quick reference for every reqmd command and every `schema.yaml` option. Each command shows real output from the bundled `spec/` or `quickstart/` trees. Bookmark this page.
 
 ## Command overview
 
@@ -31,57 +31,82 @@ reqmd check spec/ --disjoint-check variant # error on cross-configuration trace 
 
 **Filters:** `--filter "<expr>"` scopes the check to requirements matching an expr-lang expression (see [Filter expressions](#filter-expressions)). Coverage is computed within the filtered subset, so a filtered-out requirement can neither require nor provide coverage. `--disjoint-check <attr>` verifies that every trace link has at least one overlapping value for the named array attribute (zero intersection → ERROR). With `--json`, the summary gains a `"filter"` field recording the active expression.
 
-{{< details summary="Example output" >}}
+{{< details summary="Example output (`reqmd check quickstart/02-trace-your-spec/`)" >}}
 ```text
-Schema : reqmd-system-requirements — reqmd System Requirements
-File   : spec/02-system  (11 requirements)
+=
+Schema : software-requirements — Software Requirements
+File   : quickstart/02-trace-your-spec/software  (1 requirements)
+=
+  ✅  SW-001  all attributes valid
 
-  ✅  SYS-FMT-001  all attributes valid
-  ✅  SYS-FMT-002  all attributes valid
-  ✅  SYS-FMT-003  all attributes valid
-  ✅  SYS-CLI-001  all attributes valid
-  ✅  SYS-VAL-001  all attributes valid
+=
+Schema : stakeholder-goals — Stakeholder Goals
+File   : quickstart/02-trace-your-spec/stakeholder  (1 requirements)
+=
+  ✅  STK-GOAL-001  all attributes valid
 
-  ⚠  SYS-FMT-001  broken reference: target "STK-GOAL-001" not found
-  ⚠  SYS-FMT-001  broken reference: target "ASP-SR-001" not found
-  ⚠  SYS-CLI-001  broken reference: target "STK-GOAL-004" not found
+=
+Schema : system-requirements — System Requirements
+File   : quickstart/02-trace-your-spec/system  (1 requirements)
+=
+  ⚠  SYS-001  attributes valid (see trace checks below)
+  ⚠  SYS-001  no upstream trace: no approved requirement from "software" traces to this item (1 draft downstreams ignored)
 
-Summary: 11 total, 11 valid, 0 invalid, 0 parse errors, 50 warnings
+=
+Schema : test-specs — Test Specifications
+File   : quickstart/02-trace-your-spec/tests  (2 requirements)
+=
+  ✅  TEST-001  all attributes valid
+  ✅  TEST-002  all attributes valid
+
+Summary: 5 total, 5 valid, 0 invalid, 0 parse errors, 1 warnings
 ```
 {{< /details >}}
 
-{{< details summary="Example JSON output (`--json`)" >}}
+{{< details summary="Example JSON output (`reqmd check --json quickstart/02-trace-your-spec/`)" >}}
 ```json
 {
-  "version": 1,
-  "exit_code": 0,
-  "summary": {
-    "total": 11,
-    "valid": 11,
-    "invalid": 0,
-    "parse_errors": 0,
-    "warnings": 50
-  },
   "documents": [
     {
-      "path": "spec/02-system",
-      "schema_title": "reqmd-system-requirements — reqmd System Requirements",
-      "req_count": 11,
+      "path": "quickstart/02-trace-your-spec/software",
+      "schema_title": "software-requirements — Software Requirements",
       "requirements": [
         {
-          "id": "SYS-FMT-001",
-          "valid": true,
+          "id": "SW-001",
+          "valid": true
+        }
+      ],
+      "req_count": 1
+    },
+    {
+      "path": "quickstart/02-trace-your-spec/system",
+      "schema_title": "system-requirements — System Requirements",
+      "requirements": [
+        {
+          "id": "SYS-001",
           "checks": [
             {
               "level": "WARNING",
-              "source": "spec/02-system/features.md",
-              "message": "broken reference: target \"STK-GOAL-001\" not found"
+              "source": "quickstart/02-trace-your-spec/system/features.md",
+              "message": "no upstream trace: no approved requirement from \"software\" traces to this item (1 draft downstreams ignored)"
             }
-          ]
+          ],
+          "valid": true
         }
-      ]
+      ],
+      "req_count": 1
     }
-  ]
+  ],
+  "parse_errors": [],
+  "summary": {
+    "total": 5,
+    "valid": 5,
+    "invalid": 0,
+    "parse_errors": 0,
+    "warnings": 1
+  },
+  "version": 1,
+  "exit_code": 0
 }
 ```
 {{< /details >}}
@@ -101,14 +126,12 @@ reqmd ls spec/ --filter '"Premium" in variant'   # only matching requirements (i
 {{< details summary="Example output" >}}
 ```text
 === spec/02-system ===
-Type       | ID                       | priority     | status       |
----------------------------------------------------------------------
-container  | reqmd System Features    |              |              |
-req        | SYS-FMT-001: Markdown requirement format | Critical     | approved     |
-req        | SYS-FMT-002: Built-in attribute system | Critical     | approved     |
-req        | SYS-FMT-003: Schema.yaml document configuration | Critical     | approved     |
-req        | SYS-CLI-001: CLI subcommands | Critical     | approved     |
-req        | SYS-VAL-001: Multi-pass validation pipeline | Critical     | approved     |
+Type       | ID                       | priority     | trace        | disposition  | disposition-reason | requires-trace-from | version      | status       |
+-------------------------------------------------------------------------------------------------------------------------------------------------
+req        | SYS-FMT-001: Markdown requirement format | Critical     | ["STK-GOAL-001","ASP-SR-001","ASP-SR-003","ASP-SR-020"] |              |              |              |              | approved     |
+req        | SYS-FMT-002: Built-in attribute system | Critical     | ["STK-GOAL-002","ASP-SR-007","ASP-SR-013"] |              |              |              |              | approved     |
+req        | SYS-FMT-003: Schema.yaml document configuration | Critical     | ["STK-GOAL-003","ASP-SR-002","ASP-SR-009","ASP-SR-015"] |              |              |              |              | approved     |
+... (19 requirements total)
 ```
 {{< /details >}}
 
@@ -127,10 +150,7 @@ reqmd stats spec/ --filter 'priority == "Critical"'   # scope to matching requir
 Requirements: 19
 Documents:    1
 
-=== spec/02-system (19 reqs, 1 item) ===
-  type:
-    container            1
-    req                  19
+=== spec/02-system (19 reqs) ===
   priority:
     Critical             6
     High                 8
@@ -223,11 +243,11 @@ reqmd serve spec/ --filter '"Sport" in variant'   # preview one configuration
 reqmd serve spec/
   serving http://localhost:8080
   watching spec/ ...
-  initial build: 249 reqs, 6 docs
+  initial build: 274 reqs, 22 docs
   file changed: spec/02-system/features.md
-  rebuilt: 249 reqs (48ms)
+  rebuilt: 274 reqs (48ms)
   file changed: spec/02-system/schema.yaml
-  rebuilt: 249 reqs (52ms)
+  rebuilt: 274 reqs (52ms)
 ```
 {{< /details >}}
 
@@ -255,11 +275,11 @@ With `--results`, adds `Verdict` and `Verdict Source` columns.
 {{< details summary="Example output" >}}
 ```text
 exporting spec/ → csv-out/
-  spec/02-system  → csv-out/system-requirements.csv   (11 rows)
-  spec/03-software → csv-out/software-requirements.csv (17 rows)
-  spec/04-tests   → csv-out/tests-requirements.csv     (7 rows)
+  spec/02-system  → csv-out/system-requirements.csv   (19 rows)
+  spec/03-software → csv-out/software-requirements.csv (27 rows)
+  spec/04-tests   → csv-out/tests-requirements.csv     (13 rows)
   ...
-  6 documents, 249 requirements exported
+  22 documents, 274 requirements exported
 ```
 
 Each CSV has columns: `Type, ID, Title, <schema attributes>, Body, Rationale`.
@@ -286,7 +306,7 @@ exporting spec/ → html-out/
   spec/03-software → html-out/software-requirements.html
   spec/04-tests   → html-out/tests-requirements.html
   ...
-  6 documents exported
+  22 documents exported
 ```
 
 Each HTML file is standalone (no external JS), with requirement cards,
@@ -309,7 +329,7 @@ reqmd export graph spec/ -o graph-out/
 {{< details summary="Example output" >}}
 ```text
 exporting spec/ → graph-out/reqmd-graph.lbug
-  249 nodes, 1240 edges
+  274 nodes, one TracesTo edge per trace link
   done
 ```
 

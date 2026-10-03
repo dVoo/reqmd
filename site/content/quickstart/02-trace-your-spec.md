@@ -24,7 +24,7 @@ This is the heart of reqmd — and it's the **example that runs through the rest
     boot-test.md         # TEST-001/002 trace to SW-001 and SYS-001
 ```
 
-Steps 3–11 keep working on this same tree: exporting it, serving it, pinning its versions, and finally verifying its tests.
+Later steps keep working on this same tree: exporting it, serving it, pinning its versions, and finally verifying its tests.
 
 ## How trace links work
 

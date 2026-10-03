@@ -1,35 +1,37 @@
 ---
 title: "Step 0 — Installation"
-description: "Install reqmd in 30 seconds with go install, build from source, or download a prebuilt binary. Then verify the install against the bundled 249-requirement spec."
+description: "Install reqmd in 30 seconds from a prebuilt binary or a source build, then verify the install against the bundled 274-requirement spec."
 weight: -1
 ---
 
-Three ways to get reqmd on your machine. Pick one.
+Two ways to get reqmd on your machine. Pick one.
 
-## Option 1 — `go install` (fastest)
+## Option 1 — Prebuilt binary (easiest)
 
-If you already have Go on your `$PATH`:
-
-```sh
-go install github.com/dVoo/reqmd/cmd/reqmd@latest
-```
-
-The binary lands in `$(go env GOBIN)` (or `$(go env GOPATH)/bin`).
+Download a release from [GitHub Releases](https://github.com/dVoo/reqmd/releases). Extract the archive and put `reqmd` on your `$PATH`.
 
 ## Option 2 — Build from source
 
+Requires Go 1.26 or newer.
+
 ```sh
 git clone https://github.com/dVoo/reqmd
-cd mdreq
+cd reqmd
 go build -o reqmd ./cmd/reqmd
 ./reqmd --help
 ```
 
 Works on every platform Go supports — Linux, macOS, Windows, \*BSD.
 
-## Option 3 — Prebuilt binary
+To install into `$(go env GOPATH)/bin` instead of building in place:
 
-Download a release from [GitHub Releases](https://github.com/dVoo/reqmd/releases). Extract the archive and put `reqmd` on your `$PATH`.
+```sh
+go install ./cmd/reqmd
+```
+
+> `go install <module>@latest` is not available: the Go module is named
+> `reqmd` (not the GitHub path), so `@latest` cannot resolve it. Install from
+> a clone, or use a prebuilt binary.
 
 ## Prerequisites
 
@@ -44,16 +46,21 @@ Download a release from [GitHub Releases](https://github.com/dVoo/reqmd/releases
 go build -tags ladybug -o reqmd ./cmd/reqmd
 ```
 
-Without the tag, `reqmd export graph` is not built. The rest of the CLI works exactly the same.
+Without the tag, `reqmd export graph` prints an error and does nothing. The rest of the CLI works exactly the same.
 
 ## Verify the install
 
 ```sh
-reqmd --version         # shows the version
-reqmd check spec/       # validate the bundled dogfooded spec (249 requirements)
+reqmd check spec/       # validate the bundled dogfooded spec (274 requirements)
 ```
 
-If the second command prints `Summary: 249 total, 249 valid, 0 invalid, 0 parse errors`, you're good to go.
+The last line should read:
+
+```text
+Summary: 274 total, 274 valid, 0 invalid, 0 parse errors, 23 warnings
+```
+
+The warnings are expected — they come from the external ASPICE base practices in `spec/00-aspice/`, which have no upstream traces.
 
 ## What's next
 

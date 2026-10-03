@@ -46,5 +46,6 @@ go build -o reqmd ./cmd/reqmd
 
 Or download a pre-built binary from the [GitHub Releases page](https://github.com/dVoo/reqmd/releases) (Linux, macOS, Windows).
 
-Each step's README shows the exact commands to run. Paths are relative to the
-project root.
+Each step's README shows the exact commands to run. Except where noted, the
+commands assume you are in this `quickstart/` directory — run `cd quickstart`
+from the repo root first.

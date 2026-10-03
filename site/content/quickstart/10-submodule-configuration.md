@@ -44,7 +44,7 @@ A requirement may override the document default with its own `requires-trace-fro
 
 ## Validate the assembled example
 
-From the repository root, run:
+From the `quickstart/` directory, run:
 
 ```sh
 reqmd check 10-submodule-configuration/

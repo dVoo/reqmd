@@ -111,11 +111,18 @@ x-reqmd:
   disjoint-check: variant
 ```
 
-A cross-configuration trace then fails:
+The example tree is variant-consistent, so this check passes. To see it catch a
+mistake, point `SW-005` (Sport) at a Base requirement:
 
+```diff
+- trace: [system/SYS-001]      # Sport
++ trace: [system/SYS-002]      # Base
 ```
-❌ SW-005  disjoint-attribute: traces to SYS-002 (variant: [Base]) but SW-005's
-           variant [Sport] has no overlap — no valid configuration includes both
+
+The next check fails with exit code 1:
+
+```text
+  ❌  SW-005  disjoint-attribute: traces to SYS-002 (variant: [Base]) but SW-005's variant [Sport] has no overlap — no valid configuration includes both
 ```
 
 ## Variant CI matrix

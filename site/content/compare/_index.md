@@ -33,11 +33,11 @@ Both are git-native, text-first, no-database tools for spec authoring with trace
 | **Schema** | JSON Schema 2020-12 in YAML | Sphinx-config-driven type system, per-type schema |
 | **Storage** | Files on disk | Sphinx doctree pickle (`.doctree/`) + JSON |
 | **Runtime** | Single Go binary, no dependencies | Python 3 + Sphinx + a dozen plugins |
-| **Parse time** | 16 ms / 249 reqs (16 cores) | Seconds at 8k reqs (single-threaded, includes Sphinx's full pipeline) |
+| **Parse time** | ~16 ms / 274 reqs (16 cores) | Seconds at 8k reqs (single-threaded, includes Sphinx's full pipeline) |
 | **Web UI** | Static HTML export + `reqmd serve` for live preview | needsbuild built-in (read-only viewer) |
 | **Trace graph** | Built in memory on every `check`; ephemeral | Stored in doctree; queryable via `needflow` and `needtable` directives |
 | **Verification results** | `check --results` reads CTRF + manual-results markdown; 13 graph checks | `test_impact` reads junit XML; older, less coverage of CTRF |
-| **CI loop** | `reqmd check` exits 0/1/2; 16 ms | `sphinx-build -W` exits non-zero on broken ref; seconds |
+| **CI loop** | `reqmd check` exits 0/1/2; ~16 ms | `sphinx-build -W` exits non-zero on broken ref; seconds |
 | **Type system** | JSON Schema enums (e.g. `status: [draft, approved]`) | Sphinx type plugins (`req`, `spec`, `test`, `story`, …) — extensible in Python |
 | **Custom types** | Edit `schema.yaml`, add an enum | Write a Python Sphinx extension, register a directive |
 | **AI agent readability** | One `cat`, plain text | Sphinx doctree pickle is opaque; `cat` shows the RST but tracing requires a build |
@@ -75,7 +75,7 @@ OpenFastTrace (OFT) is the closest analog. Both tools are designed for "spec cov
 
 These tools have been the default in regulated industries for 20 years. They solve a real problem — managed workflows, audit trails, role-based access — but they come with a set of structural problems that get worse as your team gets more agile and your code moves faster:
 
-**Slow.** Every interaction is a web UI round-trip. Opening a requirement, editing a field, checking a trace link, running a coverage report — each is a click, a page load, and a wait. A spec review that takes 10 minutes in a Git diff takes an hour in a web UI. `reqmd check` validates 249 requirements in 16 ms; a DOORS coverage report on the same tree takes minutes.
+**Slow.** Every interaction is a web UI round-trip. Opening a requirement, editing a field, checking a trace link, running a coverage report — each is a click, a page load, and a wait. A spec review that takes 10 minutes in a Git diff takes an hour in a web UI. `reqmd check` validates 274 requirements in ~16 ms; a DOORS coverage report on the same tree takes minutes.
 
 **Disconnected from the code.** The spec lives in a database. The code lives in Git. There is no native connection. "Traceability to code" means a link field that someone manually maintains, or a third-party integration that syncs on a schedule. When a developer renames a function, the spec doesn't know. With reqmd, the spec and the code live in the same Git repo (or linked submodules), and the companion `reqmd-import` tool extracts code symbols into the same ID space — so a rename becomes a broken trace link that CI catches.
 
@@ -92,7 +92,7 @@ These tools have been the default in regulated industries for 20 years. They sol
 | | reqmd | DOORS / Jama / Polarion / Teamcenter / codeBeamer |
 |---|---|---|
 | **Where the spec lives** | Git repo, plain files | Proprietary database |
-| **Speed** | 16 ms for 249 reqs | Seconds to minutes per operation |
+| **Speed** | ~16 ms for 274 reqs | Seconds to minutes per operation |
 | **Branching** | Native Git branches, merges, rebase | Baselines (snapshots, no merge) |
 | **Configuration management** | Git submodules — per-team repos composed at top level; submodule pins are the baseline | One monolithic database; baselines are server-side snapshots |
 | **Connection to code** | Same repo or submodules; `reqmd-import` links to code symbols | Manual link fields or scheduled sync |
@@ -125,7 +125,7 @@ A third category: tools that look like an issue tracker (Jira, Azure DevOps Boar
 | **Branching** | Native Git branches | Not supported — work items live in one project |
 | **Configuration management** | Git submodules — per-team repos composed at top level | Not possible — work items live in one project |
 | **Connection to code** | Same repo or submodules; `reqmd-import` | Manual link fields or git-branch references |
-| **Speed** | 16 ms / 249 reqs | Web UI round-trips; API calls |
+| **Speed** | ~16 ms / 274 reqs | Web UI round-trips; API calls |
 | **CI integration** | `reqmd check` exits 0/1/2 | Native to the ALM platform, but requires the platform |
 | **Review** | Git PR diff | Built-in review workflow with state transitions |
 | **Lock-in** | None — plain text | Vendor work-item schema |

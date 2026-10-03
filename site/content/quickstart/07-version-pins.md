@@ -43,11 +43,11 @@ The spec tree in [Step 2](/quickstart/02-trace-your-spec/) doesn't use version p
 
 ```sh
 reqmd check 02-trace-your-spec/
-# ❌ DN-001  version-pin: outdated — UP-001 is at version 2, pinned to ~1
+# ❌  DN-001  outdated version pin: upstream UP-001 is at v2, this requirement still pins ~1
 
 # Demote to WARNING (CI-friendly: fails on predated, warns on outdated)
 reqmd check --relaxed-versions 02-trace-your-spec/
-# ⚠ DN-001  version-pin: outdated — UP-001 is at version 2, pinned to ~1
+# ⚠  DN-001  outdated version pin: upstream UP-001 is at v2, this requirement still pins ~1
 ```
 
 ## Suppression
