@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"slices"
-
 	"reqmd/internal/filter"
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
@@ -15,6 +13,7 @@ import (
 	"reqmd/internal/schema"
 	"reqmd/internal/verify"
 	"runtime"
+	"slices"
 	"strings"
 	"sync"
 

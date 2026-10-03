@@ -56,7 +56,14 @@ func Synthesize(merged map[ResultKey]Result) model.Document {
 			}
 		}
 	}
+	// Iterate the case nodes via sorted keys: map order is randomized and
+	// the node slice order becomes the exported document order.
+	tcIDs := make([]string, 0, len(tcInfo))
 	for tcID := range tcInfo {
+		tcIDs = append(tcIDs, tcID)
+	}
+	sort.Strings(tcIDs)
+	for _, tcID := range tcIDs {
 		nodes = append(nodes, synthesizeTestCase(tcID, tcInfo[tcID]))
 	}
 	for _, k := range keys {

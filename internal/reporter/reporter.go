@@ -5,7 +5,6 @@ package reporter
 import (
 	"encoding/json"
 	"fmt"
-
 	"reqmd/internal/graph"
 	"reqmd/internal/model"
 	"sort"
@@ -330,18 +329,14 @@ func FormatStats(docs []DocumentSummary, totalReqs int) string {
 			}
 		}
 
+		counts := attributeCounts(doc)
 		for _, prop := range doc.Properties {
-			counts := map[string]int{}
-			for _, row := range doc.Rows {
-				if val, ok := row.Attrs[prop].(string); ok {
-					counts[val]++
-				}
+			if len(counts[prop]) == 0 {
+				continue
 			}
-			if len(counts) > 0 {
-				fmt.Fprintf(&b, "  %s:\n", prop)
-				for _, val := range sortedKeys(counts) {
-					fmt.Fprintf(&b, "    %-20s %d\n", val, counts[val])
-				}
+			fmt.Fprintf(&b, "  %s:\n", prop)
+			for _, val := range sortedKeys(counts[prop]) {
+				fmt.Fprintf(&b, "    %-20s %d\n", val, counts[prop][val])
 			}
 		}
 		b.WriteString("\n")
@@ -365,6 +360,26 @@ type NodeRow struct {
 	ID    string
 	Title string
 	Kind  model.Kind
+}
+
+// attributeCounts tallies string attribute values per declared property
+// across a document's rows. Properties with no string values are omitted.
+// Shared by the text and JSON stats formatters so both report identical
+// breakdowns.
+func attributeCounts(doc DocumentSummary) map[string]map[string]int {
+	out := make(map[string]map[string]int, len(doc.Properties))
+	for _, prop := range doc.Properties {
+		counts := map[string]int{}
+		for _, row := range doc.Rows {
+			if val, ok := row.Attrs[prop].(string); ok {
+				counts[val]++
+			}
+		}
+		if len(counts) > 0 {
+			out[prop] = counts
+		}
+	}
+	return out
 }
 
 func sortedKeys(m map[string]int) []string {
@@ -590,18 +605,7 @@ func FormatStatsJSON(docs []DocumentSummary, totalReqs int) string {
 			Path:           doc.Path,
 			ReqCount:       doc.ReqCount,
 			ItemCount:      doc.ItemCount,
-			AttributeStats: make(map[string]map[string]int),
-		}
-		for _, prop := range doc.Properties {
-			counts := map[string]int{}
-			for _, row := range doc.Rows {
-				if val, ok := row.Attrs[prop].(string); ok {
-					counts[val]++
-				}
-			}
-			if len(counts) > 0 {
-				jdoc.AttributeStats[prop] = counts
-			}
+			AttributeStats: attributeCounts(doc),
 		}
 		jr.Documents = append(jr.Documents, jdoc)
 	}

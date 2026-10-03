@@ -902,6 +902,17 @@ func (g *Graph) checkVersionPins() []CheckResult {
 	return results
 }
 
+// measureGate applies the shared eligibility gate for the outcome-gated
+// checks: a node must be a measure (not a result), an approved coverage
+// provider (draft measures are not expected to have results), and not
+// deferred/rejected (those are exempt from verification).
+func (g *Graph) measureGate(node *CachedNode) bool {
+	if node.IsResult || !g.isMeasure(node) {
+		return false
+	}
+	return g.isCoverageProvider(node.ReqID) && expectsVerification(node)
+}
+
 // checkMissingVerdict flags approved verification measures whose rolled-up
 // evidence set is empty. A measure is any approved, non-result node carrying
 // a `verify` attribute (see isMeasure). Evidence is the union of the
@@ -926,21 +937,10 @@ func (g *Graph) checkMissingVerdict() []CheckResult {
 		if !g.inFilter(node.ReqID) {
 			continue
 		}
-		if node.IsResult {
-			continue
-		}
 		if node.isSuppressed(CodeMissingVerdict) {
 			continue
 		}
-		if !g.isMeasure(node) {
-			continue
-		}
-		// Draft measures are not expected to have results.
-		if !g.isCoverageProvider(node.ReqID) {
-			continue
-		}
-		// Deferred/rejected measures are not expected to be verified.
-		if !expectsVerification(node) {
+		if !g.measureGate(node) {
 			continue
 		}
 		_, all, drafts := g.measureEvidence(node.ReqID)
@@ -977,19 +977,10 @@ func (g *Graph) checkFailingVerdict() []CheckResult {
 		if !g.inFilter(node.ReqID) {
 			continue
 		}
-		if node.IsResult {
-			continue
-		}
 		if node.isSuppressed(CodeFailingVerdict) {
 			continue
 		}
-		if !g.isMeasure(node) {
-			continue
-		}
-		if !g.isCoverageProvider(node.ReqID) {
-			continue
-		}
-		if !expectsVerification(node) {
+		if !g.measureGate(node) {
 			continue
 		}
 		if g.measureSeverity(node.ReqID) != sevFail {
