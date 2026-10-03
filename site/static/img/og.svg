@@ -24,6 +24,6 @@
     </g>
   </g>
   <text x="80" y="420" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="120" font-weight="700" fill="#f5f5f5" letter-spacing="-3">reqmd</text>
-  <text x="80" y="490" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="32" font-weight="500" fill="#a3a3a3">Requirements that live with your code.</text>
-  <text x="80" y="540" font-family="ui-monospace, monospace" font-size="24" fill="#7c8bff">$ reqmd check spec/   →   8,330 reqs · ~200 ms · linear</text>
+  <text x="80" y="490" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, sans-serif" font-size="32" font-weight="500" fill="#a3a3a3">Validate requirements written in Markdown.</text>
+  <text x="80" y="540" font-family="ui-monospace, monospace" font-size="24" fill="#7c8bff">$ reqmd check spec/   →   274 reqs · ~16 ms · 0 invalid</text>
 </svg>

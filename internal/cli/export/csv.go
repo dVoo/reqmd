@@ -78,6 +78,12 @@ func newCsvCmd() *cobra.Command {
 			var exp exporter.CSV
 			exp.SetVerdicts(verdicts)
 
+			if outputDir != "" {
+				if err := os.MkdirAll(outputDir, 0o755); err != nil {
+					return fmt.Errorf("creating output directory: %w", err)
+				}
+			}
+
 			for _, doc := range exportDocs {
 				props := doc.Properties
 				dirName := filepath.Base(doc.Path)
