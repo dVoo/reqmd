@@ -136,7 +136,7 @@ Configuration management — the discipline of controlling, versioning, and comp
 A typical layout:
 
 ```
-spec-monorepo/
+spec-assembly/
   stakeholder/        ← submodule: git@github.com:team/stakeholder-spec.git
   system/             ← submodule: git@github.com:team/system-spec.git
   software/           ← submodule: git@github.com:team/software-spec.git
@@ -300,7 +300,7 @@ Built-in variables are always available: `id`, `title`, `status`, `disposition`,
 No — that's the point. Variant differences live in the `variant` attribute of individual requirements, not in forked spec trees. The filter creates the views; `baseline diff --filter-a/--filter-b` creates the "variant A vs variant B" evidence; the CI matrix validates each view. One shared tree, one review process, no divergent branches to reconcile.
 {{< /details >}}
 
-{{< details summary="How do I choose between variant attributes, branches, submodules, and forks?" card="true" >}}
+{{< details summary="How do I choose between branches, variant attributes, forks, submodules, and subtrees?" card="true" >}}
 Three axes of divergence, one decision flow:
 
 ```
@@ -312,9 +312,9 @@ Will the two things reconcile (merge or die)?
     no  → variant attribute (one tree, one check, one review)
 ```
 
-The primary discriminator is the **independence test**: if the two things release and review independently (separate cadence, no shared `check`), they're a fork; if they must ship together from one commit and share one review, they're variants. The reqmd-native corollary is the **validation test**: if they must pass `check` against each other in one tree, they're variants. **Submodules** are orthogonal — an ownership/assembly mechanism that composes with all three, not a fourth axis.
+The primary discriminator is the **independence test**: if the two things release and review independently (separate cadence, no shared `check`), they're a fork; if they must ship together from one commit and share one review, they're variants. The reqmd-native corollary is the **validation test**: if they must pass `check` against each other in one tree, they're variants. **Submodules and subtrees** are orthogonal — ownership/assembly mechanisms that compose with all three, not a fourth axis.
 
-For the full decision guide, a life-like topology showing all four mechanisms at once, and the fork-vs-submodule comparison, see the [Structure page](/structure/).
+For the full decision guide, the divergence matrix, and the use-case-first reuse guide, see the [Structure page](/structure/).
 {{< /details >}}
 
 {{< details summary="When should I use a branch, and when is it the wrong tool?" card="true" >}}
@@ -324,9 +324,9 @@ See [Branches](/structure/#branches) on the Structure page.
 {{< /details >}}
 
 {{< details summary="When should I fork vs depend on a library at a pinned version?" card="true" >}}
-Discriminate by whether you intend to *modify* the library's requirements or *depend on* them at a version. **Fork** if you own and evolve a copy — you take the library's requirements as your starting point and change them, can track upstream (host fork or raw), and pay merge-conflict tax on local edits. **Submodule** if you consume the library at a pinned commit and don't modify its requirements — your system requirements `trace:` up with version pins (`LIB-001~2`), and `reqmd repin` updates the pins when you bump. No conflicts, because you never edited upstream.
+Discriminate by whether you intend to *modify* the library's requirements or *depend on* them at a version. **Fork** if you own and evolve a copy — you take the library's requirements as your starting point and change them, can track upstream (host fork or raw), and pay merge-conflict tax on local edits. **Submodule** if you consume the library at a pinned commit and don't modify its requirements — your system requirements `trace:` up with version pins (`LIB-001~2`), and `reqmd repin` updates the pins when you bump. No conflicts, because you never edited upstream. **Subtree** if you modify it but want the changes tracked in your own repo without hosting a fork — vendor the files with `git subtree add` and re-merge upstream with `git subtree pull`.
 
-For the full comparison table and the fork-vs-submodule decision, see [Forks](/structure/#forks) on the Structure page.
+For the full fork-vs-submodule-vs-subtree comparison, see [Forks](/structure/#forks) on the Structure page.
 {{< /details >}}
 
 {{< details summary="What's the difference between a raw-git fork and a GitHub/GitLab fork?" card="true" >}}

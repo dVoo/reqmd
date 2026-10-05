@@ -1,53 +1,54 @@
 {{ define "main" }}
 <article class="page page-home">
 
-  <!-- Hero: asymmetric, editorial. Title + subtitle + CTAs on the left, a clean code example on the right. -->
+  <!-- Hero: name, one factual sentence, a real check run, and a requirement example. -->
   <section class="hero">
     <div class="container">
       <div class="hero-grid">
         <div class="hero-main">
-          <div class="hero-eyebrow">
-            <span class="hero-tag">v0.1.x-alpha</span>
-            <span class="hero-divider" aria-hidden="true">·</span>
-            <span class="hero-tag">GPL-3.0</span>
-            <span class="hero-divider" aria-hidden="true">·</span>
-            <span>single binary</span>
-          </div>
-          <h1 class="hero-title">
-            Requirements that <span class="hero-accent">live with your code</span>.
-          </h1>
+          <h1 class="hero-title">reqmd</h1>
           <p class="hero-sub">
-            <strong>reqmd</strong> is a lightweight command-line tool for writing, validating,
-            and tracing requirement specs in plain Markdown. No database, no server, no lock-in.
-            Just text files and a check that runs in 200&nbsp;ms.
+            A command-line tool that validates requirement specs written in Markdown.
+            One command checks trace links, statuses, version pins, and verification
+            results against a JSON Schema.
           </p>
+          <div class="terminal">
+            <div class="terminal-chrome">
+              <span class="terminal-dot terminal-dot-red" aria-hidden="true"></span>
+              <span class="terminal-dot terminal-dot-yellow" aria-hidden="true"></span>
+              <span class="terminal-dot terminal-dot-green" aria-hidden="true"></span>
+              <span class="terminal-title">check</span>
+            </div>
+            <pre class="terminal-body"><code><span class="prompt">$</span> reqmd check spec/
+<span class="ok">Summary: 274 total, 274 valid, 0 invalid, 0 parse errors, 23 warnings</span></code></pre>
+          </div>
           <div class="hero-ctas">
-            <a class="btn btn-primary" href="/quickstart/">Get started →</a>
-            <a class="btn btn-ghost" href="/export-sample/02-system-requirements.html">See a live export</a>
-            <a class="btn btn-link" href="/use-cases/">Use cases</a>
+            <a class="btn btn-primary" href="/quickstart/00-installation/">Install</a>
+            <a class="btn btn-ghost" href="/quickstart/">Quickstart</a>
+            <a class="btn btn-link" href="/export-sample/02-system-requirements.html">Live export</a>
           </div>
         </div>
         <div class="hero-aside">
           <div class="hero-code" aria-label="A requirement in Markdown">
-            <div class="hero-code-header">requirements.md</div>
+            <div class="hero-code-header">system.md</div>
             <pre><code><span class="c-mut">## SYS-001  Temperature warning</span>
 
-<span class="c-key">attr:</span>
-  status: approved
-  trace:
-    - STK-003<span class="c-mut">~2</span>
-  verify: test
-  priority: high
+```<span class="c-key">attr</span>
+<span class="c-key">status:</span> approved
+<span class="c-key">priority:</span> Critical
+<span class="c-key">trace:</span>
+  - STK-GOAL-003
+```
 
 The system shall display a warning when
 cabin temperature exceeds 40&deg;C for more
-than 5 seconds of continuous operation.
+than 5 seconds.
 
-<span class="c-key">Rationale:</span> Driver distraction from
-sudden thermal events is a safety concern.</code></pre>
+<span class="c-key">Rationale:</span> Sudden thermal events
+can distract the driver.</code></pre>
           </div>
           <div class="hero-aside-note" aria-label="Rendered in the HTML export">
-            <div class="hero-aside-note-label">HTML export — resolved trace &amp; verdict</div>
+            <div class="hero-aside-note-label">HTML export: resolved trace and verdict</div>
             <div class="hero-card">
               <div class="hero-card-header">
                 <span class="hero-card-id">SYS-001</span>
@@ -59,7 +60,7 @@ sudden thermal events is a safety concern.</code></pre>
               </div>
               <div class="hero-card-trace">
                 <span class="hero-card-trace-label">traces to</span>
-                <span class="hero-card-trace-ref">STK-003<span class="hero-card-trace-pin">v2</span></span>
+                <span class="hero-card-trace-ref">STK-GOAL-003<span class="hero-card-trace-pin">v2</span></span>
               </div>
             </div>
           </div>
@@ -68,187 +69,123 @@ sudden thermal events is a safety concern.</code></pre>
     </div>
   </section>
 
-  <!-- What it is: editorial prose, two-column with an eyebrow -->
-  <section class="intro-section">
+  <!-- What the check actually does. -->
+  <section class="home-section">
     <div class="container">
-      <div class="intro-grid">
-        <div class="intro-aside">
-          <div class="intro-eyebrow">What it is</div>
+      <h2>What one check covers</h2>
+      <p><code>reqmd check</code> walks a directory tree, validates every requirement against its schema, then runs a second pass over the trace graph.</p>
+      <div class="checks-grid">
+        <div class="check-item">
+          <h3>trace links</h3>
+          <p>Every <code>trace:</code> value must resolve to a requirement ID. Broken references warn; cycles error.</p>
         </div>
-        <div class="intro-body">
-          <p>
-            reqmd reads a tree of Markdown files — each requirement is a heading,
-            a YAML <code>attr</code> block, and some prose — and checks every cross-reference,
-            every status, every version pin. It produces HTML, CSV, and graph exports,
-            loads verification results from CI or manual reviews, and closes the loop
-            from spec to code.
-          </p>
-          <p>
-            You write requirements the way you already write documentation: in a text editor,
-            in Git, in a pull request. reqmd adds the trace checks that a human reviewer
-            would do — but mechanically, on every commit, in 200&nbsp;ms.
-          </p>
-          <p>
-            The tool is a single Go binary with no runtime dependencies. The data is plain
-            text. The trace graph is ephemeral. There is nothing to install beyond the binary,
-            nothing to migrate, nothing to lose.
-          </p>
+        <div class="check-item">
+          <h3>coverage</h3>
+          <p><code>requires-trace-from</code> expectations are checked against inbound traces. Missing coverage warns.</p>
+        </div>
+        <div class="check-item">
+          <h3>version pins</h3>
+          <p><code>~N</code> pins are compared to the upstream <code>version</code>. Stale pins error.</p>
+        </div>
+        <div class="check-item">
+          <h3>status</h3>
+          <p>Only <code>approved</code> requirements satisfy coverage. <code>draft</code> downstreams are ignored.</p>
+        </div>
+        <div class="check-item">
+          <h3>verification</h3>
+          <p>CTRF or manual results feed <code>missing-verdict</code> and <code>failing-verdict</code> checks.</p>
+        </div>
+        <div class="check-item">
+          <h3>disjoint attributes</h3>
+          <p><code>--disjoint-check</code> requires overlapping values for an array attribute across a trace link.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- How it works: numbered editorial flow -->
-  <section class="steps-section">
+  <!-- The four-step workflow. -->
+  <section class="home-section">
     <div class="container">
-      <div class="section-head">
-        <div class="intro-eyebrow" style="margin-bottom: var(--s-3);">How it works</div>
-        <h2>From a blank directory to a traced V-model.</h2>
-      </div>
-      <div class="steps-list">
-        <div class="step-item">
-          <div class="step-number">1</div>
-          <div class="step-content">
-            <h3>Scaffold</h3>
-            <p><code>reqmd init</code> creates a directory structure with a schema, preset templates, and a first requirement. Pick the results preset, or start from scratch.</p>
-            <a href="/quickstart/01-get-started/">Step 1 — Get started →</a>
+      <h2>Start here</h2>
+      <ol class="steps">
+        <li class="step">
+          <div>
+            <h3>Install</h3>
+            <p>Prebuilt binary from GitHub Releases, or <code>go build -o reqmd ./cmd/reqmd</code> from a clone.</p>
+            <a href="/quickstart/00-installation/">Installation →</a>
           </div>
-        </div>
-        <div class="step-item">
-          <div class="step-number">2</div>
-          <div class="step-content">
-            <h3>Trace</h3>
-            <p>Write requirements at each V-model level. Link them with <code>trace:</code>. reqmd checks every link: broken refs, cycles, missing coverage, stale version pins — all on every commit.</p>
-            <a href="/quickstart/02-trace-your-spec/">Step 2 — Trace your spec →</a>
+        </li>
+        <li class="step">
+          <div>
+            <h3>Scaffold a spec</h3>
+            <p><code>reqmd init</code> creates a document directory with a <code>schema.yaml</code>, a preset, and a first requirement.</p>
+            <a href="/quickstart/01-get-started/">Get started →</a>
           </div>
-        </div>
-        <div class="step-item">
-          <div class="step-number">3</div>
-          <div class="step-content">
-            <h3>Verify</h3>
-            <p>Load test results from CI (CTRF JSON) or manual reviews (Markdown). reqmd runs <code>missing-verdict</code> and <code>failing-verdict</code> checks, and renders verdict badges on every measure in the HTML export.</p>
-            <a href="/quickstart/11-verification-results-ctrf/">Step 11 — CTRF results →</a>
+        </li>
+        <li class="step">
+          <div>
+            <h3>Trace it</h3>
+            <p>Link requirements across V-model levels with <code>trace:</code>. <code>reqmd check</code> validates every link.</p>
+            <a href="/quickstart/02-trace-your-spec/">Trace your spec →</a>
           </div>
-        </div>
-        <div class="step-item">
-          <div class="step-number">4</div>
-          <div class="step-content">
-            <h3>Export &amp; review</h3>
-            <p>Export to HTML with bidirectional trace links, CSV for spreadsheets, or a graph database for Cypher queries. Run <code>reqmd serve</code> for a live-reloading preview while you edit.</p>
-            <a href="/quickstart/03-export/">Step 3 — Export →</a>
+        </li>
+        <li class="step">
+          <div>
+            <h3>Verify and export</h3>
+            <p>Load CTRF results, then export HTML, CSV, or a graph for review.</p>
+            <a href="/quickstart/03-export/">Export →</a>
           </div>
-        </div>
-      </div>
+        </li>
+      </ol>
     </div>
   </section>
 
-  <!-- Use cases: editorial blocks, varied treatment -->
-  <section class="scenarios-section">
+  <!-- Performance, with the benchmark numbers. -->
+  <section class="home-section">
     <div class="container">
-      <div class="section-head">
-        <div class="intro-eyebrow" style="margin-bottom: var(--s-3);">Use cases</div>
-        <h2>Where teams use it.</h2>
-        <p>From spec-first development to CI-gated traceability to live review.</p>
-      </div>
-
-      <div class="scenario">
-        <div class="scenario-header">
-          <span class="scenario-tag">Workflow</span>
-          <h3>Spec-first development</h3>
+      <h2>Performance</h2>
+      <div class="stat-strip">
+        <div class="stat-strip-item">
+          <span class="stat-strip-value">~16 ms</span>
+          <span class="stat-strip-label">274 requirements (the tool's own spec)</span>
         </div>
-        <p>Write the requirement, then the test, then the code. Traceability is enforced by the parser, not remembered by humans. The same pull request carries the spec change, the trace update, and the implementation — reviewed in one diff.</p>
-        <a href="/quickstart/02-trace-your-spec/">Trace your spec →</a>
-      </div>
-
-      <div class="scenario">
-        <div class="scenario-header">
-          <span class="scenario-tag">Review</span>
-          <h3>Live stakeholder review</h3>
+        <div class="stat-strip-item">
+          <span class="stat-strip-value">~7.2 s</span>
+          <span class="stat-strip-label">727,578 requirements (synthetic stress test)</span>
         </div>
-        <p>Run <code>reqmd serve</code> while editing. The browser refreshes on every save, with trace links resolved and verdict badges color-coded. Reviewers read the spec as a website — with search, filters, and a light/dark toggle. No server framework, no SPA build.</p>
-        <a href="/quickstart/04-live-preview/">Live preview →</a>
-      </div>
-
-      <div class="scenario">
-        <div class="scenario-header">
-          <span class="scenario-tag">Automation</span>
-          <h3>Traceability in CI</h3>
+        <div class="stat-strip-item">
+          <span class="stat-strip-value">linear</span>
+          <span class="stat-strip-label">time doubles when requirements double</span>
         </div>
-        <p>Drop <code>reqmd check</code> into GitHub Actions or GitLab CI. Exit code 0/1/2 maps to pass/fail/parse-error. JSON output is shaped for parsing. Per-check suppression and a <code>baseline diff</code> for comparing two tagged releases. Five lines of YAML, done.</p>
-        <a href="/quickstart/06-ci-integration/">CI integration →</a>
       </div>
-
-      <div class="scenario">
-        <div class="scenario-header">
-          <span class="scenario-tag">Closing the loop</span>
-          <h3>From code to spec</h3>
-        </div>
-        <p>The companion <code>reqmd-import</code> tool walks C, C++, Go, Python, or Rust source with tree-sitter and writes per-package <code>.md</code> requirements into your spec tree. Every function and type gets an ID in the same namespace as your spec — the same <code>reqmd check</code> that catches broken upstream refs also catches broken implementation refs.</p>
-        <a href="/import/">reqmd-import →</a>
-      </div>
+      <p><a href="/benchmarks/">See the full benchmarks →</a></p>
     </div>
   </section>
 
-  <!-- How to structure your spec: the axes of divergence -->
-  <section class="structure-section">
+  <!-- Index of the other documentation pages. -->
+  <section class="home-section">
     <div class="container">
-      <div class="section-head">
-        <div class="intro-eyebrow" style="margin-bottom: var(--s-3);">Structure</div>
-        <h2>Branches, variants, forks, submodules.</h2>
-        <p>Four mechanisms for structuring a spec that grows — when to use which.</p>
-      </div>
-      <div class="structure-cards">
-        <div class="structure-card">
-          <span class="scenario-tag">Temporal</span>
-          <h3>Branches</h3>
-          <p>Change-in-progress that reconciles — merges back or dies. <code>baseline diff</code> compares two points in time of one tree.</p>
-          <a href="/structure/#branches">Branches →</a>
-        </div>
-        <div class="structure-card">
-          <span class="scenario-tag">Coexistence</span>
-          <h3>Variant attributes</h3>
-          <p>Coexisting configurations in one tree, validated together with <code>--filter</code> and <code>--disjoint-check</code>. One shared review.</p>
-          <a href="/structure/#variant-attributes">Variant attributes →</a>
-        </div>
-        <div class="structure-card">
-          <span class="scenario-tag">Independence</span>
-          <h3>Forks</h3>
-          <p>Permanently independent repos, each with its own release and review. Track upstream, or consume at a pinned version.</p>
-          <a href="/structure/#forks">Forks →</a>
-        </div>
-        <div class="structure-card">
-          <span class="scenario-tag">Assembly</span>
-          <h3>Submodules</h3>
-          <p>Orthogonal ownership layer — team-owned spec repos assembled at a top level. Composes with all three axes.</p>
-          <a href="/structure/#submodules">Submodules →</a>
-        </div>
-      </div>
-      <p class="structure-cta">See the full decision guide and a life-like topology on the <a href="/structure/">Structure page →</a></p>
+      <h2>Guides</h2>
+      <ul class="guide-grid">
+        <li><a href="/quickstart/">Quickstart</a><span>14 steps from install to variant management.</span></li>
+        <li><a href="/compare/">Compare</a><span>sphinx-needs, OpenFastTrace, DOORS, Jama, Polarion.</span></li>
+        <li><a href="/use-cases/">Use cases</a><span>Spec-first development, CI gating, live review.</span></li>
+        <li><a href="/structure/">Structure</a><span>Branches, variants, forks, submodules, subtrees.</span></li>
+        <li><a href="/ai/">AI and agents</a><span>Agent-driven spec authoring and validation.</span></li>
+        <li><a href="/import/">reqmd-import</a><span>Extract code symbols as proxy requirements.</span></li>
+        <li><a href="/cheat-sheet/">Cheat sheet</a><span>Commands and attribute reference.</span></li>
+        <li><a href="/faq/">FAQ</a><span>Common questions.</span></li>
+      </ul>
     </div>
   </section>
 
-  <!-- Big stat: one number, editorial treatment -->
-  <section class="bigstat-section">
-    <div class="container">
-      <div class="bigstat">
-        <div class="bigstat-number">8,330</div>
-        <div class="bigstat-body">
-          <p>requirements validated in <strong>~200&nbsp;ms</strong> on a 12-core laptop. The parser is parallel, the graph is ephemeral, the cache is in-memory. Linear scaling holds to 720k requirements.</p>
-          <a href="/benchmarks/">See the benchmarks →</a>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA: simple, warm -->
+  <!-- Install CTA. -->
   <section class="cta-section">
     <div class="container">
-      <h2>Five minutes from <code>go install</code> to a validated spec.</h2>
-      <p>Start with a single document. Scale to a full V-model. Drop it into CI.</p>
-      <div class="hero-ctas" style="justify-content: center;">
-        <a class="btn btn-primary btn-lg" href="/quickstart/00-installation/">Install reqmd</a>
-        <a class="btn btn-ghost btn-lg" href="/quickstart/">Quickstart tour</a>
-      </div>
+      <h2>Install reqmd</h2>
+      <p><code>go build -o reqmd ./cmd/reqmd</code>, or grab a prebuilt binary.</p>
+      <a class="btn btn-primary" href="/quickstart/00-installation/">Installation</a>
+      <a class="btn btn-ghost" href="/quickstart/">Quickstart tour</a>
     </div>
   </section>
 

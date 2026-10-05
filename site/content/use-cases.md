@@ -51,9 +51,9 @@ You write requirements the way you already write documentation: in a text editor
 <a href="/quickstart/04-live-preview/">Step 4 — Live preview →</a>
 </article>
 <article class="usecase">
-<h3>Submodule-based spec integration</h3>
-<p>Compose specs from multiple git submodules. Use <code>document-id/ID</code> qualified references and <code>baseline diff</code> to see what changed between tags. Merge specs across teams without losing provenance.</p>
-<a href="/quickstart/09-baseline-diff/">Step 9 — Baseline diff →</a>
+<h3>Assemble and reuse specs across repos</h3>
+<p>Compose team-owned specs with git submodules, vendor a foreign spec you need to edit with <code>git subtree</code>, or fork one into an independent product. One <code>reqmd check</code> validates the assembled tree, and <code>baseline diff</code> shows what changed between tags. Pick the mechanism by intent, not by habit.</p>
+<a href="/structure/">Structure →</a>
 </article>
 <article class="usecase">
 <h3>Source-code traceability</h3>
