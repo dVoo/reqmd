@@ -19,7 +19,7 @@ const (
 
 // Tool-owned attribute keys used on synthesized verification-result
 // pseudo-requirements (internal/verify). They are namespaced under
-// x-reqmd.* — the same convention as reqmd-import's provenance attributes —
+// x-reqmd.* — the same convention as reqmd-code's provenance attributes —
 // so they can never collide with authored schema attributes.
 const (
 	AttrResultOutcome    = "x-reqmd.outcome"

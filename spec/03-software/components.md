@@ -287,7 +287,7 @@ priority: High
 trace:
   - SYS-IMP-001
 ```
-The `reqmd-import` extractor shall walk a source tree, dispatch each file to the `lang` plugin claiming its extension, parse symbols in parallel via a worker pool, bind adjacent doc comments, and extract explicit `reqmd:trace` markers plus (opt-in) heuristic bare-ID references from the bound docs. It shall group symbols into per-package requirements and hand them to the writer with stable, line-independent IDs.
+The `reqmd-code` extractor shall walk a source tree, dispatch each file to the `lang` plugin claiming its extension, parse symbols in parallel via a worker pool, bind adjacent doc comments, and extract explicit `reqmd:trace` markers plus (opt-in) heuristic bare-ID references from the bound docs. It shall group symbols into per-package requirements and hand them to the writer with stable, line-independent IDs.
 
 *Rationale:* Decoupling the walk from parsing (and parsing from writing) keeps the pipeline independently testable and lets the worker pool absorb per-file tree-sitter cost.
 

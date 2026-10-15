@@ -14,8 +14,8 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli, filter)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
 - `go.mod` / `go.sum` — Go module `reqmd` (1.26)
-- `go.work` / `go.work.sum` — Go workspace linking `reqmd` (root) and `reqmd-import` so `go build ./...` and `go test ./...` from the repo root cover both modules. Both keep independent `go.mod` files and dependency sets.
-- `reqmd-import/` — separate Go module (`reqmd-import`) for the extraction tool that imports source code as proxy requirements. Independent toolchain (tree-sitter); shares the spec *format* with reqmd but no Go code. Build with `go build ./reqmd-import/cmd/reqmd-import`. Modeled in `spec/workspace.dsl` as the "Extraction Tool" softwareSystem. Language plugins live in `reqmd-import/internal/lang/` (currently C, C++, Go, Python, Rust), each self-registering via `lang.Register` in `init()` and blank-imported from `cmd/reqmd-import/main.go`.
+- `go.work` / `go.work.sum` — Go workspace linking `reqmd` (root) and `reqmd-code`, so both modules resolve each other from the repo root (`go build ./... ./reqmd-code/...`, `go test ./... ./reqmd-code/...`). Both keep independent `go.mod` files and dependency sets. Note: `./...` alone stops at the module boundary and does not descend into the nested `reqmd-code` module.
+- `reqmd-code/` — separate Go module (`reqmd-code`) for the source-code extraction tool: it parses C, C++, Go, Python, and Rust with tree-sitter and writes per-package proxy-requirement `.md` files (plus the standard `schema.yaml`) as reqmd input. Invoked as `reqmd-code <source-dir> <target-dir>` — extraction is the tool's only job, so there is no subcommand. Independent toolchain; shares the spec *format* with reqmd but no Go code. Build with `go build ./reqmd-code/cmd/reqmd-code`. Modeled in `spec/workspace.dsl` as the "Extraction Tool" softwareSystem. Language plugins live in `reqmd-code/internal/lang/` (currently C, C++, Go, Python, Rust), each self-registering via `lang.Register` in `init()` and blank-imported from `cmd/reqmd-code/main.go`.
 - `.opencode/` — OpenCode tooling install (not part of the project)
 
 ## Key facts
@@ -30,7 +30,8 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 
 ```sh
 go build -o reqmd ./cmd/reqmd          # build reqmd CLI
-go build -o reqmd-import ./reqmd-import/cmd/reqmd-import  # build extraction CLI
+go build -o reqmd-code ./reqmd-code/cmd/reqmd-code  # build extraction CLI
+go run ./reqmd-code/cmd/reqmd-code <src> <target>    # extract source-code proxies
 go run ./cmd/reqmd check <root>       # check all docs under root
 go run ./cmd/reqmd ls <root>          # list all requirements
 go run ./cmd/reqmd stats <root>       # stats breakdown per doc
@@ -178,7 +179,7 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   plus `x-reqmd.verifier`/`x-reqmd.evidence`/`x-reqmd.verified-at`), and
   appends them to the doc slice before `graph.New`. Result attributes are
   tool-owned and namespaced under `x-reqmd.*` (same convention as the
-  reqmd-import provenance attributes) so they never collide with authored
+  reqmd-code provenance attributes) so they never collide with authored
   schema attributes. Two new graph checks fire when result nodes are
   present: `missing-verdict` (approved measure with no result, WARNING) and
   `failing-verdict` (latest result is fail, ERROR). The existing
@@ -236,9 +237,8 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
 
 
 ```sh
-go test ./...                         # all tests, both modules (via go.work)
-go test ./internal/...                # reqmd unit tests (10 packages)
-go test ./reqmd-import/...            # reqmd-import unit tests
+go test ./...                         # reqmd unit tests (10 packages)
+go test ./reqmd-code/...              # reqmd-code unit tests
 go test -v ./internal/parser/   # parser tests (most complex)
 go test -v ./internal/schema/   # schema tests (Compile, Validate, Properties)
 go test ./internal/reporter/    # reporter tests (ExitCode, Format, FormatList, FormatStats, Warnings, FormatJSON, FormatListJSON, FormatStatsJSON)

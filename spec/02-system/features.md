@@ -261,7 +261,7 @@ trace:
   - ASP-SR-002
   - ASP-SR-022
 ```
-The toolchain shall include `reqmd-import`, a companion extraction tool that walks a source tree, dispatches each file to the tree-sitter language plugin claiming its extension, extracts top-level symbols (functions, methods, types, constants, variables) from C, C++, Go, Python, and Rust source, binds the adjacent doc comment as the requirement body, extracts explicit `reqmd:trace` markers (and, opt-in via `--heuristic-traces`, bare requirement IDs from prose), and writes per-package `.md` requirement files into a target spec directory.
+The toolchain shall include `reqmd-code`, a companion extraction tool that walks a source tree, dispatches each file to the tree-sitter language plugin claiming its extension, extracts top-level symbols (functions, methods, types, constants, variables) from C, C++, Go, Python, and Rust source, binds the adjacent doc comment as the requirement body, extracts explicit `reqmd:trace` markers (and, opt-in via `--heuristic-traces`, bare requirement IDs from prose), and writes per-package `.md` requirement files into a target spec directory.
 
 Generated requirements shall be first-class spec documents: `status: approved`, `x-reqmd.imported: true`, provenance attributes (`x-reqmd.source-file`, `x-reqmd.source-line`, `x-reqmd.symbol-kind`), and IDs of the form `<id-prefix><package>-<symbol>-<hash>` (hash over package+symbol so IDs survive line shifts). The generated files shall validate, export, and diff like any other spec document, closing the V-model gap from spec to code.
 

@@ -57,8 +57,8 @@ You write requirements the way you already write documentation: in a text editor
 </article>
 <article class="usecase">
 <h3>Source-code traceability</h3>
-<p>The companion <code>reqmd-import</code> tool walks C, C++, Go, Python, or Rust source with tree-sitter and writes per-package <code>.md</code> requirements into your spec tree. Every function and type gets an ID in the same namespace as your spec — the same <code>reqmd check</code> that catches broken upstream refs also catches broken implementation refs.</p>
-<a href="/import/">reqmd-import →</a>
+<p>The companion <code>reqmd-code</code> tool walks C, C++, Go, Python, or Rust source with tree-sitter and writes per-package <code>.md</code> requirements into your spec tree. Every function and type gets an ID in the same namespace as your spec — the same <code>reqmd check</code> that catches broken upstream refs also catches broken implementation refs.</p>
+<a href="/import/">reqmd-code →</a>
 </article>
 <article class="usecase">
 <h3>Custom schemas per document</h3>
@@ -112,6 +112,6 @@ If your team does this work, reqmd can store the *requirements that result from 
 
 - [Quickstart](/quickstart/) — try the workflow in 10 minutes.
 - [Benchmarks](/benchmarks/) — performance on a real 274-requirement spec and on synthetic 35-doc corpora up to 720k reqs.
-- [reqmd-import](/import/) — the source-code traceability tool that closes the gap from code to spec.
+- [reqmd-code](/import/) — the source-code traceability tool that closes the gap from code to spec.
 - [Compare](/compare/) — how reqmd stacks up against other requirements tools.
 - [AI &amp; agents](/ai/) — why reqmd's plain-text format is the right substrate for AI-assisted spec workflows.

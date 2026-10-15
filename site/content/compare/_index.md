@@ -77,7 +77,7 @@ These tools have been the default in regulated industries for 20 years. They sol
 
 **Slow.** Every interaction is a web UI round-trip. Opening a requirement, editing a field, checking a trace link, running a coverage report — each is a click, a page load, and a wait. A spec review that takes 10 minutes in a Git diff takes an hour in a web UI. `reqmd check` validates 274 requirements in ~16 ms; a DOORS coverage report on the same tree takes minutes.
 
-**Disconnected from the code.** The spec lives in a database. The code lives in Git. There is no native connection. "Traceability to code" means a link field that someone manually maintains, or a third-party integration that syncs on a schedule. When a developer renames a function, the spec doesn't know. With reqmd, the spec and the code live in the same Git repo (or linked submodules), and the companion `reqmd-import` tool extracts code symbols into the same ID space — so a rename becomes a broken trace link that CI catches.
+**Disconnected from the code.** The spec lives in a database. The code lives in Git. There is no native connection. "Traceability to code" means a link field that someone manually maintains, or a third-party integration that syncs on a schedule. When a developer renames a function, the spec doesn't know. With reqmd, the spec and the code live in the same Git repo (or linked submodules), and the companion `reqmd-code` tool extracts code symbols into the same ID space — so a rename becomes a broken trace link that CI catches.
 
 **No real branching.** DOORS and Jama have "baselines" — snapshots of the spec at a point in time. But you can't branch a spec, try a change, and merge it the way you branch code. There's no `git checkout -b feature/new-requirement`, no `git merge`, no `git rebase`, no pull request with a diff. If two teams need to work on the spec simultaneously, the workflow is lock-then-edit or a parallel branch that someone manually reconciles later.
 
@@ -95,7 +95,7 @@ These tools have been the default in regulated industries for 20 years. They sol
 | **Speed** | ~16 ms for 274 reqs | Seconds to minutes per operation |
 | **Branching** | Native Git branches, merges, rebase | Baselines (snapshots, no merge) |
 | **Configuration management** | Git submodules — per-team repos composed at top level; submodule pins are the baseline | One monolithic database; baselines are server-side snapshots |
-| **Connection to code** | Same repo or submodules; `reqmd-import` links to code symbols | Manual link fields or scheduled sync |
+| **Connection to code** | Same repo or submodules; `reqmd-code` links to code symbols | Manual link fields or scheduled sync |
 | **CI integration** | `reqmd check` — one binary, 16 ms | REST API + auth + custom script |
 | **Developer workflow** | Edit in any editor, review in PR, merge in Git | Log into web UI, click, wait |
 | **Review** | Git diff in a pull request | Web UI review threads |
@@ -124,7 +124,7 @@ A third category: tools that look like an issue tracker (Jira, Azure DevOps Boar
 | **Where it lives** | Git repo | The ALM platform's DB |
 | **Branching** | Native Git branches | Not supported — work items live in one project |
 | **Configuration management** | Git submodules — per-team repos composed at top level | Not possible — work items live in one project |
-| **Connection to code** | Same repo or submodules; `reqmd-import` | Manual link fields or git-branch references |
+| **Connection to code** | Same repo or submodules; `reqmd-code` | Manual link fields or git-branch references |
 | **Speed** | ~16 ms / 274 reqs | Web UI round-trips; API calls |
 | **CI integration** | `reqmd check` exits 0/1/2 | Native to the ALM platform, but requires the platform |
 | **Review** | Git PR diff | Built-in review workflow with state transitions |
@@ -142,7 +142,7 @@ A more compact version of the above, ordered by what you'll feel first.
 | Spec lives in a git repo | ✅ designed for this | ⚠ works, friction | ⚠ works, friction | ❌ wrong shape |
 | Branching, merging, pull-request review | ✅ native Git | ❌ no branching | ❌ no branching | ❌ baselines only, no merge |
 | Configuration management via git submodules | ✅ git submodules | ❌ | ❌ | ❌ monolithic database |
-| Spec connected to code | ✅ same repo or submodules + `reqmd-import` | ⚠ separate repo | ⚠ separate | ❌ manual links |
+| Spec connected to code | ✅ same repo or submodules + `reqmd-code` | ⚠ separate repo | ⚠ separate | ❌ manual links |
 | Validation in CI, fast (16 ms) | ✅ | ❌ seconds | ⚠ seconds | ❌ server round-trip |
 | Developer-friendly (editor, not web UI) | ✅ Markdown in any editor | ⚠ RST in editor | ⚠ XML in editor | ❌ web UI only |
 | AI agent reads, edits, validates specs | ✅ designed for this | ❌ RST + opaque doctree | ⚠ XML is verbose | ❌ API is the only path |

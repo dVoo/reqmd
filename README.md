@@ -60,7 +60,7 @@ Summary: 5 total, 5 valid, 0 invalid, 0 parse errors, 1 warnings
 
 ### Pre-built binaries
 
-Each tagged release publishes pre-built `reqmd` and `reqmd-import` binaries
+Each tagged release publishes pre-built `reqmd` and `reqmd-code` binaries
 for Linux (amd64), Windows (amd64), and macOS (arm64) plus a `SHA256SUMS.txt`
 file. Download them from the [Releases page](https://github.com/dVoo/reqmd/releases)
 and verify with:
@@ -84,21 +84,22 @@ Requires Go 1.26 or newer.
 git clone https://github.com/dVoo/reqmd
 cd reqmd
 go build -o reqmd ./cmd/reqmd
-go build -o reqmd-import ./reqmd-import/cmd/reqmd-import   # extraction tool
+go build -o reqmd-code ./reqmd-code/cmd/reqmd-code   # extraction tool
 ```
 
 To install into `$(go env GOPATH)/bin` instead of building in place:
 
 ```sh
 go install ./cmd/reqmd
-go install ./reqmd-import/cmd/reqmd-import
+go install ./reqmd-code/cmd/reqmd-code
 ```
 
-The repo is a Go workspace (`go.work`) linking both modules, so `go build ./...`
-and `go test ./...` from the root cover reqmd and reqmd-import together:
+The repo is a Go workspace (`go.work`) linking both modules. Because `./...`
+stops at the nested module boundary, name the second module explicitly:
 
 ```sh
-go test ./...        # tests for both modules
+./reqmd-code <source-dir> <target-dir>   # extract source-code symbols as proxy requirements
+go test ./... ./reqmd-code/...           # tests for both modules
 ```
 
 The graph export subcommand requires Cgo support; build with

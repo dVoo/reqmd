@@ -64,4 +64,4 @@ Or download a pre-built binary from the [GitHub Releases page](https://github.co
 
 Each step's page shows the exact commands to run. Unless a step says otherwise, the commands assume you are in the repo's `quickstart/` directory — run `cd quickstart` from the repo root first. The full source for every step lives in the [`quickstart/`](https://github.com/dVoo/reqmd/tree/main/quickstart) directory of the repo.
 
-**Beyond the spec itself:** the companion [`reqmd-import`](/import/) tool extracts requirement IDs from C, C++, Go, Python, and Rust source via tree-sitter. After you've written the spec for a feature, run `reqmd-import extract` and the implementation gets IDs in the same namespace — closing the loop from spec to code.
+**Beyond the spec itself:** the companion [`reqmd-code`](/import/) tool extracts requirement IDs from C, C++, Go, Python, and Rust source via tree-sitter. After you've written the spec for a feature, run `reqmd-code` and the implementation gets IDs in the same namespace — closing the loop from spec to code.

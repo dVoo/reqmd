@@ -30,7 +30,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
             }
         }
 
-        // reqmd-import: source-code requirement trace extraction tool
+        // reqmd-code: source-code requirement trace extraction tool
         extractionTool = softwareSystem "Extraction Tool" "Parses source code with Tree-sitter (C, C++, Go, Python, Rust grammars), extracts symbols and requirement IDs, and writes ephemeral .md requirement files (proxy items) into a target spec directory" {
 
             scanner = container "Repository Scanner" "Discovers files, detects languages, computes hashes, and schedules parsing work" "CLI / File walker"

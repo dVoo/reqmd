@@ -1,6 +1,6 @@
 # Build and publish cross-platform binaries when a tag (v*) is pushed.
 #
-# Produces `reqmd` and `reqmd-import` for:
+# Produces `reqmd` and `reqmd-code` for:
 #   - linux/amd64
 #   - windows/amd64
 #   - darwin/arm64    (macOS Apple Silicon)
@@ -15,7 +15,7 @@
 # and tested via `go vet -tags ladybug`/source builds; it is just not
 # included in the pre-built release artifacts.
 #
-# reqmd-import uses cgo (github.com/smacker/go-tree-sitter) and therefore
+# reqmd-code uses cgo (github.com/smacker/go-tree-sitter) and therefore
 # builds natively on each runner with the host C toolchain. No native
 # runtime libraries are needed — tree-sitter's C parsers are statically
 # linked into the binary.
@@ -105,7 +105,7 @@ jobs:
             -o "$out" ./cmd/reqmd
           echo "Built $(ls -la "$out")"
 
-      - name: Build reqmd-import
+      - name: Build reqmd-code
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
@@ -116,10 +116,10 @@ jobs:
           set -euo pipefail
           ext=""
           if [ "${{ matrix.goos }}" = "windows" ]; then ext=".exe"; fi
-          out="reqmd-import-${{ matrix.goos }}-${{ matrix.goarch }}${ext}"
+          out="reqmd-code-${{ matrix.goos }}-${{ matrix.goarch }}${ext}"
           go build -trimpath \
             -ldflags "-X main.version=${{ steps.ver.outputs.version }}" \
-            -o "$out" ./reqmd-import/cmd/reqmd-import
+            -o "$out" ./reqmd-code/cmd/reqmd-code
           echo "Built $(ls -la "$out")"
 
       - name: Upload binaries
@@ -127,12 +127,12 @@ jobs:
         with:
           name: binaries-${{ matrix.goos }}-${{ matrix.goarch }}
           # Pin the path to the exact built binary names (with -<os>-<arch>
-          # suffix) so the upload does NOT pick up the reqmd-import/ source
+          # suffix) so the upload does NOT pick up the reqmd-code/ source
           # directory in the workspace root, which would otherwise be
           # uploaded as an artifact and break the sha256sum step.
           path: |
             reqmd-${{ matrix.goos }}-${{ matrix.goarch }}*
-            reqmd-import-${{ matrix.goos }}-${{ matrix.goarch }}*
+            reqmd-code-${{ matrix.goos }}-${{ matrix.goarch }}*
           retention-days: 7
 
   release:
@@ -152,8 +152,8 @@ jobs:
         run: |
           set -euo pipefail
           # Checksum only regular files (skip any stray directories) matching
-          # the reqmd-* / reqmd-import-* binary naming convention.
-          find . -maxdepth 1 -type f \( -name 'reqmd-*' -o -name 'reqmd-import-*' \) \
+          # the reqmd-* / reqmd-code-* binary naming convention.
+          find . -maxdepth 1 -type f \( -name 'reqmd-*' -o -name 'reqmd-code-*' \) \
             -exec sha256sum {} + | sed 's|  \./|  |' | tee SHA256SUMS.txt
           echo "--- checksums ---"
           cat SHA256SUMS.txt
@@ -167,5 +167,5 @@ jobs:
           generate_release_notes: true
           files: |
             dist/reqmd-*
-            dist/reqmd-import-*
+            dist/reqmd-code-*
             dist/SHA256SUMS.txt

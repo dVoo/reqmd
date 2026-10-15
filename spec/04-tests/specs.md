@@ -170,7 +170,7 @@ Unit tests shall also cover the `x-reqmd.requires-trace-from` document default (
 
 *Rationale:* Level resolution changes coverage semantics for multi-document layers; the expansion and fallback paths must be verified independently.
 
-## TST-IMP-001: reqmd-import extraction tests
+## TST-IMP-001: reqmd-code extraction tests
 ```attr
 status: approved
 verify: Test
@@ -181,6 +181,6 @@ trace:
   - SW-IMP-002
   - SW-IMP-003
 ```
-Unit tests shall cover the `reqmd-import` pipeline: language plugin parse/classification for C, C++, Go, Python, and Rust (kinds, method receivers, doc binding, top-level-only scope rules), trace extraction (explicit `reqmd:trace` markers and opt-in heuristic IDs), and the writer's deterministic, idempotent per-package output with provenance attributes and generated-marker guard.
+Unit tests shall cover the `reqmd-code` pipeline: language plugin parse/classification for C, C++, Go, Python, and Rust (kinds, method receivers, doc binding, top-level-only scope rules), trace extraction (explicit `reqmd:trace` markers and opt-in heuristic IDs), and the writer's deterministic, idempotent per-package output with provenance attributes and generated-marker guard.
 
-*Rationale:* reqmd-import closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the writer's determinism is what makes re-running the extractor safe in CI.
+*Rationale:* reqmd-code closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the writer's determinism is what makes re-running the extractor safe in CI.

@@ -38,11 +38,11 @@
 - [Benchmarks]({{ "benchmarks/" | absURL }}): How fast is reqmd? Real numbers from a real run — from 274 requirements in ~16 ms to 720,000 requirements in 7 seconds.
 - [Compare]({{ "compare/" | absURL }}): How reqmd compares to sphinx-needs, OpenFastTrace, DOORS, Jama, Polarion — and why git-native beats database-backed.
 - [Structure]({{ "structure/" | absURL }}): How to use branches, variant attributes, forks, submodules, and subtrees together — reqmd's axes of divergence and the reuse picture.
-- [FAQ]({{ "faq/" | absURL }}): What reqmd does, how the GitHub review workflow works, schema, CI, submodules, reqmd-import, and more.
+- [FAQ]({{ "faq/" | absURL }}): What reqmd does, how the GitHub review workflow works, schema, CI, submodules, reqmd-code, and more.
 - [About]({{ "about/" | absURL }}): Design principles (no lock-in, no database, per-directory schemas, dogfooding) and the self-hosting story.
 
 ## AI integration
-- [reqmd-import]({{ "import/" | absURL }}): Source-code traceability — extracts C, C++, Go, Python, and Rust symbols into reqmd .md requirement files, closing the gap from code to spec.
+- [reqmd-code]({{ "import/" | absURL }}): Source-code traceability — extracts C, C++, Go, Python, and Rust symbols into reqmd .md requirement files, closing the gap from code to spec.
 - [AI & agents]({{ "ai/" | absURL }}): Why reqmd's plain-markdown + JSON format is the right substrate for AI-assisted spec workflows, the full command surface, schema reference, and a copy-pasteable AGENTS.md.
 - [Agent skill: reqmd-usage]({{ "skills/reqmd-usage/SKILL.md" | absURL }}): Operational SKILL.md for an existing reqmd tree — check, tracing, coverage, status/disposition, version pins and repin, filters, verification results, JSON findings.
 - [Agent skill: reqmd-authoring]({{ "skills/reqmd-authoring/SKILL.md" | absURL }}): Authoring SKILL.md — document layout, requirement anatomy, schema.yaml and x-reqmd, built-in attributes, content model, maintenance.

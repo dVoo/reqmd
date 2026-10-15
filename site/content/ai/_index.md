@@ -335,21 +335,21 @@ The `failing-verdict` and `missing-verdict` checks behave like the
 trace checks: ERROR fails CI, WARNING is informational, and the JSON
 output is shaped for parsing.
 
-### 6. Closing the spec → code loop with `reqmd-import`
+### 6. Closing the spec → code loop with `reqmd-code`
 
 The agent has a function ready to ship but no ID in the spec for it.
 Run the source-code extractor to generate per-package `IMP-...`
 requirements, then re-check:
 
 ```sh
-reqmd-import extract ./internal ./spec/03-software/imported
+reqmd-code ./internal ./spec/03-software/imported
 reqmd check spec/                              # pass
 ```
 
 Each generated requirement carries `x-reqmd.source-file` and
 `x-reqmd.source-line` provenance, so the agent can answer "where is
 this requirement implemented?" by reading the file. The companion
-[`reqmd-import`](/import/) page has the full reference; the takeaway
+[`reqmd-code`](/import/) page has the full reference; the takeaway
 is that the spec and the code now share an ID space, and the same
 `reqmd check` loop that catches broken upstream refs also catches
 broken implementation refs.
@@ -389,7 +389,7 @@ and "own your data." It gets both.
 - [Agent skill: `reqmd-usage`](/skills/reqmd-usage/SKILL.md) — operational skill: check, trace, coverage, pins, results.
 - [Agent skill: `reqmd-authoring`](/skills/reqmd-authoring/SKILL.md) — authoring skill: documents, `schema.yaml`, attributes, maintenance.
 - [Use cases](/use-cases/) — what reqmd is designed for, and what is out of scope.
-- [<code>reqmd-import</code>](/import/) — the source-code traceability tool that closes the loop from code to spec.
+- [<code>reqmd-code</code>](/import/) — the source-code traceability tool that closes the loop from code to spec.
 - [<code>llms.txt</code>](/llms.txt) — a machine-readable index of this site for agents.
 - [<code>llms-full.txt</code>](/llms-full.txt) — the full plain-text dump of every page.
 - [FAQ](/faq/) — the questions an integrator asks.
