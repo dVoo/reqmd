@@ -239,6 +239,29 @@ if the change is non-substantive.
 
 The file is plain markdown, lives in the repo, and is read by humans and agents. One source of truth.
 
+## Agent skills
+
+Two [Agent Skills](https://agentskills.io) bundle the day-to-day knowledge for agents that work in a reqmd tree. Each is a folder with a `SKILL.md` — a description an agent loads on demand, then a step-by-step procedure with the exact commands, findings, and pitfalls.
+
+| Skill | Download | What it covers |
+|---|---|---|
+| `reqmd-usage` | [`/skills/reqmd-usage/SKILL.md`](/skills/reqmd-usage/SKILL.md) | The operational loop: `check`, tracing, coverage, status/disposition, version pins + `repin`, `--filter`, verification results, reading `--json`, suppression. |
+| `reqmd-authoring` | [`/skills/reqmd-authoring/SKILL.md`](/skills/reqmd-authoring/SKILL.md) | Creating and maintaining documents: layout, requirement anatomy, `schema.yaml` + `x-reqmd`, built-in attributes, the content model, restructuring. |
+
+Copy the skill folder into whichever directory your agent loads skills from (for example `.claude/skills/`, `.agent/skills/`, or `~/.pi/agent/skills/`):
+
+```sh
+mkdir -p .agent/skills/reqmd-usage
+curl -fsSL https://reqmd.dev/skills/reqmd-usage/SKILL.md \
+  -o .agent/skills/reqmd-usage/SKILL.md
+
+mkdir -p .agent/skills/reqmd-authoring
+curl -fsSL https://reqmd.dev/skills/reqmd-authoring/SKILL.md \
+  -o .agent/skills/reqmd-authoring/SKILL.md
+```
+
+They are plain files: commit them next to the spec so every contributor's agent picks up the same procedure, or leave them out and point the agent at the URL. Both are listed in [`llms.txt`](/llms.txt) alongside the rest of the site.
+
 ## Patterns
 
 Six patterns the agent can mix and match.
@@ -361,6 +384,8 @@ and "own your data." It gets both.
 
 - [Quickstart](/quickstart/) — a 10-minute tour of the loop.
 - [Cheat sheet](/cheat-sheet/) — full command reference with example outputs and schema.yaml options.
+- [Agent skill: `reqmd-usage`](/skills/reqmd-usage/SKILL.md) — operational skill: check, trace, coverage, pins, results.
+- [Agent skill: `reqmd-authoring`](/skills/reqmd-authoring/SKILL.md) — authoring skill: documents, `schema.yaml`, attributes, maintenance.
 - [Use cases](/use-cases/) — what reqmd is designed for, and what is out of scope.
 - [<code>reqmd-import</code>](/import/) — the source-code traceability tool that closes the loop from code to spec.
 - [<code>llms.txt</code>](/llms.txt) — a machine-readable index of this site for agents.

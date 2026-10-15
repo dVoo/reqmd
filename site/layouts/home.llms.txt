@@ -44,3 +44,5 @@
 ## AI integration
 - [reqmd-import]({{ "import/" | absURL }}): Source-code traceability — extracts C, C++, Go, Python, and Rust symbols into reqmd .md requirement files, closing the gap from code to spec.
 - [AI & agents]({{ "ai/" | absURL }}): Why reqmd's plain-markdown + JSON format is the right substrate for AI-assisted spec workflows, the full command surface, schema reference, and a copy-pasteable AGENTS.md.
+- [Agent skill: reqmd-usage]({{ "skills/reqmd-usage/SKILL.md" | absURL }}): Operational SKILL.md for an existing reqmd tree — check, tracing, coverage, status/disposition, version pins and repin, filters, verification results, JSON findings.
+- [Agent skill: reqmd-authoring]({{ "skills/reqmd-authoring/SKILL.md" | absURL }}): Authoring SKILL.md — document layout, requirement anatomy, schema.yaml and x-reqmd, built-in attributes, content model, maintenance.

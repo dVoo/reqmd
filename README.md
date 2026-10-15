@@ -1157,6 +1157,13 @@ Build locally to preview:
 hugo server -s site --buildDrafts --disableFastRender
 ```
 
+The AI docs at [reqmd.dev/ai](https://reqmd.dev/ai) link two downloadable
+[Agent Skills](https://agentskills.io) served as static files:
+`site/static/skills/reqmd-usage/SKILL.md` (operating an existing tree) and
+`site/static/skills/reqmd-authoring/SKILL.md` (creating and maintaining
+documents). Both are published at `/skills/<name>/SKILL.md` and indexed in
+`llms.txt`.
+
 One-time repo setup (web UI): **Settings → Pages → Build and deployment →
 Source = "GitHub Actions"**, and set the custom domain to `reqmd.dev` (a
 `CNAME` file is committed at `site/static/CNAME`). Point the apex domain's DNS
