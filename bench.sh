@@ -2,7 +2,7 @@
 # bench.sh — reproduce the reqmd benchmark from the Hugo /benchmarks/ page.
 #
 # Builds reqmd, reqmd-bench-gen, and reqmd-bench-run, then measures:
-#   1. Baseline: the real bundled spec/ tree (249 requirements, 6 doc dirs).
+#   1. Baseline: the real bundled spec/ tree (281 requirements, 6 doc dirs).
 #   2. Scaling:  synthetic corpora at 71k, 180k, 360k, 720k requirements.
 #
 # Each command at each scale runs 5 times; the median wall time is reported.

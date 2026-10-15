@@ -1,4 +1,4 @@
-<!-- reqmd-code: generated -->
+<!-- reqmd: generated -->
 $id: https://reqmd.dev/schemas/imported-v1.json
 $schema: https://json-schema.org/draft/2020-12/schema
 additionalProperties: false
@@ -42,7 +42,7 @@ properties:
 title: Auto-imported requirements (reqmd-code)
 type: object
 x-reqmd:
-    id-prefix: IMP-writer-
+    id-prefix: IMP-main-
     level: imported-requirements
     upstream:
         sources:

@@ -261,11 +261,27 @@ trace:
   - ASP-SR-002
   - ASP-SR-022
 ```
-The toolchain shall include `reqmd-code`, a companion extraction tool that walks a source tree, dispatches each file to the tree-sitter language plugin claiming its extension, extracts top-level symbols (functions, methods, types, constants, variables) from C, C++, Go, Python, and Rust source, binds the adjacent doc comment as the requirement body, extracts explicit `reqmd:trace` markers (and, opt-in via `--heuristic-traces`, bare requirement IDs from prose), and writes per-package `.md` requirement files into a target spec directory.
+The toolchain shall include `reqmd-code`, a companion extraction tool that walks a source tree, dispatches each file to the tree-sitter language plugin claiming its extension, extracts top-level symbols (functions, methods, types, constants, variables) from C, C++, Go, Python, and Rust source, binds the adjacent doc comment as the requirement body, and extracts explicit `reqmd:trace` markers (and, opt-in via `--heuristic-traces`, bare requirement IDs from prose). It shall emit a `reqmd-import/v1` exchange bundle (JSON) on stdout: one document per package plus a requirement-less root document carrying the umbrella schema, with each symbol as a requirement keyed by a native ID of the form `<package>-<symbol>-<hash>` (hash over package+symbol so IDs survive line shifts).
 
-Generated requirements shall be first-class spec documents: `status: approved`, `x-reqmd.imported: true`, provenance attributes (`x-reqmd.source-file`, `x-reqmd.source-line`, `x-reqmd.symbol-kind`), and IDs of the form `<id-prefix><package>-<symbol>-<hash>` (hash over package+symbol so IDs survive line shifts). The generated files shall validate, export, and diff like any other spec document, closing the V-model gap from spec to code.
+Generated requirements shall be first-class spec documents once rendered: `status: approved`, `x-reqmd.imported: true`, provenance attributes (`x-reqmd.source-file`, `x-reqmd.source-line`, `x-reqmd.symbol-kind`), and IDs of the form `<id-prefix><package>-<symbol>-<hash>`. The generated files shall validate, export, and diff like any other spec document, closing the V-model gap from spec to code.
 
 *Rationale:* Software requirements trace down to tests (ASP-SR-006) but not to the implementation that satisfies them. Automatic extraction turns source symbols into requirements in the same ID namespace, so a broken spec→code trace is caught by the same `reqmd check` that catches broken spec refs — and re-running the extractor keeps the code-side of the V-model current without hand-maintained mapping tables.
+
+## SYS-IMP-002: External requirement import via an exchange format
+```attr
+status: approved
+priority: High
+trace:
+  - STK-GOAL-002
+  - STK-GOAL-005
+  - ASP-SR-004
+  - ASP-SR-022
+```
+The toolchain shall include `reqmd-import`, a renderer that turns a `reqmd-import/v1` JSON exchange bundle into reqmd documents (`schema.yaml` plus `.md`). The exchange format shall be a versioned, documented contract that any producer can emit — the source-code extractor, a Python script, or a direct exporter from a database-backed ALM tool (DOORS, codeBeamer) — and `reqmd-import` shall be the only component that writes Markdown or YAML, so quoting, heading, and schema rules exist in exactly one place.
+
+The format shall let a producer supply the source tool's own stable IDs: a requirement's `native-id` becomes `<document id-prefix><native-id>`, `parent` nests by native ID to any depth, `trace` carries already-qualified reqmd IDs, and `native-trace` carries native IDs of sibling items that the renderer rewrites to full IDs. Attr-block properties and required fields shall be declarable per document so the generated `schema.yaml` accepts exactly the attributes the producer emits. Imported documents shall be renderable as `external: true` mirrors of content authored elsewhere, and re-imports shall never churn requirement IDs.
+
+*Rationale:* The per-tool mechanics of pulling requirements out of an ALM are a script's job (credentials, pagination, field mapping), not the spec tool's. Fixing one JSON contract and one renderer keeps every importer small, keeps the file syntax rules authoritative in a single implementation, and lets a new ALM be supported by a few dozen lines of Python rather than a new Markdown writer.
 
 
 ## SYS-CON-001: Content tree — nothing dropped

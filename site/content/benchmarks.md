@@ -1,6 +1,6 @@
 ---
 title: "Benchmarks"
-description: "How fast is reqmd? Real numbers from a real run — from 274 requirements in ~16 ms to 720,000 requirements in 7 seconds."
+description: "How fast is reqmd? Real numbers from a real run — from 281 requirements in ~16 ms to 720,000 requirements in 7 seconds."
 weight: 5
 ---
 
@@ -8,7 +8,7 @@ reqmd is fast enough to run on every commit, every save, and every pull request 
 
 ## The headline
 
-The tool's own spec — 274 requirements defining reqmd itself — validates in **~16 milliseconds**. That's faster than a page load. For context, a typical project spec is in the hundreds, not the thousands.
+The tool's own spec — 281 requirements defining reqmd itself — validates in **~16 milliseconds**. That's faster than a page load. For context, a typical project spec is in the hundreds, not the thousands.
 
 ## How it scales at large sizes
 
@@ -130,7 +130,7 @@ These are edge cases. Most teams will never hit them.
 
 ## See also
 
-- [Quickstart](/quickstart/) — try `reqmd check` on the bundled 274-requirement spec.
+- [Quickstart](/quickstart/) — try `reqmd check` on the bundled 281-requirement spec.
 - [Use cases](/use-cases/) — including CI integration patterns.
 - [`reqmd-bench-gen` source](https://github.com/dVoo/reqmd/tree/main/cmd/reqmd-bench-gen) — the synthetic corpus generator.
 - [`reqmd-bench-run` source](https://github.com/dVoo/reqmd/tree/main/cmd/reqmd-bench-run) — the benchmark runner that produced these numbers.

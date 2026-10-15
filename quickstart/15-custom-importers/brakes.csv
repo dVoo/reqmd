@@ -1,0 +1,4 @@
+Absolute Number,Object Heading,Object Text,Parent,Links,Priority
+1,Brakes module,The vehicle shall decelerate on demand.,,,"High"
+17,Brake request,The pedal shall request braking.,1,,"High"
+42,Brake pressure,The system shall build brake pressure within 200 ms.,17,17;SYS-BRAKE-001,Low

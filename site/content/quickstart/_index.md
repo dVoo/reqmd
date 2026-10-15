@@ -41,6 +41,7 @@ Command details, flags, and reference tables live in the [cheat sheet](/cheat-sh
 | 12 | [Review documentation](/quickstart/12-review-documentation/) | Load manual review, inspection, and analysis results |
 | 13 | [Custom templates](/quickstart/13-custom-templates/) | Define your own schema with a custom `reqmd init` preset |
 | 14 | [Variant management](/quickstart/14-variant-management/) | One spec tree, many configurations with `--filter` |
+| 15 | [Custom importers](/quickstart/15-custom-importers/) | Import from DOORS, codeBeamer, or any CSV/API via the `reqmd-import/v1` exchange format |
 
 ## Suggested paths
 
@@ -64,4 +65,4 @@ Or download a pre-built binary from the [GitHub Releases page](https://github.co
 
 Each step's page shows the exact commands to run. Unless a step says otherwise, the commands assume you are in the repo's `quickstart/` directory — run `cd quickstart` from the repo root first. The full source for every step lives in the [`quickstart/`](https://github.com/dVoo/reqmd/tree/main/quickstart) directory of the repo.
 
-**Beyond the spec itself:** the companion [`reqmd-code`](/import/) tool extracts requirement IDs from C, C++, Go, Python, and Rust source via tree-sitter. After you've written the spec for a feature, run `reqmd-code` and the implementation gets IDs in the same namespace — closing the loop from spec to code.
+**Beyond the spec itself:** the companion [`reqmd-code`](/import/) tool extracts requirement IDs from C, C++, Go, Python, and Rust source via tree-sitter, and emits them as a `reqmd-import/v1` exchange bundle; [`reqmd-import`](/import/) renders that bundle into your spec tree. After you've written the spec for a feature, run the two together and the implementation gets IDs in the same namespace — closing the loop from spec to code.

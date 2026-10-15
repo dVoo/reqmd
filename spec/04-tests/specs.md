@@ -181,6 +181,34 @@ trace:
   - SW-IMP-002
   - SW-IMP-003
 ```
-Unit tests shall cover the `reqmd-code` pipeline: language plugin parse/classification for C, C++, Go, Python, and Rust (kinds, method receivers, doc binding, top-level-only scope rules), trace extraction (explicit `reqmd:trace` markers and opt-in heuristic IDs), and the writer's deterministic, idempotent per-package output with provenance attributes and generated-marker guard.
+Unit tests shall cover the `reqmd-code` pipeline: language plugin parse/classification for C, C++, Go, Python, and Rust (kinds, method receivers, doc binding, top-level-only scope rules), trace extraction (explicit `reqmd:trace` markers and opt-in heuristic IDs), and the emitted exchange bundle (per-package documents with distinct id-prefixes, native-id-keyed requirements, method parents, provenance attrs, deterministic output across runs, and duplicate-symbol dedup). The bundle shall be decoded and rendered back through the shared exchange package so the producer/renderer contract is exercised end to end.
 
-*Rationale:* reqmd-code closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the writer's determinism is what makes re-running the extractor safe in CI.
+*Rationale:* reqmd-code closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the bundle's determinism is what makes re-running the extractor a safe no-op in CI.
+
+## TST-IMP-002: exchange format and renderer tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-IMP-004
+  - SW-IMP-005
+  - SW-IMP-006
+```
+Unit tests shall cover the renderer: decoding (unknown field and trailing-data rejection), bundle validation (format mismatch, missing native-id or id-prefix, duplicate native-id, unknown parent or native-trace, reserved attr, escaping directory, parent cycle, duplicate output path), topology (children moved after their parents, multi-level heading depth), rendering (attr quoting and round-trip through a YAML parser, sorted deterministic attr order, unsupported nested attr rejected), schema generation (properties/required plus x-reqmd metadata), and idempotent writing (byte-identical re-runs, hand-authored files never clobbered).
+
+*Rationale:* The renderer is the only component that writes Markdown or YAML, so its validation, quoting, and idempotency guarantees are the correctness boundary for every importer — including the ones not written in this repository.
+
+## TST-IMP-003: Python exchange helper tests
+```attr
+status: approved
+verify: Test
+test-type: unit
+disposition: implemented
+trace:
+  - SW-IMP-007
+```
+Unit tests shall cover the `reqmd_io` package: snake_case fields serialized to the format's hyphenated keys, empty values omitted, numeric and boolean attribute values preserved, `external: true` preserved, and bundle JSON carrying the format version and writing to a file.
+
+*Rationale:* The helper mirrors a versioned contract; a serialization drift would surface as a rejected bundle downstream rather than at the producer, so the mapping is pinned by test.

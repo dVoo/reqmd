@@ -243,12 +243,13 @@ The file is plain markdown, lives in the repo, and is read by humans and agents.
 
 ## Agent skills
 
-Two [Agent Skills](https://agentskills.io) bundle the day-to-day knowledge for agents that work in a reqmd tree. Each is a folder with a `SKILL.md` — a description an agent loads on demand, then a step-by-step procedure with the exact commands, findings, and pitfalls.
+Three [Agent Skills](https://agentskills.io) bundle the day-to-day knowledge for agents that work in a reqmd tree. Each is a folder with a `SKILL.md` — a description an agent loads on demand, then a step-by-step procedure with the exact commands, findings, and pitfalls.
 
 | Skill | Download | What it covers |
 |---|---|---|
 | `reqmd-usage` | [`/skills/reqmd-usage/SKILL.md`](/skills/reqmd-usage/SKILL.md) | The operational loop: `check`, tracing, coverage, status/disposition, version pins + `repin`, `--filter`, verification results, reading `--json`, suppression. |
 | `reqmd-authoring` | [`/skills/reqmd-authoring/SKILL.md`](/skills/reqmd-authoring/SKILL.md) | Creating and maintaining documents: layout, requirement anatomy, `schema.yaml` + `x-reqmd`, built-in attributes, the content model, restructuring. |
+| `reqmd-importers` | [`/skills/reqmd-importers/SKILL.md`](/skills/reqmd-importers/SKILL.md) | Writing a Python importer for DOORS, codeBeamer, a CSV, or an API: the `reqmd-import/v1` exchange format, `reqmd_io`, link mapping, attrs and schema, validation. |
 
 Copy the skill folder into whichever directory your agent loads skills from (for example `.claude/skills/`, `.agent/skills/`, or `~/.pi/agent/skills/`):
 
@@ -260,9 +261,13 @@ curl -fsSL https://reqmd.dev/skills/reqmd-usage/SKILL.md \
 mkdir -p .agent/skills/reqmd-authoring
 curl -fsSL https://reqmd.dev/skills/reqmd-authoring/SKILL.md \
   -o .agent/skills/reqmd-authoring/SKILL.md
+
+mkdir -p .agent/skills/reqmd-importers
+curl -fsSL https://reqmd.dev/skills/reqmd-importers/SKILL.md \
+  -o .agent/skills/reqmd-importers/SKILL.md
 ```
 
-They are plain files: commit them next to the spec so every contributor's agent picks up the same procedure, or leave them out and point the agent at the URL. Both are listed in [`llms.txt`](/llms.txt) alongside the rest of the site.
+They are plain files: commit them next to the spec so every contributor's agent picks up the same procedure, or leave them out and point the agent at the URL. All three are listed in [`llms.txt`](/llms.txt) alongside the rest of the site.
 
 ## Patterns
 
@@ -335,14 +340,14 @@ The `failing-verdict` and `missing-verdict` checks behave like the
 trace checks: ERROR fails CI, WARNING is informational, and the JSON
 output is shaped for parsing.
 
-### 6. Closing the spec → code loop with `reqmd-code`
+### 6. Closing the spec → code loop with `reqmd-code` + `reqmd-import`
 
 The agent has a function ready to ship but no ID in the spec for it.
-Run the source-code extractor to generate per-package `IMP-...`
+Run the source-code extractor, render its bundle into per-package `IMP-...`
 requirements, then re-check:
 
 ```sh
-reqmd-code ./internal ./spec/03-software/imported
+reqmd-code ./internal | reqmd-import - -o spec/03-software/imported
 reqmd check spec/                              # pass
 ```
 
@@ -388,8 +393,9 @@ and "own your data." It gets both.
 - [Cheat sheet](/cheat-sheet/) — full command reference with example outputs and schema.yaml options.
 - [Agent skill: `reqmd-usage`](/skills/reqmd-usage/SKILL.md) — operational skill: check, trace, coverage, pins, results.
 - [Agent skill: `reqmd-authoring`](/skills/reqmd-authoring/SKILL.md) — authoring skill: documents, `schema.yaml`, attributes, maintenance.
+- [Agent skill: `reqmd-importers`](/skills/reqmd-importers/SKILL.md) — importer skill: the exchange format, `reqmd_io`, link mapping, ALM/CSV imports.
 - [Use cases](/use-cases/) — what reqmd is designed for, and what is out of scope.
-- [<code>reqmd-code</code>](/import/) — the source-code traceability tool that closes the loop from code to spec.
+- [Code & ALM import](/import/) — `reqmd-code` extracts C, C++, Go, Python, and Rust symbols into the `reqmd-import/v1` exchange format; `reqmd-import` renders that bundle (or any custom importer's) into reqmd documents.
 - [<code>llms.txt</code>](/llms.txt) — a machine-readable index of this site for agents.
 - [<code>llms-full.txt</code>](/llms-full.txt) — the full plain-text dump of every page.
 - [FAQ](/faq/) — the questions an integrator asks.

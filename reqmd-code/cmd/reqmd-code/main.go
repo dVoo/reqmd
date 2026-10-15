@@ -1,11 +1,12 @@
-// Command reqmd-code extracts source-code symbols into reqmd requirement files.
+// Command reqmd-code extracts source-code symbols into a reqmd-import/v1
+// exchange bundle, which reqmd-import renders into reqmd requirement files.
 package main
 
 import (
 	"fmt"
 	"os"
-
 	"reqmd-code/internal/cli"
+
 	// Blank-import language plugins so their init() functions self-register
 	// into the lang registry. Without these, reqmd-code would walk the
 	// source tree and skip every file (no plugin claims any extension).

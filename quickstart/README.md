@@ -27,6 +27,7 @@ quickstart](https://reqmd.dev/quickstart/).
 | 12 | [`12-review-documentation/`](12-review-documentation/) | Load manual review results (inspection, analysis, demonstration) |
 | 13 | [`13-custom-templates/`](13-custom-templates/) | Define your own requirement schema with a custom `reqmd init` preset |
 | 14 | [`14-variant-management/`](14-variant-management/) | One spec tree, many configurations with `--filter` |
+| 15 | [`15-custom-importers/`](15-custom-importers/) | Import requirements from DOORS, codeBeamer, or any CSV/API via `reqmd-import/v1` |
 
 ## Suggested paths
 

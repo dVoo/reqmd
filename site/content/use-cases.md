@@ -57,8 +57,13 @@ You write requirements the way you already write documentation: in a text editor
 </article>
 <article class="usecase">
 <h3>Source-code traceability</h3>
-<p>The companion <code>reqmd-code</code> tool walks C, C++, Go, Python, or Rust source with tree-sitter and writes per-package <code>.md</code> requirements into your spec tree. Every function and type gets an ID in the same namespace as your spec — the same <code>reqmd check</code> that catches broken upstream refs also catches broken implementation refs.</p>
+<p>The companion <code>reqmd-code</code> tool walks C, C++, Go, Python, or Rust source with tree-sitter and emits every symbol as a proxy requirement; <code>reqmd-import</code> renders those into per-package <code>.md</code> requirements in your spec tree. Every function and type gets an ID in the same namespace as your spec — the same <code>reqmd check</code> that catches broken upstream refs also catches broken implementation refs.</p>
 <a href="/import/">reqmd-code →</a>
+</article>
+<article class="usecase">
+<h3>Import from DOORS, codeBeamer, or any source</h3>
+<p>Requirements that live in an ALM can be mirrored into the spec tree as generated, diff-reviewed documents. Write a small script (Python, or anything that prints JSON) against the <code>reqmd-import/v1</code> exchange format and <code>reqmd-import</code> renders it; a DOORS/codeBeamer CSV reader ships in <code>python/examples/csv_import.py</code>. The ALM keeps its stable item IDs, so re-imports never churn IDs.</p>
+<a href="/import/">Import →</a>
 </article>
 <article class="usecase">
 <h3>Custom schemas per document</h3>

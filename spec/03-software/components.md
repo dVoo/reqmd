@@ -287,9 +287,9 @@ priority: High
 trace:
   - SYS-IMP-001
 ```
-The `reqmd-code` extractor shall walk a source tree, dispatch each file to the `lang` plugin claiming its extension, parse symbols in parallel via a worker pool, bind adjacent doc comments, and extract explicit `reqmd:trace` markers plus (opt-in) heuristic bare-ID references from the bound docs. It shall group symbols into per-package requirements and hand them to the writer with stable, line-independent IDs.
+The `reqmd-code` extractor shall walk a source tree, dispatch each file to the `lang` plugin claiming its extension, parse symbols in parallel via a worker pool, bind adjacent doc comments, and extract explicit `reqmd:trace` markers plus (opt-in) heuristic bare-ID references from the bound docs. It shall group symbols into per-package documents and hand them to the exchange bundle emitter as native-id-keyed requirements with stable, line-independent IDs.
 
-*Rationale:* Decoupling the walk from parsing (and parsing from writing) keeps the pipeline independently testable and lets the worker pool absorb per-file tree-sitter cost.
+*Rationale:* Decoupling the walk from parsing (and parsing from emitting) keeps the pipeline independently testable and lets the worker pool absorb per-file tree-sitter cost.
 
 ## SW-IMP-002: Language plugin registry
 ```attr
@@ -301,19 +301,69 @@ trace:
 ```
 The `internal/lang` registry shall define the `Language` interface (name, extensions, tree-sitter grammar, embedded query, doc binding, parse) and host self-registering plugins for C, C++, Go, Python, and Rust, blank-imported from the binary's entrypoint. Each plugin shall map its tree-sitter captures to the shared symbol model, populate method receivers from the enclosing type, and emit only top-level symbols (function-local declarations are excluded so same-named locals cannot collide on one ID).
 
-*Rationale:* The registry lets a new language land as a single self-registering package with no changes to the extractor or writer; scope rules keep generated IDs unique within a package.
+*Rationale:* The registry lets a new language land as a single self-registering package with no changes to the extractor or exchange emitter; scope rules keep generated IDs unique within a package.
 
-## SW-IMP-003: Proxy requirement writer
+## SW-IMP-003: Exchange bundle emitter
+```attr
+status: approved
+package: extractor
+priority: High
+trace:
+  - SYS-IMP-001
+```
+The extractor shall emit a `reqmd-import/v1` JSON bundle containing one document per package plus a requirement-less root document that carries the umbrella schema. Each package document shall declare its own `id-prefix` (`<id-prefix><package>-`), its title and notice, and the standard attr properties read from `internal/schema/standard_schema.yaml` (the single source of truth for the provenance attribute set). Each requirement shall carry a line-independent `native-id`, `status: approved`, the bound doc comment as its body, explicit trace markers as `trace`, opt-in heuristic matches as `x-reqmd.heuristic-trace`, and provenance attrs (`x-reqmd.imported`, `x-reqmd.source-file`, `x-reqmd.source-line`, `x-reqmd.symbol-kind`); methods shall point at their parent type by native ID.
+
+The emitter shall order symbols deterministically by (file, start line, name) so repeated runs produce byte-identical output, and shall skip a duplicate `(package, symbol, receiver)` — including a symbol declared twice under mutually exclusive build tags — with a warning rather than emitting two requirements with the same ID.
+
+*Rationale:* The emitter is the boundary between code analysis and file syntax: it produces a data structure, not Markdown, so a determinism bug surfaces as a diff in the bundle instead of a corrupted requirement file.
+
+## SW-IMP-004: Exchange format contract
+```attr
+status: approved
+package: exchange
+priority: High
+trace:
+  - SYS-IMP-002
+```
+The `reqmd-import/exchange` package shall define the `reqmd-import/v1` bundle types and be the shared contract between producers and the renderer, so the format cannot drift between them. Decoding shall reject unknown fields and trailing data (a producer typo fails loudly) and shall preserve numeric attribute values exactly. Building a bundle shall reject: an unsupported `format` value, an empty document list, a requirement without `native-id`, a requirement in a document without `id-prefix`, a `native-id` that is not unique across the bundle, a `parent` that is not in the same document, a `native-trace` that resolves to no requirement, an attr that redefines the built-in `status` or `trace`, a document directory that escapes the output root, a parent cycle, and two documents claiming the same output path.
+
+*Rationale:* Every producer (a Go binary, a Python script, a future ReqIF reader) is untrusted input from the renderer's point of view. Failing at the contract boundary gives a precise message about the bundle instead of a malformed requirement file, and a shared types package makes producer/renderer drift a compile error rather than a runtime surprise.
+
+## SW-IMP-005: Document renderer
 ```attr
 status: approved
 package: writer
 priority: High
 trace:
-  - SYS-IMP-001
+  - SYS-IMP-002
 ```
-The writer shall render per-package `.md` files with one requirement per symbol: ID `<id-prefix><package>-<symbol>-<7charhash>`, `status: approved`, `x-reqmd.imported: true`, provenance (`x-reqmd.source-file`, `x-reqmd.source-line`, `x-reqmd.symbol-kind`), and `###` children for methods nested under their parent type. Output shall be byte-deterministic and idempotent: existing files are only rewritten when their content changes, and hand-authored files (no generated marker) are never touched.
+The renderer shall resolve each requirement's ID to `<id-prefix><native-id>` and rewrite `native-trace` refs to the referenced requirement's full ID. It shall order requirements so every child directly follows its parent and set each requirement's heading depth from its position in the parent chain (`##` for top-level, one more `#` per level), independent of the order the producer listed them in. It shall render the attr block with `status` first, the remaining attributes in sorted key order, and the trace list last, quoting any value containing YAML-significant characters and rendering flat lists as block sequences; it shall reject a nested map or list attribute. Output shall be byte-deterministic and idempotent: a file is rewritten only when its content changes, a generated file carries the `<!-- reqmd: generated -->` marker (plus the pre-rename `reqmd-code` marker for trees generated before the split), and content without a marker is never touched.
 
-*Rationale:* Deterministic output makes re-running the extractor a safe no-op, and the generated-marker guard prevents clobbering manual edits in the same target tree.
+*Rationale:* One renderer is what makes the exchange format worth having: quoting, heading depth, and determinism live in a single implementation, so a new importer cannot invent a second, subtly different Markdown dialect, and re-running an import in CI is a safe no-op that leaves hand-authored files alone.
+
+## SW-IMP-006: Document schema writer
+```attr
+status: approved
+package: writer
+priority: High
+trace:
+  - SYS-IMP-002
+```
+For every document in a bundle the renderer shall emit a `schema.yaml` built from the document's `properties` and `required` lists plus its `x-reqmd` metadata (`level`, `document-id`, `id-prefix`, `upstream`, `requires-trace-from`, `external`), and the JSON-Schema header fields (`$schema`, `$id`, `title`, `description`, `type: object`, `additionalProperties: false`). Empty optional sections shall be omitted rather than emitted as empty mappings, and the serialization shall be deterministic so an unchanged bundle produces a byte-identical schema.
+
+*Rationale:* Producers describe the attr block as data; the renderer owns the JSON-Schema envelope so every generated document is validated against exactly the attributes its producer emits, without anyone hand-writing a schema.
+
+## SW-IMP-007: Python exchange helper
+```attr
+status: approved
+package: python
+priority: Medium
+trace:
+  - SYS-IMP-002
+```
+The `reqmd_io` Python package shall provide dataclasses (`Bundle`, `Document`, `Requirement`) that serialize to the `reqmd-import/v1` format, with the format's hyphenated keys and `omitempty`-equivalent behaviour (empty values omitted), and shall contain no Markdown or YAML logic. It shall be dependency-free and importable as `reqmd_io`, and the repository shall ship a runnable example importer that reads a DOORS/codeBeamer CSV export into a bundle.
+
+*Rationale:* Importer authors should not hand-build dictionaries and rediscover the format's edge cases, but a second renderer in another language would drift from the Go one; restricting the helper to serialization gives the ergonomics without the divergence risk.
 
 ## SW-PAR-002: Content-tree parsing
 ```attr

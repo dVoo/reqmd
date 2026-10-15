@@ -180,9 +180,9 @@ Run `reqmd check` from the assembled root containing all submodules. ReqMD disco
 {{< /details >}}
 
 {{< details summary="How do I link requirements down to the actual code?" card="true" >}}
-Use the companion [`reqmd-code`](/import/) tool. It walks your C, C++, Go, Python, or Rust source code with a tree-sitter grammar and writes per-package `.md` requirements into your spec tree. Every function, type, and method gets a requirement ID in the same namespace as your spec.
+Use the companion [`reqmd-code`](/import/) tool. It walks your C, C++, Go, Python, or Rust source code with a tree-sitter grammar and emits every function, type, and method as a proxy requirement; [`reqmd-import`](/import/) renders those into per-package `.md` requirements in your spec tree. Every symbol gets a requirement ID in the same namespace as your spec.
 
-The extracted code requirements are marked `external: true` and live in an `imported/` sub-tree. They don't need upstream traces (they're not authored by hand), but they *do* trace to the real implementation. The result: the same `reqmd check` that catches a broken spec reference also catches a broken implementation reference — if a function is renamed or deleted, the trace from the spec to that function becomes a broken reference.
+The extracted code requirements live in an `imported/` sub-tree and are marked as generated. They don't need upstream traces (they're not authored by hand), but they *do* trace to the real implementation. The result: the same `reqmd check` that catches a broken spec reference also catches a broken implementation reference — if a function is renamed or deleted, the trace from the spec to that function becomes a broken reference.
 
 The full traceability chain becomes: **stakeholder need → system requirement → software requirement → test specification → test result → code implementation**. Every link is a plain-text reference that reqmd validates mechanically.
 
@@ -226,9 +226,9 @@ See the [cheat sheet `x-reqmd` options](/cheat-sheet/#x-reqmd-options) for the f
 {{< /details >}}
 
 {{< details summary="Can reqmd import or export Excel, Word, or ReqIF?" card="true" >}}
-Not built in (yet). The data model — plain Markdown with a YAML `attr` block per requirement — is simple enough that a one-time script can convert from or to any of these formats. For imports, write a script that walks the source file and emits one `.md` per requirement; for exports, `reqmd ls --json` gives you a flat JSON list you can reshape into a spreadsheet or document.
+Not built in (yet). The data model — plain Markdown with a YAML `attr` block per requirement — is simple enough that a one-time script can convert from or to any of these formats. For imports, write a script that emits the [`reqmd-import/v1` exchange format](/import/) and let `reqmd-import` render it (a DOORS/codeBeamer CSV reader ships in `python/examples/csv_import.py`); for exports, `reqmd ls --json` gives you a flat JSON list you can reshape into a spreadsheet or document.
 
-The companion [`reqmd-code`](/import/) tool is the closest existing roundtrip — it extracts requirement IDs from C, C++, Go, Python, and Rust source via tree-sitter. A future `reqmd-code reqif` subcommand is the most likely path for native ReqIF support.
+The companion [`reqmd-code`](/import/) tool handles C, C++, Go, Python, and Rust source via tree-sitter. A ReqIF reader that produces the same exchange format is the most likely path for native ReqIF support.
 {{< /details >}}
 
 {{< details summary="Does reqmd work with my issue tracker (Jira, GitHub Issues, Linear)?" card="true" >}}

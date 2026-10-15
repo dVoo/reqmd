@@ -60,7 +60,8 @@ Summary: 5 total, 5 valid, 0 invalid, 0 parse errors, 1 warnings
 
 ### Pre-built binaries
 
-Each tagged release publishes pre-built `reqmd` and `reqmd-code` binaries
+Each tagged release publishes pre-built `reqmd`, `reqmd-code`, and
+`reqmd-import` binaries
 for Linux (amd64), Windows (amd64), and macOS (arm64) plus a `SHA256SUMS.txt`
 file. Download them from the [Releases page](https://github.com/dVoo/reqmd/releases)
 and verify with:
@@ -84,7 +85,9 @@ Requires Go 1.26 or newer.
 git clone https://github.com/dVoo/reqmd
 cd reqmd
 go build -o reqmd ./cmd/reqmd
-go build -o reqmd-code ./reqmd-code/cmd/reqmd-code   # extraction tool
+go build -o reqmd-code ./reqmd-code/cmd/reqmd-code     # source-code extractor
+# the single renderer for the reqmd-import/v1 exchange format:
+go build -o reqmd-import ./reqmd-import/cmd/reqmd-import
 ```
 
 To install into `$(go env GOPATH)/bin` instead of building in place:
@@ -92,14 +95,16 @@ To install into `$(go env GOPATH)/bin` instead of building in place:
 ```sh
 go install ./cmd/reqmd
 go install ./reqmd-code/cmd/reqmd-code
+go install ./reqmd-import/cmd/reqmd-import
 ```
 
-The repo is a Go workspace (`go.work`) linking both modules. Because `./...`
-stops at the nested module boundary, name the second module explicitly:
+The repo is a Go workspace (`go.work`) linking all three modules. Because `./...`
+stops at the nested module boundary, name the other modules explicitly:
 
 ```sh
-./reqmd-code <source-dir> <target-dir>   # extract source-code symbols as proxy requirements
-go test ./... ./reqmd-code/...           # tests for both modules
+./reqmd-code <source-dir> | ./reqmd-import - -o <target-dir>  # code -> proxy requirements
+./reqmd-import bundle.json -o spec/00-doors/                  # exchange bundle -> requirements
+go test ./... ./reqmd-code/... ./reqmd-import/...             # tests for all modules
 ```
 
 The graph export subcommand requires Cgo support; build with
@@ -1120,16 +1125,19 @@ ReqMD dogfoods its own format. The `spec/` directory contains a complete
 | External | `spec/00-aspice/` | 191 | Automotive SPICE v4.0 base practices (`external: true`) |
 | Stakeholder | `spec/01-stakeholder/` | 5 | Stakeholder goals (top boundary, no upstream) |
 | ASPICE SR | `spec/01a-aspice-stakeholder/` | 19 | ASPICE stakeholder requirements mapped to base practices |
-| System | `spec/02-system/` | 19 | Feature specifications |
-| Software | `spec/03-software/` | 27 | Component-level design |
-| Tests | `spec/04-tests/` | 13 | Test specifications (mandatory-disposition) |
+| System | `spec/02-system/` | 20 | Feature specifications |
+| Software | `spec/03-software/` | 31 | Component-level design |
+| Tests | `spec/04-tests/` | 15 | Test specifications (mandatory-disposition) |
 
-All 274 requirements validate cleanly (each document also carries one
-container item — its `# Title` heading):
+All 281 hand-authored requirements validate cleanly (each document also
+carries one container item — its `# Title` heading). The tree also contains
+the generated `spec/03-software/imported/` proxy documents, which
+`reqmd-code` regenerates from the tool's own source — 1159 requirements across
+22 documents in total:
 
 ```sh
 $ reqmd check spec/
-# ... 274 total, 274 valid, 0 invalid, 0 parse errors, 23 warnings
+# ... 1159 total, 1159 valid, 0 invalid, 0 parse errors, 803 warnings
 
 $ reqmd serve spec/          # live-reloading HTML preview
 $ reqmd export html spec/ -o /tmp/out/

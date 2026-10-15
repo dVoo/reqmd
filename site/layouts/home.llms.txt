@@ -42,7 +42,8 @@
 - [About]({{ "about/" | absURL }}): Design principles (no lock-in, no database, per-directory schemas, dogfooding) and the self-hosting story.
 
 ## AI integration
-- [reqmd-code]({{ "import/" | absURL }}): Source-code traceability — extracts C, C++, Go, Python, and Rust symbols into reqmd .md requirement files, closing the gap from code to spec.
+- [Import (code & ALM)]({{ "import/" | absURL }}): reqmd-code extracts C, C++, Go, Python, and Rust symbols into a reqmd-import/v1 exchange bundle; reqmd-import renders that bundle (or a custom importer's) into reqmd .md requirement files.
 - [AI & agents]({{ "ai/" | absURL }}): Why reqmd's plain-markdown + JSON format is the right substrate for AI-assisted spec workflows, the full command surface, schema reference, and a copy-pasteable AGENTS.md.
 - [Agent skill: reqmd-usage]({{ "skills/reqmd-usage/SKILL.md" | absURL }}): Operational SKILL.md for an existing reqmd tree — check, tracing, coverage, status/disposition, version pins and repin, filters, verification results, JSON findings.
 - [Agent skill: reqmd-authoring]({{ "skills/reqmd-authoring/SKILL.md" | absURL }}): Authoring SKILL.md — document layout, requirement anatomy, schema.yaml and x-reqmd, built-in attributes, content model, maintenance.
+- [Agent skill: reqmd-importers]({{ "skills/reqmd-importers/SKILL.md" | absURL }}): Importer SKILL.md — writing a Python importer for DOORS/codeBeamer/CSV/APIs: the reqmd-import/v1 exchange format, reqmd_io, link mapping, attrs and schema, validation.

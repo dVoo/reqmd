@@ -116,7 +116,7 @@ menu:
     - name: "Source"
       url: "https://github.com/dVoo/reqmd"
       weight: 1
-    - name: "reqmd-code"
+    - name: "Import"
       pageRef: "/import"
       weight: 2
     - name: "License"

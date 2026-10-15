@@ -243,11 +243,11 @@ reqmd serve spec/ --filter '"Sport" in variant'   # preview one configuration
 reqmd serve spec/
   serving http://localhost:8080
   watching spec/ ...
-  initial build: 274 reqs, 22 docs
+  initial build: 281 reqs, 22 docs
   file changed: spec/02-system/features.md
-  rebuilt: 274 reqs (48ms)
+  rebuilt: 281 reqs (48ms)
   file changed: spec/02-system/schema.yaml
-  rebuilt: 274 reqs (52ms)
+  rebuilt: 281 reqs (52ms)
 ```
 {{< /details >}}
 
@@ -275,11 +275,11 @@ With `--results`, adds `Verdict` and `Verdict Source` columns.
 {{< details summary="Example output" >}}
 ```text
 exporting spec/ → csv-out/
-  spec/02-system  → csv-out/system-requirements.csv   (19 rows)
-  spec/03-software → csv-out/software-requirements.csv (27 rows)
-  spec/04-tests   → csv-out/tests-requirements.csv     (13 rows)
+  spec/02-system  → csv-out/system-requirements.csv   (20 rows)
+  spec/03-software → csv-out/software-requirements.csv (31 rows)
+  spec/04-tests   → csv-out/tests-requirements.csv     (15 rows)
   ...
-  22 documents, 274 requirements exported
+  22 documents, 281 requirements exported
 ```
 
 Each CSV has columns: `Type, ID, Title, <schema attributes>, Body, Rationale`.
@@ -376,7 +376,7 @@ reqmd export graph spec/ -o graph-out/
 {{< details summary="Example output" >}}
 ```text
 exporting spec/ → graph-out/reqmd-graph.lbug
-  274 nodes, one TracesTo edge per trace link
+  281 nodes, one TracesTo edge per trace link
   done
 ```
 

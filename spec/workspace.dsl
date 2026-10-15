@@ -1,4 +1,4 @@
-workspace "ReqMD" "Specification authoring, validation, export, and source-code requirement traceability" {
+workspace "ReqMD" "Specification authoring, validation, export, source-code and ALM requirement import" {
 
     model {
 
@@ -31,7 +31,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         }
 
         // reqmd-code: source-code requirement trace extraction tool
-        extractionTool = softwareSystem "Extraction Tool" "Parses source code with Tree-sitter (C, C++, Go, Python, Rust grammars), extracts symbols and requirement IDs, and writes ephemeral .md requirement files (proxy items) into a target spec directory" {
+        extractionTool = softwareSystem "Extraction Tool" "Parses source code with Tree-sitter (C, C++, Go, Python, Rust grammars), extracts symbols and requirement IDs, and emits a reqmd-import/v1 exchange bundle (JSON) for the Import Tool to render as proxy requirements" {
 
             scanner = container "Repository Scanner" "Discovers files, detects languages, computes hashes, and schedules parsing work" "CLI / File walker"
 
@@ -52,13 +52,26 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
                 tags "Database"
             }
 
-            proxyWriter = container "Proxy .md Writer" "Renders normalized symbols into ephemeral .md requirement files and writes them into a target spec directory" "CLI / File writer"
+            bundleWriter = container "Exchange Bundle Writer" "Emits normalized symbols as a reqmd-import/v1 JSON bundle (per-package documents with provenance attrs, trace refs, and the standard attr schema) for reqmd-import to render" "CLI / JSON encoder"
+        }
+
+        // reqmd-import: the single renderer for the exchange format
+        importTool = softwareSystem "Import Tool" "Renders a reqmd-import/v1 exchange bundle into reqmd documents (schema.yaml + .md). The only component that writes Markdown or YAML, so every importer shares one set of quoting, heading, and schema rules" {
+
+            exchangeFormat = container "Exchange Format" "reqmd-import/v1 JSON contract: documents carrying id-prefix, level, document-id, upstream and attr-schema properties, plus native-id-keyed requirements (parent, trace, native-trace, attrs)" "JSON"
+
+            renderer = container "Document Renderer" "Resolves native IDs to reqmd IDs, orders children under their parents, renders attr blocks with correct YAML quoting, emits each document's schema.yaml, and writes files idempotently behind a generated marker" "Go" "CLI" {
+                idResolver   = component "ID & Reference Resolver"   "Stamps <id-prefix><native-id>, rewrites native-trace refs against a bundle-wide index, and rejects duplicate IDs, unknown refs, reserved attrs, escaping paths, and parent cycles" "Go"
+                schemaWriter = component "Schema Writer"             "Emits a document's schema.yaml from its properties/required plus the x-reqmd block (level, document-id, id-prefix, upstream, external)" "Go / yaml.v3"
+            }
         }
 
         // External systems
         vscodeExt        = softwareSystem "VS Code / Editor"         "Author edits *.md and schema.yaml" "External"
         supplier         = softwareSystem "Tier-1 Supplier Tool"     "(Planned) Receives CSV export" "External"
         sourceRepository = softwareSystem "Source Repository"        "Git repository containing C, C++, Go, Python, Rust, Zig, and other source files with requirement references in comments or docstrings" "External"
+        alm              = softwareSystem "ALM System"              "DOORS / codeBeamer / Polarion: database-backed requirement stores that export CSV or expose REST APIs" "External"
+        customImporter   = softwareSystem "Custom Importer"         "A Python (or any language) script using the reqmd-io helper to turn an ALM export, CSV, or API into a reqmd-import/v1 bundle" "External"
         ci               = softwareSystem "CI Pipeline"              "Automated pipeline that runs extraction on changes and publishes trace artifacts" "External"
         testArtifacts    = softwareSystem "Test Result Artifacts"     "Ephemeral CTRF JSON reports and manual review/inspection markdown produced by CI runs and reviewers; loaded per check --results invocation, never persisted in the spec repo" "External"
 
@@ -68,6 +81,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         viewer    -> specRepo           "Reads rendered requirements from"
         developer -> extractionTool     "Configures and runs"
         developer -> sourceRepository   "Commits source code to"
+        developer -> customImporter     "Writes and runs"
 
         // Editor → repo
         vscodeExt -> specRepo "Reads and writes"
@@ -104,8 +118,8 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         extractionTool.parserRuntime  -> extractionTool.cache          "Reads cached parse metadata from"
         extractionTool.parserRuntime  -> extractionTool.normalizer     "Sends raw symbol and doc captures to"
         extractionTool.normalizer     -> extractionTool.cache          "Stores normalized symbols and trace links in"
-        extractionTool.normalizer     -> extractionTool.proxyWriter   "Provides normalized trace model to"
-        extractionTool.proxyWriter    -> extractionTool.cache          "Reads incremental results from"
+        extractionTool.normalizer     -> extractionTool.bundleWriter   "Provides normalized trace model to"
+        extractionTool.bundleWriter    -> extractionTool.cache          "Reads incremental results from"
 
         // --- Extraction tool component internals ---
         extractionTool.parserRuntime.languageRegistry  -> extractionTool.parserRuntime.syntaxParser     "Provides parser configuration to"
@@ -117,7 +131,7 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         extractionTool.normalizer.docBinder            -> extractionTool.normalizer.reqExtractor       "Provides cleaned documentation to"
         extractionTool.normalizer.reqExtractor         -> extractionTool.normalizer.traceResolver      "Provides extracted requirement IDs to"
         extractionTool.normalizer.symbolNormalizer     -> extractionTool.normalizer.traceResolver      "Provides normalized symbols to"
-        extractionTool.normalizer.traceResolver        -> extractionTool.proxyWriter                  "Provides resolved symbol-to-requirement links to"
+        extractionTool.normalizer.traceResolver        -> extractionTool.bundleWriter                  "Provides resolved symbol-to-requirement links to"
 
         // --- CLI → repo ---
         reqmdCli -> specRepo "Reads *.md and schema.yaml from"
@@ -125,11 +139,18 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
         // --- Cross-system ---
         extractionTool                  -> sourceRepository   "Reads source files from"
         extractionTool                  -> reqmd.specRepo     "Reads requirement ID schemas from"
-        extractionTool.proxyWriter      -> reqmd.specRepo               "Writes ephemeral .md requirement files to"
-        extractionTool.proxyWriter      -> reqmd.specRepo.schemaFile    "Reads x-reqmd.id-prefix and x-reqmd.upstream from"
+
+        // --- Import tool: one renderer for every producer ---
+        extractionTool.bundleWriter     -> importTool          "Emits a reqmd-import/v1 bundle to"
+        customImporter                  -> alm                 "Pulls requirements from"
+        customImporter                  -> importTool          "Emits a reqmd-import/v1 bundle to"
+        importTool.renderer             -> reqmd.specRepo      "Writes generated .md and schema.yaml to"
+        importTool.renderer.idResolver  -> importTool.exchangeFormat "Reads documents and requirements from"
+        importTool.renderer.schemaWriter -> importTool.renderer  "Defers document writes to"
 
         // --- CI runs both tools ---
         ci -> reqmd.reqmdCli "Runs check/ls/stats/export/serve/baseline on"
+        ci -> importTool     "Runs extraction and import on push / pull request"
 
         // --- Exports ---
         exporter     -> supplier         "Exports CSV to" "Planned"
@@ -179,7 +200,23 @@ workspace "ReqMD" "Specification authoring, validation, export, and source-code 
             autoLayout
         }
 
-        // proxyWriter is a single-container box with no sub-components; it appears in ExtractionContainers
+        // Import tool views
+        systemContext importTool "ImportSystemContext" "Import tool system context" {
+            include *
+            autoLayout
+        }
+
+        container importTool "ImportContainers" "Import tool containers" {
+            include *
+            autoLayout
+        }
+
+        component importTool.renderer "ImportRendererComponents" "Document renderer internals" {
+            include *
+            autoLayout
+        }
+
+        // bundleWriter is a single-container box with no sub-components; it appears in ExtractionContainers
 
         styles {
             element "Person" {

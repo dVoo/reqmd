@@ -1,0 +1,68 @@
+name: Publish reqmd-io
+
+# Triggered by a `py-v*` tag, deliberately NOT by the plain `v*` tags that
+# release the reqmd binaries: reqmd-io versions independently and is only
+# bumped for a new feature or an exchange-format change.
+#
+# Publishing uses PyPI Trusted Publishing (OIDC), so there is no API token
+# secret. It requires a (pending) publisher on PyPI configured with:
+#   owner dVoo / repository reqmd / workflow publish-python.yml /
+#   environment pypi
+# To rehearse, add the same publisher on TestPyPI and publish manually with
+# `twine upload -r testpypi python/dist/*` from a local checkout.
+on:
+  push:
+    tags: ['py-v*']
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    name: Build and publish to PyPI
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      # Required for Trusted Publishing (no token secret is used).
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Nothing here pushes with git; keep the token out of .git/config.
+          persist-credentials: false
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Run tests
+        working-directory: python
+        run: python -m unittest discover -s tests -v
+
+      - name: Build sdist and wheel
+        working-directory: python
+        run: |
+          set -euo pipefail
+          python -m pip install --upgrade build twine
+          python -m build
+          twine check dist/*
+
+      # Guards against tagging py-vX while pyproject.toml still says Y.
+      # A published version can never be replaced, so this must fail first.
+      - name: Verify the tag matches the packaged version
+        working-directory: python
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          want="${TAG#py-v}"
+          if [ ! -f "dist/reqmd_io-${want}.tar.gz" ]; then
+            echo "::error::tag ${TAG} does not match the packaged version"
+            ls -1 dist/
+            exit 1
+          fi
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: python/dist/
