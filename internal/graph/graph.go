@@ -1443,6 +1443,40 @@ func (g *Graph) DownstreamNeighbors(id string) []string {
 	return nil
 }
 
+// ResolveTraceRef resolves a raw trace reference (as written in the
+// `trace` attribute, before pin stripping) to the bare requirement ID it
+// points at, using the same rules New uses: a `doc-id/ID` prefix resolves
+// through document-ids, falling back to a directory path; a bare ID
+// resolves globally. ok is false for a dangling or ambiguous-everywhere
+// reference. Callers that need dangling refs keep the raw string.
+func (g *Graph) ResolveTraceRef(ref string) (id string, ok bool) {
+	bare, _, _ := model.StripPin(ref)
+
+	if prefix, idPart, found := strings.Cut(bare, "/"); found {
+		dir, dirOK := g.docByID[prefix]
+		if !dirOK {
+			dir = prefix
+		}
+		target, tOK := g.nodesByIDDir[[2]string{dir, idPart}]
+		if !tOK || target == nil {
+			return "", false
+		}
+		return idPart, true
+	}
+
+	if _, exists := g.nodes[bare]; !exists {
+		return "", false
+	}
+	return bare, true
+}
+
+// Documents returns the document slice the graph was built from, in the
+// order given to New. Exports and reporters use it to look up authored
+// metadata (attributes, titles) that the cached node view does not carry.
+func (g *Graph) Documents() []model.Document {
+	return g.docs
+}
+
 // ---------------------------------------------------------------------------
 // Property access helpers
 // ---------------------------------------------------------------------------
@@ -1722,4 +1756,34 @@ func intersects(a, b []string) bool {
 		}
 	}
 	return false
+}
+
+// CollectDisjointAttrs merges disjoint-check attribute names from CLI flags
+// and x-reqmd.disjoint-check schema declarations into a sorted,
+// deduplicated slice. Returns nil when nothing is configured.
+func CollectDisjointAttrs(docs []model.Document, cliFlags []string) []string {
+	seen := make(map[string]struct{})
+	for _, attr := range cliFlags {
+		if attr != "" {
+			seen[attr] = struct{}{}
+		}
+	}
+	for _, doc := range docs {
+		if doc.XReqmd != nil {
+			for _, attr := range doc.XReqmd.DisjointCheck {
+				if attr != "" {
+					seen[attr] = struct{}{}
+				}
+			}
+		}
+	}
+	if len(seen) == 0 {
+		return nil
+	}
+	out := make([]string, 0, len(seen))
+	for attr := range seen {
+		out = append(out, attr)
+	}
+	sort.Strings(out)
+	return out
 }

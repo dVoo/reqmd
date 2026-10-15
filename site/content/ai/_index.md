@@ -66,6 +66,7 @@ Every operation the agent needs maps to one CLI invocation. The full command sur
 | Live HTML preview | `reqmd serve spec/` | HTTP + SSE |
 | Export to HTML | `reqmd export html spec/ -o docs/` | HTML files |
 | Export to CSV | `reqmd export csv spec/ -o csv/` | CSV files |
+| Export NDJSON tables | `reqmd export json spec/ -o json-out/` | 4 NDJSON files for a warehouse |
 | Export to graph DB | `reqmd export graph spec/ -o g.lbug` (needs `-tags ladybug`) | LadybugDB |
 | Compare two git tags | `reqmd baseline diff v1.0 v2.0` | text diff |
 | Same, structured | `reqmd baseline diff v1.0 v2.0 --json` | JSON |
@@ -197,6 +198,7 @@ The check is the contract. Don't ship an edit that exits non-zero.
 | Live HTML preview | `reqmd serve spec/` |
 | Export to HTML | `reqmd export html spec/ -o docs/` |
 | Export to CSV | `reqmd export csv spec/ -o csv/` |
+| Export NDJSON (warehouse) | `reqmd export json spec/ -o json-out/` |
 | Compare two tags | `reqmd baseline diff v1.0 v2.0` |
 | Find broken trace refs | `reqmd check spec/ \| grep "broken reference"` |
 

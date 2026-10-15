@@ -317,6 +317,53 @@ chain, search, and theme toggle.
 [**See a live HTML export →**](/export-sample/02-system-requirements.html) (from the reqmd project's own spec)
 {{< /details >}}
 
+### `reqmd export json` — export NDJSON tables for reporting platforms
+
+Writes the whole tree as four flat NDJSON (newline-delimited JSON) files, one
+JSON object per line, for warehouses and reporting platforms (Databricks,
+Snowflake, BigQuery) to ingest directly. No connector, no SDK, no credentials.
+
+The output is a pure function of the tree plus any `--results`, so two exports
+of the same tree are byte-identical.
+
+```sh
+reqmd export json spec/ -o json-out/
+reqmd export json spec/ -o json-out/ --results ci-out/ --results reviews/
+reqmd export json spec/ -o json-out/ --filter '"Premium" in variant'
+```
+
+| File | Row grain |
+|---|---|
+| `requirements.ndjson` | one row per content node (`req` / `container` / `info`) |
+| `traces.ndjson` | one row per declared `trace:` reference |
+| `results.ndjson` | one row per measure verdict (only with `--results`) |
+| `findings.ndjson` | one row per `check` finding (ERROR and WARNING) |
+
+{{< details summary="Example rows" >}}
+```json
+{"doc_path":"spec/02-system","doc_title":"System Features","level":"system-requirements","id":"SYS-001","title":"Boot Sequence","type":"req","status":"approved","trace":["stakeholder/STK-GOAL-001"],"attrs":{"priority":"High"}}
+{"from":"SYS-001","to":"STK-GOAL-001","doc_id":"stakeholder","ref":"stakeholder/STK-GOAL-001","file":"spec/02-system/features.md","pin":null,"resolved":true}
+{"measure_id":"TEST-002","outcome":"pass","source":"reviews/VR-001.md","verify":"Review"}
+{"level":"WARNING","req_id":"SYS-001","code":"missing-verdict","file":"spec/02-system/features.md","message":"missing verdict: ..."}
+```
+{{< /details >}}
+
+Built-in attributes (`trace`, `requires-trace-from`, `status`, `disposition`,
+`version`, `verify`) are promoted to top-level keys for direct SQL; the
+remaining declared attributes stay in the `attrs` envelope with their native
+JSON types (arrays stay arrays). Every fixed key is present in every row
+(`null` when unset), so warehouse schema inference sees the full column set
+regardless of which row it samples. A dangling trace ref is written to
+`traces.ndjson` with `"resolved":false` **and** to `findings.ndjson`, so a
+warehouse can count or filter it on its own terms.
+
+| Flag | Description |
+|------|-------------|
+| `-o, --output <dir>` | Output directory (default: the exported tree root) |
+| `--results <path>` | Load verification results for `results.ndjson` (repeatable) |
+| `--filter <expr>` | Limit `requirements.ndjson` to matching requirements |
+| `--disjoint-check <attr>` | Also reported in `findings.ndjson` (repeatable) |
+
 ### `reqmd export graph` — export to LadybugDB graph
 
 Creates a graph database with one node per requirement and `TracesTo` edges. Requires the `ladybug` build tag.
@@ -421,7 +468,7 @@ no version-pin changes needed
 
 ## Filter expressions
 
-`--filter "<expr>"` is available on `check`, `ls`, `stats`, `export csv`, `export html`, `serve`, and `baseline diff`. The expression is evaluated against each requirement's attributes (plus the built-ins `id`, `title`, `status`, `disposition`, `trace`, `version`), and the command runs only on matching requirements. It's the generic primitive behind variant management — the same flag slices by variant, platform, region, priority, or any other attribute.
+`--filter "<expr>"` is available on `check`, `ls`, `stats`, `export csv`, `export html`, `export json`, `serve`, and `baseline diff`. The expression is evaluated against each requirement's attributes (plus the built-ins `id`, `title`, `status`, `disposition`, `trace`, `version`), and the command runs only on matching requirements. It's the generic primitive behind variant management — the same flag slices by variant, platform, region, priority, or any other attribute.
 
 | Expression | Matches |
 |---|---|
@@ -458,6 +505,7 @@ no version-pin changes needed
 | `serve <dir>` | Live HTML preview | `--addr`, `--results`, `--headless`, `--filter` |
 | `export csv <dir>` | CSV export | `-o`, `--results`, `--filter` |
 | `export html <dir>` | HTML export | `-o`, `--results`, `--filter` |
+| `export json <dir>` | NDJSON tables for reporting platforms | `-o`, `--results`, `--filter`, `--disjoint-check` |
 | `export graph <dir>` | Graph export (ladybug tag) | `-o` |
 | `baseline diff <t1> <t2>` | Compare two git tags | `--json`, `--filter`, `--filter-a`, `--filter-b` |
 | `repin <dir>` | Update version pins to upstream's current version | `--yes`, `--json`, `--promote-unpinned` |

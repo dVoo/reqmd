@@ -36,6 +36,7 @@ go run ./cmd/reqmd ls <root>          # list all requirements
 go run ./cmd/reqmd stats <root>       # stats breakdown per doc
 go run ./cmd/reqmd export csv <root>  # CSV export
 go run ./cmd/reqmd export html <root> # HTML export
+go run ./cmd/reqmd export json <root> -o json-out/  # NDJSON tables for warehouses
 go run ./cmd/reqmd check --results <path> <root> # check with ephemeral V&V results
 go run ./cmd/reqmd export html <root> --results <path> -o docs/ # HTML with verdict badges
 go run ./cmd/reqmd init <dir> --preset results    # scaffold manual results dir
@@ -86,6 +87,7 @@ same docs stay independent). `check` remains requirement-scoped.
 | `reqmd stats <root>` | Attribute-value breakdown per document directory plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements. |
 | `reqmd export csv <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | CSV export (`<dirname>-requirements.csv`) with a `Type` column; rows emitted in document order for requirements and items. `--results` adds `Verdict` and `Verdict Source` columns from ephemeral verification results. `--filter` exports only matching requirements. |
 | `reqmd export html <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | HTML export: requirement cards, collapsible container sections, info blocks, sidebar TOC with folders. `--results` renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter` exports only matching requirements. |
+| `reqmd export json <root> [-o <dir>] [--results <path>...] [--filter "<expr>"] [--disjoint-check <attr>...]` | NDJSON export for reporting platforms (Databricks, Snowflake, BigQuery). Writes `requirements.ndjson` (one row per content node; built-ins promoted, remaining attributes in `attrs`), `traces.ndjson` (one row per declared trace ref with `pin`/`resolved`), `results.ndjson` (one row per verdict; needs `--results`), `findings.ndjson` (one row per check finding). Pure function of tree + results; repeated exports are byte-identical. Default output dir is the exported tree root. |
 | `reqmd export graph <root> [-o <dir>] [--results <path>...]` | LadybugDB graph export (requires `-tags ladybug`). `--results` includes `RESULT:` nodes with `outcome`/`source` properties for graph traversal from requirements to verification results. |
 | `reqmd check --json <root>` | JSON validation report with requirements, pass/fail, trace checks |
 | `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs with `schema.yaml`) and run outcome-gated checks (`missing-verdict`, `failing-verdict`). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. |

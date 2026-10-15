@@ -520,6 +520,7 @@ in both parsing and HTML export, with these extensions enabled:
 | `reqmd stats --json <root>` | JSON stats. `--filter` supported. |
 | `reqmd export csv <root> -o <dir>` | CSV export with Type, Body and Rationale columns, emitted in document order for requirements and items alike. `--results <path>` (repeatable) adds Verdict and Verdict Source columns. `--filter "<expr>"` exports only matching requirements. |
 | `reqmd export html <root> -o <dir>` | Standalone HTML: card layout for requirements, collapsible folder sections for containers, plain blocks for info items, goldmark-rendered bodies, trace columns, doc chain tab strip, search/filter (requirement-scoped), sidebar TOC including containers, theme toggle. `--results <path>` (repeatable) renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter "<expr>"` exports only matching requirements. |
+| `reqmd export json <root> -o <dir>` | Four flat NDJSON tables for reporting platforms (Databricks, Snowflake, BigQuery): `requirements.ndjson` (one row per content node; built-ins promoted to top-level keys, remaining attributes in an `attrs` envelope), `traces.ndjson` (one row per declared trace ref, with `pin` and `resolved`), `results.ndjson` (one row per measure verdict; requires `--results`), and `findings.ndjson` (one row per check finding). A pure function of tree + results, so repeated exports are byte-identical. `--filter "<expr>"` limits `requirements.ndjson`; `--disjoint-check` findings land in `findings.ndjson`. |
 | `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build). `--results <path>` (repeatable) includes `RESULT:` nodes with `outcome` and `source` properties, enabling graph traversal from requirements through measures to verification results. |
 | `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`, `--filter`) |
 | `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`, `--filter "<expr>"` to scope both snapshots) |
@@ -1062,6 +1063,9 @@ reqmd export html requirements/ -o docs/
 
 # Generate CSV for spreadsheet import
 reqmd export csv requirements/ -o docs/
+
+# Flat NDJSON tables for a warehouse (Databricks, Snowflake, BigQuery)
+reqmd export json requirements/ -o json-out/ --results ci-out/
 
 # JSON for CI scripting
 reqmd check --json requirements/

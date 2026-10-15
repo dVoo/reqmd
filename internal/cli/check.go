@@ -13,7 +13,6 @@ import (
 	"reqmd/internal/schema"
 	"reqmd/internal/verify"
 	"runtime"
-	"slices"
 	"strings"
 	"sync"
 
@@ -275,7 +274,7 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 			})
 		} else {
 			// Collect disjoint-check attrs from CLI flags + schema declarations.
-			allDisjointAttrs := collectDisjointAttrs(docs, disjointChecks)
+			allDisjointAttrs := graph.CollectDisjointAttrs(docs, disjointChecks)
 			if len(allDisjointAttrs) > 0 {
 				g.SetDisjointAttrs(allDisjointAttrs)
 			}
@@ -352,35 +351,6 @@ func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions
 	}
 
 	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions, nil, "", nil, false)
-}
-
-// collectDisjointAttrs merges disjoint-check attribute names from CLI flags
-// and x-reqmd.disjoint-check schema declarations into a deduplicated slice.
-func collectDisjointAttrs(docs []model.Document, cliFlags []string) []string {
-	seen := make(map[string]struct{})
-	for _, attr := range cliFlags {
-		if attr != "" {
-			seen[attr] = struct{}{}
-		}
-	}
-	for _, doc := range docs {
-		if doc.XReqmd != nil {
-			for _, attr := range doc.XReqmd.DisjointCheck {
-				if attr != "" {
-					seen[attr] = struct{}{}
-				}
-			}
-		}
-	}
-	if len(seen) == 0 {
-		return nil
-	}
-	out := make([]string, 0, len(seen))
-	for attr := range seen {
-		out = append(out, attr)
-	}
-	slices.Sort(out)
-	return out
 }
 
 // formatReport conditionally returns the report in text or JSON format.

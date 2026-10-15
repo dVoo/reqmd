@@ -53,6 +53,7 @@ schemas, use the `reqmd-authoring` skill instead.
 | Compare two baselines | `reqmd baseline diff <tag1> <tag2> [--json]` |
 | Live preview while editing | `reqmd serve <root>` (`--headless` for terminal only) |
 | Export | `reqmd export csv\|html <root> -o <dir>` (`--results` for verdicts) |
+| Warehouse tables | `reqmd export json <root> -o <dir>` (`--results` for verdicts) |
 
 ## Procedure: the everyday loop
 
@@ -225,6 +226,14 @@ reqmd check --json <root> --results ci-out/ | jq -r '.results[]? | "\(.id): \(.m
   links, doc chain, sidebar TOC, search, theme toggle.
 - `reqmd export csv <root> -o out/` — one CSV per document, document order.
 - Add `--results` to either for verdict badges/columns.
+- `reqmd export json <root> -o out/` — four flat NDJSON tables for reporting
+  platforms (Databricks, Snowflake, BigQuery): `requirements.ndjson` (one row
+  per content node; built-ins promoted to top-level keys, other attributes in
+  `attrs`), `traces.ndjson` (one row per declared trace ref, with `pin` and
+  `resolved`), `results.ndjson` (one row per verdict; needs `--results`), and
+  `findings.ndjson` (one row per check finding). Output is a pure function of
+  tree + results, so repeated exports are byte-identical; a dangling ref appears
+  in `traces` with `resolved:false` and in `findings`.
 - `reqmd serve <root>` — watch + live-reload preview; `--headless` for a
   terminal-only rebuild loop; `--filter` to preview one configuration.
 - `reqmd baseline diff <tag1> <tag2>` — semantic diff of requirements, schemas,

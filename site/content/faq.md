@@ -235,6 +235,43 @@ The companion [`reqmd-import`](/import/) tool is the closest existing roundtrip 
 No native integration. The common pattern is to put the issue-tracker key in a custom attribute (e.g. `jira: PROJ-123`) and search via `reqmd ls --json` or `reqmd stats --json`. The issue tracker is a downstream consumer of the spec, not a source.
 {{< /details >}}
 
+{{< details summary="How do I get my spec into Databricks, Snowflake, or BigQuery?" card="true" >}}
+Use `reqmd export json`, which writes the whole tree as four flat [NDJSON](https://ndjson.org/) files — one JSON object per line, the format every warehouse ingests natively. There is no connector, no SDK, and no credentials on reqmd's side: the command writes files to a directory, and your pipeline loads them.
+
+```sh
+reqmd export json requirements/ -o json-out/ --results ci-artifacts/
+```
+
+| File | One row per | Joins on |
+|---|---|---|
+| `requirements.ndjson` | content node (`req` / `container` / `info`) | `id` |
+| `traces.ndjson` | declared `trace:` reference | `from`, `to` |
+| `results.ndjson` | measure verdict (needs `--results`) | `measure_id` |
+| `findings.ndjson` | `check` finding (ERROR and WARNING) | `req_id` |
+
+Built-in attributes (`trace`, `requires-trace-from`, `status`, `disposition`, `version`, `verify`) are promoted to top-level columns, and the attributes your own `schema.yaml` declares stay in an `attrs` envelope with their native JSON types — arrays stay arrays. So a traceability dashboard is ordinary SQL:
+
+```sql
+-- coverage holes: requirements nothing downstream traces to
+SELECT r.id, r.title
+FROM   requirements r
+LEFT   JOIN traces t ON t.to = r.id
+WHERE  r.type = 'req' AND r.requires_trace_from IS NOT NULL AND t.from IS NULL;
+
+-- current verdict per measure, latest run
+SELECT measure_id, outcome, source FROM results;
+```
+
+Load the files with whatever your platform already has — Databricks Auto Loader, Snowflake `COPY INTO`, BigQuery `LOAD DATA`, or `dbt seed`/external tables. Two properties make this safe to run on every CI build:
+
+- **The export is a pure function of (tree + results).** No cursor, no `--since` flag, no state. Re-running it on the same tree produces byte-identical files.
+- **reqmd stores no history.** Time series lives in the warehouse, so add a `run_at` / `git_tag` column when you load and keep every build's snapshot as a partition. Your trend charts come from those partitions, and the spec's own history stays in Git (compare baselines with `reqmd baseline diff`).
+
+A dangling trace reference appears **twice** on purpose: once in `traces.ndjson` with `"resolved": false`, and once in `findings.ndjson`. That way you can count broken links *or* filter them out, without reqmd forcing its own warning severity on your dashboard.
+
+If you'd rather query the trace graph directly than join flat tables, `reqmd export graph` writes a [LadybugDB](https://ladybugdb.com/) database for Cypher queries — but it needs the `ladybug` build tag, so the NDJSON tables are the simpler path for a SQL-first team. See the [cheat sheet](/cheat-sheet/#reqmd-export-json--export-ndjson-tables-for-reporting-platforms) for the full flag reference.
+{{< /details >}}
+
 
 ## Variants & configuration
 
