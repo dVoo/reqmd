@@ -3,8 +3,8 @@ package cpp
 import (
 	"testing"
 
-	"reqmd-code/internal/lang"
-	"reqmd-code/internal/model"
+	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
 )
 
 // TestCppLanguageRegisters verifies that CppLanguage self-registered
@@ -224,24 +224,5 @@ int compute(void) {
 	}
 	if got, want := syms[0].Doc, "Computes the result.\nreqmd:trace REQ-MATH-001"; got != want {
 		t.Errorf("BindDoc = %q, want %q", got, want)
-	}
-}
-
-// TestModuleNameFromFile covers the helper that derives a C++
-// module/package name from a file path.
-func TestModuleNameFromFile(t *testing.T) {
-	cases := []struct {
-		in, want string
-	}{
-		{"foo.cpp", "foo"},
-		{"path/to/bar.cc", "bar"},
-		{"nested/dir.with.dot/qux.hpp", "qux"},
-		{"", ""},
-		{"noext", "noext"},
-	}
-	for _, c := range cases {
-		if got := moduleNameFromFile(c.in); got != c.want {
-			t.Errorf("moduleNameFromFile(%q) = %q, want %q", c.in, got, c.want)
-		}
 	}
 }

@@ -2,9 +2,11 @@ package cli
 
 import (
 	"fmt"
-	"reqmd/internal/filter"
-	"reqmd/internal/parser"
-	"reqmd/internal/reporter"
+	"os"
+
+	"github.com/dVoo/reqmd/internal/filter"
+	"github.com/dVoo/reqmd/internal/parser"
+	"github.com/dVoo/reqmd/internal/reporter"
 
 	"github.com/spf13/cobra"
 )
@@ -12,6 +14,7 @@ import (
 func newStatsCmd() *cobra.Command {
 	var jsonOutput bool
 	var filterExpr string
+	var relaxedFilter bool
 
 	cmd := &cobra.Command{
 		Use:   "stats <dir>",
@@ -24,10 +27,11 @@ func newStatsCmd() *cobra.Command {
 			}
 
 			if filterExpr != "" {
-				f, err := filter.CompileForDocs(docs, filterExpr)
+				f, warnings, err := filter.CompileForDocs(docs, filterExpr, relaxedFilter)
 				if err != nil {
 					return fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 				}
+				filter.WriteWarnings(os.Stderr, warnings)
 				docs, err = f.FilterDocs(docs)
 				if err != nil {
 					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
@@ -41,9 +45,9 @@ func newStatsCmd() *cobra.Command {
 			}
 
 			if jsonOutput {
-				fmt.Fprint(cmd.OutOrStdout(), reporter.FormatStatsJSON(summaries, totalReqs))
+				_, _ = fmt.Fprint(cmd.OutOrStdout(), reporter.FormatStatsJSON(summaries, totalReqs))
 			} else {
-				fmt.Fprint(cmd.OutOrStdout(), reporter.FormatStats(summaries, totalReqs))
+				_, _ = fmt.Fprint(cmd.OutOrStdout(), reporter.FormatStats(summaries, totalReqs))
 			}
 			return nil
 		},
@@ -51,5 +55,6 @@ func newStatsCmd() *cobra.Command {
 
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are counted in stats.")
+	addRelaxedFilterFlag(cmd, &relaxedFilter)
 	return cmd
 }

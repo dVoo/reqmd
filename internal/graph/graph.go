@@ -17,10 +17,11 @@ package graph
 import (
 	"fmt"
 	"path/filepath"
-	"reqmd/internal/model"
 	"slices"
 	"sort"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // Check result severity levels.
@@ -72,9 +73,12 @@ type RepinDelta struct {
 // CachedNode is an in-memory typed representation of a requirement node,
 // populated once at graph creation. All check methods iterate this cache.
 type CachedNode struct {
-	OutboundPins         map[string]int
-	suppressionsSet      map[string]struct{}
-	OutboundRefs         map[string]string
+	OutboundPins    map[string]int
+	suppressionsSet map[string]struct{}
+	OutboundRefs    map[string]string
+	// Refs holds every declared trace reference in source order, including
+	// dangling and ambiguous ones, so exports can surface link health.
+	Refs                 []string
 	File                 string
 	Dir                  string
 	Disposition          string
@@ -227,7 +231,7 @@ func New(docs []model.Document) (*Graph, error) {
 			// inherit the document's x-reqmd.requires-trace-from default
 			// when set. A nil result means neither declared anything, so
 			// the generic boundary-inference fallback still applies.
-			rtf := getStringSlice(req.Attrs, model.AttrRequiresTraceFrom)
+			rtf := model.AttrStrings(req.Attrs, model.AttrRequiresTraceFrom)
 			if rtf == nil && xr != nil && xr.RequiresTraceFrom != nil {
 				// Share the document-level default slice. RequiresTraceFrom is
 				// treated as read-only after New (only iterated by
@@ -240,16 +244,16 @@ func New(docs []model.Document) (*Graph, error) {
 				File:              req.Source,
 				Dir:               filepath.Dir(req.Source),
 				IsChild:           req.ParentID != "",
-				Disposition:       getString(req.Attrs, model.AttrDisposition),
-				DispositionReason: getString(req.Attrs, model.AttrDispositionReason),
-				Version:           getIntFromAttrs(req.Attrs, model.AttrVersion),
+				Disposition:       model.AttrString(req.Attrs, model.AttrDisposition),
+				DispositionReason: model.AttrString(req.Attrs, model.AttrDispositionReason),
+				Version:           model.AttrInt(req.Attrs, model.AttrVersion),
 				RequiresTraceFrom: rtf,
 				OutboundPins:      nil, // lazily allocated in Pass 2
 				OutboundRefs:      nil, // lazily allocated in Pass 2
 				Suppressions:      req.Suppressions,
-				Status:            getString(req.Attrs, model.AttrStatus),
-				Outcome:           getString(req.Attrs, model.AttrResultOutcome),
-				Verify:            getString(req.Attrs, "verify"),
+				Status:            model.AttrString(req.Attrs, model.AttrStatus),
+				Outcome:           model.AttrString(req.Attrs, model.AttrResultOutcome),
+				Verify:            model.AttrString(req.Attrs, model.AttrVerify),
 				Body:              req.Body,
 				IsResult:          strings.HasPrefix(req.ID, "RESULT:"),
 				Synthetic:         doc.Synthetic,
@@ -312,6 +316,7 @@ func New(docs []model.Document) (*Graph, error) {
 				// We strip the pin below; the repin command needs the
 				// unmutated form to drive text edits.
 				originalRef := refStr
+				node.Refs = append(node.Refs, originalRef)
 
 				// Strip optional version pin via the shared helper.
 				var pin int
@@ -580,6 +585,98 @@ func (g *Graph) checkCircular() []CheckResult {
 	return results
 }
 
+// ensureBoundaries computes the V-model boundaries when CheckResults has not
+// run yet, so analysis callers get the same boundary inference.
+func (g *Graph) ensureBoundaries() {
+	if g.cachedRootDirs != nil && g.cachedLeafDirs != nil {
+		return
+	}
+	g.cachedRootDirs, g.cachedLeafDirs = g.inferBoundaries(g.docs)
+}
+
+// coverageState classifies one node using the coverage rules of
+// checkRequiresTraceFromCoverage. It is the single implementation both the
+// check and CoverageStates read.
+func (g *Graph) coverageState(node *CachedNode) NodeCoverage {
+	if node.isSuppressed("requires-trace-from-coverage") {
+		return NodeCoverage{State: CoverageNotRequired}
+	}
+	if node.RequiresTraceFrom != nil {
+		return g.explicitCoverage(node)
+	}
+	return g.genericCoverage(node)
+}
+
+// explicitCoverage classifies a requirement that declares (or inherits) a
+// requires-trace-from expectation.
+func (g *Graph) explicitCoverage(node *CachedNode) NodeCoverage {
+	// Empty `requires-trace-from: []` is an explicit opt-out.
+	if len(node.RequiresTraceFrom) == 0 {
+		return NodeCoverage{State: CoverageNotRequired}
+	}
+	cov := NodeCoverage{State: CoverageCovered}
+	for _, from := range node.RequiresTraceFrom {
+		dirs := g.resolveCoverageSource(from)
+		if len(dirs) == 0 {
+			cov.State = CoverageUnresolved
+			cov.Misses = append(cov.Misses, CoverageMiss{From: from, Unknown: true})
+			continue
+		}
+		covered, drafts := g.inboundFrom(node, dirs)
+		cov.Drafts += drafts
+		if covered {
+			continue
+		}
+		if cov.State != CoverageUnresolved {
+			cov.State = CoverageMissing
+		}
+		cov.Misses = append(cov.Misses, CoverageMiss{From: from})
+	}
+	return cov
+}
+
+// inboundFrom reports whether an in-filter, approved inbound requirement comes
+// from one of the expected document directories. drafts counts in-filter
+// inbound requirements ignored by the status gate.
+func (g *Graph) inboundFrom(node *CachedNode, dirs []string) (covered bool, drafts int) {
+	for _, inboundID := range node.Inbound {
+		inbound := g.nodes[inboundID]
+		if inbound == nil {
+			continue
+		}
+		// A filtered-out inbound cannot satisfy coverage for a filtered-in
+		// requirement.
+		if !g.inFilter(inboundID) {
+			continue
+		}
+		// A draft inbound does not satisfy coverage; it is counted so the
+		// finding can explain the shortfall.
+		if !g.isCoverageProvider(inboundID) {
+			drafts++
+			continue
+		}
+		if dir, ok := g.docOfReqFile[inbound.File]; ok && slices.Contains(dirs, dir) {
+			return true, drafts
+		}
+	}
+	return false, drafts
+}
+
+// genericCoverage applies the boundary-aware untraced rule for requirements
+// without a requires-trace-from expectation: an inbound link, the root
+// boundary, or a nested sub-requirement needs no coverage.
+func (g *Graph) genericCoverage(node *CachedNode) NodeCoverage {
+	if g.hasFilteredInbound(node) {
+		return NodeCoverage{State: CoverageCovered}
+	}
+	dir := g.docOfReqFile[node.File]
+	g.ensureBoundaries()
+	if g.cachedRootDirs[dir] || node.IsChild || node.isSuppressed("untraced") {
+		return NodeCoverage{State: CoverageNotRequired}
+	}
+	return NodeCoverage{State: CoverageMissing}
+}
+
 // checkRequiresTraceFromCoverage runs two related checks:
 //  1. For each requirement that explicitly declares `requires-trace-from`
 //     (even `requires-trace-from: []`), verify that at least one inbound
@@ -599,66 +696,27 @@ func (g *Graph) checkRequiresTraceFromCoverage(rootDirs, leafDirs map[string]boo
 		}
 		// Case 1: explicit `requires-trace-from` declared (nil = not set; non-nil = set)
 		if node.RequiresTraceFrom != nil {
-			if node.isSuppressed("requires-trace-from-coverage") {
-				continue
-			}
-			// Empty `requires-trace-from: []` means "no coverage expected" — explicit opt-out.
-			if len(node.RequiresTraceFrom) == 0 {
-				continue
-			}
-			for _, from := range node.RequiresTraceFrom {
-				dirs := g.resolveCoverageSource(from)
-				if len(dirs) == 0 {
+			cov := g.coverageState(node)
+			for _, miss := range cov.Misses {
+				if miss.Unknown {
 					results = append(results, CheckResult{
 						Level:   LevelWarning,
 						ReqID:   node.ReqID,
 						File:    node.File,
-						Message: fmt.Sprintf("unknown coverage source: %q", from),
+						Message: fmt.Sprintf("unknown coverage source: %q", miss.From),
 					})
 					continue
 				}
-				// dirs is usually a single directory, so a linear scan beats
-				// allocating a set per (requirement, coverage source).
-				covered := false
-				draftCount := 0
-				for _, inboundID := range node.Inbound {
-					inboundNode := g.nodes[inboundID]
-					if inboundNode == nil {
-						continue
-					}
-					// Filter guard: a filtered-out inbound cannot satisfy
-					// coverage for a filtered-in requirement.
-					if !g.inFilter(inboundID) {
-						continue
-					}
-					// Status gate: a draft inbound does not satisfy
-					// coverage. Count it for the message; do not consider
-					// it a match.
-					if !g.isCoverageProvider(inboundID) {
-						draftCount++
-						continue
-					}
-					inboundDir, ok := g.docOfReqFile[inboundNode.File]
-					if !ok {
-						continue
-					}
-					if slices.Contains(dirs, inboundDir) {
-						covered = true
-						break
-					}
+				msg := fmt.Sprintf("no upstream trace: no approved requirement from %q traces to this item", miss.From)
+				if cov.Drafts > 0 {
+					msg += fmt.Sprintf(" (%d draft downstreams ignored)", cov.Drafts)
 				}
-				if !covered {
-					msg := fmt.Sprintf("no upstream trace: no approved requirement from %q traces to this item", from)
-					if draftCount > 0 {
-						msg += fmt.Sprintf(" (%d draft downstreams ignored)", draftCount)
-					}
-					results = append(results, CheckResult{
-						Level:   LevelWarning,
-						ReqID:   node.ReqID,
-						File:    node.File,
-						Message: msg,
-					})
-				}
+				results = append(results, CheckResult{
+					Level:   LevelWarning,
+					ReqID:   node.ReqID,
+					File:    node.File,
+					Message: msg,
+				})
 			}
 			continue
 		}
@@ -1083,9 +1141,10 @@ func severityOutcome(s severity) string {
 		return "inconclusive"
 	case sevFail:
 		return "fail"
-	default:
+	case sevNone:
 		return ""
 	}
+	return ""
 }
 
 // EvidenceItem is one verification result contributing to a measure's
@@ -1477,70 +1536,6 @@ func (g *Graph) Documents() []model.Document {
 	return g.docs
 }
 
-// ---------------------------------------------------------------------------
-// Property access helpers
-// ---------------------------------------------------------------------------
-
-func getString(props map[string]any, key string) string {
-	if v, ok := props[key]; ok {
-		if s, ok := v.(string); ok {
-			return s
-		}
-	}
-	return ""
-}
-
-// getStringSlice reads a []any / []string attr as []string. Returns nil if
-// the key is absent (so callers can distinguish "not set" from
-// "explicitly empty" by comparing against nil). Returns []string{} when
-// the key is present but the array is empty.
-func getStringSlice(props map[string]any, key string) []string {
-	v, ok := props[key]
-	if !ok {
-		return nil
-	}
-	switch arr := v.(type) {
-	case []any:
-		if arr == nil {
-			return []string{}
-		}
-		out := make([]string, 0, len(arr))
-		for _, item := range arr {
-			if s, ok := item.(string); ok {
-				out = append(out, s)
-			}
-		}
-		return out
-	case []string:
-		if arr == nil {
-			return []string{}
-		}
-		out := make([]string, len(arr))
-		copy(out, arr)
-		return out
-	}
-	return nil
-}
-
-// getIntFromAttrs reads an integer attr. Handles the types that appear in
-// practice: int (yaml.v3 decode), int64, float64 (JSON round-trip),
-// and json.Number (defensive). Returns 0 if absent or undecodable.
-func getIntFromAttrs(props map[string]any, key string) int {
-	v, ok := props[key]
-	if !ok {
-		return 0
-	}
-	switch n := v.(type) {
-	case int:
-		return n
-	case int64:
-		return int(n)
-	case float64:
-		return int(n)
-	}
-	return 0
-}
-
 // isSuppressed returns true if the given check name is in this node's
 // suppression set. O(1) via the precomputed map; falls back to the
 // linear scan only if the set was not built (defensive).
@@ -1690,7 +1685,7 @@ func (g *Graph) checkDisjointAttribute() []CheckResult {
 		for _, req := range g.reqsByDoc[i] {
 			var vals attrVals
 			for _, attr := range g.disjointAttrs {
-				if s := getStringSlice(req.Attrs, attr); len(s) > 0 {
+				if s := model.AttrStrings(req.Attrs, attr); len(s) > 0 {
 					if vals == nil {
 						vals = make(attrVals, len(g.disjointAttrs))
 					}

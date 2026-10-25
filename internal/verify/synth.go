@@ -2,10 +2,11 @@ package verify
 
 import (
 	"fmt"
-	"reqmd/internal/model"
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // resultDocLevel is the x-reqmd level assigned to synthesized

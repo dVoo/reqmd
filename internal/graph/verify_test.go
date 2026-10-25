@@ -1,10 +1,11 @@
 package graph_test
 
 import (
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
 	"strings"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // resultReq builds a synthesized verification-result pseudo-requirement
@@ -200,7 +201,7 @@ func TestVersionPin_StaleResultPin(t *testing.T) {
 
 // staleResultReq builds a result whose trace carries a ~N pin.
 func staleResultReq(pinnedMeasureID, outcome string) *model.Node {
-	strip := strings.SplitN(pinnedMeasureID, "~", 2)[0]
+	strip, _, _ := strings.Cut(pinnedMeasureID, "~")
 	return &model.Node{
 		ID:     "RESULT:" + strip,
 		Source: "run.ctrf.json",
@@ -216,15 +217,13 @@ func staleResultReq(pinnedMeasureID, outcome string) *model.Node {
 // case-keyed chains (patterns C/D/E): cased results + synthesized TC nodes
 // ---------------------------------------------------------------------------
 
-// casedResultReq builds a result node with a case-suffixed ID tracing to
-// the given target.
-func casedResultReq(target, caseKey, outcome string) *model.Node {
-	id := "RESULT:" + target
-	if caseKey != "" {
-		id += "#" + caseKey
-	}
+// bootTimeCase is the case key used by the case-keyed chain fixtures.
+const bootTimeCase = "BOOT-TIME"
+
+// casedResultReq builds a case-keyed result node tracing to the given target.
+func casedResultReq(target, outcome string) *model.Node {
 	return &model.Node{
-		ID:     id,
+		ID:     "RESULT:" + target + "#" + bootTimeCase,
 		Source: "run.ctrf.json",
 		Attrs: map[string]any{
 			model.AttrResultOutcome: outcome,
@@ -252,7 +251,7 @@ func tcNodeReq(tcID string, verifies ...string) *model.Node {
 func TestCaseKeyedResult_MeasureChecks(t *testing.T) {
 	g, err := graph.New([]model.Document{
 		measureDoc(measureReq(model.StatusApproved)),
-		resultDoc(casedResultReq("TST-001", "BOOT-TIME", "fail")),
+		resultDoc(casedResultReq("TST-001", "fail")),
 	})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -288,7 +287,7 @@ func TestSynthChain_TCToRequirement_NoBrokenRefs(t *testing.T) {
 	)
 	results := resultDoc(
 		tcNodeReq("TC:BOOT-TIME", "SYS-001"),
-		casedResultReq("TC:BOOT-TIME", "BOOT-TIME", "pass"),
+		casedResultReq("TC:BOOT-TIME", "pass"),
 	)
 	g, err := graph.New([]model.Document{req, results})
 	if err != nil {
@@ -304,7 +303,7 @@ func TestSynthChain_TCToRequirement_NoBrokenRefs(t *testing.T) {
 	// And a failing case rolls up to the requirement.
 	resultsFailing := resultDoc(
 		tcNodeReq("TC:BOOT-TIME", "SYS-001"),
-		casedResultReq("TC:BOOT-TIME", "BOOT-TIME", "fail"),
+		casedResultReq("TC:BOOT-TIME", "fail"),
 	)
 	g2, err := graph.New([]model.Document{req, resultsFailing})
 	if err != nil {
@@ -335,7 +334,7 @@ func TestRollup_MixedEvidenceOneFailingFails(t *testing.T) {
 	)
 	results := resultDoc(
 		resultReq("SYS-001", "pass"),
-		casedResultReq("TEST-001", "BOOT-TIME", "fail"),
+		casedResultReq("TEST-001", "fail"),
 	)
 	g, err := graph.New([]model.Document{sys, tc, results})
 	if err != nil {
@@ -365,7 +364,7 @@ func TestRollup_DraftTCIgnored(t *testing.T) {
 			"trace":  []any{"SYS-001"},
 		}),
 	)
-	results := resultDoc(casedResultReq("TEST-001", "BOOT-TIME", "pass"))
+	results := resultDoc(casedResultReq("TEST-001", "pass"))
 	g, err := graph.New([]model.Document{sys, tc, results})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -388,7 +387,7 @@ func TestRollup_FilterExcludesTestsDoc(t *testing.T) {
 	tc := docWithXReqmd("/docs/tests", &model.XReqmd{Level: "test-specs"},
 		req("TEST-001", "/docs/tests/t.md", map[string]any{"verify": "Test", "trace": []any{"SYS-001"}}),
 	)
-	results := resultDoc(casedResultReq("TEST-001", "BOOT-TIME", "fail"))
+	results := resultDoc(casedResultReq("TEST-001", "fail"))
 	g, err := graph.New([]model.Document{sys, tc, results})
 	if err != nil {
 		t.Fatalf("New: %v", err)
@@ -445,7 +444,7 @@ func TestMeasureVerdicts_EvidenceCarriesDescription(t *testing.T) {
 	}
 	results := resultDoc(
 		tc,
-		casedResultReq("TC:BOOT-TIME", "BOOT-TIME", "pass"),
+		casedResultReq("TC:BOOT-TIME", "pass"),
 	)
 	g, err := graph.New([]model.Document{sys, results})
 	if err != nil {

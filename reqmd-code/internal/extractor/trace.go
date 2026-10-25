@@ -27,8 +27,8 @@ import (
 // It rejects obviously-wrong shapes like `REQ-foo-bar` (lowercase
 // letters) or bare `foo` (no leading uppercase run).
 //
-// See reqmd/internal/schema/builtin.go for the canonical definition that
-// `reqmd check` enforces.
+// See the reqmd schema package (internal/schema/builtin.go) for the
+// canonical definition that `reqmd check` enforces.
 var validIDRe = regexp.MustCompile(`^([a-z0-9_-]+/)?[A-Z][A-Z0-9-]+(~[0-9]+)?$`)
 
 // traceRe matches an explicit `reqmd:trace` directive line. One ID per
@@ -63,7 +63,7 @@ func ExtractTraces(text string, useHeuristic bool) (explicit, heuristic []string
 	// 1. Explicit `reqmd:trace` lines.
 	for _, m := range traceRe.FindAllStringSubmatch(text, -1) {
 		// m[1] may be a single ID or a comma-separated list.
-		for _, raw := range strings.Split(m[1], ",") {
+		for raw := range strings.SplitSeq(m[1], ",") {
 			id := strings.TrimSpace(raw)
 			if id == "" {
 				continue

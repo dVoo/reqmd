@@ -13,12 +13,13 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
-	"reqmd/internal/parser"
 	"slices"
 	"strconv"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/parser"
 )
 
 // Result is the value Build returns: a sorted list of deltas plus a
@@ -93,10 +94,11 @@ func Build(root string, promoteUnpinned bool) (Result, error) {
 // previously unpinned). All other bytes of the file are preserved
 // verbatim.
 //
-// On success each touched file is rewritten via os.WriteFile. If a
-// write fails, the function returns the error; the apply report
-// lists every delta that was successfully applied.
-func Apply(deltas []graph.RepinDelta) (ApplyReport, error) {
+// Files are read and rewritten relative to root through an os.Root, so a
+// delta path can never escape the requirements tree. If a write fails the
+// function returns the error; the apply report lists every delta that was
+// successfully applied.
+func Apply(root string, deltas []graph.RepinDelta) (ApplyReport, error) {
 	report := ApplyReport{}
 
 	// Predated deltas are never auto-fixed. skip is pre-allocated so
@@ -111,6 +113,12 @@ func Apply(deltas []graph.RepinDelta) (ApplyReport, error) {
 		apply = append(apply, d)
 	}
 
+	rootDir, err := os.OpenRoot(root)
+	if err != nil {
+		return report, fmt.Errorf("opening %s: %w", root, err)
+	}
+	defer func() { _ = rootDir.Close() }()
+
 	// Group by file to minimise reads.
 	byFile := make(map[string][]graph.RepinDelta)
 	for _, d := range apply {
@@ -118,9 +126,14 @@ func Apply(deltas []graph.RepinDelta) (ApplyReport, error) {
 	}
 
 	for path, fileDeltas := range byFile {
-		src, err := os.ReadFile(path)
-		if err != nil {
-			return report, fmt.Errorf("reading %s: %w", path, err)
+		rel, relErr := filepath.Rel(root, path)
+		if relErr != nil {
+			return report, fmt.Errorf("resolving %s under %s: %w", path, root, relErr)
+		}
+		rel = filepath.ToSlash(rel)
+		src, readErr := rootDir.ReadFile(rel)
+		if readErr != nil {
+			return report, fmt.Errorf("reading %s: %w", path, readErr)
 		}
 		updated, matches := applyToFile(src, fileDeltas)
 		if matches == 0 {
@@ -128,8 +141,12 @@ func Apply(deltas []graph.RepinDelta) (ApplyReport, error) {
 			// and don't count it toward Files.
 			continue
 		}
-		if err := os.WriteFile(path, updated, 0o644); err != nil {
-			return report, fmt.Errorf("writing %s: %w", path, err)
+		mode := os.FileMode(0o644)
+		if info, statErr := rootDir.Stat(rel); statErr == nil {
+			mode = info.Mode().Perm()
+		}
+		if writeErr := rootDir.WriteFile(rel, updated, mode); writeErr != nil {
+			return report, fmt.Errorf("writing %s: %w", path, writeErr)
 		}
 		report.Applied += matches
 		report.Files++

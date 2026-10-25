@@ -5,10 +5,11 @@ package reporter
 import (
 	"encoding/json"
 	"fmt"
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
 	"sort"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // ValidationError describes a single requirement that failed validation.
@@ -285,7 +286,7 @@ func FormatList(docs []DocumentSummary) string {
 			fmt.Fprintf(&b, "%-24s", displayID)
 			b.WriteString(" | ")
 			for _, prop := range doc.Properties {
-				val := formatAttrValue(row.Attrs[prop])
+				val := model.FormatAttr(row.Attrs[prop])
 				fmt.Fprintf(&b, "%-12s", val)
 				b.WriteString(" | ")
 			}
@@ -614,17 +615,4 @@ func FormatStatsJSON(docs []DocumentSummary, totalReqs int) string {
 		return fmt.Sprintf(`{"error":"json marshal: %v"}`, err)
 	}
 	return string(b) + "\n"
-}
-
-// formatAttrValue formats an arbitrary attr value for display in text tables.
-func formatAttrValue(v any) string {
-	switch v.(type) {
-	case string, bool, int, int64, float64:
-		return model.FormatScalar(v)
-	case []any:
-		b, _ := json.Marshal(v)
-		return string(b)
-	default:
-		return ""
-	}
 }

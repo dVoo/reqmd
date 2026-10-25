@@ -289,7 +289,7 @@ containers/info items alike.
 
 ### `reqmd export html` — export to HTML
 
-Standalone HTML files with trace links, document chain, theme toggle, search.
+A project home (`index.html`) plus one standalone HTML file per document, with a server-rendered Document view plus on-demand Table, Trace, and Coverage views, a compact sticky app bar, trace links, and a ⌘K command palette.
 
 ```sh
 reqmd export html spec/ -o html-out/
@@ -307,14 +307,34 @@ exporting spec/ → html-out/
   spec/04-tests   → html-out/tests-requirements.html
   ...
   22 documents exported
+  html-out/index.html
 ```
 
-Each HTML file is standalone (no external JS), with requirement cards,
-collapsible container sections and info blocks for headings without
-`attr` blocks, a sidebar TOC with folder nesting, trace links, document
-chain, search, and theme toggle.
+Every page is fully standalone — the stylesheet and client controller are
+embedded, so there is no network access and no CDN — with a server-rendered
+**Document** view that stays readable without JavaScript:
 
-[**See a live HTML export →**](/export-sample/02-system-requirements.html) (from the reqmd project's own spec)
+- **Document** — requirement cards with status/coverage/verdict chips, a
+  collapsible detail block (attributes, rationale, evidence, traces),
+  collapsible container sections and info blocks, and the document chain.
+- **Table** — a dense sortable grid with a column chooser, type-aware sorting,
+  and expandable rows that reuse the server-rendered card content.
+- **Trace** — a selected-requirement explorer with upstream and downstream
+  neighbourhoods (click any node to recenter) and a size-bounded full matrix.
+- **Coverage** — expected versus actual coverage, the verification rollup with
+  `no verdict` in the denominator, link health, and exception lists that filter
+  the other views.
+
+`index.html` adds a document catalog, project-wide health, and cross-document
+search. A ⌘K command palette, keyboard shortcuts (`/` search, `g d`/`g t`/`g r`/`g c`
+views, `t` theme, `f` density, `?` help), a density toggle, and URL-synced state
+(`?q=&f=attr:value&view=&density=`) make a filtered view bookmarked or shared.
+
+The toolbar's attribute menus are built from every attribute present on a
+requirement, so attributes declared in no `schema.yaml` are filterable too (and
+show up in the cards and table marked as undeclared).
+
+[**See a live HTML export →**](/export-sample/02-system-requirements.html) (from the reqmd project's own spec) · [project home →](/export-sample/index.html)
 {{< /details >}}
 
 ### `reqmd export json` — export NDJSON tables for reporting platforms
@@ -485,7 +505,7 @@ no version-pin changes needed
 **Rules:**
 
 - The engine is [`expr-lang`](https://github.com/expr-lang/expr); supported operators include `==`, `!=`, `<`, `>`, `<=`, `>=`, `in`, `and`, `or`, `not`, `contains`, `startsWith`, `endsWith`.
-- A filter referencing an attribute not declared in any `schema.yaml` is a compile-time ERROR (fails fast on typos, before any requirement is evaluated).
+- A filter referencing an attribute not declared in any `schema.yaml` is a compile-time ERROR (fails fast on typos, before any requirement is evaluated). Add `--relaxed-filter` to downgrade that to a warning; it also allows any attribute actually present on a requirement.
 - A filter with invalid syntax is a compile-time ERROR, reported once.
 - A requirement lacking a referenced attribute evaluates that variable to `nil` and is excluded unless the expression handles absence (e.g. `variant == nil`).
 - The `--json` summary includes the active expression in a `"filter"` field.

@@ -16,14 +16,17 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
                 schemaFile = component "schema.yaml"   "JSON Schema 2020-12 in YAML + x-reqmd upstream" "YAML"
             }
 
-            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json and --filter output" "Go 1.26" "CLI" {
+            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/NDJSON/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json and --filter output" "Go 1.26" "CLI" {
                 parser       = component "Markdown Parser"  "Discovers schema.yaml per dir and parses .md via goldmark AST with GFM and parallel worker pool; assembles the full content tree (every heading is a node except the level-1 document title: requirement / container / info; h1 is the title and only h2+ can be requirements) with nothing dropped and deterministic file-order merging" "Go / goldmark"
-                validator    = component "Schema Validator" "Injects built-in attrs (including the status lifecycle and additional-status-values), validates attr maps against JSON Schema 2020-12, and accepts reqmd-suppress per requirement" "Go / google/jsonschema-go"
+                validator    = component "Schema Validator" "Injects built-in attrs (including the status lifecycle and additional-status-values), rejects reserved-name redefinition, validates attr maps against JSON Schema 2020-12, and accepts reqmd-suppress per requirement" "Go / google/jsonschema-go"
                 graphBuilder = component "Graph Builder"    "Builds in-memory adjacency from parsed requirements, resolves doc-id-qualified traces, indexes x-reqmd.level for level-typed requires-trace-from coverage, and resolves each requirement's effective requires-trace-from (own attribute or inherited x-reqmd.requires-trace-from document default)" "Go"
-                traceChecker = component "Trace Checker"   "Runs Pass 2 trace checks, Pass 3 sub-req parent validation, disjoint-attribute checks, and outcome-gated verdict checks against the in-memory cache; honors per-requirement reqmd-suppress" "Go"
+                traceChecker = component "Trace Checker"   "Runs the graph check catalog against the in-memory node cache: structural integrity, boundary-aware coverage, disjoint attributes, version pins, and outcome-gated verdicts with the strict evidence roll-up; honors per-requirement reqmd-suppress" "Go"
                 filter       = component "Attribute Filter" "Compiles --filter expressions (expr-lang) once, validates attribute names against all schemas, and scopes check/ls/stats/export/serve/baseline to matching requirements with filter-aware coverage" "Go / expr-lang"
-                exporter     = component "Exporter"        "Renders standalone HTML (cards, collapsible container sections, info blocks, sidebar TOC with folders), CSV (Type column, document order), and LadybugDB graph outputs" "Go"
-                reporter     = component "Reporter"        "Aggregates Pass 1/2/3 results, emits formatted or JSON output, sets exit code" "Go"
+                exporter     = component "Exporter"        "Renders standalone, fully offline HTML (server-rendered Document view + on-demand Table/Trace/Coverage views from one shared page model, project home index, graph-derived coverage/verification/link state) and CSV (Type column, document order)" "Go"
+                jsonExporter = component "NDJSON Table Writer" "Writes requirements/traces/results/findings NDJSON tables for warehouse ingestion: built-ins promoted to columns, null-padded fixed columns, byte-deterministic output" "Go"
+                graphExporter = component "Graph Exporter"  "Writes a LadybugDB graph database (requirement nodes, TracesTo edges, optional RESULT: verdict nodes) behind the ladybug build tag" "Go / ladybugdb"
+                scaffolder   = component "Scaffolder"      "Renders embedded (generic, aspice, results) or custom-directory templates into a new schema.yaml plus example document" "Go / text-template"
+                reporter     = component "Reporter"        "Aggregates Pass 1 and graph check results, groups result-attributed findings into a verification section, emits formatted or JSON output, sets exit code" "Go"
                 differ       = component "Baseline Differ" "Compares requirements and schemas between two git tags via git archive, using r3labs/diff for attribute-level changes" "Go / r3labs-diff"
                 verifyLoader = component "Verify Loader"   "Loads ephemeral verification results (CTRF JSON + manual markdown), binds entries via x-reqmd id/case/verifies, synthesizes RESULT: pseudo-requirements and TC:<case> test-case nodes (marked Synthetic), feeds them to the graph for rolled-up outcome-gated checks" "Go / stdlib"
                 repinner     = component "Repinner"        "Computes version-pin deltas from the graph and rewrites ```attr blocks in place to update ~N pins to the upstream's current version" "Go / stdlib"
@@ -33,32 +36,24 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
         // reqmd-code: source-code requirement trace extraction tool
         extractionTool = softwareSystem "Extraction Tool" "Parses source code with Tree-sitter (C, C++, Go, Python, Rust grammars), extracts symbols and requirement IDs, and emits a reqmd-import/v1 exchange bundle (JSON) for the Import Tool to render as proxy requirements" {
 
-            scanner = container "Repository Scanner" "Discovers files, detects languages, computes hashes, and schedules parsing work" "CLI / File walker"
+            extractCli = container "Extraction CLI" "Walks the source tree, dispatches each file to the plugin claiming its extension, parses in parallel, binds doc comments, groups symbols per package, and writes one reqmd-import/v1 bundle to stdout or -o" "Go / cobra" "CLI"
 
-            parserRuntime = container "Parsing Runtime" "Loads Tree-sitter language grammars, parses files, and executes language-specific queries" "Tree-sitter runtime" {
-                languageRegistry = component "Language Registry" "Selects the correct Tree-sitter grammar and query set for each file type" "Registry component"
-                syntaxParser     = component "Syntax Parser"     "Builds syntax trees from source files using Tree-sitter parsers" "Tree-sitter parser"
-                queryExecutor    = component "Query Executor"    "Runs queries that capture definitions, names, spans, and documentation nodes" "Tree-sitter query engine"
+            languages = container "Language Plugins" "Self-registering Tree-sitter plugins: the Language interface plus C, C++, Go, Python, and Rust grammars, queries, and capture-to-symbol mappings" "Go / tree-sitter" {
+                registry     = component "Plugin Registry"          "Resolves the plugin for a file extension; plugins self-register via blank imports, so adding a language needs no change to the extractor" "Go"
+                symbolMapper = component "Capture to Symbol Mapper" "Maps language-specific captures to the shared symbol model, populating method receivers from the enclosing type and excluding function-local declarations" "Go / tree-sitter query"
             }
 
-            normalizer = container "Normalization & Trace Engine" "Maps raw captures into a common symbol model, binds adjacent docs, extracts requirement IDs, and resolves trace links" "Application service" {
-                symbolNormalizer = component "Symbol Normalizer"        "Converts language-specific captures into a common symbol schema" "Transformation component"
-                docBinder        = component "Documentation Binder"     "Associates adjacent comments or docstrings with symbols and cleans comment markers" "Binding component"
-                reqExtractor     = component "Requirement ID Extractor" "Extracts IDs such as REQ-1 from documentation text using configured rules" "Rule engine"
-                traceResolver    = component "Trace Resolver"           "Builds symbol-to-requirement links and de-duplicates trace edges" "Graph builder"
-            }
+            traceEngine = container "Trace Engine" "Extracts explicit reqmd:trace markers from bound doc comments and, opt-in via --heuristic-traces, bare requirement IDs found in prose" "Go"
 
-            cache = container "Extraction Cache" "Stores file hashes, parse metadata, and extracted symbols to support incremental runs" "SQLite or embedded KV" {
-                tags "Database"
-            }
+            symbolModel = container "Symbol Model" "Normalized symbol type plus the stable short hash over package and symbol that makes generated IDs line-independent" "Go"
 
-            bundleWriter = container "Exchange Bundle Writer" "Emits normalized symbols as a reqmd-import/v1 JSON bundle (per-package documents with provenance attrs, trace refs, and the standard attr schema) for reqmd-import to render" "CLI / JSON encoder"
+            attrSchema = container "Standard Attr Schema" "Canonical provenance attribute set (x-reqmd.imported, source-file, source-line, symbol-kind, heuristic-trace) projected into every emitted document's schema" "YAML"
         }
 
         // reqmd-import: the single renderer for the exchange format
         importTool = softwareSystem "Import Tool" "Renders a reqmd-import/v1 exchange bundle into reqmd documents (schema.yaml + .md). The only component that writes Markdown or YAML, so every importer shares one set of quoting, heading, and schema rules" {
 
-            exchangeFormat = container "Exchange Format" "reqmd-import/v1 JSON contract: documents carrying id-prefix, level, document-id, upstream and attr-schema properties, plus native-id-keyed requirements (parent, trace, native-trace, attrs)" "JSON"
+            exchangeFormat = container "Exchange Format" "reqmd-import/v1 JSON contract: documents carrying id-prefix, level, document-id, upstream and attr-schema properties, plus native-id-keyed requirements (parent, trace, native-trace, attrs). Building a bundle rejects unsupported formats, empty document lists, duplicate native IDs, unknown parent/native-trace refs, reserved attrs, escaping paths, parent cycles, and duplicate output paths" "JSON"
 
             renderer = container "Document Renderer" "Resolves native IDs to reqmd IDs, orders children under their parents, renders attr blocks with correct YAML quoting, emits each document's schema.yaml, and writes files idempotently behind a generated marker" "Go" "CLI" {
                 idResolver   = component "ID & Reference Resolver"   "Stamps <id-prefix><native-id>, rewrites native-trace refs against a bundle-wide index, and rejects duplicate IDs, unknown refs, reserved attrs, escaping paths, and parent cycles" "Go"
@@ -96,10 +91,14 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
         validator    -> schemaFile   "Loads JSON Schema from"
         validator    -> parser       "Receives parsed attr maps from"
         graphBuilder -> parser       "Receives all parsed requirements from"
-        traceChecker -> graphBuilder "Runs Pass 2 checks against CachedNode cache"
+        traceChecker -> graphBuilder "Runs the graph check catalog against the CachedNode cache"
         reporter     -> validator    "Receives Pass 1 errors from"
         reporter     -> traceChecker "Receives Pass 2 warnings and errors from"
-        exporter     -> graphBuilder "Queries upstream/downstream neighbours from graph"
+        exporter     -> graphBuilder "Reads coverage state, verification state, and resolved trace links from graph"
+        jsonExporter -> graphBuilder "Projects trace edges, findings, and rolled-up verdicts from"
+        jsonExporter -> parser      "Reads content nodes in document order from"
+        graphExporter -> graphBuilder "Writes requirement nodes and TracesTo edges from"
+        scaffolder   -> specRepo    "Writes the scaffolded schema.yaml and example .md to"
         differ       -> parser       "Parses both tag snapshots via"
         differ       -> specRepo     "Extracts tags via git archive from"
         verifyLoader -> graphBuilder  "Synthesizes RESULT: pseudo-requirements and appends to doc slice before graph build"
@@ -113,35 +112,22 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
         filter       -> exporter      "Scopes CSV/HTML export to matching requirements"
 
         // --- Extraction tool internal flow ---
-        extractionTool.scanner        -> extractionTool.cache          "Reads/writes file hashes and work state"
-        extractionTool.scanner        -> extractionTool.parserRuntime  "Submits files for parsing"
-        extractionTool.parserRuntime  -> extractionTool.cache          "Reads cached parse metadata from"
-        extractionTool.parserRuntime  -> extractionTool.normalizer     "Sends raw symbol and doc captures to"
-        extractionTool.normalizer     -> extractionTool.cache          "Stores normalized symbols and trace links in"
-        extractionTool.normalizer     -> extractionTool.bundleWriter   "Provides normalized trace model to"
-        extractionTool.bundleWriter    -> extractionTool.cache          "Reads incremental results from"
+        extractionTool.extractCli -> extractionTool.languages   "Asks for the plugin owning each file extension"
+        extractionTool.extractCli -> extractionTool.traceEngine "Sends bound doc comments for requirement-ID extraction"
+        extractionTool.extractCli -> extractionTool.symbolModel "Builds native IDs from"
+        extractionTool.extractCli -> extractionTool.attrSchema  "Projects each document's property set from"
 
         // --- Extraction tool component internals ---
-        extractionTool.parserRuntime.languageRegistry  -> extractionTool.parserRuntime.syntaxParser     "Provides parser configuration to"
-        extractionTool.parserRuntime.languageRegistry  -> extractionTool.parserRuntime.queryExecutor    "Provides language queries to"
-        extractionTool.parserRuntime.syntaxParser      -> extractionTool.parserRuntime.queryExecutor    "Provides syntax trees to"
-        extractionTool.parserRuntime.queryExecutor     -> extractionTool.normalizer.symbolNormalizer   "Sends captured definitions to"
-        extractionTool.parserRuntime.queryExecutor     -> extractionTool.normalizer.docBinder          "Sends captured comments/docstrings to"
-        extractionTool.normalizer.symbolNormalizer     -> extractionTool.normalizer.docBinder          "Provides symbol identities to"
-        extractionTool.normalizer.docBinder            -> extractionTool.normalizer.reqExtractor       "Provides cleaned documentation to"
-        extractionTool.normalizer.reqExtractor         -> extractionTool.normalizer.traceResolver      "Provides extracted requirement IDs to"
-        extractionTool.normalizer.symbolNormalizer     -> extractionTool.normalizer.traceResolver      "Provides normalized symbols to"
-        extractionTool.normalizer.traceResolver        -> extractionTool.bundleWriter                  "Provides resolved symbol-to-requirement links to"
+        extractionTool.languages.registry -> extractionTool.languages.symbolMapper "Selects the mapper matching the file's grammar"
 
         // --- CLI → repo ---
         reqmdCli -> specRepo "Reads *.md and schema.yaml from"
 
         // --- Cross-system ---
         extractionTool                  -> sourceRepository   "Reads source files from"
-        extractionTool                  -> reqmd.specRepo     "Reads requirement ID schemas from"
 
         // --- Import tool: one renderer for every producer ---
-        extractionTool.bundleWriter     -> importTool          "Emits a reqmd-import/v1 bundle to"
+        extractionTool.extractCli       -> importTool          "Emits a reqmd-import/v1 bundle to"
         customImporter                  -> alm                 "Pulls requirements from"
         customImporter                  -> importTool          "Emits a reqmd-import/v1 bundle to"
         importTool.renderer             -> reqmd.specRepo      "Writes generated .md and schema.yaml to"
@@ -190,12 +176,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
             autoLayout
         }
 
-        component extractionTool.parserRuntime "ParsingComponents" "Parsing runtime internals" {
-            include *
-            autoLayout
-        }
-
-        component extractionTool.normalizer "TraceComponents" "Trace engine internals" {
+        component extractionTool.languages "LanguagePluginComponents" "Language plugin registry and mappers" {
             include *
             autoLayout
         }
@@ -216,7 +197,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
             autoLayout
         }
 
-        // bundleWriter is a single-container box with no sub-components; it appears in ExtractionContainers
+        // Single-container boxes (extractCli, traceEngine, symbolModel, attrSchema) appear in ExtractionContainers
 
         styles {
             element "Person" {

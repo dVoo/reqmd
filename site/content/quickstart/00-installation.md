@@ -27,11 +27,9 @@ To install into `$(go env GOPATH)/bin` instead of building in place:
 
 ```sh
 go install ./cmd/reqmd
+# or, from a tagged release:
+go install github.com/dVoo/reqmd/cmd/reqmd@latest
 ```
-
-> `go install <module>@latest` is not available: the Go module is named
-> `reqmd` (not the GitHub path), so `@latest` cannot resolve it. Install from
-> a clone, or use a prebuilt binary.
 
 ## Prerequisites
 

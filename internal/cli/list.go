@@ -2,9 +2,11 @@ package cli
 
 import (
 	"fmt"
-	"reqmd/internal/filter"
-	"reqmd/internal/parser"
-	"reqmd/internal/reporter"
+	"os"
+
+	"github.com/dVoo/reqmd/internal/filter"
+	"github.com/dVoo/reqmd/internal/parser"
+	"github.com/dVoo/reqmd/internal/reporter"
 
 	"github.com/spf13/cobra"
 )
@@ -12,6 +14,7 @@ import (
 func newListCmd() *cobra.Command {
 	var jsonOutput bool
 	var filterExpr string
+	var relaxedFilter bool
 
 	cmd := &cobra.Command{
 		Use:     "ls <dir>",
@@ -25,10 +28,11 @@ func newListCmd() *cobra.Command {
 			}
 
 			if filterExpr != "" {
-				f, err := filter.CompileForDocs(docs, filterExpr)
+				f, warnings, err := filter.CompileForDocs(docs, filterExpr, relaxedFilter)
 				if err != nil {
 					return fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 				}
+				filter.WriteWarnings(os.Stderr, warnings)
 				docs, err = f.FilterDocs(docs)
 				if err != nil {
 					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
@@ -52,5 +56,6 @@ func newListCmd() *cobra.Command {
 
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are listed.")
+	addRelaxedFilterFlag(cmd, &relaxedFilter)
 	return cmd
 }

@@ -3,11 +3,11 @@ package python
 import (
 	"testing"
 
+	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
+
 	sitter "github.com/tree-sitter/go-tree-sitter"
 	tree_sitter_python "github.com/tree-sitter/tree-sitter-python/bindings/go"
-
-	"reqmd-code/internal/lang"
-	"reqmd-code/internal/model"
 )
 
 // TestPythonLanguageRegisters verifies that PythonLanguage self-registered
@@ -47,27 +47,6 @@ func TestPythonQuery(t *testing.T) {
 	q := l.Query()
 	if q == "" {
 		t.Error("Query() returned empty string (missing embedded .scm)")
-	}
-}
-
-// TestModuleNameFromFile covers the helper that derives a Python
-// module/package name from a file path. It is used as the default
-// value for Symbol.Package in the absence of explicit metadata.
-func TestModuleNameFromFile(t *testing.T) {
-	cases := []struct {
-		in, want string
-	}{
-		{"foo.py", "foo"},
-		{"path/to/bar.py", "bar"},
-		{"/abs/path/baz.py", "baz"},
-		{"nested/dir.with.dot/qux.py", "qux"},
-		{"", ""},
-		{"noext", "noext"},
-	}
-	for _, c := range cases {
-		if got := moduleNameFromFile(c.in); got != c.want {
-			t.Errorf("moduleNameFromFile(%q) = %q, want %q", c.in, got, c.want)
-		}
 	}
 }
 
@@ -237,8 +216,7 @@ func parseFirstFuncDef(t *testing.T, src []byte) (*sitter.Node, func()) {
 	}
 	root := tree.RootNode()
 	// Walk top-level children looking for the first function_definition.
-	n := root.ChildCount()
-	for i := uint(0); i < n; i++ {
+	for i := range root.ChildCount() {
 		c := root.Child(i)
 		if c.Kind() == "function_definition" {
 			return c, func() {

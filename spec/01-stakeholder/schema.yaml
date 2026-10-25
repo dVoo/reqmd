@@ -15,7 +15,7 @@ properties:
     enum: [Product, Engineering, Safety, Quality]
   category:
     type: string
-    enum: [Authoring, Validation, Export, Traceability, Performance]
+    enum: [Authoring, Validation, Export, Traceability, Verification, Interoperability, Performance]
 additionalProperties: false
 
 x-reqmd:

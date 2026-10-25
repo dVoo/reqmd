@@ -330,7 +330,7 @@ Yes — run one `reqmd check` per configuration in a CI matrix. Each job validat
 - `contains`, `startsWith`, `endsWith` — string helpers, e.g. `id startsWith "SYS-"`
 - `variant == nil` — attribute absence / "common to all"
 
-Built-in variables are always available: `id`, `title`, `status`, `disposition`, `trace`, `version`. A filter referencing an attribute not declared in any `schema.yaml` is a compile-time ERROR — reqmd fails fast on typos instead of silently returning no matches.
+Built-in variables are always available: `id`, `title`, `status`, `disposition`, `trace`, `version`. A filter referencing an attribute not declared in any `schema.yaml` is a compile-time ERROR — reqmd fails fast on typos instead of silently returning no matches. Pass `--relaxed-filter` to turn that into a warning and to allow attributes that are present on requirements but declared in no schema.
 {{< /details >}}
 
 {{< details summary="Do I need separate branches for each variant?" card="true" >}}

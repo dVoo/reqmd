@@ -3,17 +3,18 @@ package verify_test
 import (
 	"os"
 	"path/filepath"
-	"reqmd/internal/model"
-	"reqmd/internal/verify"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/dVoo/reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/verify"
 )
 
 // writeFixture writes fixture content to a file, failing the test on error.
 func writeFixture(t *testing.T, path, content string) {
 	t.Helper()
-	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
+	if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
 		t.Fatalf("writing %s: %v", path, err)
 	}
 }

@@ -180,7 +180,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 21
+x-reqmd.source-line: 23
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -192,7 +192,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 24
+x-reqmd.source-line: 26
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -204,7 +204,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 24
+x-reqmd.source-line: 26
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -216,7 +216,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 24
+x-reqmd.source-line: 26
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -228,7 +228,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 24
+x-reqmd.source-line: 26
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -240,7 +240,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 35
+x-reqmd.source-line: 37
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -255,7 +255,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 49
+x-reqmd.source-line: 51
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -275,7 +275,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 85
+x-reqmd.source-line: 87
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -291,7 +291,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 91
+x-reqmd.source-line: 93
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -303,7 +303,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 101
+x-reqmd.source-line: 103
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -319,7 +319,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 123
+x-reqmd.source-line: 125
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -335,7 +335,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 141
+x-reqmd.source-line: 143
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -353,7 +353,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 147
+x-reqmd.source-line: 149
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -363,7 +363,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 177
+x-reqmd.source-line: 179
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -379,12 +379,25 @@ trace: []
  tests). Warnings are returned as CheckResult-shaped messages via the
  returned warning slice; errors abort loading.
 
+## IMP-verify-readInRoot-a08ae61: readInRoot
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/verify/results.go
+x-reqmd.source-line: 212
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+ readInRoot reads one file from the walked results tree through the walk
+ root, refusing paths that escape it.
+
 ## IMP-verify-loadDir-5073ff5: loadDir
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 218
+x-reqmd.source-line: 239
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -405,7 +418,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 225
+x-reqmd.source-line: 246
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -419,7 +432,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 292
+x-reqmd.source-line: 321
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -432,7 +445,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
-x-reqmd.source-line: 313
+x-reqmd.source-line: 342
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -446,7 +459,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
-x-reqmd.source-line: 19
+x-reqmd.source-line: 20
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -464,7 +477,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
-x-reqmd.source-line: 99
+x-reqmd.source-line: 100
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -478,7 +491,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
-x-reqmd.source-line: 139
+x-reqmd.source-line: 140
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -488,7 +501,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
-x-reqmd.source-line: 154
+x-reqmd.source-line: 155
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -498,7 +511,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 15
+x-reqmd.source-line: 16
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -513,7 +526,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 21
+x-reqmd.source-line: 22
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -528,7 +541,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 37
+x-reqmd.source-line: 38
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -553,7 +566,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 86
+x-reqmd.source-line: 87
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -568,7 +581,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 104
+x-reqmd.source-line: 105
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -583,7 +596,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 135
+x-reqmd.source-line: 136
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -597,7 +610,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 143
+x-reqmd.source-line: 144
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -609,7 +622,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 151
+x-reqmd.source-line: 152
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -621,7 +634,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 162
+x-reqmd.source-line: 163
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -635,7 +648,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 169
+x-reqmd.source-line: 170
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -649,7 +662,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
-x-reqmd.source-line: 175
+x-reqmd.source-line: 176
 x-reqmd.symbol-kind: function
 trace: []
 ```

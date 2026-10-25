@@ -7,11 +7,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/spf13/cobra"
+	"github.com/dVoo/reqmd/internal/exporter"
+	"github.com/dVoo/reqmd/internal/parser"
+	"github.com/dVoo/reqmd/internal/verify"
 
-	"reqmd/internal/exporter"
-	"reqmd/internal/parser"
-	"reqmd/internal/verify"
+	"github.com/spf13/cobra"
 )
 
 func newGraphCmd() *cobra.Command {

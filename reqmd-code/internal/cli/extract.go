@@ -7,15 +7,16 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
-	"reqmd-code/internal/extractor"
-	"reqmd-code/internal/lang"
-	"reqmd-code/internal/model"
-	"reqmd-code/internal/schema"
-	"reqmd-import/exchange"
 	"runtime"
 	"sort"
 	"strings"
 	"sync"
+
+	"github.com/dVoo/reqmd/reqmd-code/internal/extractor"
+	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
+	"github.com/dVoo/reqmd/reqmd-code/internal/schema"
+	"github.com/dVoo/reqmd/reqmd-import/exchange"
 
 	"github.com/spf13/cobra"
 )
@@ -167,81 +168,48 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 	// runs (matters for the writer's idempotent write-if-changed path).
 	sort.Slice(jobs, func(i, j int) bool { return jobs[i].path < jobs[j].path })
 
-	// Parse every file in parallel. Per-file errors are non-fatal: log
-	// and continue so one bad file doesn't lose the rest of the run.
+	// Parse every file in parallel, one result slot per job: no channel to
+	// drain and no nil sentinel — a failed job just carries its error. Per-file
+	// failures are non-fatal so one bad file doesn't lose the rest of the run.
 	//
-	// Fan out to runtime.NumCPU() workers. Each worker reads + parses
-	// one file at a time using a fresh tree-sitter parser (the lang
-	// plugins create a new parser per Parse call, so there is no
-	// shared mutable state). The `results` and `errs` channels are
-	// buffered to len(jobs) so workers never block on send.
-	//
-	// Jobs are pre-sorted by path above; the per-package sort by
-	// StartLine downstream is unchanged. Worker-completion order is
-	// not deterministic, but it doesn't matter: symbols are bucketed
-	// by Package, and within each package they are re-sorted by
-	// StartLine before being emitted. The final output is
-	// byte-identical to the sequential implementation.
-	parseFailures := 0
-	var allSymbols []model.Symbol
-	if len(jobs) > 0 {
-		workers := max(runtime.NumCPU(), 1)
-		if workers > len(jobs) {
-			workers = len(jobs)
-		}
-
-		jobCh := make(chan job)
-		results := make(chan []model.Symbol, len(jobs))
-		errs := make(chan string, len(jobs))
-
-		var wg sync.WaitGroup
-		for range workers {
-			wg.Go(func() {
-				for j := range jobCh {
-					src, err := os.ReadFile(j.path)
-					if err != nil {
-						errs <- fmt.Sprintf("warn: read %s: %v", j.path, err)
-						results <- nil
-						continue
-					}
-					syms, err := j.plug.Parse(j.path, src)
-					if err != nil {
-						errs <- fmt.Sprintf("warn: parse %s: %v", j.path, err)
-						results <- nil
-						continue
-					}
-					// A successful parse of a file with no extractable
-					// symbols returns a nil slice. Normalize it so the
-					// collector can distinguish "no symbols" (a normal
-					// outcome for doc-only files) from "failure" (nil
-					// sent only on the error paths above).
-					if syms == nil {
-						syms = []model.Symbol{}
-					}
-					results <- syms
-				}
-			})
-		}
-
-		for _, j := range jobs {
-			jobCh <- j
-		}
-		close(jobCh)
-		wg.Wait()
-		close(results)
-		close(errs)
-
-		allSymbols = make([]model.Symbol, 0, len(jobs))
-		for syms := range results {
-			if syms == nil {
-				parseFailures++
-				continue
+	// Jobs are pre-sorted by path, and symbols are bucketed by package and
+	// re-sorted by (file, line) below, so worker completion order never reaches
+	// the output.
+	type parseResult struct {
+		err     error
+		symbols []model.Symbol
+	}
+	parsed := make([]parseResult, len(jobs))
+	var wg sync.WaitGroup
+	sem := make(chan struct{}, max(min(runtime.NumCPU(), len(jobs)), 1))
+	for i, j := range jobs {
+		sem <- struct{}{}
+		wg.Go(func() {
+			defer func() { <-sem }()
+			src, err := os.ReadFile(j.path)
+			if err != nil {
+				parsed[i] = parseResult{err: fmt.Errorf("read %s: %w", j.path, err)}
+				return
 			}
-			allSymbols = append(allSymbols, syms...)
+			syms, err := j.plug.Parse(j.path, src)
+			if err != nil {
+				parsed[i] = parseResult{err: fmt.Errorf("parse %s: %w", j.path, err)}
+				return
+			}
+			parsed[i] = parseResult{symbols: syms}
+		})
+	}
+	wg.Wait()
+
+	parseFailures := 0
+	allSymbols := make([]model.Symbol, 0, len(jobs))
+	for _, r := range parsed {
+		if r.err != nil {
+			parseFailures++
+			fmt.Fprintf(cmd.ErrOrStderr(), "warn: %v\n", r.err)
+			continue
 		}
-		for e := range errs {
-			fmt.Fprintln(cmd.ErrOrStderr(), e)
-		}
+		allSymbols = append(allSymbols, r.symbols...)
 	}
 
 	// Bucket by package, then build per-package exchange documents. We bucket
@@ -287,11 +255,8 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 		// the only stable guarantee at that point.
 		nativeFor := make(map[string]string, len(syms))
 		for _, s := range syms {
-			hashKey := s.Name
-			if s.Receiver != "" {
-				hashKey = s.Receiver + "." + s.Name
-			}
-			nativeFor[hashKey] = s.Name + "-" + model.ShortHash(pkgName, hashKey)
+			key := nativeKey(s)
+			nativeFor[key] = s.Name + "-" + model.ShortHash(pkgName, key)
 		}
 
 		// Sort symbols by (file, start line, name) so the per-package output is
@@ -317,14 +282,9 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 		for _, s := range syms {
 			explicit, heuristic := extractor.ExtractTraces(s.Doc, f.heuristicTraces)
 			// Methods are stored under "Receiver.Name" in nativeFor to
-			// disambiguate from a same-named top-level function; look
-			// up the right key. Top-level symbols (functions, types,
-			// consts) are keyed by their bare name.
-			selfKey := s.Name
-			if s.Receiver != "" {
-				selfKey = s.Receiver + "." + s.Name
-			}
-			nativeID := nativeFor[selfKey]
+			// disambiguate from a same-named top-level function; top-level
+			// symbols (functions, types, consts) are keyed by their bare name.
+			nativeID := nativeFor[nativeKey(s)]
 			if _, dup := emitted[nativeID]; dup {
 				fmt.Fprintf(cmd.ErrOrStderr(), "warn: skipping duplicate symbol %s (%s) in package %s\n", s.Name, s.File, pkgName)
 				continue
@@ -399,13 +359,13 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 	if f.output != "" && f.output != "-" {
 		dest = f.output
 	}
-	fmt.Fprintf(cmd.ErrOrStderr(),
+	_, _ = fmt.Fprintf(cmd.ErrOrStderr(),
 		"reqmd-code: extracted %d requirement(s) across %d package(s) to %s (skipped %d file(s) with no language plugin",
 		reqCount, len(pkgNames), dest, skipped)
 	if parseFailures > 0 {
-		fmt.Fprintf(cmd.ErrOrStderr(), ", %d parse failure(s)", parseFailures)
+		_, _ = fmt.Fprintf(cmd.ErrOrStderr(), ", %d parse failure(s)", parseFailures)
 	}
-	fmt.Fprintln(cmd.ErrOrStderr(), ")")
+	_, _ = fmt.Fprintln(cmd.ErrOrStderr(), ")")
 	return nil
 }
 
@@ -418,4 +378,14 @@ func extSet(exts []string) map[string]bool {
 		out[e] = true
 	}
 	return out
+}
+
+// nativeKey is a symbol's disambiguation key inside its package. Methods are
+// keyed "Receiver.Name" so a method and a same-named top-level function don't
+// collapse into one requirement ID; everything else is keyed by name.
+func nativeKey(s model.Symbol) string {
+	if s.Receiver != "" {
+		return s.Receiver + "." + s.Name
+	}
+	return s.Name
 }

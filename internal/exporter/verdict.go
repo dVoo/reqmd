@@ -1,6 +1,6 @@
 package exporter
 
-import "reqmd/internal/graph"
+import "github.com/dVoo/reqmd/internal/graph"
 
 // VerdictInfoFromGraph converts a graph-side rolled-up NodeVerdict into the
 // exporter's render type, carrying the outcome, representative source file,

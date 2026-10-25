@@ -1,385 +1,290 @@
 package exporter
 
 import (
-	"reqmd/internal/model"
+	"encoding/json"
+	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
+// testDoc builds a document with a container, requirement children, and an
+// info item so the render data covers every node kind.
+func testDoc() model.Document {
+	child := &model.Node{
+		Kind:     model.KindRequirement,
+		ID:       "SYS-002",
+		Title:    "Child requirement",
+		Level:    3,
+		Body:     "Child body.",
+		ParentID: "SYS-001",
+		Attrs:    map[string]any{"status": "draft", "priority": "High"},
+	}
+	root := &model.Node{
+		Kind:     model.KindRequirement,
+		ID:       "SYS-001",
+		Title:    "Root requirement",
+		Level:    2,
+		Body:     "Root body.",
+		Attrs:    map[string]any{"status": "approved", "priority": "Low", "owner": "alice"},
+		Children: []*model.Node{child},
+	}
+	container := &model.Node{
+		Kind:     model.KindContainer,
+		Title:    "Section",
+		Level:    2,
+		Body:     "Container body.",
+		Children: []*model.Node{root},
+	}
+	info := &model.Node{Kind: model.KindInfo, Title: "Note", Level: 2, Body: "Info body."}
+	return model.Document{
+		Path:   "/test/doc",
+		Title:  "Test Document",
+		Schema: map[string]any{"title": "Schema Title"},
+		Nodes:  []*model.Node{container, info},
+		XReqmd: &model.XReqmd{DocumentID: "test", Level: "system"},
+	}
+}
+
 func TestBuildRenderData(t *testing.T) {
-	doc := model.Document{
-		Nodes: []*model.Node{
-			{
-				ID:    "REQ-001",
-				Title: "First",
-				Attrs: map[string]any{
-					"status": "approved",
-					"asil":   "B",
-				},
-				Body: "First body.",
-				Children: []*model.Node{
-					{
-						// Single-value attr (same on both) must be dropped from filter set.
-						ID:       "REQ-003",
-						ParentID: "REQ-001",
-						Attrs: map[string]any{
-							"asil":      "B",
-							"maturity":  "released",
-							"trace":     []string{"REQ-002"},
-							"req-only":  "same",
-							"req-only2": "same",
-						},
-						Body: "Third body.",
-					},
-				},
-			},
-			{
-				ID:    "REQ-002",
-				Title: "Second",
-				Attrs: map[string]any{
-					"status": "draft",
-					"asil":   "C",
-				},
-				Body: "Second body.",
-			},
-			{
-				Kind:  model.KindContainer,
-				Title: "Section",
-			},
-		},
-	}
-
+	doc := testDoc()
 	rd := buildRenderData(doc)
-	if rd == nil {
-		t.Fatal("buildRenderData returned nil")
+
+	if got, want := len(rd.Nodes), len(doc.Nodes); got != want {
+		t.Errorf("Nodes = %d, want %d", got, want)
+	}
+	// Requirements anchor on their ID; items get stable generated anchors.
+	container := doc.Nodes[0]
+	if got := rd.Anchors[container]; got != "item-1" {
+		t.Errorf("container anchor = %q, want item-1", got)
+	}
+	if got := rd.Anchors[container.Children[0]]; got != "SYS-001" {
+		t.Errorf("requirement anchor = %q, want SYS-001", got)
+	}
+	if got := rd.Anchors[container.Children[0].Children[0]]; got != "SYS-002" {
+		t.Errorf("child anchor = %q, want SYS-002", got)
+	}
+	if got := rd.Anchors[doc.Nodes[1]]; got != "item-2" {
+		t.Errorf("info anchor = %q, want item-2", got)
 	}
 
-	// Root nodes: REQ-001 (with child), REQ-002, Section.
-	if len(rd.Nodes) != 3 {
-		t.Errorf("Nodes: got %d, want 3", len(rd.Nodes))
+	// Filters collect values from every requirement; status is ordered
+	// built-ins first.
+	if got, want := rd.Filters["status"], []string{"draft", "approved"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("status filter = %v, want %v", got, want)
+	}
+	if got, want := rd.Filters["priority"], []string{"High", "Low"}; !reflect.DeepEqual(got, want) {
+		t.Errorf("priority filter = %v, want %v", got, want)
+	}
+	if _, ok := rd.Filters["trace"]; ok {
+		t.Error("trace must never become a filter")
 	}
 
-	// Anchors: requirements anchor on their ID, items on info-N.
-	if rd.Anchors[doc.Nodes[0]] != "REQ-001" {
-		t.Errorf("anchor[REQ-001] = %q, want REQ-001", rd.Anchors[doc.Nodes[0]])
+	// Status breakdown counts the implicit approved default.
+	if len(rd.StatusBreakdown) != 2 {
+		t.Fatalf("status breakdown = %+v, want 2 entries", rd.StatusBreakdown)
 	}
-	if rd.Anchors[doc.Nodes[2]] != "info-1" {
-		t.Errorf("anchor[Section] = %q, want info-1", rd.Anchors[doc.Nodes[2]])
+	if rd.StatusBreakdown[0].Value != "draft" || rd.StatusBreakdown[0].Count != 1 {
+		t.Errorf("breakdown[0] = %+v", rd.StatusBreakdown[0])
 	}
+	if rd.StatusBreakdown[1].Value != "approved" || rd.StatusBreakdown[1].Count != 1 {
+		t.Errorf("breakdown[1] = %+v", rd.StatusBreakdown[1])
+	}
+}
 
-	// Index: 4 entries (roots + child REQ-003), tree-linked.
-	if len(rd.Index) != 4 {
-		t.Fatalf("Index len = %d, want 4", len(rd.Index))
+func TestBuildRenderDataIgnoreStatus(t *testing.T) {
+	doc := testDoc()
+	doc.XReqmd.IgnoreStatus = true
+	rd := buildRenderData(doc)
+	if _, ok := rd.Filters["status"]; ok {
+		t.Error("status filter must be hidden for ignore-status documents")
 	}
-	if len(rd.Index[0].Children) != 1 || rd.Index[0].Children[0] != "REQ-003" {
-		t.Errorf("Index[0].Children = %v, want [REQ-003]", rd.Index[0].Children)
+	if len(rd.StatusBreakdown) != 0 {
+		t.Error("status breakdown must be hidden for ignore-status documents")
 	}
-	if rd.Index[1].ParentID != "REQ-001" {
-		t.Errorf("Index[1].ParentID = %q, want REQ-001", rd.Index[1].ParentID)
-	}
-	if rd.Index[3].Type != "container" {
-		t.Errorf("Index[3].Type = %q, want container", rd.Index[3].Type)
-	}
+}
 
-	// StatusCounts: 1 approved (REQ-001) + 1 default-approved (REQ-003, no status)
-	// = 2, and 1 draft (REQ-002).
-	if rd.StatusCnt["approved"] != 2 {
-		t.Errorf("StatusCnt[approved] = %d, want 2", rd.StatusCnt["approved"])
+func TestBuildFiltersOmitsSingleValueAttrs(t *testing.T) {
+	reqs := []*model.Node{
+		{ID: "A", Attrs: map[string]any{"status": "approved", "owner": "alice"}},
+		{ID: "B", Attrs: map[string]any{"status": "approved", "owner": "alice"}},
 	}
-	if rd.StatusCnt["draft"] != 1 {
-		t.Errorf("StatusCnt[draft] = %d, want 1", rd.StatusCnt["draft"])
+	doc := model.Document{Path: "/d"}
+	if got := buildFilters(reqs, doc); len(got) != 0 {
+		t.Errorf("filters = %v, want empty (single distinct values)", got)
 	}
+}
 
-	// Single-value attrs must be omitted from the filter set.
-	for _, k := range []string{"maturity", "req-only", "req-only2"} {
-		if _, found := rd.Filters[k]; found {
-			t.Errorf("filter %q should be omitted (single value)", k)
-		}
+func TestBuildFiltersStatusOrdering(t *testing.T) {
+	reqs := []*model.Node{
+		{ID: "A", Attrs: map[string]any{"status": "review"}},
+		{ID: "B", Attrs: map[string]any{"status": "approved"}},
+		{ID: "C", Attrs: map[string]any{"status": "draft"}},
+		{ID: "D", Attrs: map[string]any{"status": "zzz"}},
 	}
-
-	// status filter has 2 values, should be present and ordered (draft, approved).
-	stat, ok := rd.Filters["status"]
-	if !ok {
-		t.Fatal("status filter missing")
-	}
-	wantStat := []string{"draft", "approved"}
-	if len(stat) != len(wantStat) {
-		t.Fatalf("status filter len = %d, want %d (%v)", len(stat), len(wantStat), stat)
-	}
-	for i, v := range wantStat {
-		if stat[i] != v {
-			t.Errorf("status filter[%d] = %q, want %q", i, stat[i], v)
-		}
+	doc := model.Document{XReqmd: &model.XReqmd{AdditionalStatusValues: []string{"review"}}}
+	got := buildFilters(reqs, doc)["status"]
+	want := []string{"draft", "approved", "review", "zzz"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("status filter = %v, want %v", got, want)
 	}
 }
 
 func TestNormalizeAttrValue(t *testing.T) {
-	cases := []struct {
+	tests := []struct {
 		name string
 		in   any
 		want []string
 	}{
-		{
-			name: "[]any with mixed scalars",
-			in:   []any{"a", 1, nil, "b"},
-			want: []string{"a", "1", "b"},
-		},
-		{
-			name: "[]any with nested map dropped",
-			in:   []any{"x", map[string]any{"k": "v"}, "y"},
-			want: []string{"x", "y"},
-		},
-		{
-			name: "[]string copy",
-			in:   []string{"a", "b"},
-			want: []string{"a", "b"},
-		},
-		{
-			name: "nil input",
-			in:   nil,
-			want: nil,
-		},
-		{
-			name: "[]any(nil)",
-			in:   []any(nil),
-			want: nil,
-		},
-		{
-			name: "[]string(nil)",
-			in:   []string(nil),
-			want: nil,
-		},
-		{
-			name: "scalar string",
-			in:   "hello",
-			want: []string{"hello"},
-		},
-		{
-			name: "scalar int",
-			in:   42,
-			want: []string{"42"},
-		},
-		{
-			name: "map[string]any dropped",
-			in:   map[string]any{"k": "v"},
-			want: nil,
-		},
+		{"nil", nil, nil},
+		{"string", "x", []string{"x"}},
+		{"int", 3, []string{"3"}},
+		{"bool", true, []string{"true"}},
+		{"string slice", []string{"a", "b"}, []string{"a", "b"}},
+		{"any slice", []any{"a", 1, nil, map[string]any{"x": 1}}, []string{"a", "1"}},
+		{"map", map[string]any{"x": 1}, nil},
+		{"empty any slice", []any{}, []string{}},
 	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := normalizeAttrValue(tc.in)
-			if len(got) != len(tc.want) {
-				t.Fatalf("got %v (%d), want %v (%d)", got, len(got), tc.want, len(tc.want))
-			}
-			for i := range got {
-				if got[i] != tc.want[i] {
-					t.Errorf("[%d] got %q, want %q", i, got[i], tc.want[i])
-				}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := normalizeAttrValue(tt.in)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("normalizeAttrValue(%v) = %v, want %v", tt.in, got, tt.want)
 			}
 		})
-	}
-}
-
-func TestBuildTraceCache(t *testing.T) {
-	doc := model.Document{
-		Nodes: []*model.Node{
-			{ID: "REQ-001"},
-			{ID: "REQ-002"},
-		},
-	}
-
-	// Nil trace resolver → nil cache.
-	if got := buildTraceCache(doc, nil); got != nil {
-		t.Errorf("nil tc: got %v, want nil", got)
-	}
-
-	// Populated resolver populates both maps.
-	tc := &TraceResolver{
-		Upstream:    func(id string) []string { return []string{"U-" + id} },
-		Downstream:  func(id string) []string { return []string{"D-" + id} },
-		ResolveLink: func(id string) string { return "link-" + id },
-		TitleOf:     func(id string) string { return "Title " + id },
-	}
-	cache := buildTraceCache(doc, tc)
-	if len(cache) != 2 {
-		t.Fatalf("cache len = %d, want 2", len(cache))
-	}
-	pair, ok := cache["REQ-001"]
-	if !ok {
-		t.Fatal("cache missing REQ-001")
-	}
-	if len(pair.up) != 1 || pair.up[0].ID != "U-REQ-001" {
-		t.Errorf("pair.up = %+v, want [U-REQ-001]", pair.up)
-	}
-	if len(pair.down) != 1 || pair.down[0].ID != "D-REQ-001" {
-		t.Errorf("pair.down = %+v, want [D-REQ-001]", pair.down)
-	}
-}
-
-func TestBuildIndexEntry(t *testing.T) {
-	kid1 := &model.Node{ID: "REQ-007-1"}
-	kid2 := &model.Node{ID: "REQ-007-2"}
-	req := &model.Node{
-		ID:        "REQ-007",
-		Title:     "A title",
-		Attrs:     map[string]any{"status": "approved", "asil": "D", "trace": []string{"X-1"}},
-		Body:      "body",
-		Rationale: "why",
-		Children:  []*model.Node{kid1, kid2},
-	}
-	anchors := map[*model.Node]string{
-		req:  "REQ-007",
-		kid1: "REQ-007-1",
-		kid2: "REQ-007-2",
-	}
-	entry := buildIndexEntry(req, "REQ-007", "", anchors)
-
-	if entry.ID != "REQ-007" {
-		t.Errorf("ID = %q, want REQ-007", entry.ID)
-	}
-	if entry.Title != "A title" {
-		t.Errorf("Title = %q, want 'A title'", entry.Title)
-	}
-	if entry.Body != "body" {
-		t.Errorf("Body = %q, want 'body'", entry.Body)
-	}
-	if entry.Rationale != "why" {
-		t.Errorf("Rationale = %q, want 'why'", entry.Rationale)
-	}
-	if entry.Attrs["status"] != "approved" {
-		t.Errorf("Attrs[status] = %v, want 'approved'", entry.Attrs["status"])
-	}
-	if entry.Attrs["asil"] != "D" {
-		t.Errorf("Attrs[asil] = %v, want 'D'", entry.Attrs["asil"])
-	}
-	if _, found := entry.Attrs["trace"]; found {
-		t.Error("trace attr should be omitted from index entry attrs")
-	}
-
-	// Children come from the tree, resolved via the anchor map.
-	wantKids := []string{"REQ-007-1", "REQ-007-2"}
-	if len(entry.Children) != len(wantKids) {
-		t.Fatalf("Children len = %d, want %d", len(entry.Children), len(wantKids))
-	}
-	for i, k := range wantKids {
-		if entry.Children[i] != k {
-			t.Errorf("Children[%d] = %q, want %q", i, entry.Children[i], k)
-		}
-	}
-
-	// Parent anchor is recorded.
-	childEntry := buildIndexEntry(kid1, "REQ-007-1", "REQ-007", anchors)
-	if childEntry.ParentID != "REQ-007" {
-		t.Errorf("child ParentID = %q, want REQ-007", childEntry.ParentID)
-	}
-
-	// Body truncation at 80 runes.
-	longBody := strings.Repeat("x", 100)
-	truncReq := req
-	truncReq.Body = longBody
-	trunc := buildIndexEntry(truncReq, "REQ-007", "", anchors)
-	wantBody := strings.Repeat("x", 80) + "..."
-	if trunc.Body != wantBody {
-		t.Errorf("truncated Body = %q (len %d), want len %d", trunc.Body, len(trunc.Body), len(wantBody))
 	}
 }
 
 func TestSortedStatusValues(t *testing.T) {
-	cases := []struct {
-		name      string
-		values    []string
-		additions []string
-		want      []string
-	}{
-		{
-			name:   "only builtins present",
-			values: []string{"approved", "draft"},
-			want:   []string{"draft", "approved"},
-		},
-		{
-			name:      "builtins + additions",
-			values:    []string{"approved", "review", "draft"},
-			additions: []string{"review"},
-			want:      []string{"draft", "approved", "review"},
-		},
-		{
-			name:   "builtins + unrecognized, sorted A→Z",
-			values: []string{"approved", "zeta", "draft", "alpha"},
-			want:   []string{"draft", "approved", "alpha", "zeta"},
-		},
-		{
-			name:   "empty input",
-			values: nil,
-			want:   []string{},
-		},
-		{
-			name:      "additions with no matching values",
-			values:    []string{"draft"},
-			additions: []string{"review", "pending"},
-			want:      []string{"draft"},
-		},
-		{
-			name:   "unrecognized only",
-			values: []string{"zeta", "alpha"},
-			want:   []string{"alpha", "zeta"},
-		},
-		{
-			name:      "additions come before unrecognized",
-			values:    []string{"zeta", "review", "draft", "alpha"},
-			additions: []string{"review"},
-			want:      []string{"draft", "review", "alpha", "zeta"},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			got := sortedStatusValues(tc.values, tc.additions)
-			if len(got) != len(tc.want) {
-				t.Fatalf("len = %d, want %d (got %v, want %v)", len(got), len(tc.want), got, tc.want)
-			}
-			for i, v := range tc.want {
-				if got[i] != v {
-					t.Errorf("[%d] got %q, want %q (full: %v)", i, got[i], v, got)
-				}
-			}
-		})
+	got := sortedStatusValues(
+		[]string{"zzz", "b-review", "approved", "draft"},
+		[]string{"b-review"},
+	)
+	want := []string{"draft", "approved", "b-review", "zzz"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("sortedStatusValues = %v, want %v", got, want)
 	}
 }
 
 func TestItemHeadingTagNativeLevels(t *testing.T) {
-	cases := []struct {
-		want  string
-		level int
+	// Top-level items never render as h1 (that is the document title); nested
+	// items keep their native depth, still capped at h6.
+	tests := []struct {
+		level   int
+		isChild bool
+		want    string
 	}{
-		{level: 1, want: "h2"}, // defensive: h1 is the document title, never content
-		{level: 2, want: "h2"},
-		{level: 3, want: "h3"},
-		{level: 4, want: "h4"},
-		{level: 6, want: "h6"},
+		{0, false, "h2"},
+		{1, false, "h2"},
+		{2, false, "h2"},
+		{3, false, "h3"},
+		{6, false, "h6"},
+		{7, false, "h6"},
+		{3, true, "h3"},
+		{4, true, "h4"},
+		{7, true, "h6"},
 	}
-	for _, tc := range cases {
-		if got := itemHeadingTag(tc.level); got != tc.want {
-			t.Errorf("itemHeadingTag(%d) = %q, want %q", tc.level, got, tc.want)
+	for _, tt := range tests {
+		if got := itemHeadingTag(tt.level, tt.isChild); got != tt.want {
+			t.Errorf("itemHeadingTag(%d, %v) = %q, want %q", tt.level, tt.isChild, got, tt.want)
 		}
 	}
 }
 
 func TestDocTitleFallback(t *testing.T) {
-	cases := []struct {
-		name string
-		want string
-		doc  model.Document
-	}{
-		{name: "parsed h1 title wins", doc: model.Document{Title: "From h1", Schema: map[string]any{"title": "Schema"}}, want: "From h1"},
-		{name: "schema title fallback", doc: model.Document{Schema: map[string]any{"title": "Schema"}}, want: "Schema"},
-		{name: "empty", doc: model.Document{}, want: ""},
+	if got := docTitle(model.Document{Path: "/p"}); got != "" {
+		t.Errorf("docTitle without title = %q, want empty", got)
 	}
-	for _, tc := range cases {
-		t.Run(tc.name, func(t *testing.T) {
-			if got := docTitle(tc.doc); got != tc.want {
-				t.Errorf("docTitle = %q, want %q", got, tc.want)
-			}
-		})
+	if got := docTitle(model.Document{Title: "H1"}); got != "H1" {
+		t.Errorf("docTitle = %q, want H1", got)
+	}
+	if got := docTitle(model.Document{Schema: map[string]any{"title": "Schema"}}); got != "Schema" {
+		t.Errorf("docTitle schema fallback = %q, want Schema", got)
+	}
+}
+
+func TestAttributeColumns(t *testing.T) {
+	doc := testDoc()
+	doc.Properties = []string{"status", "trace", "priority", "owner"}
+	got := attributeColumns(doc, doc.Properties)
+	want := []string{"priority", "owner"}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("attributeColumns = %v, want %v", got, want)
+	}
+}
+
+func TestBuildPageModel(t *testing.T) {
+	doc := testDoc()
+	rd := buildRenderData(doc)
+	m := buildPageModel(doc, rd, nil, nil, doc.Properties)
+
+	if m.Doc.Title != "Test Document" {
+		t.Errorf("doc title = %q", m.Doc.Title)
+	}
+	if m.Doc.Level != "system" || m.Doc.DocumentID != "test" {
+		t.Errorf("doc meta = %+v", m.Doc)
+	}
+	if m.DefaultStatus != model.StatusApproved {
+		t.Errorf("default status = %q", m.DefaultStatus)
+	}
+	if len(m.Nodes) != 4 {
+		t.Fatalf("nodes = %d, want 4", len(m.Nodes))
+	}
+	// Node order is document order, depth-first: container, SYS-001,
+	// SYS-002, info.
+	wantIDs := []string{"item-1", "SYS-001", "SYS-002", "item-2"}
+	for i, id := range wantIDs {
+		if m.Nodes[i].ID != id {
+			t.Errorf("node[%d].ID = %q, want %q", i, m.Nodes[i].ID, id)
+		}
+	}
+	var container *pageNode
+	for i := range m.Nodes {
+		if m.Nodes[i].ID == "item-1" {
+			container = &m.Nodes[i]
+		}
+	}
+	if container == nil || container.Type != "container" {
+		t.Errorf("container node = %+v, want type container", container)
+	}
+	// The model deliberately carries no body: the Document view is the single
+	// representation of requirement prose.
+	data, _ := json.Marshal(m)
+	if strings.Contains(string(data), "Root body.") {
+		t.Error("page model must not duplicate requirement bodies")
+	}
+	if strings.Contains(string(data), `"trace"`) {
+		t.Error("page model must not carry the raw trace attribute")
+	}
+}
+
+func TestBuildPageModelResolveLink(t *testing.T) {
+	doc := testDoc()
+	rd := buildRenderData(doc)
+	m := buildPageModel(doc, rd, nil, func(id string) string { return "other.html#" + id }, doc.Properties)
+	var sys *pageNode
+	for i := range m.Nodes {
+		if m.Nodes[i].ID == "SYS-001" {
+			sys = &m.Nodes[i]
+		}
+	}
+	if sys == nil {
+		t.Fatal("SYS-001 not in model")
+	}
+	if sys.Attrs["status"] != "approved" {
+		t.Errorf("attrs = %v", sys.Attrs)
+	}
+}
+
+func TestDocTitleFallsBackToPathInExport(t *testing.T) {
+	var h HTML
+	var buf strings.Builder
+	doc := model.Document{Path: "/no/title", Nodes: []*model.Node{{ID: "R-1"}}}
+	if err := h.Export(&buf, doc, nil); err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if !strings.Contains(buf.String(), "<title>/no/title</title>") {
+		t.Error("title should fall back to the document path")
 	}
 }

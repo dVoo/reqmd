@@ -13,10 +13,8 @@ import (
 )
 
 func firstLine(s string) string {
-	if i := strings.IndexByte(s, '\n'); i >= 0 {
-		return s[:i]
-	}
-	return s
+	line, _, _ := strings.Cut(s, "\n")
+	return line
 }
 
 func TestRenderDocument(t *testing.T) {
@@ -107,7 +105,7 @@ func TestRenderRequirementAttrsDeterministic(t *testing.T) {
 		t.Error("RenderRequirement must be deterministic across calls")
 	}
 	alpha, mid, zeta := strings.Index(first, "alpha:"), strings.Index(first, "mid:"), strings.Index(first, "zeta:")
-	if !(alpha < mid && mid < zeta) {
+	if alpha >= mid || mid >= zeta {
 		t.Errorf("attrs not sorted; got:\n%s", first)
 	}
 	if !strings.Contains(first, "mid:\n  - p\n  - q\n") {

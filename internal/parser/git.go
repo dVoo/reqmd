@@ -3,12 +3,14 @@ package parser
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reqmd/internal/model"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // DiscoverAtTagWithSchemas extracts the repo at the given git tag into a temp
@@ -22,7 +24,7 @@ func DiscoverAtTagWithSchemas(root, tag string) ([]model.Document, map[string]ma
 // parsed documents and the raw schema maps per document path.
 func discoverAtTag(root, tag string) ([]model.Document, map[string]map[string]any, error) {
 	// Validate tag exists.
-	verifyCmd := exec.Command("git", "-C", root, "rev-parse", "--verify", tag) //nolint:gosec // git invocation by design
+	verifyCmd := exec.CommandContext(context.Background(), "git", "-C", root, "rev-parse", "--verify", tag)
 	if out, err := verifyCmd.CombinedOutput(); err != nil {
 		return nil, nil, fmt.Errorf("tag %q not found: %w: %s", tag, err, strings.TrimSpace(string(out)))
 	}
@@ -35,8 +37,8 @@ func discoverAtTag(root, tag string) ([]model.Document, map[string]map[string]an
 	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Extract repo at tag: git archive tag | tar -xf - -C tmpDir.
-	archive := exec.Command("git", "-C", root, "archive", tag) //nolint:gosec // git invocation by design
-	tar := exec.Command("tar", "-xf", "-", "-C", tmpDir)
+	archive := exec.CommandContext(context.Background(), "git", "-C", root, "archive", tag)
+	tar := exec.CommandContext(context.Background(), "tar", "-xf", "-", "-C", tmpDir)
 
 	tar.Stdin, err = archive.StdoutPipe()
 	if err != nil {
@@ -120,7 +122,7 @@ func relToTmpDir(tmpDir, path string) string {
 func ListSubmodulesAtTag(root, tag string) (map[string]string, error) {
 	// 1. Validate tag exists
 	//    git -C root rev-parse --verify <tag>^{commit}
-	if err := exec.Command("git", "-C", root, "rev-parse", "--verify", tag+"^{commit}").Run(); err != nil {
+	if err := exec.CommandContext(context.Background(), "git", "-C", root, "rev-parse", "--verify", tag+"^{commit}").Run(); err != nil {
 		return nil, fmt.Errorf("tag %q not found", tag)
 	}
 
@@ -128,7 +130,7 @@ func ListSubmodulesAtTag(root, tag string) (map[string]string, error) {
 	//    Output format per line (space-separated, 4 fields):
 	//      <mode> <type> <sha>\t<path>
 	//    For submodules: mode=160000, type=commit
-	out, err := exec.Command("git", "-C", root, "ls-tree", "-t", tag).Output()
+	out, err := exec.CommandContext(context.Background(), "git", "-C", root, "ls-tree", "-t", tag).Output()
 	if err != nil {
 		return nil, fmt.Errorf("git ls-tree %s: %w", tag, err)
 	}

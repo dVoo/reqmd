@@ -1,6 +1,7 @@
-# ReqMD ASPICE-flavored document schema. The required built-in attributes
-# `id`, `title`, `trace`, and `status` are injected automatically. See
-# README for the full list of built-in attributes and x-reqmd fields.
+# ReqMD ASPICE-flavored document schema. The built-in attributes `trace`,
+# `status`, `disposition`, `disposition-reason`, `version`, and
+# `requires-trace-from` are injected automatically. See README for the full
+# list of built-in attributes and x-reqmd fields.
 x-reqmd:
   level: "{{ .Level }}"              # Top-level requirement level
 {{- if .IDPrefix }}

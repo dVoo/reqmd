@@ -9,9 +9,10 @@ package schema
 
 import (
 	"fmt"
-	"reqmd/internal/model"
 	"sort"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // BuiltinAttr describes a single reqmd built-in attribute.

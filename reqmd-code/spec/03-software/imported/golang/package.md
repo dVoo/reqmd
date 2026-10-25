@@ -133,7 +133,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
-x-reqmd.source-line: 186
+x-reqmd.source-line: 181
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -142,27 +142,12 @@ trace: []
  The map keys are the @-names from queries/symbols.scm. Returns false
  when the match has no usable captures.
 
-## IMP-golang-isInsideFunction-5a12ccd: isInsideFunction
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
-x-reqmd.source-line: 238
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- isInsideFunction reports whether node's ancestor chain contains a
- function_declaration or method_declaration. Used to reject const/var
- declarations nested inside function bodies, which are function-local
- and not top-level symbols.
-
 ## IMP-golang-receiverType-f900c3c: receiverType
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
-x-reqmd.source-line: 255
+x-reqmd.source-line: 233
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -177,7 +162,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
-x-reqmd.source-line: 278
+x-reqmd.source-line: 255
 x-reqmd.symbol-kind: function
 trace: []
 ```

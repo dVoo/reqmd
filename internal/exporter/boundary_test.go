@@ -1,8 +1,9 @@
 package exporter
 
 import (
-	"reqmd/internal/model"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 func TestComputeBoundaries_MixedTopology(t *testing.T) {

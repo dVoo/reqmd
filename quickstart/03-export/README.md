@@ -22,17 +22,30 @@ document, not just its requirement subset.
 reqmd export html 02-trace-your-spec/ -o html-out/
 ```
 
-Produces standalone HTML files with:
-- Requirement cards with goldmark-rendered body text
+Produces a project home (`index.html`) plus one standalone HTML file per
+document. Each page has:
+- A server-rendered **Document** view with goldmark-rendered body text — works
+  offline and without JavaScript
+- **Table** (sortable, column chooser, expandable rows), **Trace** (selected
+  requirement explorer plus a size-bounded matrix), and **Coverage** (actionable
+  exception lists) views rendered on demand from one shared model
+- Coverage, verification (with `no verdict` in the denominator), and link health
+  that agree with `reqmd check`
+- A ⌘K command palette, keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`,
+  `f`, `?`), and a density toggle
+- URL-synced state (`?q=&f=attr:value&view=&density=`) so a filtered view is shareable
+- A compact sticky app bar with the document breadcrumb, outline toggle, and light/dark theme toggle
+- No external scripts: the stylesheet and controller are embedded
 - Collapsible container sections and plain info blocks for headings
   without `attr` blocks (folders, exactly as authored)
 - Sidebar TOC with the same folder nesting
 - Upstream/downstream trace links between files
-- Document chain tab strip (V-model navigation)
-- Search and filter (Alpine.js, requirement-scoped)
-- Light/dark theme toggle
+- Document chain section (V-model navigation)
+- A sticky search-and-filter toolbar: attribute menus are built from every
+  attribute present on a requirement, including attributes declared in no
+  `schema.yaml` (those also appear in the card grid marked `· undeclared`)
 
-Open `html-out/tests-requirements.html` in a browser to see trace links.
+Open `html-out/index.html` in a browser for the project home, then any document page to see trace links.
 
 ## Graph export (requires LadybugDB build)
 

@@ -1,8 +1,9 @@
 package diff
 
 import (
-	"reqmd/internal/model"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 func TestDiff_Empty(t *testing.T) {

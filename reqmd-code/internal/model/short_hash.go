@@ -20,12 +20,12 @@ import "fmt"
 // ("x:y") from ("x::y") and similar.
 func ShortHash(pkg, name string) string {
 	h := uint64(14695981039346656037) // FNV-1a-64 offset basis
-	for i := 0; i < len(pkg); i++ {
+	for i := range len(pkg) {
 		h ^= uint64(pkg[i])
 		h *= 1099511628211 // FNV-1a-64 prime
 	}
 	h ^= uint64(':')
-	for i := 0; i < len(name); i++ {
+	for i := range len(name) {
 		h ^= uint64(name[i])
 		h *= 1099511628211
 	}

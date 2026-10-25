@@ -2,11 +2,58 @@ package lang
 
 import (
 	"sort"
+	"strings"
+
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
 
 	sitter "github.com/tree-sitter/go-tree-sitter"
-
-	"reqmd-code/internal/model"
 )
+
+// HasAncestorKind reports whether any ancestor of node has one of the given
+// tree-sitter node kinds. Every plugin uses it to reject declarations local
+// to a function/class body rather than top-level symbols; variadic because
+// some languages spell the same scope several ways (Go's function, method
+// and func-literal).
+func HasAncestorKind(node *sitter.Node, kinds ...string) bool {
+	if node == nil {
+		return false
+	}
+	for p := node.Parent(); p != nil; p = p.Parent() {
+		for _, k := range kinds {
+			if p.Kind() == k {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// CapturesByName maps capture name to node for a single query match.
+// Capture names are resolved through the query's CaptureNames() slice, so
+// the caller fetches that once per query and passes it in.
+func CapturesByName(m *sitter.QueryMatch, captureNames []string) map[string]*sitter.Node {
+	captures := make(map[string]*sitter.Node, len(m.Captures))
+	for i := range m.Captures {
+		captures[captureNames[m.Captures[i].Index]] = &m.Captures[i].Node
+	}
+	return captures
+}
+
+// ModuleNameFromFile returns the file's basename without its extension,
+// the default package/module name for languages whose package is the file.
+func ModuleNameFromFile(file string) string {
+	if file == "" {
+		return ""
+	}
+	base := file
+	if i := strings.LastIndexAny(base, "/\\"); i >= 0 {
+		base = base[i+1:]
+	}
+	if i := strings.LastIndex(base, "."); i >= 0 {
+		base = base[:i]
+	}
+	return base
+}
 
 // CaptureContent returns the textual content of a captured node, or the
 // empty string when the node is nil. It exists as a shared helper

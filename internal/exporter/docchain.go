@@ -3,7 +3,8 @@ package exporter
 import (
 	"fmt"
 	"path/filepath"
-	"reqmd/internal/model"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // BuildTitleMap builds a reqID → title map across all documents, for use as

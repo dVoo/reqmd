@@ -1,14 +1,43 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
-	"strconv"
 	"strings"
+
+	"gopkg.in/yaml.v3"
 )
 
-// decodeAttrYAML parses a small flat YAML map (the contents of an ```attr
-// block) directly into map[string]any, without building the intermediate
-// YAML document AST that yaml.v3 allocates.
+// errUnsupported is returned by the scanner for input outside the subset it
+// can parse *exactly*: nested maps, multi-line scalars, duplicate keys, and
+// scalars yaml.v3 would type differently (floats, timestamps, hex, big
+// integers). decodeAttrs then re-parses the whole block with yaml.v3, so the
+// result never depends on which path produced it.
+var errUnsupported = errors.New("attr scanner: unsupported syntax")
+
+// decodeAttrs parses the contents of an ```attr block into a map. It runs the
+// fast line scanner first and falls back to yaml.v3 for anything the scanner
+// cannot reproduce byte-for-byte (see errUnsupported).
+func decodeAttrs(src string) (map[string]any, error) {
+	attrs, err := decodeAttrYAML(src)
+	if err == nil {
+		return attrs, nil
+	}
+	if !errors.Is(err, errUnsupported) {
+		return nil, err
+	}
+	// yaml.v3 merges into an existing map, so starting from an empty one
+	// keeps the result identical to a fresh nil map and allocates once.
+	m := make(map[string]any, 8)
+	if yamlErr := yaml.Unmarshal([]byte(src), &m); yamlErr != nil {
+		return nil, fmt.Errorf("parsing attr block as YAML: %w", yamlErr)
+	}
+	return m, nil
+}
+
+// decodeAttrYAML is the fast path: it parses a small flat YAML map (the
+// contents of an ```attr block) into map[string]any without building the
+// intermediate YAML document AST that yaml.v3 allocates.
 //
 // Supported syntax (covers all real-world attr blocks):
 //   - key: value          (scalar: string, int, bool)
@@ -26,10 +55,11 @@ import (
 //   - quoted → string (always, even if contents look like a number)
 //   - list items → []any of strings
 //
-// Returns an error on malformed input (no key:value, bad indentation,
-// non-list content under a list key). Falls back to yaml.v3 if the
-// input contains syntax this scanner doesn't handle (nested maps,
-// flow sequences, multi-line scalars).
+// Anything it cannot reproduce exactly — malformed input, nested maps, flow
+// mappings, duplicate keys, or a scalar yaml.v3 would retype (float,
+// timestamp, hex, big integer) — returns errUnsupported so decodeAttrs
+// re-parses the block with yaml.v3. Callers should use decodeAttrs, not this
+// function directly.
 func decodeAttrYAML(src string) (map[string]any, error) {
 	m := make(map[string]any, 8)
 	lines := strings.Split(src, "\n")
@@ -59,6 +89,9 @@ func decodeAttrYAML(src string) (map[string]any, error) {
 		if key == "" {
 			return nil, fmt.Errorf("empty key on line: %q", trimmed)
 		}
+		if _, dup := m[key]; dup {
+			return nil, fmt.Errorf("duplicate key %q", key)
+		}
 
 		if valuePart != "" {
 			// Scalar value on the same line.
@@ -81,7 +114,11 @@ func decodeAttrYAML(src string) (map[string]any, error) {
 					// key: #comment → empty value (treat as null/nil)
 					m[key] = nil
 				} else {
-					m[key] = parseScalar(valuePart)
+					scalar, err := parseScalar(valuePart)
+					if err != nil {
+						return nil, err
+					}
+					m[key] = scalar
 				}
 			}
 			continue
@@ -123,7 +160,11 @@ func decodeAttrYAML(src string) (map[string]any, error) {
 					}
 					items = append(items, s)
 				default:
-					items = append(items, parseScalar(itemText))
+					scalar, err := parseScalar(itemText)
+					if err != nil {
+						return nil, err
+					}
+					items = append(items, scalar)
 				}
 			}
 			i++
@@ -136,177 +177,4 @@ func decodeAttrYAML(src string) (map[string]any, error) {
 	}
 
 	return m, nil
-}
-
-// parseScalar converts an unquoted YAML scalar to the appropriate Go type.
-// Integers → int, true/false → bool, everything else → string.
-// This matches yaml.v3's behavior for plain scalars.
-func parseScalar(s string) any {
-	// Strip inline comments: value # comment
-	if idx := strings.Index(s, " #"); idx >= 0 {
-		s = strings.TrimSpace(s[:idx])
-	}
-	// bool
-	switch s {
-	case "true", "True", "TRUE":
-		return true
-	case "false", "False", "FALSE":
-		return false
-	case "null", "Null", "NULL", "~":
-		return nil
-	}
-	// int — only call strconv.Atoi when the string is actually an integer
-	// literal. Atoi allocates an error object on non-numeric input, which
-	// is the common case for attribute values (IDs, statuses, priorities).
-	if isIntegerString(s) {
-		if n, err := strconv.Atoi(s); err == nil {
-			return n
-		}
-	}
-	// string
-	return s
-}
-
-// isIntegerString reports whether s is a plain integer literal (optional
-// sign followed by digits). Used as the gate before strconv.Atoi.
-func isIntegerString(s string) bool {
-	if s == "" {
-		return false
-	}
-	i := 0
-	if s[0] == '-' || s[0] == '+' {
-		if len(s) == 1 {
-			return false
-		}
-		i = 1
-	}
-	for ; i < len(s); i++ {
-		if s[i] < '0' || s[i] > '9' {
-			return false
-		}
-	}
-	return true
-}
-
-// unquoteYAML strips single or double quotes from a YAML scalar.
-func unquoteYAML(s string) (string, error) {
-	if len(s) < 2 {
-		return s, nil
-	}
-	q := s[0]
-	if q != '"' && q != '\'' {
-		return s, nil
-	}
-	if s[len(s)-1] != q {
-		return "", fmt.Errorf("unterminated quote: %s", s)
-	}
-	inner := s[1 : len(s)-1]
-	if q == '\'' {
-		// YAML single quotes: '' is an escaped literal quote.
-		return strings.ReplaceAll(inner, "''", "'"), nil
-	}
-	// YAML double quotes: handle common escapes.
-	return unescapeYAMLDouble(inner), nil
-}
-
-func unescapeYAMLDouble(s string) string {
-	if !strings.ContainsRune(s, '\\') {
-		return s
-	}
-	var b strings.Builder
-	b.Grow(len(s))
-	for i := 0; i < len(s); i++ {
-		if s[i] == '\\' && i+1 < len(s) {
-			switch s[i+1] {
-			case 'n':
-				b.WriteByte('\n')
-			case 't':
-				b.WriteByte('\t')
-			case 'r':
-				b.WriteByte('\r')
-			case '"':
-				b.WriteByte('"')
-			case '\\':
-				b.WriteByte('\\')
-			default:
-				b.WriteByte(s[i+1])
-			}
-			i++
-		} else {
-			b.WriteByte(s[i])
-		}
-	}
-	return b.String()
-}
-
-func leadingSpaces(s string) int {
-	n := 0
-	for n < len(s) && s[n] == ' ' {
-		n++
-	}
-	return n
-}
-
-// parseFlowSeq parses a YAML flow sequence [item1, item2, item3] into []any.
-// Items are parsed as scalars (same rules as parseScalar). Quoted items
-// are supported.
-func parseFlowSeq(s string) ([]any, error) {
-	s = strings.TrimSpace(s)
-	if len(s) < 2 || s[0] != '[' || s[len(s)-1] != ']' {
-		return nil, fmt.Errorf("invalid flow sequence: %s", s)
-	}
-	inner := strings.TrimSpace(s[1 : len(s)-1])
-	if inner == "" {
-		return []any{}, nil
-	}
-	parts := splitFlowItems(inner)
-	items := make([]any, 0, len(parts))
-	for _, part := range parts {
-		part = strings.TrimSpace(part)
-		if part == "" {
-			continue
-		}
-		if part[0] == '"' || part[0] == '\'' {
-			s, err := unquoteYAML(part)
-			if err != nil {
-				return nil, err
-			}
-			items = append(items, s)
-		} else {
-			items = append(items, parseScalar(part))
-		}
-	}
-	return items, nil
-}
-
-// splitFlowItems splits a flow sequence body on commas, respecting quotes.
-func splitFlowItems(s string) []string {
-	var parts []string
-	depth := 0
-	inQuote := byte(0)
-	start := 0
-	for i := range len(s) {
-		c := s[i]
-		if inQuote != 0 {
-			if c == inQuote {
-				inQuote = 0
-			}
-			continue
-		}
-		switch c {
-		case '"', '\'':
-			inQuote = c
-		case '[', '{':
-			depth++
-		case ']', '}':
-			depth--
-		case ',':
-			if depth == 0 {
-				parts = append(parts, s[start:i])
-				start = i + 1
-			}
-		}
-	}
-	parts = append(parts, s[start:])
-	return parts
 }

@@ -99,7 +99,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
-x-reqmd.source-line: 255
+x-reqmd.source-line: 254
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -166,7 +166,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
-x-reqmd.source-line: 181
+x-reqmd.source-line: 180
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -177,26 +177,12 @@ trace: []
  docstring literal, then trims each line. Returns "" if the input
  is too short to contain the delimiters.
 
-## IMP-python-capturesByName-8cf2bb4: capturesByName
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
-x-reqmd.source-line: 356
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- capturesByName returns a map from capture name to node for a single
- query match. Capture names are resolved via the pre-fetched
- captureNames slice from q.CaptureNames().
-
 ## IMP-python-symbolFromMatch-36ab32a: symbolFromMatch
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
-x-reqmd.source-line: 368
+x-reqmd.source-line: 355
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -210,7 +196,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
-x-reqmd.source-line: 400
+x-reqmd.source-line: 387
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -218,30 +204,12 @@ trace: []
  primaryDeclNode returns the captured "decl" node for the match's
  dispatch category, or nil when the match carries no primary decl.
 
-## IMP-python-isInsideClassBody-df4f537: isInsideClassBody
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
-x-reqmd.source-line: 421
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- isInsideClassBody walks the parent chain of node and reports whether
- any ancestor is a `class_definition`. Used to reject class-level
- identifier assignments (`Cls.CONST = ...`) that otherwise match the
- @const.decl pattern. The captured @const.decl node is the
- `expression_statement`; climbing through `block` and `class_definition`
- is the only place where it appears (module-level constants sit under
- `module`/`block`).
-
 ## IMP-python-enclosingClassName-d0cc098: enclosingClassName
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
-x-reqmd.source-line: 440
+x-reqmd.source-line: 408
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -254,26 +222,12 @@ trace: []
  produce such a match) or when the class has no name field (also
  defensive).
 
-## IMP-python-moduleNameFromFile-fb00cb4: moduleNameFromFile
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
-x-reqmd.source-line: 461
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- moduleNameFromFile returns the file's basename without its extension,
- used as Python's default package/module name when no explicit package
- metadata is available. Empty string is returned for empty input.
-
 ## IMP-python-init-c358feb: init
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
-x-reqmd.source-line: 477
+x-reqmd.source-line: 426
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -322,26 +276,12 @@ trace: []
  contribution); the skeleton ships a placeholder so this may pass
  with a one-line comment.
 
-## IMP-python-TestModuleNameFromFile-d6826d4: TestModuleNameFromFile
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 56
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- TestModuleNameFromFile covers the helper that derives a Python
- module/package name from a file path. It is used as the default
- value for Symbol.Package in the absence of explicit metadata.
-
 ## IMP-python-TestCleanPythonComment-15afc45: TestCleanPythonComment
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 76
+x-reqmd.source-line: 55
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -354,7 +294,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 94
+x-reqmd.source-line: 73
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -367,7 +307,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 105
+x-reqmd.source-line: 84
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -382,7 +322,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 164
+x-reqmd.source-line: 143
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -398,7 +338,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 202
+x-reqmd.source-line: 181
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -414,7 +354,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 226
+x-reqmd.source-line: 205
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -430,7 +370,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 259
+x-reqmd.source-line: 237
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -444,7 +384,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 276
+x-reqmd.source-line: 254
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -458,7 +398,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 295
+x-reqmd.source-line: 273
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -471,7 +411,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 311
+x-reqmd.source-line: 289
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -484,7 +424,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 326
+x-reqmd.source-line: 304
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -499,7 +439,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 345
+x-reqmd.source-line: 323
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -515,7 +455,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
-x-reqmd.source-line: 366
+x-reqmd.source-line: 344
 x-reqmd.symbol-kind: function
 trace: []
 ```

@@ -127,26 +127,12 @@ trace: []
  single space after the marker (`// foo` → `foo`) is dropped, as is
  per-line indentation inside block comments.
 
-## IMP-clang-capturesByName-b94eb21: capturesByName
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
-x-reqmd.source-line: 204
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- capturesByName returns a map from capture name to node for a single
- query match. Capture names are resolved via the pre-fetched
- captureNames slice from q.CaptureNames().
-
 ## IMP-clang-symbolFromMatch-b9ebaa1: symbolFromMatch
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
-x-reqmd.source-line: 217
+x-reqmd.source-line: 205
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -156,56 +142,12 @@ trace: []
  when the match has no usable captures or refers to a function-local
  declaration.
 
-## IMP-clang-isInsideFunction-66b7690: isInsideFunction
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
-x-reqmd.source-line: 262
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- isInsideFunction reports whether node's ancestor chain contains a
- function_definition. Used to reject declarations nested inside
- function bodies (local structs, local variables), which are not
- top-level symbols.
-
-## IMP-clang-isInsideTypeDefinition-9b4f7a1: isInsideTypeDefinition
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
-x-reqmd.source-line: 278
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- isInsideTypeDefinition reports whether node's ancestor chain contains
- a `type_definition` (i.e. the node is the inner struct/enum/union
- specifier of a typedef). Such specifiers are skipped in favor of the
- enclosing type_definition, which carries the typedef'd alias name.
-
-## IMP-clang-moduleNameFromFile-a487625: moduleNameFromFile
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
-x-reqmd.source-line: 293
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- moduleNameFromFile returns the file's basename without its extension,
- used as C's default package/module name when no explicit package
- metadata is available. Empty string is returned for empty input.
-
 ## IMP-clang-init-831d7f6: init
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
-x-reqmd.source-line: 307
+x-reqmd.source-line: 246
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -344,17 +286,4 @@ trace: []
 
  TestParseFromDisk reads a real .c file from disk and verifies the
  embed + filesystem round-trip.
-
-## IMP-clang-TestModuleNameFromFile-9fe6609: TestModuleNameFromFile
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
-x-reqmd.source-line: 284
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- TestModuleNameFromFile covers the helper that derives a C
- module/package name from a file path.
 

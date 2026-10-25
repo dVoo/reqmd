@@ -2,10 +2,12 @@ package exporter
 
 import (
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
-	"reqmd/internal/model"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // CSV exports document content as comma-separated values. When verdicts
@@ -22,9 +24,17 @@ func (c *CSV) SetVerdicts(v map[string]VerdictInfo) {
 	c.verdicts = v
 }
 
-func (c *CSV) Export(w io.Writer, doc model.Document, propOrder []string) error {
+func (c *CSV) Export(w io.Writer, doc model.Document, propOrder []string) (err error) {
 	cw := csv.NewWriter(w)
-	defer cw.Flush()
+	// csv.Writer buffers, so a write error only surfaces after Flush. Join it
+	// into the returned error: dropping it would report a truncated export as
+	// success.
+	defer func() {
+		cw.Flush()
+		if flushErr := cw.Error(); flushErr != nil {
+			err = errors.Join(err, fmt.Errorf("flushing CSV: %w", flushErr))
+		}
+	}()
 
 	// Header: Type, ID, Title, properties..., Body, Rationale, [Verdict, Verdict Source, Verdict Cases]
 	hasVerdicts := c.verdicts != nil
@@ -53,7 +63,7 @@ func (c *CSV) Export(w io.Writer, doc model.Document, propOrder []string) error 
 		for _, prop := range propOrder {
 			val := ""
 			if n.Kind == model.KindRequirement {
-				val = formatAttr(n.Attrs[prop])
+				val = model.FormatAttr(n.Attrs[prop])
 			}
 			row = append(row, val)
 		}

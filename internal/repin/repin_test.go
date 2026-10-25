@@ -4,11 +4,12 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
-	"reqmd/internal/graph"
 	"sort"
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/graph"
 )
 
 // ---------------------------------------------------------------------------
@@ -20,10 +21,10 @@ import (
 func writeFile(t *testing.T, dir, rel, content string) {
 	t.Helper()
 	p := filepath.Join(dir, rel)
-	if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(p), 0o750); err != nil {
 		t.Fatalf("MkdirAll: %v", err)
 	}
-	if err := os.WriteFile(p, []byte(content), 0o644); err != nil {
+	if err := os.WriteFile(p, []byte(content), 0o600); err != nil {
 		t.Fatalf("WriteFile: %v", err)
 	}
 }
@@ -117,7 +118,7 @@ func TestApply_RewritesAttrBlockOnly(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
-	rep, err := Apply(res.Deltas)
+	rep, err := Apply(root, res.Deltas)
 	if err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
@@ -154,7 +155,7 @@ func TestApply_PromoteAddsPin(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
-	if _, err = Apply(res.Deltas); err != nil {
+	if _, err = Apply(root, res.Deltas); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	got, err := os.ReadFile(filepath.Join(root, "downstream/dn.md"))
@@ -189,7 +190,7 @@ func TestApply_PreservesProseWithTilde(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
-	if _, err = Apply(res.Deltas); err != nil {
+	if _, err = Apply(root, res.Deltas); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	got, err := os.ReadFile(filepath.Join(root, "downstream/dn.md"))
@@ -214,7 +215,7 @@ func TestApply_Idempotent(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
-	if _, err = Apply(res.Deltas); err != nil {
+	if _, err = Apply(root, res.Deltas); err != nil {
 		t.Fatalf("first Apply: %v", err)
 	}
 	// Second Build should produce no deltas — pin now == upstream.
@@ -268,7 +269,7 @@ func TestApply_UnpinnedPromoteDoesNotCorruptPinnedSiblings(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Build promote: %v", err)
 	}
-	if _, err = Apply(res.Deltas); err != nil {
+	if _, err = Apply(root, res.Deltas); err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
 	got, err := os.ReadFile(filepath.Join(root, "downstream/dn.md"))
@@ -300,7 +301,7 @@ func TestApply_SkipsPredated(t *testing.T) {
 	if len(res.Deltas) != 1 || res.Deltas[0].Kind != "predated" {
 		t.Fatalf("Build = %+v, want 1 predated delta", res)
 	}
-	rep, err := Apply(res.Deltas)
+	rep, err := Apply(root, res.Deltas)
 	if err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
@@ -343,7 +344,7 @@ func TestApply_MultipleDeltasSameFile(t *testing.T) {
 	if len(res.Deltas) != 2 {
 		t.Fatalf("Build = %+v, want 2 deltas", res)
 	}
-	rep, err := Apply(res.Deltas)
+	rep, err := Apply(root, res.Deltas)
 	if err != nil {
 		t.Fatalf("Apply: %v", err)
 	}
@@ -525,5 +526,31 @@ func TestBuild_SortedByFile(t *testing.T) {
 		if res.Deltas[0].File > res.Deltas[1].File {
 			t.Errorf("deltas not sorted by file: %v", []string{res.Deltas[0].File, res.Deltas[1].File})
 		}
+	}
+}
+
+// TestApply_PreservesFileMode verifies that rewriting a spec file keeps its
+// existing permissions instead of forcing a default mode.
+func TestApply_PreservesFileMode(t *testing.T) {
+	root := makeTree(t, 3, "UP-001~1")
+	dnPath := filepath.Join(root, "downstream/dn.md")
+	if err := os.Chmod(dnPath, 0o640); err != nil {
+		t.Fatalf("Chmod: %v", err)
+	}
+
+	res, err := Build(root, false)
+	if err != nil {
+		t.Fatalf("Build: %v", err)
+	}
+	if _, err := Apply(root, res.Deltas); err != nil {
+		t.Fatalf("Apply: %v", err)
+	}
+
+	info, err := os.Stat(dnPath)
+	if err != nil {
+		t.Fatalf("Stat: %v", err)
+	}
+	if got, want := info.Mode().Perm(), os.FileMode(0o640); got != want {
+		t.Errorf("file mode = %o, want %o", got, want)
 	}
 }

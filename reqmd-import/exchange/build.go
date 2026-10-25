@@ -6,9 +6,9 @@ import (
 	"path"
 	"strings"
 
-	"gopkg.in/yaml.v3"
+	"github.com/dVoo/reqmd/reqmd-import/internal/writer"
 
-	"reqmd-import/internal/writer"
+	"gopkg.in/yaml.v3"
 )
 
 // Build validates the bundle and renders every document to output files. A

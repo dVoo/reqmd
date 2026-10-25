@@ -3,9 +3,10 @@ package parser
 import (
 	"os"
 	"path/filepath"
-	"reqmd/internal/model"
 	"strings"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // parseReqTree is a test helper: parses src and returns the assembled
@@ -348,7 +349,7 @@ func TestParseSingleFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "test_req.md")
 	content := []byte("## REQ-FILE\n```attr\nid: REQ-FILE\nasil: ASIL C\n```\nThis requirement was loaded from a file.\n\n*Rationale: file-based parsing\n")
-	if err := os.WriteFile(path, content, 0o644); err != nil {
+	if err := os.WriteFile(path, content, 0o600); err != nil {
 		t.Fatal(err)
 	}
 

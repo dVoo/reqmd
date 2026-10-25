@@ -5,16 +5,17 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reqmd/internal/filter"
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
-	"reqmd/internal/parser"
-	"reqmd/internal/reporter"
-	"reqmd/internal/schema"
-	"reqmd/internal/verify"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/dVoo/reqmd/internal/filter"
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/parser"
+	"github.com/dVoo/reqmd/internal/reporter"
+	"github.com/dVoo/reqmd/internal/schema"
+	"github.com/dVoo/reqmd/internal/verify"
 
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
@@ -26,6 +27,7 @@ func newCheckCmd() *cobra.Command {
 	var relaxedVersions bool
 	var resultsPaths []string
 	var filterExpr string
+	var relaxedFilter bool
 	var disjointChecks []string
 	var ignoreUnboundResults bool
 
@@ -62,7 +64,7 @@ duration of this run.`,
 				}
 				return err
 			}
-			output, err := validateDir(path, jsonOutput, relaxedVersions, resultsPaths, filterExpr, disjointChecks, ignoreUnboundResults)
+			output, err := validateDir(path, jsonOutput, relaxedVersions, resultsPaths, filterExpr, relaxedFilter, disjointChecks, ignoreUnboundResults)
 			if output != "" {
 				if _, werr := fmt.Fprint(cmd.OutOrStdout(), output); werr != nil {
 					return fmt.Errorf("writing output: %w", werr)
@@ -77,6 +79,7 @@ duration of this run.`,
 	cmd.Flags().BoolVar(&relaxedVersions, "relaxed-versions", false, "Demote outdated version-pin findings from ERROR to WARNING. Predated (pin ahead of upstream) stays ERROR.")
 	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF .ctrf.json or manual-results dirs with schema.yaml) and run outcome-gated checks. Repeatable. May be a dir (walked, auto-detected) or a single CTRF file.")
 	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression (e.g. '\"Premium\" in variant'). Only matching requirements are checked and reported.")
+	addRelaxedFilterFlag(cmd, &relaxedFilter)
 	cmd.Flags().StringArrayVar(&disjointChecks, "disjoint-check", nil, "Check that trace-linked requirements have overlapping values for the named array-typed attribute (e.g. variant). Repeatable. Also settable via x-reqmd.disjoint-check in schema.yaml.")
 	cmd.Flags().BoolVar(&ignoreUnboundResults, "ignore-unbound-results", false, "Suppress unbound-result warnings for verification entries that declare x-reqmd but bind to nothing.")
 	return cmd
@@ -89,11 +92,18 @@ duration of this run.`,
 // relaxedVersions, when true, demotes "outdated" version-pin findings from
 // ERROR to WARNING. Predated findings (pin ahead of upstream) stay ERROR
 // because they are a data integrity issue, not a process issue.
-func runValidationPipeline(docs []model.Document, root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, disjointChecks []string, ignoreUnboundResults bool) (string, error) {
+//
+// relaxedFilter, when true, lets the --filter expression reference
+// attributes that no schema.yaml declares. Attributes actually present on a
+// requirement are always allowed; anything else outside the declared set is
+// reported as a warning instead of aborting the run.
+func runValidationPipeline(docs []model.Document, root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, relaxedFilter bool, disjointChecks []string, ignoreUnboundResults bool) (string, error) {
 	report := &reporter.Report{}
 
 	// Compile the filter expression (if any) once at startup.
-	// Fail fast on syntax errors or references to unknown attributes.
+	// Fail fast on syntax errors; references to unknown attributes are
+	// errors unless --relaxed-filter is set, in which case they are
+	// warnings (attributes present on requirements are always allowed).
 	// The filter scopes authored requirements only: synthesized result
 	// pseudo-requirements (from --results) carry no schema attributes and
 	// are intentionally excluded from the matching set. Verdict checks
@@ -101,10 +111,11 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 	// does not affect outcome-gated reporting.
 	var filterSet map[string]struct{}
 	if filterExpr != "" {
-		f, err := filter.CompileForDocs(docs, filterExpr)
+		f, warnings, err := filter.CompileForDocs(docs, filterExpr, relaxedFilter)
 		if err != nil {
 			return "", fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 		}
+		filter.WriteWarnings(os.Stderr, warnings)
 		filterSet, err = f.MatchingIDs(docs)
 		if err != nil {
 			return "", fmt.Errorf("collecting matching IDs for filter %q: %w", filterExpr, err)
@@ -320,12 +331,12 @@ func demoteOutdatedVersionPins(checks []graph.CheckResult) {
 	}
 }
 
-func validateDir(root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, disjointChecks []string, ignoreUnboundResults bool) (string, error) {
+func validateDir(root string, jsonOutput, relaxedVersions bool, resultsPaths []string, filterExpr string, relaxedFilter bool, disjointChecks []string, ignoreUnboundResults bool) (string, error) {
 	docs, err := parser.Discover(root)
 	if err != nil {
 		return "", fmt.Errorf("discovering documents: %w", err)
 	}
-	return runValidationPipeline(docs, root, jsonOutput, relaxedVersions, resultsPaths, filterExpr, disjointChecks, ignoreUnboundResults)
+	return runValidationPipeline(docs, root, jsonOutput, relaxedVersions, resultsPaths, filterExpr, relaxedFilter, disjointChecks, ignoreUnboundResults)
 }
 
 func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions bool) (string, error) {
@@ -350,15 +361,7 @@ func validateSingleFile(filePath, schemaPath string, jsonOutput, relaxedVersions
 		Nodes:  reqs,
 	}
 
-	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions, nil, "", nil, false)
-}
-
-// formatReport conditionally returns the report in text or JSON format.
-func formatReport(r *reporter.Report, jsonOutput bool) string {
-	if jsonOutput {
-		return r.FormatJSON()
-	}
-	return r.Format()
+	return runValidationPipeline([]model.Document{doc}, "", jsonOutput, relaxedVersions, nil, "", false, nil, false)
 }
 
 // filterID reports whether reqID passes the active filter set. A nil set
@@ -369,4 +372,12 @@ func filterID(set map[string]struct{}, reqID string) bool {
 	}
 	_, ok := set[reqID]
 	return ok
+}
+
+// formatReport conditionally returns the report in text or JSON format.
+func formatReport(r *reporter.Report, jsonOutput bool) string {
+	if jsonOutput {
+		return r.FormatJSON()
+	}
+	return r.Format()
 }

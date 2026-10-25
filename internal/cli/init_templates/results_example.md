@@ -4,8 +4,7 @@ This document holds ephemeral verification results — review, inspection,
 analysis, or demonstration outcomes. It is loaded via `reqmd check --results`
 and is not part of the persistent spec tree.
 
-The built-in `status`, `id`, `title`, and `trace` attributes are injected
-automatically; `x-reqmd.outcome`, `x-reqmd.verifier`, `x-reqmd.evidence`,
+The built-in `status` and `trace` attributes are injected automatically; `x-reqmd.outcome`, `x-reqmd.verifier`, `x-reqmd.evidence`,
 and `x-reqmd.verified-at` are tool-owned attributes declared in the schema.
 
 ## {{ .IDPrefix }}-001: Example Review Result

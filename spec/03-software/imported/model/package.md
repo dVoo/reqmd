@@ -74,6 +74,20 @@ trace: []
  injected into every schema by internal/schema.Compile and accessed by
  graph checks and HTML export.
 
+## IMP-model-AttrVerify-394826e: AttrVerify
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/model/builtin.go
+x-reqmd.source-line: 11
+x-reqmd.symbol-kind: const
+trace: []
+```
+
+ Built-in attribute keys used in requirement attr blocks. They are
+ injected into every schema by internal/schema.Compile and accessed by
+ graph checks and HTML export.
+
 ## IMP-model-AttrVersion-253d1dd: AttrVersion
 ```attr
 status: approved
@@ -93,7 +107,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
-x-reqmd.source-line: 24
+x-reqmd.source-line: 25
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -108,7 +122,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
-x-reqmd.source-line: 24
+x-reqmd.source-line: 25
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -123,7 +137,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
-x-reqmd.source-line: 24
+x-reqmd.source-line: 25
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -138,7 +152,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
-x-reqmd.source-line: 24
+x-reqmd.source-line: 25
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -153,7 +167,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
-x-reqmd.source-line: 41
+x-reqmd.source-line: 42
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -174,7 +188,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
-x-reqmd.source-line: 55
+x-reqmd.source-line: 58
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -187,7 +201,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
-x-reqmd.source-line: 55
+x-reqmd.source-line: 58
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -200,7 +214,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
-x-reqmd.source-line: 63
+x-reqmd.source-line: 66
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -224,7 +238,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/format.go
-x-reqmd.source-line: 13
+x-reqmd.source-line: 16
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -237,6 +251,80 @@ trace: []
 
  This is the shared scalar formatter used by the exporter and reporter
  packages to avoid duplicating the same type switch in four places.
+
+## IMP-model-AttrString-ac410c6: AttrString
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/model/format.go
+x-reqmd.source-line: 41
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+ Attribute accessors. Attr values come from the YAML attr block and are
+ typed by the parser (string, bool, int, []any of those). These helpers
+ are the single place that type-switches on them; every consumer (graph
+ checks, exporters, reporters) reads attrs through them instead of
+ reimplementing the same switch.
+ AttrString returns the string value of attrs[key], or "" when the key
+ is absent or holds a non-string value.
+
+## IMP-model-AttrStrings-b28638f: AttrStrings
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/model/format.go
+x-reqmd.source-line: 50
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+ AttrStrings reads an array attr as []string. Returns nil when the key is
+ absent (so callers can tell "not set" from "explicitly empty") and
+ []string{} when the key is present but the array is empty. Non-string
+ items are dropped.
+
+## IMP-model-AttrList-6a7d22b: AttrList
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/model/format.go
+x-reqmd.source-line: 76
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+ AttrList returns an array attr in its native []any form, converting a
+ []string. Returns nil when the key is absent or not an array.
+
+## IMP-model-AttrInt-1b173ec: AttrInt
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/model/format.go
+x-reqmd.source-line: 93
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+ AttrInt reads an integer attr, handling the types that appear in
+ practice: int and int64 (YAML decode) and float64 (JSON round-trip).
+ Returns 0 when the key is absent or undecodable.
+
+## IMP-model-FormatAttr-04da9dc: FormatAttr
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/model/format.go
+x-reqmd.source-line: 108
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+ FormatAttr renders an attribute value for display: scalars through
+ FormatScalar, slices and maps as compact JSON. Unknown types render as
+ "" so a table cell never shows Go syntax.
 
 ## IMP-model-Kind-382a382: Kind
 ```attr

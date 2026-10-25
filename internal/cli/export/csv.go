@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reqmd/internal/exporter"
-	"reqmd/internal/filter"
-	"reqmd/internal/graph"
-	"reqmd/internal/parser"
-	"reqmd/internal/verify"
+
+	"github.com/dVoo/reqmd/internal/exporter"
+	"github.com/dVoo/reqmd/internal/filter"
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/parser"
+	"github.com/dVoo/reqmd/internal/verify"
 
 	"github.com/spf13/cobra"
 )
@@ -17,6 +18,7 @@ func newCsvCmd() *cobra.Command {
 	var outputDir string
 	var resultsPaths []string
 	var filterExpr string
+	var relaxedFilter bool
 
 	cmd := &cobra.Command{
 		Use:   "csv <dir>",
@@ -37,11 +39,11 @@ func newCsvCmd() *cobra.Command {
 			// HTML export).
 			exportDocs := docs
 			if filterExpr != "" {
-				var f *filter.Filter
-				f, err = filter.CompileForDocs(docs, filterExpr)
-				if err != nil {
-					return fmt.Errorf("compiling filter %q: %w", filterExpr, err)
+				f, warnings, ferr := filter.CompileForDocs(docs, filterExpr, relaxedFilter)
+				if ferr != nil {
+					return fmt.Errorf("compiling filter %q: %w", filterExpr, ferr)
 				}
+				filter.WriteWarnings(os.Stderr, warnings)
 				exportDocs, err = f.FilterDocs(docs)
 				if err != nil {
 					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
@@ -79,7 +81,7 @@ func newCsvCmd() *cobra.Command {
 			exp.SetVerdicts(verdicts)
 
 			if outputDir != "" {
-				if err := os.MkdirAll(outputDir, 0o755); err != nil {
+				if err := os.MkdirAll(outputDir, outputDirPerm); err != nil {
 					return fmt.Errorf("creating output directory: %w", err)
 				}
 			}
@@ -100,11 +102,16 @@ func newCsvCmd() *cobra.Command {
 					return fmt.Errorf("creating %s: %w", outPath, err)
 				}
 
-				if err := exp.Export(f, doc, props); err != nil {
-					f.Close()
-					return fmt.Errorf("exporting %s: %w", doc.Path, err)
+				// Close reports the last write error, so both are collected before
+				// deciding what to report: a truncated file must not look exported.
+				writeErr := exp.Export(f, doc, props)
+				closeErr := f.Close()
+				if writeErr != nil {
+					return fmt.Errorf("exporting %s: %w", doc.Path, writeErr)
 				}
-				f.Close()
+				if closeErr != nil {
+					return fmt.Errorf("closing %s: %w", outPath, closeErr)
+				}
 				fmt.Fprintf(os.Stderr, "Wrote %s\n", outPath)
 			}
 			return nil
@@ -114,5 +121,6 @@ func newCsvCmd() *cobra.Command {
 	cmd.Flags().StringVarP(&outputDir, "output", "o", "", "Output directory for CSV files")
 	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF or manual) to add Verdict, Verdict Source, and Verdict Cases columns. Repeatable.")
 	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are exported.")
+	cmd.Flags().BoolVar(&relaxedFilter, "relaxed-filter", false, "Allow the filter to reference attributes not declared in any schema.yaml (warn instead of error).")
 	return cmd
 }

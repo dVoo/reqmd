@@ -11,9 +11,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	lbug "github.com/LadybugDB/go-ladybug"
+	"github.com/dVoo/reqmd/internal/model"
 
-	"reqmd/internal/model"
+	lbug "github.com/LadybugDB/go-ladybug"
 )
 
 // ExportGraph writes all parsed requirements as a ladybugdb database at outDir.
@@ -29,7 +29,7 @@ func ExportGraph(docs []model.Document, outDir string) error {
 		return fmt.Errorf("removing previous database: %w", err)
 	}
 
-	if err := os.MkdirAll(outDir, 0755); err != nil {
+	if err := os.MkdirAll(outDir, 0o755); err != nil {
 		return fmt.Errorf("creating output directory: %w", err)
 	}
 

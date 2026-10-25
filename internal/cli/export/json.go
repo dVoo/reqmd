@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reqmd/internal/exporter"
-	"reqmd/internal/filter"
-	"reqmd/internal/graph"
-	"reqmd/internal/parser"
-	"reqmd/internal/verify"
+
+	"github.com/dVoo/reqmd/internal/exporter"
+	"github.com/dVoo/reqmd/internal/filter"
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/parser"
+	"github.com/dVoo/reqmd/internal/verify"
 
 	"github.com/spf13/cobra"
 )
@@ -26,6 +27,7 @@ func newJSONCmd() *cobra.Command {
 	var outputDir string
 	var resultsPaths []string
 	var filterExpr string
+	var relaxedFilter bool
 	var disjointChecks []string
 
 	cmd := &cobra.Command{
@@ -63,10 +65,11 @@ same semantics as the CSV and HTML exports).`,
 			exportDocs := docs
 			var filterSet map[string]struct{}
 			if filterExpr != "" {
-				f, err := filter.CompileForDocs(docs, filterExpr)
-				if err != nil {
-					return fmt.Errorf("compiling filter %q: %w", filterExpr, err)
+				f, warnings, compileErr := filter.CompileForDocs(docs, filterExpr, relaxedFilter)
+				if compileErr != nil {
+					return fmt.Errorf("compiling filter %q: %w", filterExpr, compileErr)
 				}
+				filter.WriteWarnings(os.Stderr, warnings)
 				filterSet, err = f.MatchingIDs(docs)
 				if err != nil {
 					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
@@ -84,9 +87,9 @@ same semantics as the CSV and HTML exports).`,
 			graphDocs := docs
 			var hasResults bool
 			if len(resultsPaths) > 0 {
-				merged, _, err := verify.LoadMerged(resultsPaths)
-				if err != nil {
-					return fmt.Errorf("loading verification results: %w", err)
+				merged, _, loadErr := verify.LoadMerged(resultsPaths)
+				if loadErr != nil {
+					return fmt.Errorf("loading verification results: %w", loadErr)
 				}
 				graphDocs = append(graphDocs, verify.Synthesize(merged))
 				hasResults = true
@@ -118,7 +121,7 @@ same semantics as the CSV and HTML exports).`,
 			if outDir == "" {
 				outDir = root
 			}
-			if err := os.MkdirAll(outDir, 0o755); err != nil {
+			if err := os.MkdirAll(outDir, outputDirPerm); err != nil {
 				return fmt.Errorf("creating output directory: %w", err)
 			}
 
@@ -142,17 +145,18 @@ same semantics as the CSV and HTML exports).`,
 
 			for _, t := range tables {
 				outPath := filepath.Join(outDir, t.name)
+
 				f, err := os.Create(outPath)
 				if err != nil {
 					return fmt.Errorf("creating %s: %w", outPath, err)
 				}
 				w := bufio.NewWriter(f)
 				if err := t.write(w); err != nil {
-					f.Close()
+					_ = f.Close()
 					return fmt.Errorf("exporting %s: %w", outPath, err)
 				}
 				if err := w.Flush(); err != nil {
-					f.Close()
+					_ = f.Close()
 					return fmt.Errorf("flushing %s: %w", outPath, err)
 				}
 				if err := f.Close(); err != nil {
@@ -167,6 +171,7 @@ same semantics as the CSV and HTML exports).`,
 	cmd.Flags().StringVarP(&outputDir, "output", "o", "", "Output directory for the NDJSON tables (default: the exported tree root)")
 	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF or manual) to emit results.ndjson. Repeatable.")
 	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are written to requirements.ndjson.")
+	cmd.Flags().BoolVar(&relaxedFilter, "relaxed-filter", false, "Allow the filter to reference attributes not declared in any schema.yaml (warn instead of error).")
 	cmd.Flags().StringArrayVar(&disjointChecks, "disjoint-check", nil, "Check that trace-linked requirements have overlapping values for the named array-typed attribute. Repeatable. Also settable via x-reqmd.disjoint-check in schema.yaml.")
 	return cmd
 }

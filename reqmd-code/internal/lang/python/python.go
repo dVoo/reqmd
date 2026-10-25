@@ -29,11 +29,11 @@ import (
 	"embed"
 	"strings"
 
+	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
+
 	sitter "github.com/tree-sitter/go-tree-sitter"
 	tree_sitter_python "github.com/tree-sitter/tree-sitter-python/bindings/go"
-
-	"reqmd-code/internal/lang"
-	"reqmd-code/internal/model"
 )
 
 //go:embed queries/*.scm
@@ -158,8 +158,7 @@ func extractDocstring(node *sitter.Node, src []byte) string {
 	// Walk expression_statement's children to find the string node.
 	// The string is a direct child of the expression_statement.
 	var stringNode *sitter.Node
-	n := first.ChildCount()
-	for i := uint(0); i < n; i++ {
+	for i := range first.ChildCount() {
 		c := first.Child(i)
 		if c.Kind() == "string" {
 			stringNode = c
@@ -275,7 +274,7 @@ func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) 
 
 	// Python has no package clause; fall back to the file's basename
 	// without extension as the module/package name.
-	pkgName := moduleNameFromFile(file)
+	pkgName := lang.ModuleNameFromFile(file)
 	captureNames := q.CaptureNames()
 
 	// First pass: collect all method.decl nodes so we can later drop
@@ -288,7 +287,7 @@ func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) 
 		if m == nil {
 			break
 		}
-		captures := capturesByName(m, captureNames)
+		captures := lang.CapturesByName(m, captureNames)
 		if n := captures["method.decl"]; n != nil {
 			methodNodes[n.Id()] = struct{}{}
 		}
@@ -309,7 +308,7 @@ func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) 
 		if m == nil {
 			break
 		}
-		captures := capturesByName(m, captureNames)
+		captures := lang.CapturesByName(m, captureNames)
 
 		// Skip the bare @func.decl when the same node is also a
 		// method. Methods win.
@@ -323,7 +322,7 @@ func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) 
 		// @const.decl pattern at the expression_statement node. The
 		// captured node is the expression_statement; walk parents
 		// and reject if any ancestor is a class_definition.
-		if cd := captures["const.decl"]; cd != nil && isInsideClassBody(cd) {
+		if cd := captures["const.decl"]; cd != nil && lang.HasAncestorKind(cd, "class_definition") {
 			continue
 		}
 
@@ -348,18 +347,6 @@ func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) 
 	// but be defensive in case the binding reorders.
 	lang.SortByStartLine(out)
 	return out, nil
-}
-
-// capturesByName returns a map from capture name to node for a single
-// query match. Capture names are resolved via the pre-fetched
-// captureNames slice from q.CaptureNames().
-func capturesByName(m *sitter.QueryMatch, captureNames []string) map[string]*sitter.Node {
-	captures := make(map[string]*sitter.Node, len(m.Captures))
-	for i := range m.Captures {
-		name := captureNames[m.Captures[i].Index]
-		captures[name] = &m.Captures[i].Node
-	}
-	return captures
 }
 
 // symbolFromMatch builds a model.Symbol from the per-match capture map.
@@ -411,25 +398,6 @@ func primaryDeclNode(captures map[string]*sitter.Node) *sitter.Node {
 	return nil
 }
 
-// isInsideClassBody walks the parent chain of node and reports whether
-// any ancestor is a `class_definition`. Used to reject class-level
-// identifier assignments (`Cls.CONST = ...`) that otherwise match the
-// @const.decl pattern. The captured @const.decl node is the
-// `expression_statement`; climbing through `block` and `class_definition`
-// is the only place where it appears (module-level constants sit under
-// `module`/`block`).
-func isInsideClassBody(node *sitter.Node) bool {
-	if node == nil {
-		return false
-	}
-	for p := node.Parent(); p != nil; p = p.Parent() {
-		if p.Kind() == "class_definition" {
-			return true
-		}
-	}
-	return false
-}
-
 // enclosingClassName walks up the parent chain from a method's
 // function_definition node to the enclosing class_definition and
 // returns the class's name text (e.g. "Calculator" for
@@ -453,25 +421,6 @@ func enclosingClassName(methodNode *sitter.Node, src []byte) string {
 		return text
 	}
 	return ""
-}
-
-// moduleNameFromFile returns the file's basename without its extension,
-// used as Python's default package/module name when no explicit package
-// metadata is available. Empty string is returned for empty input.
-func moduleNameFromFile(file string) string {
-	if file == "" {
-		return ""
-	}
-	// Trim to the last path element.
-	base := file
-	if i := strings.LastIndexAny(base, "/\\"); i >= 0 {
-		base = base[i+1:]
-	}
-	// Strip the extension; Python files always have one.
-	if i := strings.LastIndex(base, "."); i >= 0 {
-		base = base[:i]
-	}
-	return base
 }
 
 func init() {

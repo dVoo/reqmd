@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"reqmd/internal/repin"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/repin"
 
 	"github.com/mattn/go-isatty"
 	"github.com/spf13/cobra"
@@ -125,11 +126,11 @@ func runRepin(cmd *cobra.Command, root string, opt repinOptions) error {
 		}
 		return nil
 	}
-	return applyRepin(cmd, res, opt)
+	return applyRepin(cmd, root, res, opt)
 }
 
-func applyRepin(cmd *cobra.Command, res repin.Result, opt repinOptions) error {
-	rep, err := repin.Apply(res.Deltas)
+func applyRepin(cmd *cobra.Command, root string, res repin.Result, opt repinOptions) error {
+	rep, err := repin.Apply(root, res.Deltas)
 	if err != nil {
 		return fmt.Errorf("apply: %w", err)
 	}
@@ -144,11 +145,11 @@ func applyRepin(cmd *cobra.Command, res repin.Result, opt repinOptions) error {
 		}
 		return writeJSON(cmd, out)
 	}
-	fmt.Fprint(cmd.OutOrStdout(), repin.FormatTextApplied(rep))
+	_, _ = fmt.Fprint(cmd.OutOrStdout(), repin.FormatTextApplied(rep))
 	if len(rep.Skipped) > 0 {
 		_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "skipped %d predated findings (data-integrity errors, fix manually):\n", len(rep.Skipped))
 		for _, d := range rep.Skipped {
-			fmt.Fprintf(cmd.ErrOrStderr(), "  %s  %s  %s (pin %d > upstream v%d)\n",
+			_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "  %s  %s  %s (pin %d > upstream v%d)\n",
 				d.File, d.ReqID, d.SourceRef, d.OldPin, d.NewVersion)
 		}
 	}
@@ -167,7 +168,7 @@ func writeJSON(cmd *cobra.Command, v any) error {
 func isTerminal(f *os.File) bool { return isatty.IsTerminal(f.Fd()) }
 
 func promptYes(w io.Writer, r io.Reader, nDeltas, nFiles int) (bool, error) {
-	fmt.Fprintf(w, "Apply %d changes across %d files? [y/N] ", nDeltas, nFiles)
+	_, _ = fmt.Fprintf(w, "Apply %d changes across %d files? [y/N] ", nDeltas, nFiles)
 	rdr := bufio.NewReader(r)
 	line, err := rdr.ReadString('\n')
 	if err != nil && err != io.EOF {

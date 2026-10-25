@@ -1,14 +1,16 @@
 package cli
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
-	"reqmd/internal/diff"
-	"reqmd/internal/filter"
-	"reqmd/internal/model"
-	"reqmd/internal/parser"
-	"reqmd/internal/reporter"
+
+	"github.com/dVoo/reqmd/internal/diff"
+	"github.com/dVoo/reqmd/internal/filter"
+	"github.com/dVoo/reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/parser"
+	"github.com/dVoo/reqmd/internal/reporter"
 
 	"github.com/spf13/cobra"
 )
@@ -27,6 +29,7 @@ func newBaselineDiffCmd() *cobra.Command {
 	var filterExpr string
 	var filterA string
 	var filterB string
+	var relaxedFilter bool
 
 	cmd := &cobra.Command{
 		Use:   "diff <tag1> <tag2>",
@@ -47,13 +50,14 @@ before diffing. With --filter-a and --filter-b, a single snapshot
   reqmd baseline diff --filter-a 'variant == nil' --filter-b '"Premium" in variant' HEAD`,
 		Args: cobra.MaximumNArgs(2),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runBaselineDiff(cmd, args, jsonOutput, filterExpr, filterA, filterB)
+			return runBaselineDiff(cmd, args, jsonOutput, filterExpr, filterA, filterB, relaxedFilter)
 		},
 	}
 	cmd.Flags().BoolVar(&jsonOutput, "json", false, "Output as JSON")
 	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter both snapshots using an expr-lang expression before diffing.")
 	cmd.Flags().StringVar(&filterA, "filter-a", "", "First view filter for same-commit comparison (requires --filter-b).")
 	cmd.Flags().StringVar(&filterB, "filter-b", "", "Second view filter for same-commit comparison (requires --filter-a).")
+	addRelaxedFilterFlag(cmd, &relaxedFilter)
 	// Same-commit comparison requires both view filters; --filter (both
 	// snapshots) and --filter-a/--filter-b (one snapshot, two views) are
 	// mutually exclusive modes.
@@ -67,20 +71,20 @@ before diffing. With --filter-a and --filter-b, a single snapshot
 	return cmd
 }
 
-func runBaselineDiff(cmd *cobra.Command, args []string, jsonOutput bool, filterExpr, filterA, filterB string) error {
+func runBaselineDiff(cmd *cobra.Command, args []string, jsonOutput bool, filterExpr, filterA, filterB string, relaxedFilter bool) error {
 	root, err := os.Getwd()
 	if err != nil {
 		return fmt.Errorf("getting working directory: %w", err)
 	}
 
 	// Validate we're in a git repo.
-	if err = exec.Command("git", "-C", root, "rev-parse", "--is-inside-work-tree").Run(); err != nil {
+	if err = exec.CommandContext(context.Background(), "git", "-C", root, "rev-parse", "--is-inside-work-tree").Run(); err != nil {
 		return fmt.Errorf("baseline diff requires a git repository")
 	}
 
 	// Same-commit comparison mode: --filter-a and --filter-b both supplied.
 	if filterA != "" && filterB != "" {
-		return runBaselineDiffFilteredViews(cmd, root, args, jsonOutput, filterA, filterB)
+		return runBaselineDiffFilteredViews(cmd, root, args, jsonOutput, filterA, filterB, relaxedFilter)
 	}
 
 	// Normal two-tag mode.
@@ -101,11 +105,11 @@ func runBaselineDiff(cmd *cobra.Command, args []string, jsonOutput bool, filterE
 
 	// Apply --filter to both snapshots if active.
 	if filterExpr != "" {
-		docs1, err = applyFilter(docs1, filterExpr)
+		docs1, err = applyFilter(docs1, filterExpr, relaxedFilter)
 		if err != nil {
 			return err
 		}
-		docs2, err = applyFilter(docs2, filterExpr)
+		docs2, err = applyFilter(docs2, filterExpr, relaxedFilter)
 		if err != nil {
 			return err
 		}
@@ -147,7 +151,7 @@ func runBaselineDiff(cmd *cobra.Command, args []string, jsonOutput bool, filterE
 // runBaselineDiffFilteredViews loads a single snapshot and compares two
 // filtered views of it (RFC §3.4 — "what does Premium add over Base" from
 // a single commit).
-func runBaselineDiffFilteredViews(cmd *cobra.Command, root string, args []string, jsonOutput bool, filterA, filterB string) error {
+func runBaselineDiffFilteredViews(cmd *cobra.Command, root string, args []string, jsonOutput bool, filterA, filterB string, relaxedFilter bool) error {
 	ref := "HEAD"
 	if len(args) > 0 {
 		ref = args[0]
@@ -158,11 +162,11 @@ func runBaselineDiffFilteredViews(cmd *cobra.Command, root string, args []string
 		return fmt.Errorf("loading %s: %w", ref, err)
 	}
 
-	docsA, err := applyFilter(docs, filterA)
+	docsA, err := applyFilter(docs, filterA, relaxedFilter)
 	if err != nil {
 		return err
 	}
-	docsB, err := applyFilter(docs, filterB)
+	docsB, err := applyFilter(docs, filterB, relaxedFilter)
 	if err != nil {
 		return err
 	}
@@ -187,11 +191,12 @@ func runBaselineDiffFilteredViews(cmd *cobra.Command, root string, args []string
 
 // applyFilter compiles and applies a filter expression to a doc slice,
 // returning the filtered docs. Shared by both baseline diff modes.
-func applyFilter(docs []model.Document, expr string) ([]model.Document, error) {
-	f, err := filter.CompileForDocs(docs, expr)
+func applyFilter(docs []model.Document, expr string, relaxedFilter bool) ([]model.Document, error) {
+	f, warnings, err := filter.CompileForDocs(docs, expr, relaxedFilter)
 	if err != nil {
 		return nil, fmt.Errorf("compiling filter %q: %w", expr, err)
 	}
+	filter.WriteWarnings(os.Stderr, warnings)
 	filtered, err := f.FilterDocs(docs)
 	if err != nil {
 		return nil, fmt.Errorf("applying filter %q: %w", expr, err)

@@ -15,6 +15,7 @@ const (
 	AttrDispositionReason = "disposition-reason"
 	AttrVersion           = "version"
 	AttrRequiresTraceFrom = "requires-trace-from"
+	AttrVerify            = "verify"
 )
 
 // Tool-owned attribute keys used on synthesized verification-result
@@ -39,6 +40,8 @@ const (
 // codebase: graph (Pass 2 pin extraction), repin (newRefFrom, stripPin
 // for display), and verify (MergeLatest key normalization).
 func StripPin(ref string) (bare string, pin int, pinned bool) {
+	// LastIndex, not CutLast: CutLast is new in Go 1.27 and this module targets
+	// go 1.26. Revisit if the go directive is bumped.
 	idx := strings.LastIndex(ref, "~")
 	if idx < 0 {
 		return ref, 0, false

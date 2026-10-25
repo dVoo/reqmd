@@ -14,8 +14,8 @@ import (
 	"sort"
 	"strings"
 
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // JSON exports the parsed tree as NDJSON tables. Verdicts set via
@@ -101,12 +101,12 @@ func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 				ParentID:          n.ParentID,
 				Source:            n.Source,
 				Suppressions:      n.Suppressions,
-				Status:            attrString(n.Attrs, "status"),
-				Disposition:       attrString(n.Attrs, "disposition"),
-				DispositionReason: attrString(n.Attrs, "disposition-reason"),
-				Verify:            attrString(n.Attrs, "verify"),
-				Trace:             attrSlice(n.Attrs, "trace"),
-				RequiresTraceFrom: attrSlice(n.Attrs, "requires-trace-from"),
+				Status:            model.AttrString(n.Attrs, model.AttrStatus),
+				Disposition:       model.AttrString(n.Attrs, model.AttrDisposition),
+				DispositionReason: model.AttrString(n.Attrs, model.AttrDispositionReason),
+				Verify:            model.AttrString(n.Attrs, model.AttrVerify),
+				Trace:             model.AttrList(n.Attrs, model.AttrTrace),
+				RequiresTraceFrom: model.AttrList(n.Attrs, model.AttrRequiresTraceFrom),
 				Version:           n.Attrs["version"],
 				Attrs:             remainingAttrs(n.Attrs),
 			})
@@ -158,7 +158,7 @@ func (j *JSON) ExportTraces(w io.Writer, docs []model.Document, g *graph.Graph) 
 			continue
 		}
 		for _, req := range doc.Requirements() {
-			for _, ref := range attrSlice(req.Attrs, "trace") {
+			for _, ref := range model.AttrList(req.Attrs, model.AttrTrace) {
 				raw, ok := ref.(string)
 				if !ok {
 					continue
@@ -246,12 +246,7 @@ func (j *JSON) ExportResults(w io.Writer, g *graph.Graph) error {
 			Verify:    measureVerify(g.Documents(), id),
 		}
 		for _, it := range v.Evidence {
-			row.Cases = append(row.Cases, jsonCase{
-				Case:        it.Case,
-				Outcome:     it.Outcome,
-				File:        it.File,
-				Description: it.Description,
-			})
+			row.Cases = append(row.Cases, jsonCase(it))
 		}
 		if err := enc.Encode(&row); err != nil {
 			return fmt.Errorf("writing result %s: %w", id, err)
@@ -337,34 +332,13 @@ func remainingAttrs(attrs map[string]any) map[string]any {
 	return out
 }
 
-// attrString returns a string attribute, or "" for absent/non-string.
-func attrString(attrs map[string]any, key string) string {
-	s, _ := attrs[key].(string)
-	return s
-}
-
-// attrSlice returns an array attribute in its native form, or nil.
-func attrSlice(attrs map[string]any, key string) []any {
-	switch v := attrs[key].(type) {
-	case []any:
-		return v
-	case []string:
-		out := make([]any, len(v))
-		for i, s := range v {
-			out[i] = s
-		}
-		return out
-	}
-	return nil
-}
-
 // measureVerify returns the `verify` attribute of an authored measure, or
 // "" when the ID is unknown or the attribute is absent.
 func measureVerify(docs []model.Document, id string) string {
 	for i := range docs {
 		for _, req := range docs[i].Requirements() {
 			if req.ID == id {
-				return attrString(req.Attrs, "verify")
+				return model.AttrString(req.Attrs, model.AttrVerify)
 			}
 		}
 	}

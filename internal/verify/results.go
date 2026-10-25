@@ -9,12 +9,14 @@ package verify
 
 import (
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
-	"reqmd/internal/model"
-	"reqmd/internal/parser"
 	"strings"
 	"time"
+
+	"github.com/dVoo/reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/parser"
 )
 
 // Outcome is the reqmd verdict axis derived from a verification result.
@@ -205,6 +207,25 @@ func LoadResults(paths []string) ([]Result, []string, error) {
 	return results, warnings, nil
 }
 
+// readInRoot reads one file from the walked results tree through the walk
+// root, refusing paths that escape it.
+func readInRoot(root *os.Root, dir, path string) ([]byte, error) {
+	rel, err := filepath.Rel(dir, path)
+	if err != nil {
+		return nil, fmt.Errorf("resolving %s under %s: %w", path, dir, err)
+	}
+	f, err := root.Open(rel)
+	if err != nil {
+		return nil, fmt.Errorf("opening %s: %w", path, err)
+	}
+	defer func() { _ = f.Close() }()
+	data, err := io.ReadAll(f)
+	if err != nil {
+		return nil, fmt.Errorf("reading %s: %w", path, err)
+	}
+	return data, nil
+}
+
 // loadDir walks a results directory. CTRF files (`.ctrf.json` or
 // CTRF-shaped `.json`) are parsed directly. Subdirectories with a
 // `schema.yaml` are loaded as manual-results document dirs via
@@ -229,7 +250,15 @@ func loadDir(dir string) ([]Result, []string, error) {
 	var ctrfFiles []ctrfPending
 	var manualDirs []string
 
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	// Reads go through an os.Root so a symlink inside the walked tree cannot
+	// redirect a read outside the user-supplied results directory.
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return nil, nil, fmt.Errorf("opening results dir %s: %w", dir, err)
+	}
+	defer func() { _ = root.Close() }()
+
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -243,7 +272,7 @@ func loadDir(dir string) ([]Result, []string, error) {
 		}
 		// CTRF by extension: no probe needed.
 		if strings.HasSuffix(info.Name(), ".ctrf.json") {
-			data, err := os.ReadFile(path)
+			data, err := readInRoot(root, dir, path)
 			if err != nil {
 				return fmt.Errorf("reading %s: %w", path, err)
 			}
@@ -252,7 +281,7 @@ func loadDir(dir string) ([]Result, []string, error) {
 		}
 		// Plain .json: read once, shape-check, cache if CTRF.
 		if strings.HasSuffix(info.Name(), ".json") {
-			data, err := os.ReadFile(path)
+			data, err := readInRoot(root, dir, path)
 			if err != nil {
 				return fmt.Errorf("reading %s: %w", path, err)
 			}

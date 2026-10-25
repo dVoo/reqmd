@@ -1,7 +1,7 @@
 # Requirements
 
-This is a sample requirements document. The `status`, `id`, `title`, and `trace`
-attributes are built-in; `owner` is declared in the schema.
+This is a sample requirements document. The `status` and `trace` attributes
+are built-in; `owner` is declared in the schema.
 
 ## REQ-001
 ```attr

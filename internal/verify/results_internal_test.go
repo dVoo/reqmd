@@ -3,9 +3,10 @@ package verify
 import (
 	"os"
 	"path/filepath"
-	"reqmd/internal/model"
 	"testing"
 	"time"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // ---------------------------------------------------------------------------
@@ -40,7 +41,7 @@ properties:
     type: string
 additionalProperties: false
 `
-	if err := os.WriteFile(filepath.Join(dir, "schema.yaml"), []byte(schema), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "schema.yaml"), []byte(schema), 0o600); err != nil {
 		t.Fatalf("write schema.yaml: %v", err)
 	}
 
@@ -58,7 +59,7 @@ trace:
 The review confirmed the requirement is satisfied.
 `
 	mdPath := filepath.Join(dir, "results.md")
-	if err := os.WriteFile(mdPath, []byte(md), 0o644); err != nil {
+	if err := os.WriteFile(mdPath, []byte(md), 0o600); err != nil {
 		t.Fatalf("write results.md: %v", err)
 	}
 

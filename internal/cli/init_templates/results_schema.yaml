@@ -1,7 +1,8 @@
 # ReqMD manual verification results schema. This document holds ephemeral
 # verification results (review, inspection, analysis, demonstration) loaded
-# via `reqmd check --results`. The built-in `id`, `title`, `trace`, and
-# `status` attributes are injected automatically.
+# via `reqmd check --results`. The built-in `trace`, `status`, `disposition`,
+# `disposition-reason`, `version`, and `requires-trace-from` attributes are
+# injected automatically.
 x-reqmd:
   level: verify-results             # Fixed: marks this as a results document
 {{- if .IDPrefix }}

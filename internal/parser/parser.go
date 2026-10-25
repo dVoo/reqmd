@@ -8,11 +8,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"reqmd/internal/model"
-	"reqmd/internal/schema"
 	"runtime"
 	"strings"
 	"sync"
+
+	"github.com/dVoo/reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/schema"
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
@@ -404,15 +405,9 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 
 		case *ast.FencedCodeBlock:
 			if cur != nil && waitingForAttr && fenceInfo(v, src) == attrFenceInfo {
-				yamlText := fenceLines(v, src)
-				attrs, err := decodeAttrYAML(yamlText)
+				attrs, err := decodeAttrs(fenceLines(v, src))
 				if err != nil {
-					// Fallback to yaml.v3 for complex syntax the scanner
-					// doesn't handle (nested maps, flow sequences, etc.).
-					attrs = make(map[string]any, 8)
-					if yamlErr := yaml.Unmarshal([]byte(yamlText), &attrs); yamlErr != nil {
-						return nil, "", frontmatter, fmt.Errorf("%s: req %s: invalid attr YAML: %w", sourcePath, cur.ID, yamlErr)
-					}
+					return nil, "", frontmatter, fmt.Errorf("%s: req %s: invalid attr YAML: %w", sourcePath, cur.ID, err)
 				}
 				cur.Attrs = attrs
 				// Extract reqmd-suppress before it reaches schema validation
@@ -523,9 +518,9 @@ func promoteContainers(nodes []*model.Node) {
 	}
 }
 
-// reqStackEntry tracks an open requirement at a heading level.
+// reqStackEntry tracks an open requirement at a heading level during the
+// root-split pre-scan.
 type reqStackEntry struct {
-	id    string
 	level int
 }
 
@@ -589,9 +584,7 @@ func findRootSplits(src []byte) (splits []int, frontmatter map[string]any) {
 				if len(stack) == 0 {
 					splits = append(splits, lineStart)
 				}
-				headingText := bytes.TrimSpace(line[level:])
-				id, _ := splitHeadingIDBytes(headingText)
-				stack = append(stack, reqStackEntry{level: level, id: id})
+				stack = append(stack, reqStackEntry{level: level})
 			} else {
 				stack = popStackToLevel(stack, level)
 			}
@@ -610,8 +603,7 @@ func nextLine(src []byte, pos int) (line []byte, hasNL bool) {
 	if pos >= len(src) {
 		return nil, false
 	}
-	rest := src[pos:]
-	line, _, hasNL = bytes.Cut(rest, []byte{'\n'})
+	line, _, hasNL = bytes.Cut(src[pos:], []byte{'\n'})
 	return line, hasNL
 }
 
@@ -648,15 +640,6 @@ func nextNonBlankIsAttrBytes(src []byte, pos int) bool {
 		return bytes.HasPrefix(trimmed, attrFenceBytes)
 	}
 	return false
-}
-
-// splitHeadingIDBytes splits a heading like "REQ-001: This is a title"
-// into ("REQ-001", "This is a title"). Works on []byte.
-func splitHeadingIDBytes(heading []byte) (id string, title string) {
-	if idx := bytes.IndexByte(heading, ':'); idx >= 0 && idx+1 < len(heading) && heading[idx+1] == ' ' {
-		return string(bytes.TrimSpace(heading[:idx])), string(bytes.TrimSpace(heading[idx+2:]))
-	}
-	return string(bytes.TrimSpace(heading)), ""
 }
 
 // isNextAttrBlock returns true if n's next sibling is a ```attr fence.

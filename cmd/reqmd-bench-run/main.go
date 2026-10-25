@@ -14,9 +14,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -88,13 +90,27 @@ func main() {
 		os.Exit(2)
 	}
 
+	// Resolve both binaries to absolute paths here, once. The harness execs
+	// exactly the two tools the operator named and passes no shell, so a
+	// resolved path at the trust boundary is what gets executed throughout.
+	genBin, err := exec.LookPath(*gen)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "gen binary %q: %v\n", *gen, err)
+		os.Exit(2)
+	}
+	reqmdBin, err := exec.LookPath(*reqmd)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "reqmd binary %q: %v\n", *reqmd, err)
+		os.Exit(2)
+	}
+
 	startTime := time.Now()
 	hw := collectHardware()
 
 	var reqsPerDoc []int
 	for s := range strings.SplitSeq(*scalesFlag, ",") {
 		var n int
-		fmt.Sscanf(strings.TrimSpace(s), "%d", &n)
+		_, _ = fmt.Sscanf(strings.TrimSpace(s), "%d", &n)
 		if n > 0 {
 			reqsPerDoc = append(reqsPerDoc, n)
 		}
@@ -124,7 +140,7 @@ func main() {
 
 		cmds := benchCommands(*src, filepath.Join(*work, "baseline-html"))
 		for _, c := range cmds {
-			m := measureN(*reqmd, c.name, "baseline", 0, 0, baseReqs, baseDirs, c.args, *runs)
+			m := measureN(reqmdBin, c.name, "baseline", 0, 0, baseReqs, baseDirs, c.args, *runs)
 			baseline = append(baseline, m)
 			fmt.Fprintf(os.Stderr, "    %-15s %6dms (median of %d)  peak=%5dMB  exit=%d\n",
 				c.name, m.WallMs, m.Runs, m.PeakRSSKB/1024, m.ExitCode)
@@ -133,19 +149,21 @@ func main() {
 
 	// --- Scaling: synthetic corpora ---
 	if !*skipScaling {
-		os.RemoveAll(*work)
-		if err := os.MkdirAll(*work, 0o755); err != nil {
+		if err := os.RemoveAll(*work); err != nil {
+			panic(err)
+		}
+		if err := os.MkdirAll(*work, 0o750); err != nil {
 			panic(err)
 		}
 
 		for _, s := range scales {
 			fmt.Fprintf(os.Stderr, "\n>>> scale %s: %d copies, %d reqs/doc\n", s.Label, s.Copies, s.ReqsPerDoc)
 			root := filepath.Join(*work, fmt.Sprintf("reqs%d", s.ReqsPerDoc))
-			if err := os.MkdirAll(root, 0o755); err != nil {
+			if err := os.MkdirAll(root, 0o750); err != nil {
 				panic(err)
 			}
 			genArgs := []string{"-src", *src, "-dst", root, "-copies", fmt.Sprintf("%d", s.Copies), "-reqsperdoc", fmt.Sprintf("%d", s.ReqsPerDoc)}
-			genCmd := exec.Command(*gen, genArgs...)
+			genCmd := exec.CommandContext(context.Background(), genBin, genArgs...)
 			if genOut, err := genCmd.CombinedOutput(); err != nil {
 				fmt.Fprintf(os.Stderr, "gen error: %v\n%s\n", err, genOut)
 				panic(err)
@@ -156,7 +174,7 @@ func main() {
 
 			cmds := benchCommands(root, filepath.Join(*work, fmt.Sprintf("html-%d", s.ReqsPerDoc)))
 			for _, c := range cmds {
-				m := measureN(*reqmd, c.name, s.Label, s.Copies, s.ReqsPerDoc, totalReqs, docs, c.args, *runs)
+				m := measureN(reqmdBin, c.name, s.Label, s.Copies, s.ReqsPerDoc, totalReqs, docs, c.args, *runs)
 				scaling = append(scaling, m)
 				fmt.Fprintf(os.Stderr, "    %-15s %6dms (median of %d)  peak=%5dMB  %8.0f req/s  exit=%d\n",
 					c.name, m.WallMs, m.Runs, m.PeakRSSKB/1024, float64(totalReqs)/(float64(m.WallMs)/1000.0), m.ExitCode)
@@ -183,10 +201,15 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		defer f.Close()
 		enc := json.NewEncoder(f)
 		enc.SetIndent("", "  ")
-		enc.Encode(rep)
+		if err := enc.Encode(rep); err != nil {
+			_ = f.Close()
+			panic(err)
+		}
+		if err := f.Close(); err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -239,7 +262,7 @@ func measureN(reqmdBin, cmdName, scaleLabel string, copies, reqsPerDoc, totalReq
 var flagVerbose *bool
 
 func measureOnce(reqmdBin string, args []string) (wallMs int64, peakRSSKB int64, exitCode int) {
-	c := exec.Command(reqmdBin, args...)
+	c := exec.CommandContext(context.Background(), reqmdBin, args...)
 	c.Stdout = nil
 	c.Stderr = nil
 	start := time.Now()
@@ -261,17 +284,24 @@ func measureOnce(reqmdBin string, args []string) (wallMs int64, peakRSSKB int64,
 }
 
 func countReqs(root string) (int, error) {
+	rootDir, err := os.OpenRoot(root)
+	if err != nil {
+		return 0, fmt.Errorf("opening %s: %w", root, err)
+	}
+	defer func() { _ = rootDir.Close() }()
+	fsys := rootDir.FS()
+
 	count := 0
-	err := filepath.Walk(root, func(p string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() {
+	err = fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if d.IsDir() || !strings.HasSuffix(p, ".md") {
 			return nil
 		}
-		if !strings.HasSuffix(p, ".md") {
-			return nil
-		}
-		b, err := os.ReadFile(p)
-		if err != nil {
-			return fmt.Errorf("reading %s: %w", p, err)
+		b, readErr := fs.ReadFile(fsys, p)
+		if readErr != nil {
+			return fmt.Errorf("reading %s: %w", p, readErr)
 		}
 		count += strings.Count(string(b), "\n## ")
 		return nil
@@ -284,12 +314,14 @@ func countReqs(root string) (int, error) {
 
 func countDirs(root string) int {
 	count := 0
-	filepath.Walk(root, func(p string, info os.FileInfo, err error) error {
+	if err := filepath.Walk(root, func(p string, info os.FileInfo, err error) error {
 		if err == nil && info.IsDir() {
 			count++
 		}
 		return nil
-	})
+	}); err != nil {
+		fmt.Fprintf(os.Stderr, "countDirs: %s: %v\n", root, err)
+	}
 	return count
 }
 
@@ -364,14 +396,14 @@ func collectHardware() hardware {
 			if strings.HasPrefix(line, "MemTotal:") {
 				fields := strings.Fields(line)
 				if len(fields) >= 2 {
-					fmt.Sscanf(fields[1], "%d", &hw.MemTotalKB)
+					_, _ = fmt.Sscanf(fields[1], "%d", &hw.MemTotalKB)
 				}
 			}
 		}
 	}
 
 	// uname -r for kernel version
-	if out, err := exec.Command("uname", "-r").Output(); err == nil {
+	if out, err := exec.CommandContext(context.Background(), "uname", "-r").Output(); err == nil {
 		hw.Kernel = strings.TrimSpace(string(out))
 	}
 

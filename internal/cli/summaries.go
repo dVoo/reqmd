@@ -1,8 +1,8 @@
 package cli
 
 import (
-	"reqmd/internal/model"
-	"reqmd/internal/reporter"
+	"github.com/dVoo/reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/reporter"
 )
 
 // buildDocSummaries converts parsed documents into a slice of DocumentSummary

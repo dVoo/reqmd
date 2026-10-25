@@ -9,11 +9,11 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 
 - `SPEC.md` — authoritative design spec (if absent, the spec tree under `spec/` is the source of truth)
 - `spec/workspace.dsl` — C4 model (Structurizr DSL) for architecture visualization
-- `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 doc dirs, 274 total reqs, V-model dogfood fixture
+- `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 hand-authored doc dirs (293 reqs; 1337 including the generated `03-software/imported/` proxies), V-model dogfood fixture
 - `quickstart/` — step-by-step tutorial (01-get-started, 02-trace-your-spec, 03-export, 04-live-preview, 05-status-disposition, 06-ci-integration, 07-version-pins, 08-repin, 09-baseline-diff, 10-submodule-configuration, 11-verification-results-ctrf, 12-review-documentation, 13-custom-templates, 14-variant-management, 15-custom-importers)
 - `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli, filter)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
-- `go.mod` / `go.sum` — Go module `reqmd` (1.26)
+- `go.mod` / `go.sum` — Go module `github.com/dVoo/reqmd` (1.26)
 - `go.work` / `go.work.sum` — Go workspace linking `reqmd` (root), `reqmd-code`, and `reqmd-import`, so all three modules resolve each other from the repo root (`go build ./... ./reqmd-code/... ./reqmd-import/...`, `go test ./... ./reqmd-code/... ./reqmd-import/...`). Each keeps an independent `go.mod` and dependency set. Note: `./...` alone stops at the module boundary and does not descend into the nested modules.
 - `reqmd-code/` — Go module for the source-code extraction tool: it parses C, C++, Go, Python, and Rust with tree-sitter and emits a **reqmd-import/v1 exchange bundle** (JSON) on stdout. Invoked as `reqmd-code <source-dir>` (extraction is the tool's only job, so there is no subcommand). It writes no Markdown — `reqmd-import` renders the bundle. Language plugins live in `reqmd-code/internal/lang/` (currently C, C++, Go, Python, Rust), each self-registering via `lang.Register` in `init()` and blank-imported from `cmd/reqmd-code/main.go`. The canonical attr property set lives in `reqmd-code/internal/schema/standard_schema.yaml` and is projected into the bundle by `internal/schema`.
 - `reqmd-import/` — Go module for the exchange-format renderer. It owns the **only** Markdown/YAML writer (`internal/writer`): schema.yaml generation, attr-block quoting, heading depth, the `<!-- reqmd: generated -->` marker, and idempotent write-if-changed. `reqmd-import <bundle.json|-> -o <dir> [--check]`. Its public `exchange` package defines the `reqmd-import/v1` format and is imported by `reqmd-code` (producer) — this is the shared contract, so the format cannot drift between producer and renderer.
@@ -92,7 +92,7 @@ same docs stay independent). `check` remains requirement-scoped.
 | `reqmd ls <root>` | Table of all content in document order: leading `Type` column (`req`/`container`/`info`), requirements with all schema attributes, items with heading text. `--filter "<expr>"` scopes to matching requirements (items always shown). |
 | `reqmd stats <root>` | Attribute-value breakdown per document directory plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements. |
 | `reqmd export csv <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | CSV export (`<dirname>-requirements.csv`) with a `Type` column; rows emitted in document order for requirements and items. `--results` adds `Verdict` and `Verdict Source` columns from ephemeral verification results. `--filter` exports only matching requirements. |
-| `reqmd export html <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | HTML export: requirement cards, collapsible container sections, info blocks, sidebar TOC with folders. `--results` renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter` exports only matching requirements. |
+| `reqmd export html <root> [-o <dir>] [--results <path>...] [--filter "<expr>"] [--relaxed-filter]` | HTML export: a project home (`index.html`: document catalog, project-wide health, actionable queues, cross-document search) plus one page per document. Document view is server-rendered and readable without JS (compact app bar, sidebar outline with scroll-spy, sticky search/filter toolbar, neutral cards with status/coverage/verdict chips, collapsible attribute/rationale/evidence/trace details). Table, Trace, and Coverage views render on demand client-side from one embedded `pageModel` (no hidden analytical DOM). Coverage/verdict/link health come from graph analysis (`CoverageStates`, `VerificationStates`, `TraceRefs`), including `no verdict` in the verification denominator. CSS and client JS are embedded (no CDN). URL state uses repeated `f=attr:value` params and preserves explicitly empty filter sets; `#REQ-ID` deep links open Document mode. ⌘K palette with focus trap, `g d`/`g t`/`g r`/`g c`, density toggle. `--results` renders verdict chips + evidence. `--filter` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
 | `reqmd export json <root> [-o <dir>] [--results <path>...] [--filter "<expr>"] [--disjoint-check <attr>...]` | NDJSON export for reporting platforms (Databricks, Snowflake, BigQuery). Writes `requirements.ndjson` (one row per content node; built-ins promoted, remaining attributes in `attrs`), `traces.ndjson` (one row per declared trace ref with `pin`/`resolved`), `results.ndjson` (one row per verdict; needs `--results`), `findings.ndjson` (one row per check finding). Pure function of tree + results; repeated exports are byte-identical. Default output dir is the exported tree root. |
 | `reqmd export graph <root> [-o <dir>] [--results <path>...]` | LadybugDB graph export (requires `-tags ladybug`). `--results` includes `RESULT:` nodes with `outcome`/`source` properties for graph traversal from requirements to verification results. |
 | `reqmd check --json <root>` | JSON validation report with requirements, pass/fail, trace checks |
@@ -222,14 +222,20 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   is compiled once at startup into bytecode (`internal/filter.Compile`), then
   evaluated against each requirement's attr map (plus built-in `id` and
   `title` vars). Compile-time validation rejects expressions referencing
-  attributes not declared in any `schema.yaml` (global typo check).
-  `AllowUndefinedVariables` lets per-document attribute absence evaluate to nil.
+  attributes not declared in any `schema.yaml` (global typo check) —
+  unless `--relaxed-filter` is set, which downgrades that to a warning and
+  additionally allows any attribute *present on a requirement* even when no
+  schema declares it (`filter.BuildFoundAttrs` unions those into the allowed
+  set; `filter.CompileRelaxed` returns the warnings, which every caller
+  prints via `filter.WriteWarnings`). `AllowUndefinedVariables` lets
+  per-document attribute absence evaluate to nil.
   The graph is always built from the full tree (trace refs to filtered-out reqs
   still resolve); only per-req checks and coverage are filter-aware via
   `Graph.SetFilter(map[string]struct{})`. Filter-aware coverage (RFC §3.2):
   a filtered-out inbound cannot satisfy coverage for a filtered-in requirement.
   Available on `check`, `ls`, `stats`, `export csv`, `export html`, `serve`, and
-  `baseline diff`. `baseline diff --filter-a/--filter-b` compares two views of
+  `baseline diff`. `--relaxed-filter` is available on every one of them.
+  `baseline diff --filter-a/--filter-b` compares two views of
   the same commit. `--json` adds `"filter"` to the summary object.
 - **Disjoint-attribute check (`--disjoint-check <attr>`)**: For every trace link,
   verifies that source and target requirements have at least one overlapping
@@ -238,6 +244,15 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   via `--disjoint-check <attr>` CLI flag (repeatable) or
   `x-reqmd.disjoint-check: <attr>` in `schema.yaml` (string or array).
   Suppression: `reqmd-suppress: [disjoint-attribute]`.
+- **HTML export architecture**: `internal/exporter` builds one `pageModel` per
+  document (`model.go`) from a `Analysis` adapter (`analysis.go`) that reads the
+  graph's coverage/verification/trace-link state. The Document view is
+  server-rendered; Table/Trace/Coverage are rendered on demand by the embedded
+  `static/app.js` from the `#req-model` JSON. `static/style.css` and `app.js` are
+  `go:embed`-ed, so exports are fully offline and JS failure never hides
+  requirement content. `project.go` renders the project home; `reqmd serve`
+  serves it at `/`. Client URL-state helpers are exported for
+  `static/url_state.test.js`, run by `TestClientURLState` when Node is installed.
 - **Exchange-format import pipeline (`reqmd-import/v1`)**: Every importer is split
   into a *producer* and the single *renderer*. Producers emit a JSON bundle
   describing documents (`dir`, `id-prefix`, `level`, `upstream`, `properties`,
@@ -255,8 +270,9 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   notice, an attr name outside `[A-Za-z0-9._-]`, and a body that puts an `attr`
   fence directly under a heading (in reqmd that pair *is* a requirement).
   Values are quoted so reqmd's attr scanner cannot retype them — it resolves
-  plain scalars to null/bool/int, so a string like `"123"` must be quoted to
-  stay a string.
+  plain scalars to null/bool/int and hands floats, timestamps, hex and big
+  integers to yaml.v3 (which retypes those too), so a string like `"123"` or
+  `"1.5"` must be quoted to stay a string.
   The `reqmd-code` bundle wraps this per package, and adds a requirement-less
   root document that carries the umbrella schema. The Go types in
   `reqmd-import/exchange` are the shared contract (imported by `reqmd-code`), and
@@ -304,7 +320,7 @@ Parser tests use `t.TempDir()` for file-based test cases.
 
 # Development rules
 
-## Backward compatiblity
+## Backward compatibility
 
 Do not care about backward compatibility but on writing clean code. Do not create code branches to be able to read old content versions.
 Breaking changes are not a problem.

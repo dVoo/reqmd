@@ -2,9 +2,10 @@ package reporter
 
 import (
 	"encoding/json"
-	"reqmd/internal/graph"
 	"strings"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/graph"
 )
 
 // mustUnmarshal decodes JSON string into a map for assertion checks.

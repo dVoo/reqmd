@@ -6,5 +6,5 @@
 // but the package identifier cannot be "go" (a Go keyword), so we
 // declare it as "golang". Callers import it as:
 //
-//	import golang "reqmd-code/internal/lang/go"
+//	import golang "github.com/dVoo/reqmd/reqmd-code/internal/lang/go"
 package golang

@@ -1,7 +1,7 @@
 package cli
 
 import (
-	"reqmd/internal/cli/export"
+	"github.com/dVoo/reqmd/internal/cli/export"
 
 	"github.com/spf13/cobra"
 )
@@ -16,7 +16,10 @@ func NewRootCmd(version string) *cobra.Command {
 
 reqmd is a CLI tool for authoring, validating, and exporting
 requirement specifications stored in Markdown files with embedded
-attr blocks validated against JSON Schema (YAML-serialized).`,
+attr blocks validated against JSON Schema (YAML-serialized).
+
+Run "reqmd serve <dir>" for a live-reloading HTML preview, or
+"reqmd export html <dir>" to write standalone HTML pages.`,
 		Example: `  reqmd check spec/
   reqmd ls spec/
   reqmd export csv spec/`,

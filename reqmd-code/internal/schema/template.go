@@ -10,7 +10,8 @@ package schema
 import (
 	_ "embed"
 	"fmt"
-	"reqmd-import/exchange"
+
+	"github.com/dVoo/reqmd/reqmd-import/exchange"
 
 	"gopkg.in/yaml.v3"
 )

@@ -96,6 +96,9 @@ To install into `$(go env GOPATH)/bin` instead of building in place:
 go install ./cmd/reqmd
 go install ./reqmd-code/cmd/reqmd-code
 go install ./reqmd-import/cmd/reqmd-import
+
+# or by module path, from a tagged release:
+go install github.com/dVoo/reqmd/cmd/reqmd@latest
 ```
 
 The repo is a Go workspace (`go.work`) linking all three modules. Because `./...`
@@ -505,6 +508,40 @@ in both parsing and HTML export, with these extensions enabled:
 | **Emoji** | `github.com/yuin/goldmark-emoji` | GitHub-style `:joy:` → 😊 emoji |
 | **KaTeX** | `github.com/FurqanSoftware/goldmark-katex` | Math rendering: inline `$x^2$` and display `$$...$$` |
 
+### 8. Attribute filtering (`--filter`)
+
+Every command that reports on requirements (`check`, `ls`, `stats`,
+`export csv|html|json`, `serve`, `baseline diff`) accepts
+`--filter "<expr>"` — an [expr-lang](https://expr-lang.org) expression
+evaluated against a requirement's attributes plus the built-in `id` and
+`title` variables. A missing attribute evaluates to `nil`, so
+`variant == nil` selects requirements that do not declare it.
+
+By default a referenced name must be declared in some `schema.yaml` in the
+tree; anything else is a hard error, which turns typos into failures
+instead of silently matching nothing:
+
+```sh
+reqmd check spec/ --filter 'variant == "Premium"'   # ok: declared
+reqmd check spec/ --filter 'variantt == "Premium"'  # error: unknown attribute
+```
+
+`--relaxed-filter` downgrades that check to a warning and additionally
+allows any attribute **present on a requirement**, even when no schema
+declares it (attributes are always parsed, so an undeclared one is
+filterable as-is). The warning names the attribute and the run continues:
+
+```sh
+reqmd check spec/ --filter 'owner == "alice"' --relaxed-filter
+# reqmd: warning: filter references attribute "owner" not declared in any schema.yaml
+```
+
+Use it when a team keeps informal attributes in the attr blocks, or while
+introducing a new attribute ahead of its schema change. The HTML export
+applies the same rule to its toolbar: the filter menus are built from every
+attribute actually present on a requirement, and undeclared ones are shown
+in the card grid marked `· undeclared`.
+
 ---
 
 ## Commands
@@ -517,19 +554,19 @@ in both parsing and HTML export, with these extensions enabled:
 | `reqmd check --relaxed-versions <root>` | Demote outdated version-pin findings from ERROR to WARNING (predated stays ERROR) |
 | `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs) and run outcome-gated checks (missing-verdict, failing-verdict). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. Verdicts roll up over downstream test cases. |
 | `reqmd check --ignore-unbound-results <root>` | Suppress `unbound-result` warnings for verification entries that declare `x-reqmd` but bind to nothing. |
-| `reqmd check --filter "<expr>" <root>` | Scope validation to requirements matching an [expr-lang](https://expr-lang.org) expression (e.g. `"Premium" in variant`). Coverage checking becomes filter-aware: filtered-out requirements cannot cause false coverage failures. `--json` adds a `"filter"` field to the summary. |
+| `reqmd check --filter "<expr>" <root>` | Scope validation to requirements matching an [expr-lang](https://expr-lang.org) expression (e.g. `"Premium" in variant`). Coverage checking becomes filter-aware: filtered-out requirements cannot cause false coverage failures. `--json` adds a `"filter"` field to the summary. `--relaxed-filter` turns a reference to an attribute declared in no `schema.yaml` into a warning, and also allows attributes that are present on requirements but undeclared. |
 | `reqmd check --disjoint-check <attr> <root>` | Check that trace-linked requirements have overlapping values for the named array-typed attribute (e.g. `variant`). Zero intersection → ERROR; empty/absent = "applies to all" (exempt). Repeatable. Also settable via `x-reqmd.disjoint-check` in `schema.yaml`. |
 | `reqmd init <dir>` | Scaffold a new requirements directory with schema.yaml and example file. Presets: `generic` (default), `aspice`, `results` (manual verification results), or a custom preset directory path. Flags: `--preset`, `--id-prefix`, `--id`, `--title`, `--level`, `--force` |
-| `reqmd ls <root>` | Table of all content in document order with a leading `Type` column (`req` / `container` / `info`). Requirements show their attributes; items show their heading text. `--filter "<expr>"` scopes to matching requirements (items are always shown). |
+| `reqmd ls <root>` | Table of all content in document order with a leading `Type` column (`req` / `container` / `info`). Requirements show their attributes; items show their heading text. `--filter "<expr>"` scopes to matching requirements (items are always shown); `--relaxed-filter` allows undeclared attributes. |
 | `reqmd ls --json <root>` | JSON list — every node in the `rows` array with a `type` discriminator. `--filter` supported. |
-| `reqmd stats <root>` | Attribute-value breakdown per document, plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements. |
+| `reqmd stats <root>` | Attribute-value breakdown per document, plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements; `--relaxed-filter` allows undeclared attributes. |
 | `reqmd stats --json <root>` | JSON stats. `--filter` supported. |
-| `reqmd export csv <root> -o <dir>` | CSV export with Type, Body and Rationale columns, emitted in document order for requirements and items alike. `--results <path>` (repeatable) adds Verdict and Verdict Source columns. `--filter "<expr>"` exports only matching requirements. |
-| `reqmd export html <root> -o <dir>` | Standalone HTML: card layout for requirements, collapsible folder sections for containers, plain blocks for info items, goldmark-rendered bodies, trace columns, doc chain tab strip, search/filter (requirement-scoped), sidebar TOC including containers, theme toggle. `--results <path>` (repeatable) renders color-coded verdict badges (pass/fail/skipped/inconclusive) on measure cards. `--filter "<expr>"` exports only matching requirements. |
-| `reqmd export json <root> -o <dir>` | Four flat NDJSON tables for reporting platforms (Databricks, Snowflake, BigQuery): `requirements.ndjson` (one row per content node; built-ins promoted to top-level keys, remaining attributes in an `attrs` envelope), `traces.ndjson` (one row per declared trace ref, with `pin` and `resolved`), `results.ndjson` (one row per measure verdict; requires `--results`), and `findings.ndjson` (one row per check finding). A pure function of tree + results, so repeated exports are byte-identical. `--filter "<expr>"` limits `requirements.ndjson`; `--disjoint-check` findings land in `findings.ndjson`. |
+| `reqmd export csv <root> -o <dir>` | CSV export with Type, Body and Rationale columns, emitted in document order for requirements and items alike. `--results <path>` (repeatable) adds Verdict and Verdict Source columns. `--filter "<expr>"` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
+| `reqmd export html <root> -o <dir>` | Standalone HTML: a **project home** (`index.html`) plus one page per document. The **Document** view is server-rendered (compact app bar, sidebar outline with scroll-spy, one sticky search/filter toolbar, neutral requirement cards with status/coverage/verdict chips, collapsible attribute/rationale/evidence/trace details) and stays readable without JavaScript. **Table** (sortable grid with column chooser and expandable rows), **Trace** (selected-requirement explorer plus a size-bounded matrix), and **Coverage** (actionable exception lists) render on demand from one shared view model, so no hidden analytical DOM is emitted. Coverage, verification (including `no verdict` in the denominator), and link health are derived from the same graph analysis `reqmd check` runs. The export embeds its CSS and client script — no CDN, fully offline. Chrome: ⌘K command palette, keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`, `f`, `?`), density toggle, and URL-synced state using repeated `f=attr:value` params (`?q=&f=&view=&density=&req=`) so a filtered view is shareable. `--results` renders verdict chips and evidence; `--filter` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
+| `reqmd export json <root> -o <dir>` | Four flat NDJSON tables for reporting platforms (Databricks, Snowflake, BigQuery): `requirements.ndjson` (one row per content node; built-ins promoted to top-level keys, remaining attributes in an `attrs` envelope), `traces.ndjson` (one row per declared trace ref, with `pin` and `resolved`), `results.ndjson` (one row per measure verdict; requires `--results`), and `findings.ndjson` (one row per check finding). A pure function of tree + results, so repeated exports are byte-identical. `--filter "<expr>"` limits `requirements.ndjson` (`--relaxed-filter` allows undeclared attributes); `--disjoint-check` findings land in `findings.ndjson`. |
 | `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build). `--results <path>` (repeatable) includes `RESULT:` nodes with `outcome` and `source` properties, enabling graph traversal from requirements through measures to verification results. |
-| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`, `--filter`) |
-| `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`, `--filter "<expr>"` to scope both snapshots) |
+| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`, `--filter`, `--relaxed-filter`) |
+| `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`, `--filter "<expr>"` to scope both snapshots, `--relaxed-filter` to allow undeclared attributes) |
 | `reqmd baseline diff --filter-a "<expr>" --filter-b "<expr>" [<ref>]` | Compare two filtered views of the same commit (default `HEAD`). Useful for "what does Premium add over Base" reports from a single commit. |
 | `reqmd repin <root> [-y/--yes] [--json] [--promote-unpinned]` | Propose or apply `~N` version-pin updates so trace refs match the upstream's current `version`. Dry-run by default; `--yes` applies. `--promote-unpinned` also pins refs that have no `~N` against a versioned upstream. Predated findings (pin > upstream) are surfaced but never auto-fixed. |
 
@@ -999,7 +1036,7 @@ All export formats support `--results`:
 | Format | What `--results` adds |
 |--------|----------------------|
 | **CSV** | Two extra columns: `Verdict` (rolled-up pass/fail/skipped/inconclusive) and `Verdict Source` (result file) |
-| **HTML** | Color-coded verdict badges on measure cards — green (pass), red (fail), orange (inconclusive), gray (skipped). Badge reflects the rolled-up verdict; tooltip shows outcome + source. |
+| **HTML** | Color-coded verdict chips on measure cards — green (pass), red (fail), orange (inconclusive), gray (skipped), plus an explicit **no verdict** chip for eligible measures without a result. The rolled-up evidence list shows the contributing case, outcome, and source file. |
 | **Graph** | `RESULT:` pseudo-nodes with `outcome` and `source` properties, connected via `TracesTo` edges to their measures. Enables Cypher traversal from requirements through measures to verification results. |
 
 ```sh
@@ -1123,21 +1160,21 @@ ReqMD dogfoods its own format. The `spec/` directory contains a complete
 | Level | Directory | Reqs | Description |
 |-------|-----------|:----:|-------------|
 | External | `spec/00-aspice/` | 191 | Automotive SPICE v4.0 base practices (`external: true`) |
-| Stakeholder | `spec/01-stakeholder/` | 5 | Stakeholder goals (top boundary, no upstream) |
+| Stakeholder | `spec/01-stakeholder/` | 7 | Stakeholder goals (top boundary, no upstream) |
 | ASPICE SR | `spec/01a-aspice-stakeholder/` | 19 | ASPICE stakeholder requirements mapped to base practices |
-| System | `spec/02-system/` | 20 | Feature specifications |
-| Software | `spec/03-software/` | 31 | Component-level design |
-| Tests | `spec/04-tests/` | 15 | Test specifications (mandatory-disposition) |
+| System | `spec/02-system/` | 23 | Feature specifications |
+| Software | `spec/03-software/` | 33 | Component-level design |
+| Tests | `spec/04-tests/` | 20 | Test specifications (mandatory-disposition) |
 
-All 281 hand-authored requirements validate cleanly (each document also
+All 293 hand-authored requirements validate cleanly (each document also
 carries one container item — its `# Title` heading). The tree also contains
 the generated `spec/03-software/imported/` proxy documents, which
-`reqmd-code` regenerates from the tool's own source — 1159 requirements across
+`reqmd-code` regenerates from the tool's own source — 1337 requirements across
 22 documents in total:
 
 ```sh
 $ reqmd check spec/
-# ... 1159 total, 1159 valid, 0 invalid, 0 parse errors, 803 warnings
+# ... 1337 total, 1337 valid, 0 invalid, 0 parse errors, 944 warnings
 
 $ reqmd serve spec/          # live-reloading HTML preview
 $ reqmd export html spec/ -o /tmp/out/
@@ -1148,7 +1185,13 @@ Wrote /tmp/out/02-system-requirements.html
 Wrote /tmp/out/03-software-requirements.html
 Wrote /tmp/out/04-tests-requirements.html
 ... plus one page per imported component directory (22 pages total)
+Wrote /tmp/out/index.html
 ```
+
+`index.html` is the project home: a document catalog, project-wide coverage and
+verification summaries, actionable queues (missing coverage, missing verdicts,
+failing verification, broken/stale traces), and cross-document requirement
+search.
 
 The 23 warnings are expected — external base practices (`00-aspice`) and
 stakeholder goals (`01-stakeholder`) have no upstream traces (untraced warnings

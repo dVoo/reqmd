@@ -16,10 +16,12 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
 	"regexp"
 	"sort"
@@ -36,6 +38,12 @@ var (
 
 const placeholderFmt = "ZZ_BENCH_PH_%d_ZZ"
 
+// Generated corpora are private to the exporting user.
+const (
+	outputDirPerm  = 0o750
+	outputFilePerm = 0o600
+)
+
 func main() {
 	src := flag.String("src", "", "source spec dir")
 	dst := flag.String("dst", "", "destination root")
@@ -51,22 +59,29 @@ func main() {
 	*src = filepath.Clean(*src)
 	*dst = filepath.Clean(*dst)
 
-	if err := os.MkdirAll(*dst, 0o755); err != nil {
+	if err := os.MkdirAll(*dst, outputDirPerm); err != nil {
 		panic(err)
 	}
 
-	// Step 1: collect every requirement ID in the source tree.
+	// Step 1: collect every requirement ID in the source tree. Reads go
+	// through an os.Root so a symlink cannot escape the source tree.
+	srcRoot, err := os.OpenRoot(*src)
+	if err != nil {
+		panic(err)
+	}
+	srcFS := srcRoot.FS()
+
 	ids := map[string]bool{}
-	if err := filepath.WalkDir(*src, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
+	if err := fs.WalkDir(srcFS, ".", func(p string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
-		if d.IsDir() || (!strings.HasSuffix(p, ".md") && filepath.Base(p) != "schema.yaml") {
+		if d.IsDir() || (!strings.HasSuffix(p, ".md") && d.Name() != "schema.yaml") {
 			return nil
 		}
-		body, err := os.ReadFile(p)
-		if err != nil {
-			return fmt.Errorf("reading %s: %w", p, err)
+		body, readErr := fs.ReadFile(srcFS, p)
+		if readErr != nil {
+			return fmt.Errorf("reading %s: %w", p, readErr)
 		}
 		for _, m := range headingIDRe.FindAllSubmatch(body, -1) {
 			ids[string(m[1])] = true
@@ -85,14 +100,17 @@ func main() {
 	// Count top-level doc dirs (those with a schema.yaml in the original).
 	totalSrcReqs := len(ids)
 	srcDocDirs := 0
-	_ = filepath.WalkDir(*src, func(p string, d fs.DirEntry, err error) error {
-		if err != nil || !d.IsDir() || p == *src {
+	_ = fs.WalkDir(srcFS, ".", func(p string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return fs.SkipDir
+		}
+		if !d.IsDir() || p == "." {
 			return nil
 		}
-		if filepath.Dir(p) != *src {
+		if path.Dir(p) != "." {
 			return nil
 		}
-		if _, err := os.Stat(filepath.Join(p, "schema.yaml")); err == nil {
+		if _, statErr := fs.Stat(srcFS, path.Join(p, "schema.yaml")); statErr == nil {
 			srcDocDirs++
 		}
 		return nil
@@ -101,12 +119,15 @@ func main() {
 	if srcDocDirs > 0 {
 		srcReqsPerDoc = totalSrcReqs / srcDocDirs
 	}
+	if closeErr := srcRoot.Close(); closeErr != nil {
+		panic(closeErr)
+	}
 
 	// Step 2: emit copies.
 	for i := range *copies {
 		tag := fmt.Sprintf("T%02d", i)
 		copyDir := filepath.Join(*dst, fmt.Sprintf("spec_%s", tag))
-		if err := os.MkdirAll(copyDir, 0o755); err != nil {
+		if err := os.MkdirAll(copyDir, outputDirPerm); err != nil {
 			panic(err)
 		}
 		rename := map[string]string{}
@@ -117,7 +138,10 @@ func main() {
 		if *reqsPerDoc > 0 && srcReqsPerDoc > 0 {
 			multiplier := max(1, (*reqsPerDoc)/srcReqsPerDoc)
 			if multiplier > 1 {
-				replicatePerDoc(copyDir, multiplier)
+				if repErr := replicatePerDoc(copyDir, multiplier); repErr != nil {
+					fmt.Fprintf(os.Stderr, "replicatePerDoc: %v\n", repErr)
+					os.Exit(1)
+				}
 			}
 		}
 		fmt.Printf("wrote %s (%d IDs rewritten", copyDir, len(rename))
@@ -136,25 +160,35 @@ func rewriteTree(src, dst, tag string, rename map[string]string) {
 	}
 	sort.Slice(keys, func(i, j int) bool { return len(keys[i]) > len(keys[j]) })
 
-	if err := filepath.WalkDir(src, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
+	srcRoot, err := os.OpenRoot(src)
+	if err != nil {
+		panic(err)
+	}
+	defer func() { _ = srcRoot.Close() }()
+	dstRoot, err := os.OpenRoot(dst)
+	if err != nil {
+		panic(err)
+	}
+	defer func() { _ = dstRoot.Close() }()
+	srcFS := srcRoot.FS()
+
+	if err := fs.WalkDir(srcFS, ".", func(p string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
 		}
-		rel, _ := filepath.Rel(src, p)
-		target := filepath.Join(dst, rel)
 		if d.IsDir() {
-			if err := os.MkdirAll(target, 0o755); err != nil {
-				return fmt.Errorf("creating dir %s: %w", target, err)
+			if mkdirErr := dstRoot.MkdirAll(p, outputDirPerm); mkdirErr != nil {
+				return fmt.Errorf("creating dir %s: %w", p, mkdirErr)
 			}
 			return nil
 		}
-		body, err := os.ReadFile(p)
-		if err != nil {
-			return fmt.Errorf("reading %s: %w", p, err)
+		body, readErr := fs.ReadFile(srcFS, p)
+		if readErr != nil {
+			return fmt.Errorf("reading %s: %w", p, readErr)
 		}
-		out := applyRewrite(string(body), filepath.Base(p), rename, tag)
-		if err := os.WriteFile(target, []byte(out), 0o644); err != nil {
-			return fmt.Errorf("writing %s: %w", target, err)
+		out := applyRewrite(string(body), d.Name(), rename, tag)
+		if writeErr := dstRoot.WriteFile(p, []byte(out), outputFilePerm); writeErr != nil {
+			return fmt.Errorf("writing %s: %w", p, writeErr)
 		}
 		return nil
 	}); err != nil {
@@ -166,36 +200,54 @@ func rewriteTree(src, dst, tag string, rename map[string]string) {
 // .md file, repeats the requirement blocks `multiplier - 1` more times.
 // Each repeated block has its IDs and trace references rewritten to keep
 // the trace graph connected.
-func replicatePerDoc(root string, multiplier int) {
-	filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
-		if err != nil || !d.IsDir() || p == root {
+func replicatePerDoc(root string, multiplier int) error {
+	rootDir, err := os.OpenRoot(root)
+	if err != nil {
+		return fmt.Errorf("opening %s: %w", root, err)
+	}
+	defer func() { _ = rootDir.Close() }()
+	fsys := rootDir.FS()
+
+	err = fs.WalkDir(fsys, ".", func(p string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			return walkErr
+		}
+		if !d.IsDir() || p == "." {
 			return nil
 		}
-		if _, statErr := os.Stat(filepath.Join(p, "schema.yaml")); statErr != nil {
-			return nil
+		_, statErr := fs.Stat(fsys, path.Join(p, "schema.yaml"))
+		switch {
+		case errors.Is(statErr, fs.ErrNotExist):
+			return nil // not a doc dir
+		case statErr != nil:
+			return fmt.Errorf("checking for schema.yaml in %s: %w", p, statErr)
 		}
-		entries, err := os.ReadDir(p)
-		if err != nil {
-			return nil
+		entries, readDirErr := fs.ReadDir(fsys, p)
+		if readDirErr != nil {
+			return fmt.Errorf("reading dir %s: %w", p, readDirErr)
 		}
 		for _, e := range entries {
 			if e.IsDir() || !strings.HasSuffix(e.Name(), ".md") {
 				continue
 			}
-			mdPath := filepath.Join(p, e.Name())
-			b, err := os.ReadFile(mdPath)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "warning: replicatePerDoc: reading %s: %v\n", mdPath, err)
+			mdPath := path.Join(p, e.Name())
+			b, readErr := fs.ReadFile(fsys, mdPath)
+			if readErr != nil {
+				fmt.Fprintf(os.Stderr, "warning: replicatePerDoc: reading %s: %v\n", mdPath, readErr)
 				continue
 			}
 			expanded := expandContent(string(b), multiplier)
-			if err := os.WriteFile(mdPath, []byte(expanded), 0o644); err != nil {
-				fmt.Fprintf(os.Stderr, "warning: replicatePerDoc: writing %s: %v\n", mdPath, err)
+			if writeErr := rootDir.WriteFile(mdPath, []byte(expanded), outputFilePerm); writeErr != nil {
+				fmt.Fprintf(os.Stderr, "warning: replicatePerDoc: writing %s: %v\n", mdPath, writeErr)
 				continue
 			}
 		}
 		return nil
 	})
+	if err != nil {
+		return fmt.Errorf("replicating %s: %w", root, err)
+	}
+	return nil
 }
 
 // expandContent extracts the frontmatter, the preamble, and the heading

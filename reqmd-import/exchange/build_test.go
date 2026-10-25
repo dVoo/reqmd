@@ -30,7 +30,7 @@ func files(t *testing.T, b *Bundle) map[string]string {
 }
 
 const happyBundle = `{
-  "format": "reqmd-import/v1",
+  "format": "github.com/dVoo/reqmd/reqmd-import/v1",
   "documents": [
     {
       "id-prefix": "IMP-",
@@ -134,14 +134,14 @@ func TestBuildHappyPath(t *testing.T) {
 }
 
 func TestBuildFormatMismatch(t *testing.T) {
-	b := decode(t, `{"format":"reqmd-import/v2","documents":[{"id-prefix":"X-"}]}`)
+	b := decode(t, `{"format":"github.com/dVoo/reqmd/reqmd-import/v2","documents":[{"id-prefix":"X-"}]}`)
 	if _, err := b.Build(); err == nil || !strings.Contains(err.Error(), "unsupported format") {
 		t.Fatalf("want unsupported-format error, got %v", err)
 	}
 }
 
 func TestBuildNoDocuments(t *testing.T) {
-	b := decode(t, `{"format":"reqmd-import/v1","documents":[]}`)
+	b := decode(t, `{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[]}`)
 	if _, err := b.Build(); err == nil || !strings.Contains(err.Error(), "no documents") {
 		t.Fatalf("want no-documents error, got %v", err)
 	}
@@ -155,87 +155,87 @@ func TestBuildRequiresNativeIDAndPrefix(t *testing.T) {
 	}{
 		{
 			"missing native-id",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"title":"a"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"title":"a"}]}]}`,
 			"no native-id",
 		},
 		{
 			"missing id-prefix",
-			`{"format":"reqmd-import/v1","documents":[{"requirements":[{"native-id":"1"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"requirements":[{"native-id":"1"}]}]}`,
 			"id-prefix is required",
 		},
 		{
 			"duplicate native-id",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1"},{"native-id":"1"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1"},{"native-id":"1"}]}]}`,
 			"not unique",
 		},
 		{
 			"unknown parent",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","parent":"9"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","parent":"9"}]}]}`,
 			"parent",
 		},
 		{
 			"unknown native-trace",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","native-trace":["9"]}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","native-trace":["9"]}]}]}`,
 			"native-trace",
 		},
 		{
 			"reserved attr",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","attrs":{"trace":["a"]}}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","attrs":{"trace":["a"]}}]}]}`,
 			"reserved",
 		},
 		{
 			"escaping dir",
-			`{"format":"reqmd-import/v1","documents":[{"dir":"../outside","id-prefix":"X-","requirements":[{"native-id":"1"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"dir":"../outside","id-prefix":"X-","requirements":[{"native-id":"1"}]}]}`,
 			"escapes the output root",
 		},
 		{
 			"duplicate output path",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1"}]},{"id-prefix":"Y-","requirements":[{"native-id":"2"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1"}]},{"id-prefix":"Y-","requirements":[{"native-id":"2"}]}]}`,
 			"claimed by both",
 		},
 		{
 			"self-parent cycle",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","parent":"1"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","parent":"1"}]}]}`,
 			"cycle",
 		},
 		{
 			"two-node cycle",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","parent":"2"},{"native-id":"2","parent":"1"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","parent":"2"},{"native-id":"2","parent":"1"}]}]}`,
 			"cycle",
 		},
 		{
 			"file outside the document dir",
-			`{"format":"reqmd-import/v1","documents":[{"dir":"d","file":"../../outside/x.md","id-prefix":"X-","requirements":[{"native-id":"1"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"dir":"d","file":"../../outside/x.md","id-prefix":"X-","requirements":[{"native-id":"1"}]}]}`,
 			"plain file name",
 		},
 		{
 			"absolute file",
-			`{"format":"reqmd-import/v1","documents":[{"file":"/tmp/x.md","id-prefix":"X-","requirements":[{"native-id":"1"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"file":"/tmp/x.md","id-prefix":"X-","requirements":[{"native-id":"1"}]}]}`,
 			"plain file name",
 		},
 		{
 			"document title with a line break",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","title":"Real\n## X-9: Injected","requirements":[{"native-id":"1"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","title":"Real\n## X-9: Injected","requirements":[{"native-id":"1"}]}]}`,
 			"line break",
 		},
 		{
 			"requirement title with a line break",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","title":"One\n## X-9: Injected"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","title":"One\n## X-9: Injected"}]}]}`,
 			"line break",
 		},
 		{
 			"id with whitespace",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"Item 42"}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"Item 42"}]}]}`,
 			"must not contain whitespace",
 		},
 		{
 			"attr key with a colon",
-			`{"format":"reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","attrs":{"weird:key":"v"}}]}]}`,
+			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","attrs":{"weird:key":"v"}}]}]}`,
 			"may only contain",
 		},
 		{
 			"body with an attr fence under a heading",
-			"{\"format\":\"reqmd-import/v1\",\"documents\":[{\"id-prefix\":\"X-\",\"requirements\":[{\"native-id\":\"1\",\"body\":\"text\\n## X-9: Injected\\n```attr\\nstatus: approved\\n```\"}]}]}",
+			"{\"format\":\"github.com/dVoo/reqmd/reqmd-import/v1\",\"documents\":[{\"id-prefix\":\"X-\",\"requirements\":[{\"native-id\":\"1\",\"body\":\"text\\n## X-9: Injected\\n```attr\\nstatus: approved\\n```\"}]}]}",
 			"attr fence",
 		},
 	}
@@ -254,7 +254,7 @@ func TestBuildRequiresNativeIDAndPrefix(t *testing.T) {
 // requirement. A body that merely mentions a fence — a doc comment documenting
 // the attr format, say — must keep working.
 func TestBuildAllowsAttrFenceInProse(t *testing.T) {
-	got := files(t, decode(t, "{\"format\":\"reqmd-import/v1\",\"documents\":[{\"id-prefix\":\"X-\",\"requirements\":[{\"native-id\":\"1\",\"title\":\"T\",\"body\":\"Renders the heading plus its ```attr YAML block.\"}]}]}"))
+	got := files(t, decode(t, "{\"format\":\"github.com/dVoo/reqmd/reqmd-import/v1\",\"documents\":[{\"id-prefix\":\"X-\",\"requirements\":[{\"native-id\":\"1\",\"title\":\"T\",\"body\":\"Renders the heading plus its ```attr YAML block.\"}]}]}"))
 	if !strings.Contains(got["requirements.md"], "plus its ```attr YAML block.") {
 		t.Errorf("a body with no heading+fence pair should be kept; got:\n%s", got["requirements.md"])
 	}
@@ -263,7 +263,7 @@ func TestBuildAllowsAttrFenceInProse(t *testing.T) {
 // TestBuildMovesChildrenAfterParents verifies that a child listed before its
 // parent still renders nested under it, so the ## / ### heading order is valid.
 func TestBuildMovesChildrenAfterParents(t *testing.T) {
-	got := files(t, decode(t, `{"format":"reqmd-import/v1","documents":[
+	got := files(t, decode(t, `{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[
 	  {"dir":"p","id-prefix":"P-","requirements":[
 	    {"native-id":"m1","title":"M1","parent":"a"},
 	    {"native-id":"a","title":"A"},
@@ -282,7 +282,7 @@ func TestBuildMovesChildrenAfterParents(t *testing.T) {
 // TestBuildSupportsMultiLevelHierarchy verifies arbitrary nesting depth: each
 // level adds one '#' to the heading.
 func TestBuildSupportsMultiLevelHierarchy(t *testing.T) {
-	got := files(t, decode(t, `{"format":"reqmd-import/v1","documents":[
+	got := files(t, decode(t, `{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[
 	  {"dir":"p","id-prefix":"P-","requirements":[
 	    {"native-id":"1","title":"L0"},
 	    {"native-id":"2","title":"L1","parent":"1"},
@@ -301,7 +301,7 @@ func TestBuildSupportsMultiLevelHierarchy(t *testing.T) {
 // to an item in another document resolves through that document's prefix.
 func TestBuildResolvesNativeTraceAcrossDocuments(t *testing.T) {
 	got := files(t, decode(t, `{
-	  "format": "reqmd-import/v1",
+	  "format": "github.com/dVoo/reqmd/reqmd-import/v1",
 	  "documents": [
 	    {"dir":"up","id-prefix":"UP-","requirements":[{"native-id":"7","title":"U"}]},
 	    {"dir":"down","id-prefix":"DN-","requirements":[{"native-id":"9","title":"D","native-trace":["7"]}]}
@@ -313,14 +313,14 @@ func TestBuildResolvesNativeTraceAcrossDocuments(t *testing.T) {
 }
 
 func TestDecodeRejectsUnknownField(t *testing.T) {
-	_, err := Decode(strings.NewReader(`{"format":"reqmd-import/v1","documents":[],"typo":1}`))
+	_, err := Decode(strings.NewReader(`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[],"typo":1}`))
 	if err == nil || !strings.Contains(err.Error(), "unknown field") {
 		t.Fatalf("want unknown-field error, got %v", err)
 	}
 }
 
 func TestDecodeRejectsTrailingData(t *testing.T) {
-	_, err := Decode(strings.NewReader(`{"format":"reqmd-import/v1","documents":[]}{}`))
+	_, err := Decode(strings.NewReader(`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[]}{}`))
 	if err == nil || !strings.Contains(err.Error(), "trailing data") {
 		t.Fatalf("want trailing-data error, got %v", err)
 	}

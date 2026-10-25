@@ -1,9 +1,10 @@
 package graph_test
 
 import (
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // ---------------------------------------------------------------------------

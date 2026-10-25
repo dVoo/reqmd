@@ -26,11 +26,13 @@ package schema
 import (
 	"encoding/json"
 	"fmt"
+	"maps"
 	"path/filepath"
 	"regexp"
-	"reqmd/internal/model"
 	"sort"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/model"
 
 	jsonschema "github.com/google/jsonschema-go/jsonschema"
 	"gopkg.in/yaml.v3"
@@ -69,8 +71,8 @@ func Compile(schemaRaw any, schemaPath string) (*Compiled, error) {
 	// Validate x-reqmd.requires-trace-from (the document-wide default
 	// coverage expectation) so a malformed default fails fast instead of
 	// being silently ignored by graph coverage checks.
-	if _, err := collectRequiresTraceFromDefault(normMap, schemaPath); err != nil {
-		return nil, err
+	if _, checkErr := collectRequiresTraceFromDefault(normMap, schemaPath); checkErr != nil {
+		return nil, checkErr
 	}
 
 	InjectBuiltins(normMap)
@@ -410,9 +412,7 @@ func ExtractXReqmd(schema any) *model.XReqmd {
 	// validation) is left pristine.
 	if xrSrc, ok := raw.(map[string]any); ok {
 		xrMap := make(map[string]any, len(xrSrc))
-		for k, v := range xrSrc {
-			xrMap[k] = v
-		}
+		maps.Copy(xrMap, xrSrc)
 		if dc, ok := xrMap["disjoint-check"]; ok {
 			switch v := dc.(type) {
 			case string:

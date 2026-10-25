@@ -9,8 +9,9 @@ import (
 	"html"
 	"io"
 	"io/fs"
-	"reqmd/internal/model"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/model"
 
 	katex "github.com/FurqanSoftware/goldmark-katex"
 	fences "github.com/stefanfritsch/goldmark-fences"
@@ -27,8 +28,7 @@ var staticFS embed.FS
 // css and js are the embedded stylesheet and client script for the
 // exported HTML. Each is read once at init and reused for every page.
 // A leading "\n" is prepended so the inlined block sits on its own
-// line after the <style> / <script> open tag, matching the previous
-// byte-for-byte output.
+// line after the <style> / <script> open tag.
 var (
 	css = mustReadStatic("static/style.css")
 	js  = mustReadStatic("static/app.js")
@@ -61,17 +61,26 @@ type VerdictInfo struct {
 	Evidence []EvidenceItem
 }
 
-// HTML exports requirements as standalone HTML with card-based layout.
+// HTML exports requirements as standalone HTML: a server-rendered Document
+// view plus on-demand analytical views driven by one shared view model.
 type HTML struct {
-	verdicts      map[string]VerdictInfo
+	analysis      *Analysis
+	resolveLink   func(string) string
 	docChainGraph DocChainGraph
 	boundary      DocBoundary
 }
 
-// SetVerdicts stores the verification verdicts for rendering badges on
-// measure cards. Called by the CLI when --results is supplied.
-func (h *HTML) SetVerdicts(v map[string]VerdictInfo) {
-	h.verdicts = v
+// SetAnalysis supplies the graph-derived coverage, verification, and link
+// state every view renders. A nil analysis renders requirements without
+// semantic status (still valid output, just less information).
+func (h *HTML) SetAnalysis(a *Analysis) {
+	h.analysis = a
+}
+
+// SetResolveLink supplies the cross-document href resolver. A nil resolver
+// produces same-page fragments.
+func (h *HTML) SetResolveLink(fn func(string) string) {
+	h.resolveLink = fn
 }
 
 // schemaTitle safely extracts the title field from a document's parsed
@@ -116,9 +125,7 @@ func renderMarkdown(content string) string {
 }
 
 // SetDocChainGraph configures the tiered document graph used by the
-// Confluence-Flow chain visualization. The graph holds the upstream tiers
-// (above the current doc), the current doc card, and the downstream tiers
-// (below the current doc). Pass a zero-value graph to disable the chain.
+// document-chain navigation. Pass a zero-value graph to disable the chain.
 func (h *HTML) SetDocChainGraph(graph DocChainGraph) {
 	h.docChainGraph = graph
 }
@@ -129,52 +136,61 @@ func (h *HTML) SetBoundary(b DocBoundary) {
 	h.boundary = b
 }
 
-// Export writes requirements as a standalone HTML page.
+// pageBufferSize is the buffered-writer size for one exported page.
+const pageBufferSize = 32 * 1024
+
+// Export writes requirements as a standalone HTML page. The Document view is
+// server-rendered and fully visible without JavaScript; Table, Trace, and
+// Coverage render on demand from the embedded view model.
 func (h *HTML) Export(w io.Writer, doc model.Document, propOrder []string) error {
-	return h.exportHTML(w, doc, propOrder, nil)
-}
-
-// ExportWithTraces writes HTML with upstream/downstream trace links.
-// tc bundles the four callback hooks: Upstream / Downstream return
-// requirement IDs reachable from the given ID; ResolveLink maps a
-// requirement ID to a cross-file HTML anchor; TitleOf maps a
-// requirement ID to its human-readable title. Nil fields are tolerated —
-// the trace section is simply omitted for that side.
-func (h *HTML) ExportWithTraces(w io.Writer, doc model.Document, propOrder []string, tc TraceResolver) error {
-	return h.exportHTML(w, doc, propOrder, &tc)
-}
-
-func (h *HTML) exportHTML(w io.Writer, doc model.Document, propOrder []string, tc *TraceResolver) error {
 	title := docTitle(doc)
 	if title == "" {
 		title = doc.Path
 	}
 
 	rd := buildRenderData(doc)
-	traceCache := buildTraceCache(doc, tc)
-	ignoreStatus := doc.XReqmd != nil && doc.XReqmd.IgnoreStatus
+	pageData := buildPageModel(doc, rd, h.analysis, h.resolveLink, propOrder)
 
-	b := bufio.NewWriterSize(w, 32*1024) // 32KB buffer
+	b := bufio.NewWriterSize(w, pageBufferSize)
 
 	renderDocHead(b, title)
-	renderBodyOpen(b)
-	renderDocChain(b, h.docChainGraph)
-	renderDocHeader(b, doc, title, h.boundary.IsRoot, h.boundary.IsLeaf)
-	renderToolbar(b, doc, ignoreStatus)
-
-	_, _ = b.WriteString("<main>\n")
-	for _, node := range rd.Nodes {
-		renderContentNode(b, node, 0, rd, propOrder, traceCache, tc, ignoreStatus, h.verdicts)
-	}
+	renderBodyOpen(b, title)
+	renderTOC(b, doc, rd)
+	_, _ = b.WriteString(`<div class="shell__main">` + "\n")
+	renderDocHeader(b, doc, title, h.boundary.IsRoot, h.boundary.IsLeaf, rd)
+	renderToolbar(b, doc, rd)
+	_, _ = b.WriteString("<main class=\"views\">\n")
+	renderDocumentView(b, doc, rd, propOrder, h.analysis, h.resolveLink, h.docChainGraph)
+	// Analytical views are empty shells filled on demand by the client.
+	_, _ = b.WriteString(`<section class="view" data-view-panel="table" hidden></section>` + "\n")
+	_, _ = b.WriteString(`<section class="view" data-view-panel="trace" hidden></section>` + "\n")
+	_, _ = b.WriteString(`<section class="view" data-view-panel="coverage" hidden></section>` + "\n")
 	_, _ = b.WriteString("</main>\n")
+	_, _ = b.WriteString("</div>\n</div>\n")
 
-	renderScripts(b, rd)
+	renderPalette(b)
+	renderShortcuts(b)
+
+	renderModelJSON(b, pageData)
+	renderScript(b)
 	renderBodyClose(b)
 
 	if err := b.Flush(); err != nil {
 		return fmt.Errorf("flushing HTML output: %w", err)
 	}
 	return nil
+}
+
+// renderModelJSON writes the shared view model the client renders from.
+func renderModelJSON(b *bufio.Writer, m pageModel) {
+	data, _ := json.Marshal(m)
+	_, _ = fmt.Fprintf(b, "<script type=\"application/json\" id=\"req-model\">%s</script>\n", data)
+}
+
+func renderScript(b *bufio.Writer) {
+	_, _ = b.WriteString("<script>\n")
+	_, _ = b.WriteString(js)
+	_, _ = b.WriteString("</script>\n")
 }
 
 // formatAttrLabel converts a snake_case or kebab-case attribute name to
@@ -202,44 +218,44 @@ func formatAttrHTML(v any) string {
 		if len(val) == 0 {
 			return "—"
 		}
-		var b strings.Builder
-		b.WriteString(`<span class="attr-pills">`)
+		var sb strings.Builder
+		sb.WriteString(`<span class="attr__pills">`)
 		for i, item := range val {
 			if i > 0 {
-				b.WriteByte(' ')
+				sb.WriteByte(' ')
 			}
-			b.WriteString(`<span class="attr-pill">`)
+			sb.WriteString(`<span class="attr__pill">`)
 			switch it := item.(type) {
 			case string:
-				b.WriteString(html.EscapeString(it))
+				sb.WriteString(html.EscapeString(it))
 			case nil:
-				b.WriteString(`<em class="attr-pill-null">null</em>`)
+				sb.WriteString(`<em>null</em>`)
 			default:
-				b.WriteString(html.EscapeString(formatAttrHTML(it)))
+				sb.WriteString(html.EscapeString(formatAttrHTML(it)))
 			}
-			b.WriteString(`</span>`)
+			sb.WriteString(`</span>`)
 		}
-		b.WriteString(`</span>`)
-		return b.String()
+		sb.WriteString(`</span>`)
+		return sb.String()
 	case []string:
 		if len(val) == 0 {
 			return "—"
 		}
-		var b strings.Builder
-		b.WriteString(`<span class="attr-pills">`)
+		var sb strings.Builder
+		sb.WriteString(`<span class="attr__pills">`)
 		for i, s := range val {
 			if i > 0 {
-				b.WriteByte(' ')
+				sb.WriteByte(' ')
 			}
-			b.WriteString(`<span class="attr-pill">`)
-			b.WriteString(html.EscapeString(s))
-			b.WriteString(`</span>`)
+			sb.WriteString(`<span class="attr__pill">`)
+			sb.WriteString(html.EscapeString(s))
+			sb.WriteString(`</span>`)
 		}
-		b.WriteString(`</span>`)
-		return b.String()
+		sb.WriteString(`</span>`)
+		return sb.String()
 	case map[string]any:
 		b, _ := json.MarshalIndent(val, "", "  ")
-		return fmt.Sprintf(`<pre class="attr-nested">%s</pre>`, html.EscapeString(string(b)))
+		return fmt.Sprintf(`<pre class="attr__nested">%s</pre>`, html.EscapeString(string(b)))
 	default:
 		return ""
 	}
@@ -247,11 +263,6 @@ func formatAttrHTML(v any) string {
 
 // renderChainGraph writes the Document Stack chain as HTML to b.
 // The output is pure HTML/CSS — no JavaScript.
-//
-// Layout: three vertically stacked zones (upstream / current / downstream)
-// with short centered separator rules (chevron + lines) between the major
-// zones. There are no per-card connectors, no merge/fork lines, and no
-// sibling separators inside a zone.
 func renderChainGraph(b *bufio.Writer, g DocChainGraph) {
 	_, _ = b.WriteString("  <div class=\"chain-stack\">\n")
 
@@ -260,54 +271,47 @@ func renderChainGraph(b *bufio.Writer, g DocChainGraph) {
 		renderChainSeparator(b)
 	}
 
-	b.WriteString("    <div class=\"chain-zone chain-zone--current\">\n")
+	_, _ = b.WriteString("    <div class=\"chain-zone chain-zone--current\">\n")
 	renderChainCard(b, g.Current)
-	b.WriteString("    </div>\n")
+	_, _ = b.WriteString("    </div>\n")
 
 	if len(g.Downstream) > 0 {
 		renderChainSeparator(b)
 		renderChainZone(b, "chain-zone--downstream", "Downstream Consumers", g.Downstream)
 	}
 
-	b.WriteString("  </div>\n")
+	_, _ = b.WriteString("  </div>\n")
 }
 
 // renderChainZone writes one horizontal zone (upstream or downstream)
 // with its header and stacked tiers.
 func renderChainZone(b *bufio.Writer, zoneClass, header string, tiers []ChainTier) {
-	b.WriteString("    <div class=\"chain-zone ")
-	b.WriteString(zoneClass)
-	b.WriteString("\">\n")
-	b.WriteString("      <div class=\"chain-zone-header\">")
-	b.WriteString(header)
-	b.WriteString("</div>\n")
+	_, _ = fmt.Fprintf(b, "    <div class=\"chain-zone %s\">\n"+
+		"      <div class=\"chain-zone-header\">%s</div>\n",
+		zoneClass, header)
 	for _, tier := range tiers {
-		b.WriteString("      <div class=\"chain-tier\">\n")
-		b.WriteString("        <div class=\"chain-tier-label\">")
-		b.WriteString(html.EscapeString(tier.Label))
-		b.WriteString("</div>\n")
-		b.WriteString("        <div class=\"chain-tier-cards\">\n")
+		_, _ = fmt.Fprintf(b, "      <div class=\"chain-tier\">\n"+
+			"        <div class=\"chain-tier-label\">%s</div>\n"+
+			"        <div class=\"chain-tier-cards\">\n",
+			html.EscapeString(tier.Label))
 		for _, card := range tier.Cards {
 			renderChainCard(b, card)
 		}
-		b.WriteString("        </div>\n")
-		b.WriteString("      </div>\n")
+		_, _ = b.WriteString("        </div>\n      </div>\n")
 	}
-	b.WriteString("    </div>\n")
+	_, _ = b.WriteString("    </div>\n")
 }
 
 // renderChainSeparator writes the chevron rule between chain zones.
 func renderChainSeparator(b *bufio.Writer) {
-	b.WriteString("    <div class=\"chain-separator\" aria-hidden=\"true\">\n")
-	b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
-	b.WriteString("      <div class=\"chain-separator-chevron\">&#9662;</div>\n")
-	b.WriteString("      <div class=\"chain-separator-line\"></div>\n")
-	b.WriteString("    </div>\n")
+	_, _ = b.WriteString("    <div class=\"chain-separator\" aria-hidden=\"true\">\n" +
+		"      <div class=\"chain-separator-line\"></div>\n" +
+		"      <div class=\"chain-separator-chevron\">&#9662;</div>\n" +
+		"      <div class=\"chain-separator-line\"></div>\n" +
+		"    </div>\n")
 }
 
 // renderChainCard writes one <a> (or <span> for the current doc) card.
-// The current document gets the chain-card--current class; external
-// documents get the chain-card--external class.
 func renderChainCard(b *bufio.Writer, card ChainCard) {
 	classes := []string{"chain-card"}
 	if card.IsCurrent {
@@ -325,35 +329,35 @@ func renderChainCard(b *bufio.Writer, card ChainCard) {
 	escapedHref := html.EscapeString(card.Path)
 
 	if card.IsCurrent || card.Path == "" {
-		b.WriteString("      <span class=\"")
-		b.WriteString(strings.Join(classes, " "))
-		b.WriteString("\" aria-current=\"page\">\n")
+		_, _ = b.WriteString("      <span class=\"")
+		_, _ = b.WriteString(strings.Join(classes, " "))
+		_, _ = b.WriteString("\" aria-current=\"page\">\n")
 		if card.IsExternal {
-			b.WriteString("        <span class=\"chain-card-glyph\" aria-hidden=\"true\">&#8599;</span>\n")
+			_, _ = b.WriteString("        <span class=\"chain-card-glyph\" aria-hidden=\"true\">&#8599;</span>\n")
 		}
-		b.WriteString("        <span class=\"chain-card-title\">")
-		b.WriteString(escapedDisplay)
-		b.WriteString("</span>\n")
-		b.WriteString("        <span class=\"chain-card-meta\">")
-		b.WriteString(escapedDir)
-		b.WriteString("</span>\n")
-		b.WriteString("      </span>\n")
+		_, _ = b.WriteString("        <span class=\"chain-card-title\">")
+		_, _ = b.WriteString(escapedDisplay)
+		_, _ = b.WriteString("</span>\n")
+		_, _ = b.WriteString("        <span class=\"chain-card-meta\">")
+		_, _ = b.WriteString(escapedDir)
+		_, _ = b.WriteString("</span>\n")
+		_, _ = b.WriteString("      </span>\n")
 		return
 	}
 
-	b.WriteString("      <a class=\"")
-	b.WriteString(strings.Join(classes, " "))
-	b.WriteString("\" href=\"")
-	b.WriteString(escapedHref)
-	b.WriteString("\">\n")
+	_, _ = b.WriteString("      <a class=\"")
+	_, _ = b.WriteString(strings.Join(classes, " "))
+	_, _ = b.WriteString("\" href=\"")
+	_, _ = b.WriteString(escapedHref)
+	_, _ = b.WriteString("\">\n")
 	if card.IsExternal {
-		b.WriteString("        <span class=\"chain-card-glyph\" aria-hidden=\"true\">&#8599;</span>\n")
+		_, _ = b.WriteString("        <span class=\"chain-card-glyph\" aria-hidden=\"true\">&#8599;</span>\n")
 	}
-	b.WriteString("        <span class=\"chain-card-title\">")
-	b.WriteString(escapedDisplay)
-	b.WriteString("</span>\n")
-	b.WriteString("        <span class=\"chain-card-meta\">")
-	b.WriteString(escapedDir)
-	b.WriteString("</span>\n")
-	b.WriteString("      </a>\n")
+	_, _ = b.WriteString("        <span class=\"chain-card-title\">")
+	_, _ = b.WriteString(escapedDisplay)
+	_, _ = b.WriteString("</span>\n")
+	_, _ = b.WriteString("        <span class=\"chain-card-meta\">")
+	_, _ = b.WriteString(escapedDir)
+	_, _ = b.WriteString("</span>\n")
+	_, _ = b.WriteString("      </a>\n")
 }

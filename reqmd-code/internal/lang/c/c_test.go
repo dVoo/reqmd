@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"reqmd-code/internal/lang"
-	"reqmd-code/internal/model"
+	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
 )
 
 // TestCLanguageRegisters verifies that CLanguage self-registered itself
@@ -276,24 +276,5 @@ struct Beta { int v; };
 	}
 	if len(syms) != 3 {
 		t.Fatalf("expected 3 symbols, got %d: %+v", len(syms), syms)
-	}
-}
-
-// TestModuleNameFromFile covers the helper that derives a C
-// module/package name from a file path.
-func TestModuleNameFromFile(t *testing.T) {
-	cases := []struct {
-		in, want string
-	}{
-		{"foo.c", "foo"},
-		{"path/to/bar.c", "bar"},
-		{"nested/dir.with.dot/qux.c", "qux"},
-		{"", ""},
-		{"noext", "noext"},
-	}
-	for _, c := range cases {
-		if got := moduleNameFromFile(c.in); got != c.want {
-			t.Errorf("moduleNameFromFile(%q) = %q, want %q", c.in, got, c.want)
-		}
 	}
 }

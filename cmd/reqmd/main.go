@@ -6,9 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"reqmd/internal/cli"
 	"runtime/debug"
 	"strconv"
+
+	"github.com/dVoo/reqmd/internal/cli"
 )
 
 // exitCoder is implemented by errors that carry a process exit code

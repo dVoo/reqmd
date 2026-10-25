@@ -129,26 +129,12 @@ trace: []
  conventional single space after the marker (`// foo` → `foo`) is
  dropped, as is per-line indentation inside block comments.
 
-## IMP-cpp-capturesByName-3716de5: capturesByName
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
-x-reqmd.source-line: 209
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- capturesByName returns a map from capture name to node for a single
- query match. Capture names are resolved via the pre-fetched
- captureNames slice from q.CaptureNames().
-
 ## IMP-cpp-symbolFromMatch-1cfbb4d: symbolFromMatch
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
-x-reqmd.source-line: 222
+x-reqmd.source-line: 210
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -158,27 +144,12 @@ trace: []
  when the match has no usable captures or refers to a function-local
  declaration.
 
-## IMP-cpp-isInsideFunction-b3881bc: isInsideFunction
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
-x-reqmd.source-line: 273
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- isInsideFunction reports whether node's ancestor chain contains a
- function_definition. Used to reject declarations nested inside
- function bodies (local structs, local variables), which are not
- top-level symbols.
-
 ## IMP-cpp-enclosingTypeName-d4884d9: enclosingTypeName
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
-x-reqmd.source-line: 290
+x-reqmd.source-line: 262
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -189,41 +160,12 @@ trace: []
  Returns "" when the method has no enclosing type (e.g. an out-of-line
  member definition at namespace scope).
 
-## IMP-cpp-isInsideTypeDefinition-ceb2465: isInsideTypeDefinition
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
-x-reqmd.source-line: 311
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- isInsideTypeDefinition reports whether node's ancestor chain contains
- a `type_definition` (i.e. the node is the inner struct/enum/union
- specifier of a typedef). Such specifiers are skipped in favor of the
- enclosing type_definition, which carries the typedef'd alias name.
-
-## IMP-cpp-moduleNameFromFile-c0791e1: moduleNameFromFile
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
-x-reqmd.source-line: 326
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- moduleNameFromFile returns the file's basename without its extension,
- used as C++'s default package/module name when no explicit package
- metadata is available. Empty string is returned for empty input.
-
 ## IMP-cpp-init-302f5ca: init
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
-x-reqmd.source-line: 340
+x-reqmd.source-line: 279
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -334,17 +276,4 @@ trace: []
 
  TestBindDocIncludesDoc verifies that BindDoc attaches the full comment
  block (including a reqmd:trace marker) to the following declaration.
-
-## IMP-cpp-TestModuleNameFromFile-be39cfd: TestModuleNameFromFile
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
-x-reqmd.source-line: 232
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- TestModuleNameFromFile covers the helper that derives a C++
- module/package name from a file path.
 

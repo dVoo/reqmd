@@ -4,18 +4,19 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 
+	"github.com/dVoo/reqmd/reqmd-import/exchange"
+
 	"github.com/spf13/cobra"
 
-	_ "reqmd-code/internal/lang/c" // register C plugin via init()
-	_ "reqmd-code/internal/lang/cpp"
-	_ "reqmd-code/internal/lang/go" // register Go plugin via init()
-	_ "reqmd-code/internal/lang/python"
-	_ "reqmd-code/internal/lang/rust"
-
-	"reqmd-import/exchange"
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/c" // register C plugin via init()
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/cpp"
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/go" // register Go plugin via init()
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/python"
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/rust"
 )
 
 // runTestExtract runs an extraction and returns the decoded bundle plus the
@@ -281,7 +282,7 @@ fn rust_thing() {}
 		}
 	}
 	for _, want := range []string{"GoThing", "c_thing", "cpp_thing", "py_thing", "rust_thing"} {
-		if !contains(titles, want) {
+		if !slices.Contains(titles, want) {
 			t.Errorf("bundle missing %q requirement; got %v", want, titles)
 		}
 	}
@@ -322,13 +323,4 @@ func keys(m map[string]string) []string {
 		out = append(out, k)
 	}
 	return out
-}
-
-func contains(list []string, want string) bool {
-	for _, s := range list {
-		if s == want {
-			return true
-		}
-	}
-	return false
 }

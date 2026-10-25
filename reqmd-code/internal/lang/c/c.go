@@ -34,11 +34,11 @@ import (
 	"embed"
 	"strings"
 
+	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
+
 	sitter "github.com/tree-sitter/go-tree-sitter"
 	tree_sitter_c "github.com/tree-sitter/tree-sitter-c/bindings/go"
-
-	"reqmd-code/internal/lang"
-	"reqmd-code/internal/model"
 )
 
 //go:embed queries/*.scm
@@ -164,7 +164,7 @@ func (l *CLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 
 	// C has no package clause; fall back to the file's basename without
 	// extension as the module/package name.
-	pkgName := moduleNameFromFile(file)
+	pkgName := lang.ModuleNameFromFile(file)
 	captureNames := q.CaptureNames()
 
 	var out []model.Symbol
@@ -176,14 +176,14 @@ func (l *CLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 		if m == nil {
 			break
 		}
-		captures := capturesByName(m, captureNames)
+		captures := lang.CapturesByName(m, captureNames)
 
 		// A typedef `typedef struct Foo { ... } Foo;` matches both the
 		// inner struct_specifier and the outer type_definition, yielding
 		// two @type.decl captures for the same name. The specifier is
 		// only meaningful as a standalone declaration, so drop any type
 		// specifier whose parent chain runs through a type_definition.
-		if cd := captures["type.decl"]; cd != nil && isInsideTypeDefinition(cd) {
+		if cd := captures["type.decl"]; cd != nil && lang.HasAncestorKind(cd, "type_definition") {
 			continue
 		}
 
@@ -196,18 +196,6 @@ func (l *CLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 	// but be defensive in case the binding reorders.
 	lang.SortByStartLine(out)
 	return out, nil
-}
-
-// capturesByName returns a map from capture name to node for a single
-// query match. Capture names are resolved via the pre-fetched
-// captureNames slice from q.CaptureNames().
-func capturesByName(m *sitter.QueryMatch, captureNames []string) map[string]*sitter.Node {
-	captures := make(map[string]*sitter.Node, len(m.Captures))
-	for i := range m.Captures {
-		name := captureNames[m.Captures[i].Index]
-		captures[name] = &m.Captures[i].Node
-	}
-	return captures
 }
 
 // symbolFromMatch builds a model.Symbol from the per-match capture map.
@@ -225,7 +213,7 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 	case captures["type.decl"] != nil:
 		// Local types (`struct Foo { }` inside a function body) are
 		// function-scoped, not top-level symbols.
-		if isInsideFunction(captures["type.decl"]) {
+		if lang.HasAncestorKind(captures["type.decl"], "function_definition") {
 			return model.Symbol{}, false
 		}
 		name := lang.CaptureContent(captures["type.name"], src)
@@ -237,7 +225,7 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 		// Local variables inside function bodies share the same ID space
 		// as package-level ones; drop them so two same-named locals in
 		// different functions don't collide on one requirement ID.
-		if isInsideFunction(captures["var.decl"]) {
+		if lang.HasAncestorKind(captures["var.decl"], "function_definition") {
 			return model.Symbol{}, false
 		}
 		name := lang.CaptureContent(captures["var.name"], src)
@@ -253,55 +241,6 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 		return lang.SymbolAt(captures["const.decl"], file, pkg, model.SymbolConst, name, "", l, src), true
 	}
 	return model.Symbol{}, false
-}
-
-// isInsideFunction reports whether node's ancestor chain contains a
-// function_definition. Used to reject declarations nested inside
-// function bodies (local structs, local variables), which are not
-// top-level symbols.
-func isInsideFunction(node *sitter.Node) bool {
-	if node == nil {
-		return false
-	}
-	for p := node.Parent(); p != nil; p = p.Parent() {
-		if p.Kind() == "function_definition" {
-			return true
-		}
-	}
-	return false
-}
-
-// isInsideTypeDefinition reports whether node's ancestor chain contains
-// a `type_definition` (i.e. the node is the inner struct/enum/union
-// specifier of a typedef). Such specifiers are skipped in favor of the
-// enclosing type_definition, which carries the typedef'd alias name.
-func isInsideTypeDefinition(node *sitter.Node) bool {
-	if node == nil {
-		return false
-	}
-	for p := node.Parent(); p != nil; p = p.Parent() {
-		if p.Kind() == "type_definition" {
-			return true
-		}
-	}
-	return false
-}
-
-// moduleNameFromFile returns the file's basename without its extension,
-// used as C's default package/module name when no explicit package
-// metadata is available. Empty string is returned for empty input.
-func moduleNameFromFile(file string) string {
-	if file == "" {
-		return ""
-	}
-	base := file
-	if i := strings.LastIndexAny(base, "/\\"); i >= 0 {
-		base = base[i+1:]
-	}
-	if i := strings.LastIndex(base, "."); i >= 0 {
-		base = base[:i]
-	}
-	return base
 }
 
 func init() {

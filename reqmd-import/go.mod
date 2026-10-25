@@ -1,4 +1,4 @@
-module reqmd-import
+module github.com/dVoo/reqmd/reqmd-import
 
 go 1.25
 

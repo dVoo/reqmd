@@ -136,26 +136,12 @@ trace: []
  and `/*!`) comments. The conventional single space after the marker
  (`// foo` → `foo`) is dropped.
 
-## IMP-rust-capturesByName-9a542e4: capturesByName
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
-x-reqmd.source-line: 243
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- capturesByName returns a map from capture name to node for a single
- query match. Capture names are resolved via the pre-fetched
- captureNames slice from q.CaptureNames().
-
 ## IMP-rust-symbolFromMatch-b138cba: symbolFromMatch
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
-x-reqmd.source-line: 256
+x-reqmd.source-line: 244
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -165,27 +151,12 @@ trace: []
  when the match has no usable captures or refers to a function-local
  item.
 
-## IMP-rust-isInsideFunction-8c5f339: isInsideFunction
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
-x-reqmd.source-line: 309
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- isInsideFunction reports whether node's ancestor chain contains a
- function_item (which always nests its body in a `block`). Used to
- reject const/static/type items declared inside function bodies, which
- are function-scoped and not top-level symbols.
-
 ## IMP-rust-enclosingTypeName-9e3106a: enclosingTypeName
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
-x-reqmd.source-line: 328
+x-reqmd.source-line: 300
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -198,26 +169,12 @@ trace: []
  type identifier so the receiver matches the parent type's name.
  Returns "" when the method has no enclosing impl/trait.
 
-## IMP-rust-moduleNameFromFile-54caa24: moduleNameFromFile
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
-x-reqmd.source-line: 376
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- moduleNameFromFile returns the file's basename without its extension,
- used as Rust's default package/module name when no explicit crate
- metadata is available. Empty string is returned for empty input.
-
 ## IMP-rust-init-d1988fb: init
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
-x-reqmd.source-line: 390
+x-reqmd.source-line: 345
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -328,17 +285,4 @@ trace: []
 
  TestBindDocIncludesDoc verifies that BindDoc attaches the full doc
  comment block (including a reqmd:trace marker) to the following item.
-
-## IMP-rust-TestModuleNameFromFile-6d9a0e4: TestModuleNameFromFile
-```attr
-status: approved
-x-reqmd.imported: true
-x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
-x-reqmd.source-line: 256
-x-reqmd.symbol-kind: function
-trace: []
-```
-
- TestModuleNameFromFile covers the helper that derives a Rust
- module/package name from a file path.
 

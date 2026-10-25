@@ -9,7 +9,7 @@ import (
 )
 
 const bundleJSON = `{
-  "format": "reqmd-import/v1",
+  "format": "github.com/dVoo/reqmd/reqmd-import/v1",
   "documents": [
     {"id-prefix": "IMP-", "level": "imported-requirements"},
     {"dir": "alpha", "file": "package.md", "title": "Package: alpha", "id-prefix": "IMP-alpha-",

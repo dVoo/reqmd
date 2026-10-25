@@ -111,7 +111,7 @@ func runInit(cfg initConfig) error {
 	}
 
 	// Create directory if needed
-	if err := os.MkdirAll(cfg.Dir, 0o755); err != nil {
+	if err := os.MkdirAll(cfg.Dir, 0o750); err != nil {
 		return fmt.Errorf("creating directory %s: %w", cfg.Dir, err)
 	}
 
@@ -253,9 +253,13 @@ func writeTemplate(path, name, tmplStr string, data any) error {
 	if err != nil {
 		return fmt.Errorf("creating %s: %w", path, err)
 	}
-	defer f.Close()
-	if err := tmpl.Execute(f, data); err != nil {
-		return fmt.Errorf("rendering template to %s: %w", path, err)
+	renderErr := tmpl.Execute(f, data)
+	closeErr := f.Close()
+	if renderErr != nil {
+		return fmt.Errorf("rendering template to %s: %w", path, renderErr)
+	}
+	if closeErr != nil {
+		return fmt.Errorf("closing %s: %w", path, closeErr)
 	}
 	return nil
 }

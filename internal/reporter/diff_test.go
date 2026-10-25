@@ -1,9 +1,10 @@
 package reporter
 
 import (
-	"reqmd/internal/diff"
 	"strings"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/diff"
 )
 
 func TestFormatDiff_Submodules(t *testing.T) {

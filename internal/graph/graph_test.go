@@ -2,12 +2,13 @@ package graph_test
 
 import (
 	"regexp"
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
-	"reqmd/internal/parser"
-	"reqmd/internal/schema"
 	"strings"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/parser"
+	"github.com/dVoo/reqmd/internal/schema"
 )
 
 // ---------------------------------------------------------------------------
@@ -1461,7 +1462,7 @@ func TestNew_VersionPinDeterministicOrder(t *testing.T) {
 		}
 	}
 	// Repeat: same Graph, fresh iteration -> identical order.
-	for i := 0; i < 10; i++ {
+	for i := range 10 {
 		if got := collect(); !slicesEqual(got, first) {
 			t.Fatalf("run %d order changed: %v", i, got)
 		}

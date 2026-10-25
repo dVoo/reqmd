@@ -9,12 +9,13 @@ package lang
 
 import (
 	"fmt"
+	"slices"
 	"sort"
 	"sync"
 
-	sitter "github.com/tree-sitter/go-tree-sitter"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
 
-	"reqmd-code/internal/model"
+	sitter "github.com/tree-sitter/go-tree-sitter"
 )
 
 // Language is the contract a source-language plugin must satisfy.
@@ -59,8 +60,8 @@ type Language interface {
 // It is safe for concurrent reads after the init() phase; concurrent
 // Register calls during init() are protected by a mutex.
 type registry struct {
-	mu        sync.RWMutex
 	languages map[string]Language
+	mu        sync.RWMutex
 }
 
 var globalRegistry = &registry{
@@ -112,10 +113,8 @@ func ForExtension(ext string) (Language, bool) {
 	globalRegistry.mu.RLock()
 	defer globalRegistry.mu.RUnlock()
 	for _, l := range globalRegistry.languages {
-		for _, e := range l.Extensions() {
-			if e == ext {
-				return l, true
-			}
+		if slices.Contains(l.Extensions(), ext) {
+			return l, true
 		}
 	}
 	return nil, false

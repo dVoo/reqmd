@@ -4,11 +4,11 @@ import (
 	"embed"
 	"strings"
 
+	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
+
 	sitter "github.com/tree-sitter/go-tree-sitter"
 	tree_sitter_go "github.com/tree-sitter/tree-sitter-go/bindings/go"
-
-	"reqmd-code/internal/lang"
-	"reqmd-code/internal/model"
 )
 
 //go:embed queries/*.scm
@@ -149,12 +149,7 @@ func (l *GoLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 		if m == nil {
 			break
 		}
-		// Build a name->node map for this match.
-		captures := make(map[string]*sitter.Node, len(m.Captures))
-		for i := range m.Captures {
-			name := captureNames[m.Captures[i].Index]
-			captures[name] = &m.Captures[i].Node
-		}
+		captures := lang.CapturesByName(m, captureNames)
 
 		// Package clause: capture the package name once and remember it.
 		if pkgNode := captures["pkg.name"]; pkgNode != nil && pkgName == "" {
@@ -208,7 +203,7 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 		// (e.g. `const src = ...` in a test helper) — only package-level
 		// constants are top-level symbols. Also skip the blank identifier
 		// `var _ T = ...` compile-time assertion idiom.
-		if isInsideFunction(captures["const.decl"]) {
+		if lang.HasAncestorKind(captures["const.decl"], "function_declaration", "method_declaration", "func_literal") {
 			return model.Symbol{}, false
 		}
 		name := lang.CaptureContent(captures["const.name"], src)
@@ -219,7 +214,7 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 	case captures["var.decl"] != nil:
 		// Same scope rule as const: only package-level variables are
 		// top-level symbols.
-		if isInsideFunction(captures["var.decl"]) {
+		if lang.HasAncestorKind(captures["var.decl"], "function_declaration", "method_declaration", "func_literal") {
 			return model.Symbol{}, false
 		}
 		name := lang.CaptureContent(captures["var.name"], src)
@@ -229,23 +224,6 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 		return lang.SymbolAt(captures["var.decl"], file, pkg, model.SymbolVar, name, "", l, src), true
 	}
 	return model.Symbol{}, false
-}
-
-// isInsideFunction reports whether node's ancestor chain contains a
-// function_declaration or method_declaration. Used to reject const/var
-// declarations nested inside function bodies, which are function-local
-// and not top-level symbols.
-func isInsideFunction(node *sitter.Node) bool {
-	if node == nil {
-		return false
-	}
-	for p := node.Parent(); p != nil; p = p.Parent() {
-		switch p.Kind() {
-		case "function_declaration", "method_declaration", "func_literal":
-			return true
-		}
-	}
-	return false
 }
 
 // receiverType extracts the receiver type name from a method_declaration
@@ -260,8 +238,7 @@ func receiverType(methodNode *sitter.Node, src []byte) string {
 	if recvList == nil {
 		return ""
 	}
-	n := recvList.ChildCount()
-	for i := uint(0); i < n; i++ {
+	for i := range recvList.ChildCount() {
 		c := recvList.Child(i)
 		if c.Kind() != "parameter_declaration" {
 			continue

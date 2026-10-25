@@ -5,17 +5,18 @@ package main
 import (
 	"fmt"
 	"os"
-	"reqmd-code/internal/cli"
+
+	"github.com/dVoo/reqmd/reqmd-code/internal/cli"
 
 	// Blank-import language plugins so their init() functions self-register
 	// into the lang registry. Without these, reqmd-code would walk the
 	// source tree and skip every file (no plugin claims any extension).
 	// Add new plugins here as they land.
-	_ "reqmd-code/internal/lang/c"
-	_ "reqmd-code/internal/lang/cpp"
-	_ "reqmd-code/internal/lang/go"
-	_ "reqmd-code/internal/lang/python"
-	_ "reqmd-code/internal/lang/rust"
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/c"
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/cpp"
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/go"
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/python"
+	_ "github.com/dVoo/reqmd/reqmd-code/internal/lang/rust"
 )
 
 // version is overridden at release time via:

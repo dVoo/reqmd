@@ -1,8 +1,10 @@
 package filter
 
 import (
-	"reqmd/internal/model"
+	"strings"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 func testReq(id, title string, attrs map[string]any) *model.Node {
@@ -469,5 +471,104 @@ func TestBuildValidAttrs(t *testing.T) {
 		if _, ok := valid[attr]; !ok {
 			t.Errorf("expected built-in %q in valid attrs", attr)
 		}
+	}
+}
+
+// undeclaredDocs is testDocs plus a requirement carrying an attribute that
+// no schema declares (`owner`), the relaxed-filtering scenario.
+func undeclaredDocs() []model.Document {
+	docs := testDocs()
+	docs[0].Nodes = append(docs[0].Nodes, testReq("SW-004", "Undeclared", map[string]any{
+		"status": "approved",
+		"owner":  "alice",
+	}))
+	return docs
+}
+
+func TestBuildFoundAttrs(t *testing.T) {
+	found := BuildFoundAttrs(undeclaredDocs())
+	if _, ok := found["owner"]; !ok {
+		t.Error("BuildFoundAttrs should collect attributes present on requirements")
+	}
+	if _, ok := BuildValidAttrs(undeclaredDocs())["owner"]; ok {
+		t.Error("BuildValidAttrs must not contain an undeclared attribute")
+	}
+}
+
+// TestCompileForDocs_StrictRejectsUndeclared pins the default behavior: the
+// global typo check rejects attributes that no schema declares.
+func TestCompileForDocs_StrictRejectsUndeclared(t *testing.T) {
+	_, _, err := CompileForDocs(undeclaredDocs(), `owner == "alice"`, false)
+	if err == nil {
+		t.Fatal("strict mode should reject an attribute not declared in any schema")
+	}
+}
+
+// TestCompileForDocs_RelaxedAllowsFoundAttr is the relaxed-filter contract:
+// an attribute present on a requirement becomes filterable even though no
+// schema.yaml declares it, and the deviation is reported as a warning.
+func TestCompileForDocs_RelaxedAllowsFoundAttr(t *testing.T) {
+	docs := undeclaredDocs()
+	f, warnings, err := CompileForDocs(docs, `owner == "alice"`, true)
+	if err != nil {
+		t.Fatalf("relaxed mode should allow a present-but-undeclared attribute: %v", err)
+	}
+	if len(warnings) != 1 {
+		t.Fatalf("expected 1 warning, got %d: %v", len(warnings), warnings)
+	}
+	if !strings.Contains(warnings[0], "owner") {
+		t.Fatalf("warning should name the attribute, got %q", warnings[0])
+	}
+
+	match, err := f.Match(docs[0].Nodes[3])
+	if err != nil {
+		t.Fatalf("Match: %v", err)
+	}
+	if !match {
+		t.Fatal("SW-004 has owner=alice and should match")
+	}
+	if match, _ := f.Match(docs[0].Nodes[0]); match {
+		t.Fatal("SW-001 has no owner and should not match")
+	}
+}
+
+// TestCompileForDocs_RelaxedWarnsOnTrulyUnknown verifies relaxed mode turns
+// a genuine typo into a warning instead of aborting the run.
+func TestCompileForDocs_RelaxedWarnsOnTrulyUnknown(t *testing.T) {
+	f, warnings, err := CompileForDocs(undeclaredDocs(), `nonexistent == "x"`, true)
+	if err != nil {
+		t.Fatalf("relaxed mode should not fail on an unknown attribute: %v", err)
+	}
+	if len(warnings) != 1 || !strings.Contains(warnings[0], "nonexistent") {
+		t.Fatalf("expected one warning naming 'nonexistent', got %v", warnings)
+	}
+	// AllowUndefinedVariables makes the unknown name evaluate to nil, so
+	// nothing matches rather than erroring.
+	match, err := f.Match(testReq("X", "", map[string]any{"status": "approved"}))
+	if err != nil {
+		t.Fatalf("Match: %v", err)
+	}
+	if match {
+		t.Fatal("an unknown attribute should not match any requirement")
+	}
+}
+
+// TestCompileForDocs_RelaxedDeclaredAttrNoWarning keeps relaxed mode quiet
+// for expressions that only use declared attributes.
+func TestCompileForDocs_RelaxedDeclaredAttrNoWarning(t *testing.T) {
+	_, warnings, err := CompileForDocs(undeclaredDocs(), `status == "approved"`, true)
+	if err != nil {
+		t.Fatalf("CompileForDocs: %v", err)
+	}
+	if len(warnings) != 0 {
+		t.Fatalf("declared attributes must not warn, got %v", warnings)
+	}
+}
+
+// TestCompileForDocs_EmptyExpression asserts the no-filter fast path.
+func TestCompileForDocs_EmptyExpression(t *testing.T) {
+	f, warnings, err := CompileForDocs(undeclaredDocs(), "", true)
+	if err != nil || f != nil || warnings != nil {
+		t.Fatalf("empty expression should yield (nil, nil, nil), got (%v, %v, %v)", f, warnings, err)
 	}
 }

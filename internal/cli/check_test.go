@@ -3,9 +3,10 @@ package cli
 import (
 	"encoding/json"
 	"errors"
-	"reqmd/internal/reporter"
 	"strings"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/reporter"
 )
 
 // jsonCheckSummary captures the parts of `check --json` output that the
@@ -256,5 +257,45 @@ func TestCheckCmd_IgnoreUnboundResults(t *testing.T) {
 	}
 	if w := countWarnings("--results", results, "--ignore-unbound-results"); w != 0 {
 		t.Errorf("warnings with --ignore-unbound-results = %d, want 0", w)
+	}
+}
+
+// TestCheckCmd_RelaxedFilterAllowsUndeclared pins the --relaxed-filter
+// contract: an attribute present on requirements but declared in no
+// schema.yaml is rejected by the default typo check and accepted — with a
+// warning instead of an error — when the flag is set.
+func TestCheckCmd_RelaxedFilterAllowsUndeclared(t *testing.T) {
+	root := t.TempDir()
+	// No additionalProperties: false, so the undeclared attribute itself
+	// still validates; only the filter typo check is under test here.
+	writeFile(t, root, "req/schema.yaml", `$schema: "https://json-schema.org/draft/2020-12/schema"
+title: "Test Requirements"
+type: object
+`)
+	writeFile(t, root, "req/req.md", "# Spec\n\n"+
+		mdReq("REQ-001", "Owned by Alice", "status: approved\nowner: alice\n")+
+		mdReq("REQ-002", "Owned by Bob", "status: approved\nowner: bob\n"))
+
+	// Default (strict): `owner` is declared nowhere → compile-time error.
+	if _, err := runCmd(t, newCheckCmd(), "--filter", `owner == "alice"`, root); err == nil {
+		t.Fatal("strict mode should reject an attribute not declared in any schema")
+	} else if !strings.Contains(err.Error(), "unknown attribute") {
+		t.Fatalf("error = %q, want mention of unknown attribute", err)
+	}
+
+	// Relaxed: compiles and scopes validation to the matching requirement.
+	out, err := runCmd(t, newCheckCmd(), "--filter", `owner == "alice"`, "--relaxed-filter", "--json", root)
+	if err != nil {
+		t.Fatalf("relaxed filter should succeed: %v\n%s", err, out)
+	}
+	var rep jsonCheckSummary
+	if jerr := json.Unmarshal([]byte(out), &rep); jerr != nil {
+		t.Fatalf("parsing JSON: %v\n%s", jerr, out)
+	}
+	if rep.Summary.Total != 1 {
+		t.Fatalf("total = %d, want 1 (only REQ-001)", rep.Summary.Total)
+	}
+	if rep.Summary.Valid != 1 {
+		t.Fatalf("valid = %d, want 1", rep.Summary.Valid)
 	}
 }

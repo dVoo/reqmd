@@ -15,9 +15,11 @@ package filter
 
 import (
 	"fmt"
+	"io"
 	"maps"
-	"reqmd/internal/model"
 	"sort"
+
+	"github.com/dVoo/reqmd/internal/model"
 
 	"github.com/expr-lang/expr"
 	"github.com/expr-lang/expr/ast"
@@ -68,7 +70,8 @@ type Filter struct {
 	refs    []string // validated variable names referenced in the expression
 }
 
-// Compile parses, validates, and compiles a filter expression.
+// Compile parses, validates, and compiles a filter expression (strict
+// mode).
 //
 // validAttrs is the union of all schema property names (plus built-in
 // variable names) across every document in the tree. Referencing a name
@@ -80,21 +83,45 @@ type Filter struct {
 // evaluates that variable to nil (the req is excluded unless the
 // expression handles absence, e.g. `variant == null`).
 func Compile(exprStr string, validAttrs map[string]struct{}) (*Filter, error) {
+	f, _, err := compile(exprStr, validAttrs, validAttrs, true)
+	return f, err
+}
+
+// CompileRelaxed compiles a filter expression without hard-failing on
+// attribute names that are not declared in any schema.yaml. validAttrs is
+// the expanded allowed set (schema-declared names plus every attribute
+// actually found on a requirement); declaredAttrs is the schema-declared
+// set plus built-ins and drives which references produce a warning. Every
+// referenced name outside declaredAttrs yields a warning instead of an
+// error, so undeclared-but-present attributes become filterable while true
+// typos no longer abort the run.
+func CompileRelaxed(exprStr string, validAttrs, declaredAttrs map[string]struct{}) (*Filter, []string, error) {
+	return compile(exprStr, validAttrs, declaredAttrs, false)
+}
+
+// compile is the shared implementation for strict and relaxed modes.
+// strict=true returns an error for any referenced name outside validAttrs
+// (the global typo check). strict=false never errors on unknown names;
+// instead every name outside declaredAttrs is collected as a warning.
+func compile(exprStr string, validAttrs, declaredAttrs map[string]struct{}, strict bool) (*Filter, []string, error) {
 	if exprStr == "" {
-		return nil, fmt.Errorf("filter expression is empty")
+		return nil, nil, fmt.Errorf("filter expression is empty")
 	}
 
 	// Phase 1: parse the AST and collect referenced variable names.
 	tree, err := parser.Parse(exprStr)
 	if err != nil {
-		return nil, fmt.Errorf("filter syntax error: %w", err)
+		return nil, nil, fmt.Errorf("filter syntax error: %w", err)
 	}
 
 	v := &refCollector{}
 	ast.Walk(&tree.Node, v)
 
 	// Phase 2: validate that every referenced name is either a known
-	// attribute, a built-in variable, or an expr built-in function.
+	// attribute, a built-in variable, or an expr built-in function. In
+	// strict mode an unknown name is an error; in relaxed mode it is a
+	// warning (and undeclared-but-allowed names warn too).
+	var warnings []string
 	for _, name := range v.refs {
 		if _, isBuiltin := exprBuiltins[name]; isBuiltin {
 			continue
@@ -103,9 +130,17 @@ func Compile(exprStr string, validAttrs map[string]struct{}) (*Filter, error) {
 			continue
 		}
 		if _, isValid := validAttrs[name]; isValid {
+			if !strict {
+				if _, declared := declaredAttrs[name]; !declared {
+					warnings = append(warnings, fmt.Sprintf("filter references attribute %q not declared in any schema.yaml", name))
+				}
+			}
 			continue
 		}
-		return nil, fmt.Errorf("filter references unknown attribute %q: not declared in any schema.yaml", name)
+		if strict {
+			return nil, nil, fmt.Errorf("filter references unknown attribute %q: not declared in any schema.yaml", name)
+		}
+		warnings = append(warnings, fmt.Sprintf("filter references unknown attribute %q", name))
 	}
 
 	// Phase 3: compile to bytecode. AllowUndefinedVariables lets
@@ -113,7 +148,7 @@ func Compile(exprStr string, validAttrs map[string]struct{}) (*Filter, error) {
 	// erroring at runtime.
 	program, err := expr.Compile(exprStr, expr.AllowUndefinedVariables())
 	if err != nil {
-		return nil, fmt.Errorf("compiling filter: %w", err)
+		return nil, nil, fmt.Errorf("compiling filter: %w", err)
 	}
 
 	// Dedup refs for the final list.
@@ -132,7 +167,7 @@ func Compile(exprStr string, validAttrs map[string]struct{}) (*Filter, error) {
 		program: program,
 		expr:    exprStr,
 		refs:    refs,
-	}, nil
+	}, warnings, nil
 }
 
 // Expr returns the original expression string.
@@ -240,7 +275,7 @@ func buildEnv(node *model.Node) map[string]any {
 
 // BuildValidAttrs computes the union of all schema property names across
 // every document plus the built-in variable names. The result is used by
-// Compile for attribute validation.
+// Compile for strict attribute validation.
 func BuildValidAttrs(docs []model.Document) map[string]struct{} {
 	valid := make(map[string]struct{}, 32)
 	for _, doc := range docs {
@@ -254,15 +289,54 @@ func BuildValidAttrs(docs []model.Document) map[string]struct{} {
 	return valid
 }
 
+// BuildFoundAttrs computes the union of every attribute key actually
+// present on some requirement in the tree, whether or not it is declared
+// in a schema.yaml. Relaxed filtering unions this with BuildValidAttrs so
+// undeclared-but-present attributes can be filtered.
+func BuildFoundAttrs(docs []model.Document) map[string]struct{} {
+	found := make(map[string]struct{}, 32)
+	for _, doc := range docs {
+		for _, req := range doc.Requirements() {
+			for k := range req.Attrs {
+				found[k] = struct{}{}
+			}
+		}
+	}
+	return found
+}
+
+// WriteWarnings writes relaxed-mode filter warnings to w, one per line,
+// prefixed with "reqmd: warning: ". It is a no-op when warnings is empty
+// so callers can invoke it unconditionally.
+func WriteWarnings(w io.Writer, warnings []string) {
+	for _, msg := range warnings {
+		_, _ = fmt.Fprintf(w, "reqmd: warning: %s\n", msg)
+	}
+}
+
 // CompileForDocs compiles an expression against the attribute union of the
 // given documents. It is the shared entry point for every CLI command that
-// accepts a --filter flag: Compile + BuildValidAttrs in one call. Returns
-// (nil, nil) when expr is empty (no filter).
-func CompileForDocs(docs []model.Document, expr string) (*Filter, error) {
+// accepts a --filter flag: Compile + BuildValidAttrs in one call.
+//
+// When allowUndeclared is false the strict typo check applies and any
+// reference to an attribute not declared in a schema.yaml is an error.
+// When true, references to attributes found on any requirement are allowed
+// (undeclared-but-present) and every out-of-schema reference is returned as
+// a warning instead of an error. Returns (nil, nil, nil) when expr is empty.
+func CompileForDocs(docs []model.Document, expr string, allowUndeclared bool) (*Filter, []string, error) {
 	if expr == "" {
-		return nil, nil
+		return nil, nil, nil
 	}
-	return Compile(expr, BuildValidAttrs(docs))
+	declared := BuildValidAttrs(docs)
+	if !allowUndeclared {
+		f, err := Compile(expr, declared)
+		return f, nil, err
+	}
+	valid := maps.Clone(declared)
+	for k := range BuildFoundAttrs(docs) {
+		valid[k] = struct{}{}
+	}
+	return CompileRelaxed(expr, valid, declared)
 }
 
 // refCollector implements ast.Visitor and collects all IdentifierNode

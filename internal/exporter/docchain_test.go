@@ -1,8 +1,9 @@
 package exporter
 
 import (
-	"reqmd/internal/model"
 	"testing"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // makeDoc constructs a minimal model.Document with the given path, title and

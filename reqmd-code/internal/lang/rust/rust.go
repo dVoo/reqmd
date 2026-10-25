@@ -33,11 +33,11 @@ import (
 	"embed"
 	"strings"
 
+	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
+
 	sitter "github.com/tree-sitter/go-tree-sitter"
 	tree_sitter_rust "github.com/tree-sitter/tree-sitter-rust/bindings/go"
-
-	"reqmd-code/internal/lang"
-	"reqmd-code/internal/model"
 )
 
 //go:embed queries/*.scm
@@ -183,7 +183,7 @@ func (l *RustLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 
 	// Rust has no package clause; fall back to the file's basename
 	// without extension as the module/package name.
-	pkgName := moduleNameFromFile(file)
+	pkgName := lang.ModuleNameFromFile(file)
 	captureNames := q.CaptureNames()
 
 	// First pass: collect all method.decl nodes so we can later drop the
@@ -196,7 +196,7 @@ func (l *RustLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 		if m == nil {
 			break
 		}
-		captures := capturesByName(m, captureNames)
+		captures := lang.CapturesByName(m, captureNames)
 		if n := captures["method.decl"]; n != nil {
 			methodNodes[n.Id()] = struct{}{}
 		}
@@ -216,7 +216,7 @@ func (l *RustLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 		if m == nil {
 			break
 		}
-		captures := capturesByName(m, captureNames)
+		captures := lang.CapturesByName(m, captureNames)
 
 		// Skip the bare @func.decl when the same node is also a method.
 		// Methods win.
@@ -235,18 +235,6 @@ func (l *RustLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 	// but be defensive in case the binding reorders.
 	lang.SortByStartLine(out)
 	return out, nil
-}
-
-// capturesByName returns a map from capture name to node for a single
-// query match. Capture names are resolved via the pre-fetched
-// captureNames slice from q.CaptureNames().
-func capturesByName(m *sitter.QueryMatch, captureNames []string) map[string]*sitter.Node {
-	captures := make(map[string]*sitter.Node, len(m.Captures))
-	for i := range m.Captures {
-		name := captureNames[m.Captures[i].Index]
-		captures[name] = &m.Captures[i].Node
-	}
-	return captures
 }
 
 // symbolFromMatch builds a model.Symbol from the per-match capture map.
@@ -270,7 +258,7 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 	case captures["type.decl"] != nil:
 		// Local types (`struct Foo { }` inside a function body) are
 		// function-scoped, not top-level symbols.
-		if isInsideFunction(captures["type.decl"]) {
+		if lang.HasAncestorKind(captures["type.decl"], "function_item") {
 			return model.Symbol{}, false
 		}
 		name := lang.CaptureContent(captures["type.name"], src)
@@ -281,7 +269,7 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 	case captures["const.decl"] != nil:
 		// Rust allows `const` items inside function bodies; those are
 		// function-scoped, not top-level symbols.
-		if isInsideFunction(captures["const.decl"]) {
+		if lang.HasAncestorKind(captures["const.decl"], "function_item") {
 			return model.Symbol{}, false
 		}
 		name := lang.CaptureContent(captures["const.name"], src)
@@ -290,7 +278,7 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 		}
 		return lang.SymbolAt(captures["const.decl"], file, pkg, model.SymbolConst, name, "", l, src), true
 	case captures["var.decl"] != nil:
-		if isInsideFunction(captures["var.decl"]) {
+		if lang.HasAncestorKind(captures["var.decl"], "function_item") {
 			return model.Symbol{}, false
 		}
 		name := lang.CaptureContent(captures["var.name"], src)
@@ -300,22 +288,6 @@ func symbolFromMatch(captures map[string]*sitter.Node, file, pkg string, src []b
 		return lang.SymbolAt(captures["var.decl"], file, pkg, model.SymbolVar, name, "", l, src), true
 	}
 	return model.Symbol{}, false
-}
-
-// isInsideFunction reports whether node's ancestor chain contains a
-// function_item (which always nests its body in a `block`). Used to
-// reject const/static/type items declared inside function bodies, which
-// are function-scoped and not top-level symbols.
-func isInsideFunction(node *sitter.Node) bool {
-	if node == nil {
-		return false
-	}
-	for p := node.Parent(); p != nil; p = p.Parent() {
-		if p.Kind() == "function_item" {
-			return true
-		}
-	}
-	return false
 }
 
 // enclosingTypeName walks up the parent chain from a method node to the
@@ -368,23 +340,6 @@ func enclosingTypeName(methodNode *sitter.Node, src []byte) string {
 		}
 	}
 	return ""
-}
-
-// moduleNameFromFile returns the file's basename without its extension,
-// used as Rust's default package/module name when no explicit crate
-// metadata is available. Empty string is returned for empty input.
-func moduleNameFromFile(file string) string {
-	if file == "" {
-		return ""
-	}
-	base := file
-	if i := strings.LastIndexAny(base, "/\\"); i >= 0 {
-		base = base[i+1:]
-	}
-	if i := strings.LastIndex(base, "."); i >= 0 {
-		base = base[:i]
-	}
-	return base
 }
 
 func init() {

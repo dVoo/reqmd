@@ -4,7 +4,8 @@ package exporter
 
 import (
 	"path/filepath"
-	"reqmd/internal/model"
+
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // DocBoundary describes a document directory's position in the V-model chain.

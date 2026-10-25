@@ -15,7 +15,7 @@ import (
 )
 
 // Format is the value a bundle must declare in its "format" field.
-const Format = "reqmd-import/v1"
+const Format = "github.com/dVoo/reqmd/reqmd-import/v1"
 
 // Bundle is the top-level exchange document: the list of reqmd document
 // directories to render, in output order.
@@ -30,7 +30,7 @@ type Bundle struct {
 // Field order below is the reading order of the format, not a memory layout:
 // this is a wire DTO decoded once per run. Reordering the fields (which is what
 // govet's fieldalignment wants) also drops every field doc comment.
-type Document struct { //nolint:govet
+type Document struct {
 	// Dir is the output directory relative to the output root. "" is the
 	// root itself. Must not escape the root.
 	Dir string `json:"dir,omitempty"`
@@ -82,7 +82,7 @@ type Upstream struct {
 
 // Requirement is one imported requirement, identified by the source tool's
 // own stable ID. See Document for why fieldalignment is disabled here.
-type Requirement struct { //nolint:govet
+type Requirement struct {
 	// NativeID is the producer's stable key for this item. The rendered reqmd
 	// ID is <document id-prefix><native-id>. Must be unique across the bundle
 	// (native-trace refs resolve by it) and must not contain whitespace: a

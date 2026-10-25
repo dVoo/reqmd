@@ -250,7 +250,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 8
+x-reqmd.source-line: 9
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -260,7 +260,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 26
+x-reqmd.source-line: 27
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -270,7 +270,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 55
+x-reqmd.source-line: 56
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -280,7 +280,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 81
+x-reqmd.source-line: 82
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -290,7 +290,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 127
+x-reqmd.source-line: 128
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -300,7 +300,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 153
+x-reqmd.source-line: 154
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -310,7 +310,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 206
+x-reqmd.source-line: 207
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -320,7 +320,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 222
+x-reqmd.source-line: 223
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -330,7 +330,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 235
+x-reqmd.source-line: 236
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -340,7 +340,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 248
+x-reqmd.source-line: 249
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -350,7 +350,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 261
+x-reqmd.source-line: 262
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -360,7 +360,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 268
+x-reqmd.source-line: 269
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -370,7 +370,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 275
+x-reqmd.source-line: 276
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -380,7 +380,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 286
+x-reqmd.source-line: 287
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -390,7 +390,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 312
+x-reqmd.source-line: 313
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -400,7 +400,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 338
+x-reqmd.source-line: 339
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -410,7 +410,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 363
+x-reqmd.source-line: 364
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -420,7 +420,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
-x-reqmd.source-line: 391
+x-reqmd.source-line: 392
 x-reqmd.symbol-kind: function
 trace: []
 ```

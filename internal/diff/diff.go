@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/model"
 
 	r3diff "github.com/r3labs/diff/v3"
 )

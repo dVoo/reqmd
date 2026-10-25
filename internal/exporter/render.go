@@ -2,128 +2,29 @@ package exporter
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"html"
-	"reqmd/internal/model"
 	"sort"
 	"strconv"
 	"strings"
-	"unicode/utf8"
+
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
 )
 
-// TraceResolver bundles the four callback hooks used to render upstream /
-// downstream trace links in the exported HTML. Any nil field is treated
-// as "no data" — the trace section is simply omitted for that side.
-type TraceResolver struct {
-	// Upstream returns the requirement IDs that the given requirement
-	// traces TO (its parents).
-	Upstream func(string) []string
-	// Downstream returns the requirement IDs that trace TO the given
-	// requirement (its children).
-	Downstream func(string) []string
-	// ResolveLink maps a requirement ID to a cross-file HTML anchor
-	// (e.g. "02-system-requirements.html#SYS-FMT-001"). When nil or it
-	// returns "", same-file fragment links ("#ID") are used.
-	ResolveLink func(string) string
-	// TitleOf maps a requirement ID to its human-readable title. When
-	// nil or it returns "", only the ID is shown.
-	TitleOf func(string) string
-}
-
-// linkHref returns the resolved HTML anchor for the given req ID, or
-// the same-file fragment fallback when the trace context is missing or
-// the resolver returns an empty string.
-func (tc *TraceResolver) linkHref(id string) string {
-	if tc != nil && tc.ResolveLink != nil {
-		if ref := tc.ResolveLink(id); ref != "" {
-			return ref
-		}
-	}
-	return "#" + id
-}
-
-// linkTitle returns the resolved title for the given req ID, or "" when
-// the trace context is missing or the titleOf function is not set.
-func (tc *TraceResolver) linkTitle(id string) string {
-	if tc != nil && tc.TitleOf != nil {
-		return tc.TitleOf(id)
-	}
-	return ""
-}
-
-// indexEntry is one node in the embedded JSON index used by the Alpine
-// search/filter logic and the sidebar TOC. The JSON tags match the wire
-// format the browser-side JS reads. ID is the DOM anchor: a requirement
-// ID for requirements, or a generated "info-N" anchor for containers and
-// info items.
-type indexEntry struct {
-	ID        string         `json:"id"`
-	Type      string         `json:"type,omitempty"` // "container" | "info"; omitted for requirements
-	Title     string         `json:"title,omitempty"`
-	Body      string         `json:"body"`
-	Rationale string         `json:"rationale"`
-	Attrs     map[string]any `json:"attrs"`
-	ParentID  string         `json:"parentId,omitempty"`
-	Children  []string       `json:"children,omitempty"`
-}
-
-// filterSet is the per-attribute sorted unique values collected across
-// all requirements, used to populate the search toolbar filter menus.
-type filterSet map[string][]string
-
-// renderData is the single O(n) intermediate produced by
-// buildRenderData; it powers the embedded JSON index, the search/filter
-// toolbar, and the tree-walk rendering loop.
-type renderData struct {
-	Filters   filterSet
-	Anchors   map[*model.Node]string
-	StatusCnt map[string]int
-	Index     []indexEntry
-	Nodes     []*model.Node
-}
-
-// tracePair holds the precomputed upstream/downstream trace links for a
-// single requirement. nil entries are treated as "no trace data".
-type tracePair struct {
-	up, down []traceLink
-}
-
-// traceLink is a single upstream or downstream trace reference,
-// pairing a requirement ID with its optional human-readable title.
-type traceLink struct {
-	ID    string
-	Title string
-}
-
-// buildTraceCache precomputes upstream/downstream trace links for every
-// requirement in doc. When tc is nil the result is also nil.
-func buildTraceCache(doc model.Document, tc *TraceResolver) map[string]tracePair {
-	if tc == nil {
-		return nil
-	}
-	reqs := doc.Requirements()
-	cache := make(map[string]tracePair, len(reqs))
-	for _, req := range reqs {
-		cache[req.ID] = tracePair{
-			up:   toTraceLinks(tc.Upstream(req.ID), tc),
-			down: toTraceLinks(tc.Downstream(req.ID), tc),
-		}
-	}
-	return cache
-}
-
-func toTraceLinks(ids []string, tc *TraceResolver) []traceLink {
-	links := make([]traceLink, len(ids))
-	for i, id := range ids {
-		links[i] = traceLink{ID: id, Title: tc.linkTitle(id)}
-	}
-	return links
-}
+// The HTML export has one server-rendered reading view and three analytical
+// views rendered on demand from the embedded page model:
+//
+//	document — quiet card-per-requirement reading view (works without JS)
+//	table    — dense sortable grid with a column chooser and row expansion
+//	trace    — selected-requirement trace explorer with a bounded matrix
+//	coverage — actionable coverage, verification, and link-health lists
+//
+// Every view, count, aggregate, and outline reads the same filtered
+// requirement set, so the toolbar means one thing.
 
 // normalizeAttrValue collapses []any / []string / scalar attribute
-// values into a uniform []string, dropping nil entries and nested maps
-// (the latter because they cannot be represented as filter values).
+// values into a uniform []string, dropping nil entries and nested maps.
 func normalizeAttrValue(v any) []string {
 	switch val := v.(type) {
 	case []any:
@@ -159,129 +60,64 @@ func normalizeAttrValue(v any) []string {
 	}
 }
 
-// buildRenderData runs a single O(n) pass over the document content tree
-// to produce every per-document data structure the rendering helpers
-// need: the JSON index (all nodes, for search/filter and the TOC), the
-// filter set, the per-status counts, and the per-node DOM anchors.
-//
-// Every node gets a stable anchor: requirements anchor on their ID,
-// containers and info items on a generated "info-N" anchor (N = document
-// order sequence). The same anchors are used by the index and by the
-// rendered DOM so TOC links and scroll-spy stay consistent.
-//
-// The `status` filter is special-cased so built-in values (draft,
-// approved) appear first in canonical order, followed by declared
-// additions A→Z, followed by any unrecognized values A→Z. All other
-// attrs are emitted sorted A→Z. Attributes with fewer than two distinct
-// values are omitted (single-value filters are not useful).
-func buildRenderData(doc model.Document) *renderData {
-	reqs := doc.Requirements()
-	rd := &renderData{
-		Index:     make([]indexEntry, 0, len(reqs)),
-		Filters:   buildFilters(reqs, doc),
-		Nodes:     doc.Nodes,
-		Anchors:   make(map[*model.Node]string, len(reqs)),
-		StatusCnt: countStatuses(reqs),
-	}
-
-	// Pass 1: assign a stable DOM anchor to every node.
-	itemSeq := 0
-	var assign func(nodes []*model.Node)
-	assign = func(nodes []*model.Node) {
-		for _, n := range nodes {
-			if n.Kind == model.KindRequirement {
-				rd.Anchors[n] = n.ID
-			} else {
-				itemSeq++
-				rd.Anchors[n] = fmt.Sprintf("info-%d", itemSeq)
-			}
-			assign(n.Children)
-		}
-	}
-	assign(doc.Nodes)
-
-	// Pass 2: build index entries (parent + children via the anchor map).
-	var build func(nodes []*model.Node, parentAnchor string)
-	build = func(nodes []*model.Node, parentAnchor string) {
-		for _, n := range nodes {
-			rd.Index = append(rd.Index, buildIndexEntry(n, rd.Anchors[n], parentAnchor, rd.Anchors))
-			build(n.Children, rd.Anchors[n])
-		}
-	}
-	build(doc.Nodes, "")
-
-	return rd
-}
-
 // buildFilters collects per-attribute unique values across all requirements
-// into a filterSet. The `status` filter is special-cased so built-in values
-// (draft, approved) appear first in canonical order, followed by declared
-// additions A→Z, then any unrecognized values A→Z. All other attrs are emitted
-// sorted A→Z. Attributes with fewer than two distinct values are omitted
-// (single-value filters are not useful). Status values are skipped when the
-// document opts out of the status lifecycle.
+// into a filterSet. Attributes with fewer than two distinct values are omitted
+// (single-value filters are not useful).
 func buildFilters(reqs []*model.Node, doc model.Document) filterSet {
-	ignoreStatus := doc.XReqmd != nil && doc.XReqmd.IgnoreStatus
-	raw := make(map[string]map[string]struct{})
-	for _, req := range reqs {
-		for k, v := range req.Attrs {
-			if k == model.AttrTrace {
-				continue
-			}
-			if k == model.AttrStatus && ignoreStatus {
-				continue
-			}
-			if raw[k] == nil {
-				raw[k] = make(map[string]struct{})
-			}
-			for _, s := range normalizeAttrValue(v) {
-				raw[k][s] = struct{}{}
-			}
-		}
-	}
-
+	raw := collectFilterValues(reqs, doc)
 	filters := make(filterSet, len(raw))
-	for k, set := range raw {
+	for attr, set := range raw {
 		if len(set) < 2 {
 			continue
 		}
-		vals := make([]string, 0, len(set))
-		for v := range set {
-			vals = append(vals, v)
-		}
-		// Special-case `status`: built-in [draft, approved] first in
-		// canonical order, then declared additions A→Z, then any
-		// unrecognized values A→Z.
-		if k == model.AttrStatus {
-			filters[k] = orderStatusFilterValues(vals, doc)
-			continue
-		}
-		sort.Strings(vals)
-		filters[k] = vals
+		filters[attr] = orderFilterValues(attr, set, doc)
 	}
 	return filters
 }
 
-// countStatuses tallies status values across all requirements. Requirements
-// without a recognized status string count as model.StatusDefault. The tally
-// is independent of filter-set visibility: the header breakdown is always
-// rendered unless the document opts out of the lifecycle.
-func countStatuses(reqs []*model.Node) map[string]int {
-	statusCounts := make(map[string]int)
+// collectFilterValues gathers the distinct values of every filterable
+// attribute. The trace attribute never becomes a filter; status values are
+// skipped when the document opts out of the status lifecycle.
+func collectFilterValues(reqs []*model.Node, doc model.Document) map[string]map[string]struct{} {
+	ignoreStatus := doc.XReqmd != nil && doc.XReqmd.IgnoreStatus
+	raw := make(map[string]map[string]struct{})
 	for _, req := range reqs {
-		sv, ok := req.Attrs[model.AttrStatus].(string)
-		if !ok || sv == "" {
-			sv = model.StatusDefault
+		for attr, v := range req.Attrs {
+			if attr == model.AttrTrace {
+				continue
+			}
+			if attr == model.AttrStatus && ignoreStatus {
+				continue
+			}
+			if raw[attr] == nil {
+				raw[attr] = make(map[string]struct{})
+			}
+			for _, value := range normalizeAttrValue(v) {
+				raw[attr][value] = struct{}{}
+			}
 		}
-		statusCounts[sv]++
 	}
-	return statusCounts
+	return raw
+}
+
+// orderFilterValues returns one attribute's values in display order: status is
+// canonical (draft, approved, declared additions, then A→Z); everything else
+// is sorted A→Z.
+func orderFilterValues(attr string, set map[string]struct{}, doc model.Document) []string {
+	vals := make([]string, 0, len(set))
+	for v := range set {
+		vals = append(vals, v)
+	}
+	if attr == model.AttrStatus {
+		return orderStatusFilterValues(vals, doc)
+	}
+	sort.Strings(vals)
+	return vals
 }
 
 // sortedStatusValues returns the given status values in canonical order:
 // built-ins [draft, approved] first, then declared additions A→Z, then any
-// unrecognized values A→Z. Both countStatusBreakdown and the filter-set
-// ordering use this; the test in render_test.go covers it.
+// unrecognized values A→Z.
 func sortedStatusValues(values []string, additions []string) []string {
 	priority := []string{model.StatusDraft, model.StatusApproved}
 	set := make(map[string]struct{}, len(values))
@@ -309,12 +145,11 @@ func sortedStatusValues(values []string, additions []string) []string {
 		}
 	}
 	sort.Strings(rest)
-	out = append(out, rest...)
-	return out
+	return append(out, rest...)
 }
 
-// orderStatusFilterValues is a thin wrapper around sortedStatusValues
-// that pulls the declared additions from doc.XReqmd (nil-safe).
+// orderStatusFilterValues pulls the declared additions from doc.XReqmd
+// (nil-safe) and returns the values in canonical order.
 func orderStatusFilterValues(vals []string, doc model.Document) []string {
 	var additions []string
 	if doc.XReqmd != nil {
@@ -323,19 +158,15 @@ func orderStatusFilterValues(vals []string, doc model.Document) []string {
 	return sortedStatusValues(vals, additions)
 }
 
-// statusBreakdownItem describes one status value + its count for the
-// header breakdown row.
+// statusBreakdownItem describes one status value and its count.
 type statusBreakdownItem struct {
 	Value string
 	Count int
 }
 
 // countStatusBreakdown tallies status values across all requirements in a
-// document. Returns the items in display order: built-in
-// (draft, approved) first, then additions A→Z. Values not declared are
-// treated as StatusDefault ("approved"). When the document opts out of
-// the status lifecycle (x-reqmd.ignore-status: true), callers should
-// skip rendering the breakdown entirely.
+// document, in display order: built-in (draft, approved) first, then
+// additions A→Z. Values not declared are treated as StatusDefault.
 func countStatusBreakdown(reqs []*model.Node, additions []string) []statusBreakdownItem {
 	counts := make(map[string]int)
 	for _, req := range reqs {
@@ -359,11 +190,8 @@ func countStatusBreakdown(reqs []*model.Node, additions []string) []statusBreakd
 	return items
 }
 
-// statusColor returns the CSS color expression for a status value used
-// in the header breakdown dots and card borders. Built-ins return a
-// CSS variable so the active theme (light/dark) selects the right
-// value; extensions return a fixed hash-derived muted color (rare,
-// small dots — fixed color is acceptable).
+// statusColor returns the CSS color expression for a status value. Built-ins
+// return a CSS variable so the active theme selects the right value.
 func statusColor(value string) string {
 	switch strings.ToLower(value) {
 	case model.StatusDraft:
@@ -371,211 +199,35 @@ func statusColor(value string) string {
 	case model.StatusApproved:
 		return "var(--status-approved)"
 	}
-	// DJB2a hash → hue in one of 4 collision-free regions:
-	// 0-50, 80-120, 160-260, 280-340.
 	var h uint32 = 5381
 	for i := range len(value) {
 		h = (h*33 + uint32(value[i])) & 0xFFFFFFFF
 	}
 	region := h % 4
-	offset := (h >> 8) % 30 // 0-29
+	offset := (h >> 8) % 30
 	var hue int
 	switch region {
 	case 0:
-		hue = 0 + int(offset) // 0-29
+		hue = 0 + int(offset)
 	case 1:
-		hue = 80 + int(offset) // 80-109
+		hue = 80 + int(offset)
 	case 2:
-		hue = 160 + int(offset) // 160-189
+		hue = 160 + int(offset)
 	case 3:
-		hue = 280 + int(offset) // 280-309
+		hue = 280 + int(offset)
 	}
 	return fmt.Sprintf("hsl(%d, 28%%, 55%%)", hue)
 }
 
-// buildIndexEntry produces a single index entry for one node. The body
-// is truncated to 80 runes + "..." for the sidebar preview; the full
-// body still appears in the card itself. Requirements carry their attrs;
-// containers and info items carry no attrs and a type marker.
-func buildIndexEntry(n *model.Node, anchor, parentAnchor string, anchors map[*model.Node]string) indexEntry {
-	body := n.Body
-	if utf8.RuneCountInString(body) > 80 {
-		// Truncate on the 81st rune boundary rather than converting the
-		// whole body to []rune — large bodies would otherwise allocate a
-		// rune slice proportional to their full length for every card.
-		end := len(body)
-		n := 0
-		for i := range body {
-			if n == 80 {
-				end = i
-				break
-			}
-			n++
-		}
-		body = body[:end] + "..."
+// effectiveStatus returns the requirement's status, defaulting to approved.
+func effectiveStatus(req *model.Node) string {
+	if s, ok := req.Attrs[model.AttrStatus].(string); ok && s != "" {
+		return s
 	}
-	entry := indexEntry{
-		ID:        anchor,
-		Title:     n.Title,
-		Body:      body,
-		Rationale: n.Rationale,
-		ParentID:  parentAnchor,
-	}
-	if n.Kind == model.KindRequirement {
-		rawAttrs := make(map[string]any, len(n.Attrs))
-		for k, v := range n.Attrs {
-			if k == model.AttrTrace {
-				continue
-			}
-			rawAttrs[k] = v
-		}
-		entry.Attrs = rawAttrs
-	} else {
-		entry.Type = n.Kind.String()
-	}
-	if len(n.Children) > 0 {
-		entry.Children = make([]string, 0, len(n.Children))
-		for _, c := range n.Children {
-			entry.Children = append(entry.Children, anchors[c])
-		}
-	}
-	return entry
+	return model.StatusDefault
 }
 
-// renderDocHeader writes the <header class="doc-header">...</header>
-// block: title, count line, status breakdown, boundary badges, and the
-// optional description from YAML frontmatter.
-func renderDocHeader(b *bufio.Writer, doc model.Document, title string, isRoot, isLeaf bool) {
-	_, _ = b.WriteString("<header class=\"doc-header\">\n")
-	_, _ = fmt.Fprintf(b, "<h1>%s</h1>\n", html.EscapeString(title))
-
-	// Single tree walk: the requirement list is reused for the count, the
-	// parent/child split, and the status breakdown.
-	reqs := doc.Requirements()
-	count := len(reqs)
-	var parentCount, childCount int
-	for _, req := range reqs {
-		if req.ParentID == "" {
-			parentCount++
-		} else {
-			childCount++
-		}
-	}
-	label := fmt.Sprintf("%d requirements (%d parents, %d children)", count, parentCount, childCount)
-	if count == 1 {
-		label = "1 requirement"
-	}
-	if items := countItems(doc.Nodes); items > 0 {
-		label += fmt.Sprintf(" · %d items", items)
-	}
-	_, _ = fmt.Fprintf(b, "<p class=\"doc-count\">%s</p>\n", label)
-
-	if doc.XReqmd == nil || !doc.XReqmd.IgnoreStatus {
-		var additions []string
-		if doc.XReqmd != nil {
-			additions = doc.XReqmd.AdditionalStatusValues
-		}
-		breakdown := countStatusBreakdown(reqs, additions)
-		if len(breakdown) > 0 {
-			b.WriteString(`<div class="status-breakdown">`)
-			for _, item := range breakdown {
-				_, _ = fmt.Fprintf(b,
-					`<span class="status-breakdown__item"><span class="status-breakdown__dot" style="background:%s"></span><span class="status-breakdown__label">%s</span><span class="status-breakdown__count">%d</span></span>`,
-					html.EscapeString(statusColor(item.Value)),
-					html.EscapeString(item.Value),
-					item.Count,
-				)
-			}
-			b.WriteString(`</div>`)
-		}
-	}
-
-	if isRoot || isLeaf {
-		b.WriteString(`<div class="boundary-badges">`)
-		if isRoot {
-			b.WriteString(`<span class="boundary-badge boundary-badge--root" title="Root boundary — this document has no upstream sources">Root</span>`)
-		}
-		if isLeaf {
-			b.WriteString(`<span class="boundary-badge boundary-badge--leaf" title="Leaf boundary — this document is not referenced as upstream by any other document">Leaf</span>`)
-		}
-		b.WriteString(`</div>`)
-	}
-
-	if desc, ok := doc.Meta["description"]; ok {
-		if s, ok := desc.(string); ok && s != "" {
-			fmt.Fprintf(b, "<div class=\"doc-description\">\n%s\n</div>\n", renderMarkdown(s))
-		}
-	}
-
-	b.WriteString("</header>\n")
-}
-
-// renderToolbar writes the search/filter toolbar (search input, active
-// filter chips, and the per-attribute filter menus). The Alpine
-// component reads data-default-status and data-additional-status-values
-// from the root attributes.
-func renderToolbar(b *bufio.Writer, doc model.Document, ignoreStatus bool) {
-	var additionsJSON []byte
-	if doc.XReqmd != nil {
-		additionsJSON, _ = json.Marshal(doc.XReqmd.AdditionalStatusValues)
-	}
-	defaultStatus := model.StatusApproved
-	if ignoreStatus {
-		defaultStatus = "" // no status filter applied for ignore-status docs
-	}
-	toolbarAttrs := fmt.Sprintf(
-		` class="search-toolbar" data-default-status=%q data-additional-status-values=%q`,
-		defaultStatus,
-		string(additionsJSON),
-	)
-	b.WriteString(`<div` + toolbarAttrs + `>
-  <div class="search-row">
-    <input type="search" class="search-input" placeholder="Search ID, body, rationale, attributes..." autocomplete="off"
-      x-model.debounce.150ms="searchTerm">
-    <span class="search-count" x-text="visibleCount + '/' + totalCount"></span>
-  </div>
-  <div class="filter-row">
-    <template x-for="(values, attr) in activeFiltersByAttr" :key="attr">
-      <template x-for="v in values" :key="attr + ':' + v">
-        <span class="filter-chip">
-          <span x-text="prettyName(attr) + ': ' + v"></span>
-          <button @click="removeFilter(attr, v)" aria-label="Remove filter">×</button>
-        </span>
-      </template>
-    </template>
-    <template x-if="Object.keys(activeFiltersByAttr).length > 0">
-      <button class="clear-btn" @click="clearAll()">× Clear all</button>
-    </template>
-  </div>
-  <div class="filter-row" id="filter-row">
-    <template x-for="(values, attr) in filterOptions" :key="attr">
-      <div class="filter-group"
-           x-data="{ open: false, closeMenu() { if (this.open) { this.open = false; this.$nextTick(() => { if (this.$refs.toggleBtn) this.$refs.toggleBtn.focus(); }); } } }"
-           @click.outside="closeMenu()"
-           @keydown.escape.window="closeMenu()">
-        <button class="filter-toggle" type="button" @click.prevent="open = !open" :aria-expanded="open" :aria-controls="'filter-menu-' + attr" x-ref="toggleBtn">
-          <span x-text="prettyName(attr)"></span>
-          <span class="filter-badge" x-show="activeFiltersByAttr[attr] && activeFiltersByAttr[attr].length" x-text="(activeFiltersByAttr[attr] || []).length"></span>
-          <span class="filter-arrow" x-text="open ? '▲' : '▾'"></span>
-        </button>
-        <div class="filter-menu" :id="'filter-menu-' + attr" x-show="open" x-cloak x-transition x-ref="menu" x-effect="if (open) { $nextTick(() => { const cb = $refs.menu.querySelector('input'); if (cb) cb.focus(); }); }">
-          <template x-for="v in values" :key="v">
-            <label class="filter-option">
-              <input type="checkbox" :checked="(activeFiltersByAttr[attr] || []).indexOf(v) !== -1"
-                     @change="toggleFilter(attr, v)">
-              <span x-text="v"></span>
-            </label>
-          </template>
-        </div>
-      </div>
-    </template>
-  </div>
-</div>
-`)
-}
-
-// countItems tallies non-requirement nodes (containers + info items)
-// in the document tree.
+// countItems tallies non-requirement nodes (containers + info items).
 func countItems(nodes []*model.Node) int {
 	n := 0
 	for _, node := range nodes {
@@ -587,329 +239,165 @@ func countItems(nodes []*model.Node) int {
 	return n
 }
 
-// renderContentNode renders one tree node and its children depth-first:
-// requirements become cards, containers become collapsible folder
-// sections, info items become plain blocks. depth selects the child
-// modifier classes (root vs nested).
-func renderContentNode(b *bufio.Writer, node *model.Node, depth int, rd *renderData, propOrder []string, traceCache map[string]tracePair, tc *TraceResolver, ignoreStatus bool, verdicts map[string]VerdictInfo) {
-	isChild := depth > 0
-	switch node.Kind {
-	case model.KindRequirement:
-		renderCard(b, node, propOrder, traceCache, tc, ignoreStatus, isChild, verdicts)
-	case model.KindContainer:
-		renderContainerBlock(b, node, rd.Anchors[node], isChild)
-	case model.KindInfo:
-		renderInfoBlock(b, node, rd.Anchors[node], isChild)
-	}
-	for _, c := range node.Children {
-		renderContentNode(b, c, depth+1, rd, propOrder, traceCache, tc, ignoreStatus, verdicts)
-	}
-}
+// Content headings start at h2 (h1 is the document title) and stop at h6.
+const (
+	minHeadingLevel = 2
+	maxHeadingLevel = 6
+)
 
-// itemHeadingTag returns the HTML heading tag for an item's native
-// markdown level. Level 1 is reserved for the document title (rendered by
-// the doc header's h1), so content headings start at level 2 and render at
-// their native level.
-func itemHeadingTag(level int) string {
-	tag := min(max(level, 2), 6)
-	return "h" + strconv.Itoa(tag)
-}
-
-// renderContainerBlock writes a collapsible folder-like section for a
-// container node: a <details> whose summary carries the heading, an
-// anchor link, and the container body. Children are rendered by the
-// caller.
-func renderContainerBlock(b *bufio.Writer, node *model.Node, anchor string, isChild bool) {
-	class := "container-item"
+// itemHeadingTag returns the HTML heading tag for an item's native markdown
+// level. Top-level items start at h2 (h1 is the document title); nested items
+// keep their native depth, floored one level below their parent.
+func itemHeadingTag(level int, isChild bool) string {
+	floor := minHeadingLevel
 	if isChild {
-		class += " container-item--child"
+		floor = level
 	}
-	escTitle := html.EscapeString(node.Title)
-	escAnchor := html.EscapeString(anchor)
-	headingTag := itemHeadingTag(node.Level)
-	fmt.Fprintf(b, "<section class=\"%s\" id=\"%s\">\n", class, escAnchor)
-	b.WriteString("<details open>\n")
-	fmt.Fprintf(b, "<summary class=\"container-item-summary\">\n<%s class=\"container-item-title\">%s</%s>\n", headingTag, escTitle, headingTag)
-	fmt.Fprintf(b, "<a class=\"container-item-anchor\" href=\"#%s\" title=\"Link to this section\">#</a>\n", escAnchor)
-	b.WriteString("</summary>\n")
-	if node.Body != "" {
-		fmt.Fprintf(b, "<div class=\"container-item-body\">\n%s\n</div>\n", renderMarkdown(node.Body))
-	}
-	b.WriteString("</details>\n")
-	b.WriteString("</section>\n")
+	return "h" + strconv.Itoa(min(max(level, floor), maxHeadingLevel))
 }
 
-// renderInfoBlock writes a plain block for a leaf info item: an optional
-// heading (native level) and the rendered body. Level-0 items (leading
-// prose without a heading) render body only.
-func renderInfoBlock(b *bufio.Writer, node *model.Node, anchor string, isChild bool) {
-	class := "info-item"
-	if isChild {
-		class += " info-item--child"
-	}
-	escAnchor := html.EscapeString(anchor)
-	fmt.Fprintf(b, "<section class=\"%s\" id=\"%s\">\n", class, escAnchor)
-	if node.Title != "" {
-		headingTag := itemHeadingTag(node.Level)
-		escTitle := html.EscapeString(node.Title)
-		fmt.Fprintf(b, "<%s class=\"info-item-title\">%s</%s>\n", headingTag, escTitle, headingTag)
-	}
-	if node.Body != "" {
-		fmt.Fprintf(b, "<div class=\"info-item-body\">\n%s\n</div>\n", renderMarkdown(node.Body))
-	}
-	b.WriteString("</section>\n")
-}
-
-// renderCard writes a single <article> for one requirement. The
-// `isChild` flag controls CSS class names ("req-card" vs
-// "req-card-child") and the heading level (h2 vs h3). The trace
-// section is rendered only when the requirement has at least one
-// upstream or downstream link and tc is non-nil.
-func renderCard(b *bufio.Writer, req *model.Node, propOrder []string, traceCache map[string]tracePair, tc *TraceResolver, ignoreStatus, isChild bool, verdicts map[string]VerdictInfo) {
-	escID := html.EscapeString(req.ID)
-	// Only render the body markdown when there is a body to render — the
-	// goldmark parse is the most expensive single step of a card and empty
-	// bodies are common (requirements with attrs but no prose).
-	var renderedBody string
-	if req.Body != "" {
-		renderedBody = renderMarkdown(req.Body)
-	}
-
-	cardClass := "req-card"
-	if isChild {
-		cardClass = "req-card-child"
-	}
-	// Status-driven card decoration: any non-approved value (including
-	// the implicit default → approved) shows a 3px left border. Skip
-	// when the document opts out of the status lifecycle.
-	if !ignoreStatus {
-		statusVal, hasStatus := req.Attrs[model.AttrStatus].(string)
-		if !hasStatus || statusVal == "" {
-			statusVal = model.StatusDefault
-		}
-		if !strings.EqualFold(statusVal, model.StatusApproved) {
-			cardClass += " req-card--status-draft"
+// linkHref resolves a requirement ID to an href for this page: the
+// cross-document resolver when available, else a same-page fragment.
+func linkHref(resolveLink func(string) string, id string) string {
+	if resolveLink != nil {
+		if h := resolveLink(id); h != "" {
+			return h
 		}
 	}
-	// `x-show` runs the per-card visibility check; `x-cloak` keeps the
-	// card hidden until Alpine has booted and the check has run for the
-	// first time (avoids a flash of unfiltered content).
-	fmt.Fprintf(b, "<article class=\"%s\" id=\"%s\" x-show=\"isCardVisible('%s')\" x-cloak>\n", cardClass, escID, escID)
-
-	renderCardHeader(b, req, isChild)
-	renderVerdictBadge(b, req, verdicts, isChild)
-	renderEvidenceList(b, req, verdicts, isChild)
-	renderAttrGrid(b, req, propOrder, isChild)
-
-	// Body
-	bodyClass := "req-body"
-	if isChild {
-		bodyClass = "req-body req-body--child"
+	if id == "" {
+		return ""
 	}
-	if req.Body != "" {
-		fmt.Fprintf(b, "<div class=\"%s\">\n%s\n</div>\n", bodyClass, renderedBody)
-	}
-
-	renderRationale(b, req, isChild)
-	renderTraceLinks(b, req, traceCache, tc, isChild)
-
-	b.WriteString("</article>\n")
+	return "#" + id
 }
 
-// renderCardHeader writes the header row: the ID (+ title if present)
-// heading and the anchor link. The heading level (h2 vs h3) and the
-// req-id--child modifier are selected by isChild.
-func renderCardHeader(b *bufio.Writer, req *model.Node, isChild bool) {
-	escID := html.EscapeString(req.ID)
-	escTitle := html.EscapeString(req.Title)
-
-	b.WriteString("<div class=\"req-header\">\n")
-	headingTag := "h2"
-	headingExtra := ""
-	if isChild {
-		headingTag = "h3"
-		headingExtra = " req-id--child"
-	}
-	if escTitle != "" {
-		fmt.Fprintf(b, "<%s class=\"req-id%s\"><code>%s</code>: %s</%s>\n", headingTag, headingExtra, escID, escTitle, headingTag)
-	} else {
-		fmt.Fprintf(b, "<%s class=\"req-id%s\"><code>%s</code></%s>\n", headingTag, headingExtra, escID, headingTag)
-	}
-	ariaLabel := ""
-	if !isChild {
-		ariaLabel = fmt.Sprintf(" aria-label=\"Link to %s\"", escID)
-	}
-	fmt.Fprintf(b, "<a class=\"req-anchor\" href=\"#%s\" title=\"Link to this requirement\"%s>#</a>\n", escID, ariaLabel)
-	b.WriteString("</div>\n")
+// renderDocHead writes the <!DOCTYPE> + <html> + <head> block. The
+// stylesheet and client script are inlined: there is no runtime CDN request,
+// so an exported page is fully offline. The theme is applied by a small head
+// script before first paint to avoid a light/dark flash.
+func renderDocHead(b *bufio.Writer, title string) {
+	_, _ = b.WriteString("<!DOCTYPE html>\n")
+	_, _ = b.WriteString("<html lang=\"en\">\n")
+	_, _ = b.WriteString("<head>\n")
+	_, _ = b.WriteString("<meta charset=\"UTF-8\">\n")
+	_, _ = b.WriteString("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n")
+	_, _ = fmt.Fprintf(b, "<title>%s</title>\n", html.EscapeString(title))
+	_, _ = b.WriteString(`<script>(function(){try{var t=localStorage.getItem('reqmd-theme');var d=t?t==='dark':window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();</script>` + "\n")
+	_, _ = b.WriteString("<style>\n")
+	_, _ = b.WriteString(css)
+	_, _ = b.WriteString("</style>\n")
+	_, _ = b.WriteString("</head>\n")
 }
 
-// renderVerdictBadge writes a verification verdict badge next to the
-// requirement header when verification results were loaded (--results).
-// Measures without results show nothing (missing-verdict is a check
-// output, not a badge). The badge is color-coded: green for pass, red
-// for fail, orange for inconclusive, gray for skipped.
-func renderVerdictBadge(b *bufio.Writer, req *model.Node, verdicts map[string]VerdictInfo, isChild bool) {
-	if verdicts == nil {
-		return
-	}
-	v, ok := verdicts[req.ID]
-	if !ok {
-		return
-	}
-	class := "verdict-badge"
-	if isChild {
-		class += " verdict-badge--child"
-	}
-	switch v.Outcome {
-	case "pass":
-		class += " verdict-badge--pass"
-	case "fail":
-		class += " verdict-badge--fail"
-	case "skipped":
-		class += " verdict-badge--skipped"
-	case "inconclusive":
-		class += " verdict-badge--inconclusive"
-	}
-	title := fmt.Sprintf("verified: %s", v.Outcome)
-	if v.Source != "" {
-		title += fmt.Sprintf(" — %s", v.Source)
-	}
-	fmt.Fprintf(b, "<span class=\"%s\" title=\"%s\">%s</span>\n",
-		class, html.EscapeString(title), html.EscapeString(v.Outcome))
+// renderBodyOpen writes the <body>, the app bar, the shell open, and the
+// server-rendered outline.
+func renderBodyOpen(b *bufio.Writer, pageTitle string) {
+	_, _ = b.WriteString("<body data-page=\"document\">\n")
+	_, _ = fmt.Fprintf(b, `<header class="app-bar">
+  <button type="button" class="icon-btn toc-toggle" data-action="toggle-toc" aria-label="Toggle outline" aria-controls="toc" aria-expanded="false">&#9776;</button>
+  <a class="app-bar__brand" href="index.html"><span class="app-bar__logo" aria-hidden="true"></span>reqmd</a>
+  <span class="app-bar__sep" aria-hidden="true">/</span>
+  <span class="app-bar__title">%s</span>
+  <div class="app-bar__tools">
+    <button type="button" class="icon-btn" data-action="palette" aria-label="Command palette" title="Command palette (Ctrl+K)" data-mod-hint="palette">Ctrl K</button>
+    <button type="button" class="icon-btn" data-action="theme" aria-label="Toggle theme" title="Toggle light/dark">◐</button>
+  </div>
+</header>
+<div class="shell">
+`, html.EscapeString(pageTitle))
 }
 
-// renderEvidenceList writes an expandable evidence list under a measure
-// card showing the rolled-up results that determined its verdict: case,
-// outcome, source file, and the synthesized test case's rendered Markdown
-// description. Synthesized case descriptions are rendered through the same
-// goldmark pipeline as authored prose.
-func renderEvidenceList(b *bufio.Writer, req *model.Node, verdicts map[string]VerdictInfo, isChild bool) {
-	if verdicts == nil {
-		return
-	}
-	v, ok := verdicts[req.ID]
-	if !ok || len(v.Evidence) == 0 {
-		return
-	}
-	detailsClass := "verdict-evidence"
-	if isChild {
-		detailsClass += " verdict-evidence--child"
-	}
-	fmt.Fprintf(b, "<details class=\"%s\">\n<summary>Evidence (%d)</summary>\n", detailsClass, len(v.Evidence))
-	for _, it := range v.Evidence {
-		b.WriteString("<div class=\"evidence-item\">\n")
-		fmt.Fprintf(b, "<span class=\"evidence-outcome evidence-outcome--%s\">%s</span>\n",
-			html.EscapeString(it.Outcome), html.EscapeString(it.Outcome))
-		if it.Case != "" {
-			fmt.Fprintf(b, "<code class=\"evidence-case\">%s</code>\n", html.EscapeString(it.Case))
-		}
-		if it.File != "" {
-			fmt.Fprintf(b, "<span class=\"evidence-file\">%s</span>\n", html.EscapeString(it.File))
-		}
-		if it.Description != "" {
-			fmt.Fprintf(b, "<div class=\"evidence-desc\">\n%s\n</div>\n", renderMarkdown(it.Description))
-		}
-		b.WriteString("</div>\n")
-	}
-	b.WriteString("</details>\n")
-}
-
-// renderAttrGrid writes the <dl class="req-attrs"> attribute grid,
-// iterating propOrder and emitting one <div class="attr"> per present
-// attribute. The trace attribute is skipped (shown in the traces
-// section). The req-attrs--child modifier is selected by isChild.
-func renderAttrGrid(b *bufio.Writer, req *model.Node, propOrder []string, isChild bool) {
-	dlClass := "req-attrs"
-	if isChild {
-		dlClass = "req-attrs req-attrs--child"
-	}
-	hasAttrs := false
-	for _, prop := range propOrder {
-		if prop == model.AttrTrace {
-			continue // trace shown in traces section
-		}
-		if val, ok := req.Attrs[prop]; ok {
-			if !hasAttrs {
-				fmt.Fprintf(b, "<dl class=\"%s\">\n", dlClass)
-				hasAttrs = true
+// renderTOC writes the server-rendered outline. It works without JavaScript;
+// the client hides items that fall outside the filtered requirement set.
+func renderTOC(b *bufio.Writer, doc model.Document, rd *renderData) {
+	_, _ = b.WriteString(`<nav class="toc" id="toc" aria-label="Outline">
+  <div class="toc__head"><span>Outline</span><span class="toc__count" data-toc-count></span></div>
+  <ul class="toc__list">
+`)
+	var walk func(nodes []*model.Node, child bool)
+	walk = func(nodes []*model.Node, child bool) {
+		for _, n := range nodes {
+			anchor := html.EscapeString(rd.Anchors[n])
+			class := "toc__item"
+			if child {
+				class += " toc__item--child"
 			}
-			label := formatAttrLabel(prop)
-			valHTML := formatAttrHTML(val)
-			fmt.Fprintf(b, "<div class=\"attr\">\n<dt>%s</dt>\n<dd>%s</dd>\n</div>\n", html.EscapeString(label), valHTML)
+			_, _ = fmt.Fprintf(b, `<li class="%s" data-toc-for="%s">`, class, anchor)
+			_, _ = fmt.Fprintf(b, `<a class="toc__link" href="#%s">`, anchor)
+			if n.Kind == model.KindRequirement {
+				_, _ = fmt.Fprintf(b, `<code>%s</code>`, html.EscapeString(n.ID))
+				if n.Title != "" {
+					_, _ = fmt.Fprintf(b, `<span class="toc__title">%s</span>`, html.EscapeString(n.Title))
+				}
+			} else {
+				_, _ = fmt.Fprintf(b, `<span class="toc__title">%s</span>`, html.EscapeString(n.Title))
+			}
+			_, _ = b.WriteString("</a>")
+			if len(n.Children) > 0 {
+				_, _ = b.WriteString("<ul class=\"toc__list\">")
+				walk(n.Children, true)
+				_, _ = b.WriteString("</ul>")
+			}
+			_, _ = b.WriteString("</li>\n")
 		}
 	}
-	if hasAttrs {
-		b.WriteString("</dl>\n")
-	}
+	walk(doc.Nodes, false)
+	_, _ = b.WriteString("  </ul>\n</nav>\n")
 }
 
-// renderRationale writes the rationale block when the requirement has
-// rationale text. The req-rationale--child modifier is selected by
-// isChild.
-func renderRationale(b *bufio.Writer, req *model.Node, isChild bool) {
-	if req.Rationale == "" {
-		return
-	}
-	rationaleClass := "req-rationale"
-	if isChild {
-		rationaleClass = "req-rationale req-rationale--child"
-	}
-	renderedRationale := renderMarkdown(req.Rationale)
-	fmt.Fprintf(b, "<div class=\"%s\">\n<strong>Rationale:</strong> %s\n</div>\n", rationaleClass, renderedRationale)
-}
+// renderDocHeader writes the document title, count line, status breakdown,
+// boundary badges, and the frontmatter description. The trace chain lives at
+// the end of the Document view so it can never push a reader past the toolbar.
+func renderDocHeader(b *bufio.Writer, doc model.Document, title string, isRoot, isLeaf bool, rd *renderData) {
+	_, _ = b.WriteString("<header class=\"doc-head\">\n")
+	_, _ = fmt.Fprintf(b, "<h1>%s</h1>\n", html.EscapeString(title))
 
-// renderTraceLinks writes the upstream/downstream trace section when
-// the requirement has at least one link and tc is non-nil. The
-// trace-link--child modifier is selected by isChild.
-func renderTraceLinks(b *bufio.Writer, req *model.Node, traceCache map[string]tracePair, tc *TraceResolver, isChild bool) {
-	if traceCache == nil {
-		return
-	}
-	pair := traceCache[req.ID]
-	if len(pair.up)+len(pair.down) == 0 {
-		return
-	}
-	linkClass := "trace-link"
-	if isChild {
-		linkClass = "trace-link trace-link--child"
-	}
-	renderTraces(b, pair.up, pair.down, tc, linkClass)
-}
-
-// renderTraceColumn writes one Upstream/Downstream column with its
-// header count and link list. Shared by renderTraces for both columns.
-func renderTraceColumn(b *bufio.Writer, header string, links []traceLink, tc *TraceResolver, linkClass string) {
-	b.WriteString("<div class=\"trace-column\">\n")
-	fmt.Fprintf(b, "<div class=\"trace-column-header\">%s (%d)</div>\n", header, len(links))
-	for _, link := range links {
-		href := html.EscapeString(tc.linkHref(link.ID))
-		escID := html.EscapeString(link.ID)
-		if link.Title != "" {
-			escTitle := html.EscapeString(link.Title)
-			fmt.Fprintf(b, "<a class=\"%s\" href=\"%s\"><span class=\"trace-link-id\">%s</span><span class=\"trace-link-title\">%s</span></a>\n", linkClass, href, escID, escTitle)
-		} else {
-			fmt.Fprintf(b, "<a class=\"%s\" href=\"%s\"><span class=\"trace-link-id\">%s</span></a>\n", linkClass, href, escID)
+	reqs := doc.Requirements()
+	count := len(reqs)
+	var childCount int
+	for _, req := range reqs {
+		if req.ParentID != "" {
+			childCount++
 		}
 	}
-	b.WriteString("</div>\n")
+	label := fmt.Sprintf("%d requirements", count)
+	if count == 1 {
+		label = "1 requirement"
+	}
+	if childCount > 0 {
+		label += fmt.Sprintf(" · %d nested", childCount)
+	}
+	if items := countItems(doc.Nodes); items > 0 {
+		label += fmt.Sprintf(" · %d items", items)
+	}
+	if len(rd.StatusBreakdown) > 0 {
+		_, _ = b.WriteString(`<span class="doc-head__status">`)
+		for _, item := range rd.StatusBreakdown {
+			_, _ = fmt.Fprintf(b, `<span class="doc-head__status-item"><span class="dot" style="background:%s" aria-hidden="true"></span>%s %d</span>`,
+				html.EscapeString(statusColor(item.Value)), html.EscapeString(item.Value), item.Count)
+		}
+		_, _ = b.WriteString(`</span>`)
+	}
+	if isRoot || isLeaf {
+		_, _ = b.WriteString(`<span class="doc-head__badges">`)
+		if isRoot {
+			_, _ = b.WriteString(`<span class="badge" title="Root boundary — this document has no upstream sources">Root</span>`)
+		}
+		if isLeaf {
+			_, _ = b.WriteString(`<span class="badge" title="Leaf boundary — this document is not referenced as upstream by any other document">Leaf</span>`)
+		}
+		_, _ = b.WriteString(`</span>`)
+	}
+	_, _ = fmt.Fprintf(b, "<p class=\"doc-head__facts\">%s</p>\n", label)
+
+	if desc, ok := doc.Meta["description"]; ok {
+		if s, ok := desc.(string); ok && s != "" {
+			_, _ = fmt.Fprintf(b, "<div class=\"doc-head__desc prose\">\n%s\n</div>\n", renderMarkdown(s))
+		}
+	}
+	_, _ = b.WriteString("</header>\n")
 }
 
-// renderTraces writes the upstream/downstream trace columns. The link
-// class is supplied by the caller ("trace-link" for parents, plus
-// "trace-link--child" for child cards).
-func renderTraces(b *bufio.Writer, up, down []traceLink, tc *TraceResolver, linkClass string) {
-	b.WriteString("<div class=\"req-traces\">\n")
-	b.WriteString("<div class=\"trace-columns\">\n")
-	renderTraceColumn(b, "Upstream", up, tc, linkClass)
-	renderTraceColumn(b, "Downstream", down, tc, linkClass)
-	b.WriteString("</div>\n")
-	b.WriteString("</div>\n")
-}
-
-// renderDocChain writes the optional Confluence-Flow nav block that
-// shows the upstream/downstream doc chain for the current document.
-// Renders nothing when the graph has no upstream and no downstream
-// tiers.
+// renderDocChain writes the optional document chain navigation block.
 func renderDocChain(b *bufio.Writer, g DocChainGraph) {
 	if !g.HasContent() {
 		return
@@ -921,102 +409,499 @@ func renderDocChain(b *bufio.Writer, g DocChainGraph) {
 	for _, t := range g.Downstream {
 		totalDown += len(t.Cards)
 	}
-	totalTiers := len(g.Upstream) + len(g.Downstream)
-	isDeep := totalTiers > 6
+	// Orientation, not the task: always collapsed so the reading view keeps
+	// the reader's attention.
+	_, _ = b.WriteString("<nav class=\"doc-chain doc-chain--deep\" aria-label=\"Document traceability chain\">\n")
+	_, _ = b.WriteString("  <details class=\"chain-details\">\n")
 
-	b.WriteString("<nav class=\"doc-chain")
-	if isDeep {
-		b.WriteString(" doc-chain--deep")
-	}
-	b.WriteString("\" aria-label=\"Requirement traceability chain\">\n")
-
-	b.WriteString("  <details class=\"chain-details\"")
-	if !isDeep {
-		b.WriteString(" open")
-	}
-	b.WriteString(">\n")
-
-	b.WriteString("    <summary class=\"chain-summary\">\n")
-	b.WriteString("      <span class=\"chain-summary__label\">Traceability Chain</span>\n")
-	b.WriteString("      <span class=\"chain-summary__count\">")
-	fmt.Fprintf(b, "%d upstream", totalUp)
+	_, _ = b.WriteString("    <summary class=\"chain-summary\">\n")
+	_, _ = b.WriteString("      <span class=\"chain-summary__label\">Traceability chain</span>\n")
+	_, _ = b.WriteString("      <span class=\"chain-summary__count\">")
+	_, _ = fmt.Fprintf(b, "%d upstream", totalUp)
 	if totalDown > 0 {
-		fmt.Fprintf(b, " · %d downstream", totalDown)
+		_, _ = fmt.Fprintf(b, " · %d downstream", totalDown)
 	}
-	b.WriteString("</span>\n")
-	b.WriteString("    </summary>\n")
+	_, _ = b.WriteString("</span>\n")
+	_, _ = b.WriteString("    </summary>\n")
 
 	renderChainGraph(b, g)
 
-	b.WriteString("  </details>\n")
-	b.WriteString("</nav>\n")
+	_, _ = b.WriteString("  </details>\n")
+	_, _ = b.WriteString("</nav>\n")
 }
 
-// renderDocHead writes the <!DOCTYPE> + <html> + <head>...</head> block,
-// inlining the embedded CSS and loading Alpine.js from CDN.
-func renderDocHead(b *bufio.Writer, title string) {
-	b.WriteString("<!DOCTYPE html>\n")
-	b.WriteString("<html lang=\"en\">\n")
-	b.WriteString("<head>\n")
-	b.WriteString("<meta charset=\"UTF-8\">\n")
-	b.WriteString("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n")
-	fmt.Fprintf(b, "<title>%s</title>\n", html.EscapeString(title))
-	b.WriteString("<style>\n")
-	b.WriteString(css)
-	b.WriteString("</style>\n")
-	// Alpine.js — powers the search/filter toolbar, theme toggle, and mobile TOC.
-	// Loaded with `defer` so it runs after the DOM is parsed and parsed
-	// before `DOMContentLoaded`.
-	b.WriteString("<script defer src=\"https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js\"></script>\n")
-	b.WriteString("</head>\n")
-}
+// renderToolbar writes the view switcher, search field, active-filter chips
+// placeholder, and the per-attribute filter menus.
+func renderToolbar(b *bufio.Writer, doc model.Document, rd *renderData) {
+	statusEnabled := doc.XReqmd == nil || !doc.XReqmd.IgnoreStatus
+	defaultStatus := ""
+	if statusEnabled {
+		defaultStatus = model.StatusApproved
+	}
 
-// renderBodyOpen writes the <body ...> element, the sidebar TOC
-// placeholder, the mobile toggle button, the content-wrapper div, and
-// the theme toggle. The Alpine `reqmdApp()` component owns runtime
-// state for all of these.
-func renderBodyOpen(b *bufio.Writer) {
-	b.WriteString("<body x-data=\"reqmdApp()\" x-init=\"initApp()\" @keydown.escape.window=\"tocOpen = false\">\n")
-
-	b.WriteString(`<aside class="req-toc" id="req-toc" :class="{'req-toc--open': tocOpen}" @click.away="tocOpen = false">
-  <div class="req-toc-header">
-    <div class="req-toc-title">Requirements</div>
-    <div class="req-toc-count" id="req-toc-count"></div>
+	_, _ = b.WriteString("<div class=\"toolbar\">\n")
+	_, _ = b.WriteString("  <div class=\"toolbar__row\">\n")
+	_, _ = b.WriteString(`    <div class="viewswitch" role="group" aria-label="View">
+      <button type="button" class="viewswitch__btn is-active" data-view="document" aria-pressed="true" title="Document view (g d)">Document</button>
+      <button type="button" class="viewswitch__btn" data-view="table" aria-pressed="false" title="Table view (g t)">Table</button>
+      <button type="button" class="viewswitch__btn" data-view="trace" aria-pressed="false" title="Trace explorer (g r)">Trace</button>
+      <button type="button" class="viewswitch__btn" data-view="coverage" aria-pressed="false" title="Coverage view (g c)">Coverage</button>
+    </div>
+`)
+	_, _ = b.WriteString(`    <div class="toolbar__tools">
+      <button type="button" class="icon-btn" data-action="density" aria-label="Toggle density" title="Toggle density (f)">⇕</button>
+    </div>
+  </div>` + "\n")
+	_, _ = fmt.Fprintf(b, `  <div class="toolbar__row">
+    <input type="search" class="search" data-search placeholder="Search ID, title, body, attributes…" autocomplete="off" spellcheck="false" aria-label="Search requirements">
+    <span class="count" data-count role="status" aria-live="polite"></span>
   </div>
-  <div class="req-toc-list" id="req-toc-list">
+  <div class="toolbar__chips" data-active-filters hidden></div>
+  <div class="filters" data-filters data-default-status=%q>
+`, defaultStatus)
+
+	// Status is the lifecycle filter; keep it first for stable ordering.
+	attrs := sortedKeys(rd.Filters)
+	sort.SliceStable(attrs, func(i, j int) bool {
+		if attrs[i] == model.AttrStatus {
+			return true
+		}
+		if attrs[j] == model.AttrStatus {
+			return false
+		}
+		return attrs[i] < attrs[j]
+	})
+	for _, attr := range attrs {
+		_, _ = fmt.Fprintf(b, `    <details class="filter" data-filter-group=%q>
+      <summary class="filter__toggle">%s<span class="filter__count" data-filter-count=%q></span></summary>
+      <div class="filter__menu">
+`, attr, html.EscapeString(formatAttrLabel(attr)), attr)
+		for _, value := range rd.Filters[attr] {
+			checked := ""
+			if attr == model.AttrStatus && statusEnabled && value == model.StatusApproved {
+				checked = " checked"
+			}
+			_, _ = fmt.Fprintf(b, `        <label class="filter__option"><input type="checkbox" value="%s" data-filter-attr="%s"%s><span>%s</span></label>`+"\n",
+				html.EscapeString(value), attr, checked, html.EscapeString(value))
+		}
+		_, _ = b.WriteString("      </div>\n    </details>\n")
+	}
+	_, _ = b.WriteString("  </div>\n")
+	_, _ = b.WriteString(`<noscript><p class="filter-note">The Table, Trace, and Coverage views and the search filters need JavaScript. The Document view is complete without it.</p></noscript>` + "\n")
+	_, _ = b.WriteString("</div>\n")
+}
+
+// renderDocumentView writes the server-rendered reading view: one card per
+// requirement, containers as collapsible sections, and info items as plain
+// blocks. Contents are visible by default (no x-cloak), so the reading view
+// survives a JavaScript failure or an offline file:// open.
+func renderDocumentView(b *bufio.Writer, doc model.Document, rd *renderData, propOrder []string, an *Analysis, resolveLink func(string) string, chain DocChainGraph) {
+	_, _ = b.WriteString("<section class=\"view view--document\" data-view-panel=\"document\">\n")
+	_, _ = b.WriteString("<main class=\"doc\">\n")
+	if len(doc.Nodes) == 0 {
+		renderEmptyState(b, "No requirements", "This document contains no requirement nodes.")
+	}
+	var walk func(nodes []*model.Node, depth int)
+	walk = func(nodes []*model.Node, depth int) {
+		for _, n := range nodes {
+			anchor := rd.Anchors[n]
+			switch n.Kind {
+			case model.KindRequirement:
+				renderCard(b, n, propOrder, an, resolveLink, depth > 0)
+			case model.KindContainer:
+				renderContainerBlock(b, n, anchor, depth > 0)
+			case model.KindInfo:
+				renderInfoBlock(b, n, anchor, depth > 0)
+			}
+			walk(n.Children, depth+1)
+		}
+	}
+	walk(doc.Nodes, 0)
+	renderDocChain(b, chain)
+	_, _ = b.WriteString("</main>\n</section>\n")
+}
+
+// renderEmptyState writes a consistent empty-state block.
+func renderEmptyState(b *bufio.Writer, title, body string) {
+	_, _ = fmt.Fprintf(b, "<div class=\"empty\"><p class=\"empty__title\">%s</p><p>%s</p></div>\n",
+		html.EscapeString(title), html.EscapeString(body))
+}
+
+// renderContainerBlock writes a collapsible section for a container node.
+func renderContainerBlock(b *bufio.Writer, node *model.Node, anchor string, isChild bool) {
+	class := "item item--container"
+	if isChild {
+		class += " item--child"
+	}
+	escAnchor := html.EscapeString(anchor)
+	_, _ = fmt.Fprintf(b, "<section class=\"%s\" id=\"%s\" data-anchor=\"%s\">\n", class, escAnchor, escAnchor)
+	_, _ = b.WriteString("<details open>\n")
+	tag := itemHeadingTag(node.Level, isChild)
+	_, _ = fmt.Fprintf(b, "<summary class=\"item__head\"><%s class=\"item__title\">%s</%s><a class=\"anchor\" href=\"#%s\" aria-label=\"Link to this section\">#</a></summary>\n",
+		tag, html.EscapeString(node.Title), tag, escAnchor)
+	if node.Body != "" {
+		_, _ = fmt.Fprintf(b, "<div class=\"item__body prose\">\n%s\n</div>\n", renderMarkdown(node.Body))
+	}
+	_, _ = b.WriteString("</details>\n</section>\n")
+}
+
+// renderInfoBlock writes a plain block for a leaf info item.
+func renderInfoBlock(b *bufio.Writer, node *model.Node, anchor string, isChild bool) {
+	class := "item"
+	if isChild {
+		class += " item--child"
+	}
+	escAnchor := html.EscapeString(anchor)
+	_, _ = fmt.Fprintf(b, "<section class=\"%s\" id=\"%s\" data-anchor=\"%s\">\n", class, escAnchor, escAnchor)
+	if node.Title != "" {
+		tag := itemHeadingTag(node.Level, isChild)
+		_, _ = fmt.Fprintf(b, "<%s class=\"item__title\">%s</%s>\n", tag, html.EscapeString(node.Title), tag)
+	}
+	if node.Body != "" {
+		_, _ = fmt.Fprintf(b, "<div class=\"item__body prose\">\n%s\n</div>\n", renderMarkdown(node.Body))
+	}
+	_, _ = b.WriteString("</section>\n")
+}
+
+// renderCard writes one requirement card. Semantic state is carried on data
+// attributes (used by CSS and the client) plus at most a few state chips, so
+// the reading view stays quiet.
+func renderCard(b *bufio.Writer, req *model.Node, propOrder []string, an *Analysis, resolveLink func(string) string, isChild bool) {
+	escID := html.EscapeString(req.ID)
+	var renderedBody string
+	if req.Body != "" {
+		renderedBody = renderMarkdown(req.Body)
+	}
+
+	var st NodeState
+	hasState := false
+	if an != nil {
+		st, hasState = an.Nodes[req.ID]
+	}
+
+	class := "req"
+	if isChild {
+		class += " req--child"
+	}
+	_, _ = fmt.Fprintf(b, "<article class=\"%s\" id=\"%s\" data-id=\"%s\" data-status=\"%s\"",
+		class, escID, escID, html.EscapeString(effectiveStatus(req)))
+	if hasState {
+		if st.Coverage != "" {
+			_, _ = fmt.Fprintf(b, " data-coverage=\"%s\"", html.EscapeString(st.Coverage))
+		}
+		if st.Verdict != "" {
+			_, _ = fmt.Fprintf(b, " data-verdict=\"%s\"", html.EscapeString(st.Verdict))
+		}
+	}
+	_, _ = b.WriteString(">\n")
+
+	renderCardHeader(b, req, isChild)
+	renderCardFlags(b, req, st, hasState, an != nil && an.HasResults)
+
+	if req.Body != "" {
+		_, _ = fmt.Fprintf(b, "<div class=\"req__body prose\">\n%s\n</div>\n", renderedBody)
+	}
+
+	rows := attrRows(req, propOrder)
+	hasTraces := len(st.Up)+len(st.Down) > 0
+	if len(rows) > 0 || req.Rationale != "" || len(st.Evidence) > 0 || hasTraces {
+		_, _ = fmt.Fprintf(b, "<details class=\"req__detail\"><summary class=\"req__detail-toggle\">Details</summary>\n<div class=\"req__detail-body\">\n")
+		renderAttrGrid(b, rows)
+		renderRationale(b, req)
+		renderEvidenceList(b, st)
+		renderTraceLinks(b, st, resolveLink)
+		_, _ = b.WriteString("</div>\n</details>\n")
+	}
+
+	_, _ = b.WriteString("</article>\n")
+}
+
+// renderCardHeader writes the ID/title heading and the anchor link.
+func renderCardHeader(b *bufio.Writer, req *model.Node, isChild bool) {
+	escID := html.EscapeString(req.ID)
+	escTitle := html.EscapeString(req.Title)
+	tag := "h2"
+	if isChild {
+		tag = "h3"
+	}
+	_, _ = b.WriteString("<header class=\"req__head\">\n")
+	if escTitle != "" {
+		_, _ = fmt.Fprintf(b, "<%s class=\"req__title\"><code class=\"req__id\">%s</code> <span class=\"req__name\">%s</span></%s>\n", tag, escID, escTitle, tag)
+	} else {
+		_, _ = fmt.Fprintf(b, "<%s class=\"req__title\"><code class=\"req__id\">%s</code></%s>\n", tag, escID, tag)
+	}
+	_, _ = fmt.Fprintf(b, "<a class=\"anchor\" href=\"#%s\" aria-label=\"Link to %s\">#</a>\n", escID, escID)
+	_, _ = b.WriteString("</header>\n")
+}
+
+// renderCardFlags writes the state chips. Only exceptional or decision-
+// relevant states are shown: draft/custom status, coverage problems, and any
+// verdict. A covered requirement with an approved status adds no chrome.
+func renderCardFlags(b *bufio.Writer, req *model.Node, st NodeState, hasState, hasResults bool) {
+	var chips []string
+	if chip := statusChip(req); chip != "" {
+		chips = append(chips, chip)
+	}
+	if hasState {
+		if chip := coverageChip(st); chip != "" {
+			chips = append(chips, chip)
+		}
+		if chip := verdictChip(st, hasResults); chip != "" {
+			chips = append(chips, chip)
+		}
+	}
+	if len(chips) == 0 {
+		return
+	}
+	_, _ = b.WriteString("<p class=\"req__flags\">")
+	_, _ = b.WriteString(strings.Join(chips, " "))
+	_, _ = b.WriteString("</p>\n")
+}
+
+// statusChip renders a chip only for non-approved statuses: an approved
+// requirement adds no chrome.
+func statusChip(req *model.Node) string {
+	status := effectiveStatus(req)
+	if strings.EqualFold(status, model.StatusApproved) {
+		return ""
+	}
+	return fmt.Sprintf(`<span class="chip chip--status" style="--chip:%s">%s</span>`,
+		html.EscapeString(statusColor(status)), html.EscapeString(status))
+}
+
+// coverageChip renders coverage problems only (missing or unresolved); a
+// covered or not-required requirement adds no chrome.
+func coverageChip(st NodeState) string {
+	switch st.Coverage {
+	case graph.CoverageMissing:
+		label := "missing coverage"
+		if len(st.Misses) > 0 {
+			label += " from " + strings.Join(st.Misses, ", ")
+		}
+		if len(st.Unknown) > 0 {
+			label += " (unknown source: " + strings.Join(st.Unknown, ", ") + ")"
+		}
+		if st.Drafts > 0 {
+			label += fmt.Sprintf(" (%d draft downstreams ignored)", st.Drafts)
+		}
+		return fmt.Sprintf(`<span class="chip chip--coverage chip--coverage-missing">%s</span>`, html.EscapeString(label))
+	case graph.CoverageUnresolved:
+		if len(st.Unknown) == 0 {
+			return ""
+		}
+		return fmt.Sprintf(`<span class="chip chip--coverage chip--coverage-unresolved">unknown coverage source: %s</span>`,
+			html.EscapeString(strings.Join(st.Unknown, ", ")))
+	default:
+		return ""
+	}
+}
+
+// verdictChip renders the rolled-up verdict, or an explicit no-verdict chip
+// for an eligible measure when results were loaded.
+func verdictChip(st NodeState, hasResults bool) string {
+	if st.Verdict == "" {
+		if hasResults && st.VerdictEligible {
+			return `<span class="chip chip--no-verdict">no verdict</span>`
+		}
+		return ""
+	}
+	title := "verified: " + st.Verdict
+	if st.VerdictSource != "" {
+		title += " — " + st.VerdictSource
+	}
+	return fmt.Sprintf(`<span class="chip chip--%s" title="%s">%s</span>`,
+		html.EscapeString(st.Verdict), html.EscapeString(title), html.EscapeString(st.Verdict))
+}
+
+// attrRow is one rendered attribute cell in a requirement card.
+type attrRow struct {
+	Name       string
+	Value      any
+	Undeclared bool
+}
+
+// attrRows returns the attribute cells to render, in display order: the
+// schema property order first, then any remaining attributes actually present
+// on the requirement sorted A→Z. The trace attribute is skipped.
+func attrRows(req *model.Node, propOrder []string) []attrRow {
+	rows := make([]attrRow, 0, len(req.Attrs))
+	seen := make(map[string]struct{}, len(propOrder))
+	for _, prop := range propOrder {
+		seen[prop] = struct{}{}
+		if prop == model.AttrTrace {
+			continue
+		}
+		if val, ok := req.Attrs[prop]; ok {
+			rows = append(rows, attrRow{Name: prop, Value: val})
+		}
+	}
+	var extra []string
+	for name := range req.Attrs {
+		if name == model.AttrTrace {
+			continue
+		}
+		if _, declared := seen[name]; !declared {
+			extra = append(extra, name)
+		}
+	}
+	sort.Strings(extra)
+	for _, name := range extra {
+		rows = append(rows, attrRow{Name: name, Value: req.Attrs[name], Undeclared: true})
+	}
+	return rows
+}
+
+// renderAttrGrid writes the attribute definition list.
+func renderAttrGrid(b *bufio.Writer, rows []attrRow) {
+	if len(rows) == 0 {
+		return
+	}
+	_, _ = b.WriteString("<dl class=\"attrs\">\n")
+	for _, row := range rows {
+		class := "attrs__row"
+		if row.Undeclared {
+			class += " attrs__row--undeclared"
+		}
+		_, _ = fmt.Fprintf(b, "<div class=\"%s\" data-attr=\"%s\"><dt>%s</dt><dd>%s</dd></div>\n",
+			class, html.EscapeString(row.Name), html.EscapeString(formatAttrLabel(row.Name)), formatAttrHTML(row.Value))
+	}
+	_, _ = b.WriteString("</dl>\n")
+}
+
+// renderRationale writes the rationale block when present.
+func renderRationale(b *bufio.Writer, req *model.Node) {
+	if req.Rationale == "" {
+		return
+	}
+	_, _ = fmt.Fprintf(b, "<div class=\"rationale\"><strong>Rationale:</strong> %s</div>\n", renderMarkdown(req.Rationale))
+}
+
+// renderEvidenceList writes the rolled-up verification evidence.
+func renderEvidenceList(b *bufio.Writer, st NodeState) {
+	if len(st.Evidence) == 0 {
+		return
+	}
+	_, _ = fmt.Fprintf(b, "<details class=\"evidence\"><summary class=\"evidence__toggle\">Evidence (%d)</summary>\n", len(st.Evidence))
+	for _, it := range st.Evidence {
+		_, _ = b.WriteString("<div class=\"evidence__item\">\n")
+		if it.Outcome != "" {
+			_, _ = fmt.Fprintf(b, "<span class=\"chip chip--%s\">%s</span>\n", html.EscapeString(it.Outcome), html.EscapeString(it.Outcome))
+		}
+		if it.Case != "" {
+			_, _ = fmt.Fprintf(b, "<code class=\"evidence__case\">%s</code>\n", html.EscapeString(it.Case))
+		}
+		if it.File != "" {
+			_, _ = fmt.Fprintf(b, "<span class=\"evidence__file\">%s</span>\n", html.EscapeString(it.File))
+		}
+		if it.Description != "" {
+			_, _ = fmt.Fprintf(b, "<div class=\"evidence__desc prose\">\n%s\n</div>\n", renderMarkdown(it.Description))
+		}
+		_, _ = b.WriteString("</div>\n")
+	}
+	_, _ = b.WriteString("</details>\n")
+}
+
+// renderTraceLinks writes the upstream/downstream trace columns with the
+// authored reference, title, pin, and resolution state.
+func renderTraceLinks(b *bufio.Writer, st NodeState, resolveLink func(string) string) {
+	if len(st.Up) == 0 && len(st.Down) == 0 {
+		return
+	}
+	_, _ = b.WriteString("<div class=\"traces\">\n")
+	renderTraceColumn(b, "Traces to", st.Up, resolveLink)
+	renderTraceColumn(b, "Traced from", st.Down, resolveLink)
+	_, _ = b.WriteString("</div>\n")
+}
+
+// renderTraceColumn writes one direction column.
+func renderTraceColumn(b *bufio.Writer, header string, links []LinkState, resolveLink func(string) string) {
+	if len(links) == 0 {
+		return
+	}
+	_, _ = fmt.Fprintf(b, "<div class=\"traces__col\"><div class=\"traces__head\">%s (%d)</div>\n", header, len(links))
+	for _, link := range links {
+		renderTraceLink(b, link, resolveLink)
+	}
+	_, _ = b.WriteString("</div>\n")
+}
+
+// renderTraceLink writes one link with its pin/version state.
+func renderTraceLink(b *bufio.Writer, link LinkState, resolveLink func(string) string) {
+	if !link.Resolved {
+		_, _ = fmt.Fprintf(b, "<span class=\"link link--broken\" title=\"unresolved reference\"><code>%s</code><span class=\"link__title\">unresolved</span></span>\n",
+			html.EscapeString(link.Ref))
+		return
+	}
+	href := html.EscapeString(linkHref(resolveLink, link.ID))
+	_, _ = fmt.Fprintf(b, "<a class=\"link\" href=\"%s\"><code>%s</code>", href, html.EscapeString(link.ID))
+	if link.Title != "" {
+		_, _ = fmt.Fprintf(b, "<span class=\"link__title\">%s</span>", html.EscapeString(link.Title))
+	}
+	if link.Pinned {
+		pin := fmt.Sprintf("~%d", link.Pin)
+		if link.Version > 0 {
+			pin += fmt.Sprintf(" → v%d", link.Version)
+		}
+		class := "link__pin"
+		switch link.Direction {
+		case graph.DirOutdated:
+			class += " link__pin--outdated"
+		case graph.DirPredated:
+			class += " link__pin--predated"
+		}
+		_, _ = fmt.Fprintf(b, "<span class=\"%s\">%s</span>", class, html.EscapeString(pin))
+	}
+	_, _ = b.WriteString("</a>\n")
+}
+
+// renderPalette writes the command-palette overlay. Overlays are the only
+// content hidden until the client boots.
+func renderPalette(b *bufio.Writer) {
+	_, _ = b.WriteString(`<div class="overlay" id="palette" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <div class="overlay__backdrop" data-action="close-overlays"></div>
+  <div class="overlay__panel">
+    <div class="palette">
+      <input class="palette__input" data-palette-input type="text" placeholder="Jump to a requirement or run a command…" autocomplete="off" spellcheck="false" aria-label="Palette search" aria-controls="palette-list">
+      <ul class="palette__list" id="palette-list" data-palette-list role="listbox" aria-label="Results"></ul>
+      <p class="palette__empty" data-palette-empty hidden>No matching requirements or commands.</p>
+      <div class="palette__foot"><span><kbd>↑</kbd><kbd>↓</kbd> navigate</span><span><kbd>↵</kbd> open</span><span><kbd>esc</kbd> close</span><span><kbd>?</kbd> shortcuts</span></div>
+    </div>
   </div>
-</aside>
-`)
-
-	b.WriteString(`<button id="toc-toggle-btn" class="toc-toggle-btn" aria-label="Toggle requirements list" @click="tocOpen = !tocOpen">&#9776;</button>
-`)
-
-	b.WriteString("<div class=\"content-wrapper\">\n")
-
-	b.WriteString(`<button id="theme-toggle" class="theme-toggle" aria-label="Toggle theme" title="Toggle light/dark mode"
-  @click="toggleTheme()" x-text="theme === 'dark' ? '☀️' : '🌙'">🌙</button>
+</div>
 `)
 }
 
-// renderBodyClose writes the closing tags for content-wrapper,
-// body, and html.
+// renderShortcuts writes the keyboard-shortcut dialog.
+func renderShortcuts(b *bufio.Writer) {
+	_, _ = b.WriteString(`<div class="overlay" id="shortcuts" role="dialog" aria-modal="true" aria-label="Keyboard shortcuts" hidden>
+  <div class="overlay__backdrop" data-action="close-overlays"></div>
+  <div class="overlay__panel overlay__panel--narrow" tabindex="-1" data-shortcuts-panel>
+    <div class="shortcuts">
+      <div class="shortcuts__head">
+        <h2 class="shortcuts__title">Keyboard shortcuts</h2>
+        <button type="button" class="icon-btn" data-action="close-overlays" aria-label="Close shortcuts">×</button>
+      </div>
+      <dl class="shortcuts__grid">
+        <div><dt data-mod-keys="palette"><kbd>Ctrl</kbd><kbd>K</kbd></dt><dd>Command palette</dd></div>
+        <div><dt><kbd>/</kbd></dt><dd>Focus search</dd></div>
+        <div><dt><kbd>g</kbd><kbd>d</kbd></dt><dd>Document view</dd></div>
+        <div><dt><kbd>g</kbd><kbd>t</kbd></dt><dd>Table view</dd></div>
+        <div><dt><kbd>g</kbd><kbd>r</kbd></dt><dd>Trace explorer</dd></div>
+        <div><dt><kbd>g</kbd><kbd>c</kbd></dt><dd>Coverage view</dd></div>
+        <div><dt><kbd>f</kbd></dt><dd>Toggle density</dd></div>
+        <div><dt><kbd>t</kbd></dt><dd>Toggle theme</dd></div>
+        <div><dt><kbd>?</kbd></dt><dd>This help</dd></div>
+        <div><dt><kbd>esc</kbd></dt><dd>Close overlays</dd></div>
+      </dl>
+      <p class="shortcuts__note">Shortcuts are ignored while typing in a field.</p>
+    </div>
+  </div>
+</div>
+`)
+}
+
+// renderBodyClose writes the end of the shell and document.
 func renderBodyClose(b *bufio.Writer) {
-	b.WriteString("</div>\n") // end content-wrapper
-	b.WriteString("</body>\n")
-	b.WriteString("</html>\n")
-}
-
-// renderScripts writes the embedded JS, the requirement index JSON
-// (consumed by Alpine and the sidebar TOC builder), and the filter
-// options JSON (consumed by Alpine for the toolbar).
-func renderScripts(b *bufio.Writer, rd *renderData) {
-	b.WriteString("<script>\n")
-	b.WriteString(js)
-	b.WriteString("</script>\n")
-
-	indexJSON, _ := json.Marshal(rd.Index)
-	fmt.Fprintf(b, "<script type=\"application/json\" id=\"req-index\">%s</script>\n", indexJSON)
-
-	filterJSON, _ := json.Marshal(rd.Filters)
-	fmt.Fprintf(b, "<script type=\"application/json\" id=\"req-filter-index\">%s</script>\n", filterJSON)
+	_, _ = b.WriteString("</body>\n")
+	_, _ = b.WriteString("</html>\n")
 }

@@ -4,8 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"path/filepath"
-	"reqmd/internal/diff"
 	"strings"
+
+	"github.com/dVoo/reqmd/internal/diff"
 )
 
 const (
@@ -40,6 +41,8 @@ func FormatDiff(result *diff.Result) string {
 				fmt.Fprintf(&b, "  %s+ %s  (added)%s\n", colorGreen, req.ID, colorReset)
 			case diff.Removed:
 				fmt.Fprintf(&b, "  %s- %s  (removed)%s\n", colorRed, req.ID, colorReset)
+			case diff.Unchanged:
+				// Unchanged requirements are not reported.
 			case diff.Modified:
 				fmt.Fprintf(&b, "  %s~ %s  (modified)%s\n", colorYellow, req.ID, colorReset)
 				for _, ch := range req.AttrChanges {

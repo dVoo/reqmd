@@ -3,8 +3,8 @@ package rust
 import (
 	"testing"
 
-	"reqmd-code/internal/lang"
-	"reqmd-code/internal/model"
+	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
+	"github.com/dVoo/reqmd/reqmd-code/internal/model"
 )
 
 // TestRustLanguageRegisters verifies that RustLanguage self-registered
@@ -248,24 +248,5 @@ fn compute() -> i32 {
 	}
 	if got, want := syms[0].Doc, "Computes the result.\nreqmd:trace REQ-MATH-001"; got != want {
 		t.Errorf("BindDoc = %q, want %q", got, want)
-	}
-}
-
-// TestModuleNameFromFile covers the helper that derives a Rust
-// module/package name from a file path.
-func TestModuleNameFromFile(t *testing.T) {
-	cases := []struct {
-		in, want string
-	}{
-		{"foo.rs", "foo"},
-		{"path/to/bar.rs", "bar"},
-		{"nested/dir.with.dot/qux.rs", "qux"},
-		{"", ""},
-		{"noext", "noext"},
-	}
-	for _, c := range cases {
-		if got := moduleNameFromFile(c.in); got != c.want {
-			t.Errorf("moduleNameFromFile(%q) = %q, want %q", c.in, got, c.want)
-		}
 	}
 }

@@ -8,9 +8,12 @@ Serve a live-reloading HTML preview while you edit your spec tree.
 reqmd serve 02-trace-your-spec/
 ```
 
-This opens a browser at `http://localhost:8080` showing the HTML export with
-live reload. Every time you save a `.md` or `schema.yaml` file, the browser
-auto-refreshes via SSE (Server-Sent Events).
+This opens a browser at `http://localhost:8080` showing the project home —
+document catalog, project-wide coverage and verification, actionable exception
+queues, and cross-document search. Every document page has the same Document,
+Table, Trace, and Coverage views as `reqmd export html`; every time you save a
+`.md` or `schema.yaml` file, the browser auto-refreshes via SSE (Server-Sent
+Events).
 
 ## Flags
 

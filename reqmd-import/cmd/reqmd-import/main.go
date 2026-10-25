@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 
-	"reqmd-import/internal/cli"
+	"github.com/dVoo/reqmd/reqmd-import/internal/cli"
 )
 
 // version is overridden at release time via:

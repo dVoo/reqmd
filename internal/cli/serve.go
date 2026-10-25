@@ -11,16 +11,16 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
-	"reqmd/internal/exporter"
-	"reqmd/internal/filter"
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
-	"reqmd/internal/parser"
-	"reqmd/internal/verify"
 	"runtime"
-	"sort"
 	"sync"
 	"time"
+
+	"github.com/dVoo/reqmd/internal/exporter"
+	"github.com/dVoo/reqmd/internal/filter"
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/parser"
+	"github.com/dVoo/reqmd/internal/verify"
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/spf13/cobra"
@@ -31,12 +31,13 @@ const pollInterval = 2 * time.Second
 
 func newServeCmd() *cobra.Command {
 	var (
-		addr         string
-		debounce     time.Duration
-		headless     bool
-		noOpen       bool
-		resultsPaths []string
-		filterExpr   string
+		addr          string
+		debounce      time.Duration
+		headless      bool
+		noOpen        bool
+		resultsPaths  []string
+		filterExpr    string
+		relaxedFilter bool
 	)
 
 	cmd := &cobra.Command{
@@ -47,7 +48,9 @@ HTML preview via HTTP.
 
 Whenever a .md or schema.yaml file changes, reqmd re-parses, rebuilds the
 trace graph, re-checks graph-level invariants, and re-exports all documents.
-The browser auto-reloads via Server-Sent Events (SSE).
+The root URL serves the project home (catalog, project-wide health, exception
+queues, and cross-document search); each document has Document, Table, Trace,
+and Coverage views. The browser auto-reloads via Server-Sent Events (SSE).
 
 With --results, verification results (CTRF or manual) are loaded and
 rendered as verdict badges on measure cards. Result file changes also
@@ -63,7 +66,7 @@ Use --headless for terminal-only re-check output without the HTTP server.`,
   reqmd serve spec/ --results tests/ --results ci/ctrf.json`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runServe(args[0], addr, debounce, headless, noOpen, resultsPaths, filterExpr)
+			return runServe(args[0], addr, debounce, headless, noOpen, resultsPaths, filterExpr, relaxedFilter)
 		},
 	}
 
@@ -73,10 +76,11 @@ Use --headless for terminal-only re-check output without the HTTP server.`,
 	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF .ctrf.json or manual-results dirs) and render verdict badges. Repeatable. Results paths are also watched for changes.")
 	cmd.Flags().BoolVar(&noOpen, "no-open", false, "Do not open a browser on start")
 	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are served.")
+	addRelaxedFilterFlag(cmd, &relaxedFilter)
 	return cmd
 }
 
-func runServe(root string, addr string, debounce time.Duration, headless bool, noOpen bool, resultsPaths []string, filterExpr string) error {
+func runServe(root string, addr string, debounce time.Duration, headless bool, noOpen bool, resultsPaths []string, filterExpr string, relaxedFilter bool) error {
 	root, err := filepath.Abs(root)
 	if err != nil {
 		return fmt.Errorf("resolving root: %w", err)
@@ -105,12 +109,13 @@ func runServe(root string, addr string, debounce time.Duration, headless bool, n
 	defer cancel()
 
 	srv := &serveData{
-		root:         root,
-		addr:         addr,
-		debounce:     debounce,
-		headless:     headless,
-		resultsPaths: absResults,
-		filterExpr:   filterExpr,
+		root:          root,
+		addr:          addr,
+		debounce:      debounce,
+		headless:      headless,
+		resultsPaths:  absResults,
+		filterExpr:    filterExpr,
+		relaxedFilter: relaxedFilter,
 	}
 
 	if err := srv.rebuild(); err != nil {
@@ -130,7 +135,10 @@ func runServe(root string, addr string, debounce time.Duration, headless bool, n
 		}
 		go func() {
 			<-ctx.Done()
-			shutdownCtx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+
+			// Shutdown must outlive the canceled parent, so derive a context
+			// that ignores the parent's cancellation.
+			shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 2*time.Second)
 			defer cancel()
 			_ = httpSrv.Shutdown(shutdownCtx)
 		}()
@@ -160,20 +168,21 @@ func runServe(root string, addr string, debounce time.Duration, headless bool, n
 
 // serveData holds shared state for the serve command.
 type serveData struct {
-	pages        map[string][]byte
-	sseClients   map[chan struct{}]struct{}
-	root         string
-	addr         string
-	filterExpr   string
-	resultsPaths []string
-	debounce     time.Duration
-	mu           sync.RWMutex
-	sseMu        sync.Mutex
-	headless     bool
+	pages         map[string][]byte
+	sseClients    map[chan struct{}]struct{}
+	root          string
+	addr          string
+	filterExpr    string
+	resultsPaths  []string
+	debounce      time.Duration
+	mu            sync.RWMutex
+	sseMu         sync.Mutex
+	headless      bool
+	relaxedFilter bool
 }
 
 func (s *serveData) rebuild() error {
-	docs, verdicts, g, err := discoverAndBuildGraph(s.root, s.resultsPaths, s.filterExpr)
+	docs, analysis, g, err := discoverAndBuildGraph(s.root, s.resultsPaths, s.filterExpr, s.relaxedFilter)
 	if err != nil {
 		return err
 	}
@@ -186,7 +195,7 @@ func (s *serveData) rebuild() error {
 	}
 	boundaries := exporter.ComputeDocBoundaries(docs)
 
-	pages, totalReqs, results, err := exportServePages(docs, g, rctx, boundaries, titleMap, verdicts)
+	pages, totalReqs, results, err := exportServePages(docs, analysis, g, rctx, boundaries, titleMap)
 	if err != nil {
 		return err
 	}
@@ -225,23 +234,19 @@ func (s *serveData) rebuild() error {
 // and builds the requirement graph from the combined document set.
 // Returns the original docs (without synthesized results), the verdicts
 // map for badge rendering, and the graph.
-func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string) ([]model.Document, map[string]exporter.VerdictInfo, *graph.Graph, error) {
+func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string, relaxedFilter bool) ([]model.Document, *exporter.Analysis, *graph.Graph, error) {
 	docs, err := parser.Discover(root)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("discovering documents: %w", err)
 	}
 
-	var verdicts map[string]exporter.VerdictInfo
-	var hasResults bool
 	graphDocs := docs
 	if len(resultsPaths) > 0 {
-		merged, _, err := verify.LoadMerged(resultsPaths)
-		if err != nil {
-			return nil, nil, nil, fmt.Errorf("loading results: %w", err)
+		merged, _, loadErr := verify.LoadMerged(resultsPaths)
+		if loadErr != nil {
+			return nil, nil, nil, fmt.Errorf("loading results: %w", loadErr)
 		}
-		resultDoc := verify.Synthesize(merged)
-		graphDocs = append(graphDocs, resultDoc)
-		hasResults = true
+		graphDocs = append(graphDocs, verify.Synthesize(merged))
 	}
 
 	g, err := graph.New(graphDocs)
@@ -249,21 +254,13 @@ func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string
 		return nil, nil, nil, fmt.Errorf("building graph: %w", err)
 	}
 
-	// Badge verdicts come from graph adjacency (single source of truth),
-	// not the raw merged results map.
-	if hasResults {
-		verdicts = make(map[string]exporter.VerdictInfo)
-		for id, v := range g.MeasureVerdicts() {
-			verdicts[id] = exporter.VerdictInfoFromGraph(v)
-		}
-	}
-
 	// Apply filter to the graph (filter-aware checks) and to the exported docs.
 	if filterExpr != "" {
-		f, err := filter.CompileForDocs(docs, filterExpr)
+		f, warnings, err := filter.CompileForDocs(docs, filterExpr, relaxedFilter)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 		}
+		filter.WriteWarnings(os.Stderr, warnings)
 		filterSet, err := f.MatchingIDs(docs)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("collecting matching IDs: %w", err)
@@ -275,17 +272,29 @@ func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string
 		}
 	}
 
-	return docs, verdicts, g, nil
+	titleMap := exporter.BuildTitleMap(docs)
+	analysis := exporter.NewAnalysis(g, titleMap)
+	// Every page is served at the HTTP root, so a cross-document link is just
+	// the target page's basename.
+	analysis.SetHrefResolver(func(id string) string {
+		for _, doc := range docs {
+			for _, req := range doc.Requirements() {
+				if req.ID == id {
+					return filepath.Base(doc.Path) + "-requirements.html#" + id
+				}
+			}
+		}
+		return ""
+	})
+	return docs, analysis, g, nil
 }
 
 // exportServePages renders every document to HTML and counts graph checks.
 // It returns the rendered pages, the total requirement count, and the graph
 // check results so the caller can report status.
-func exportServePages(docs []model.Document, g *graph.Graph, rctx *exporter.RenderContext, boundaries map[string]exporter.DocBoundary, titleMap map[string]string, verdicts map[string]exporter.VerdictInfo) (map[string][]byte, int, []graph.CheckResult, error) {
+func exportServePages(docs []model.Document, analysis *exporter.Analysis, g *graph.Graph, rctx *exporter.RenderContext, boundaries map[string]exporter.DocBoundary, titleMap map[string]string) (map[string][]byte, int, []graph.CheckResult, error) {
 	var exp exporter.HTML
-	exp.SetVerdicts(verdicts)
-	upstreamFn := g.UpstreamNeighbors
-	downstreamFn := g.DownstreamNeighbors
+	exp.SetAnalysis(analysis)
 
 	pages := make(map[string][]byte)
 	var totalReqs int
@@ -307,23 +316,29 @@ func exportServePages(docs []model.Document, g *graph.Graph, rctx *exporter.Rend
 		// (just the filename) since all files are at HTTP root in serve mode.
 		absOutPath := filepath.Join(doc.Path, outPath)
 		rawResolveLink := rctx.ResolveLink(absOutPath)
-		tc := exporter.TraceResolver{
-			Upstream:   upstreamFn,
-			Downstream: downstreamFn,
-			ResolveLink: func(reqID string) string {
-				href := rawResolveLink(reqID)
-				// Convert filesystem relative path to URL path (strip directory prefix)
-				return filepath.Base(href)
-			},
-			TitleOf: func(id string) string { return titleMap[id] },
-		}
-		if err := exp.ExportWithTraces(&buf, doc, props, tc); err != nil {
+		exp.SetResolveLink(func(reqID string) string {
+			// Convert the filesystem-relative path to a URL path: every
+			// page is served at the HTTP root.
+			return filepath.Base(rawResolveLink(reqID))
+		})
+		if err := exp.Export(&buf, doc, props); err != nil {
 			return nil, 0, nil, fmt.Errorf("exporting %s: %w", doc.Path, err)
 		}
 		pages[outPath] = buf.Bytes()
 
 		totalReqs += len(doc.Requirements())
 	}
+
+	// Project home: / serves the catalog instead of redirecting to the
+	// first document.
+	project := exporter.NewProjectIndex(docs, analysis, titleMap, func(docPath string) string {
+		return filepath.Base(docPath) + "-requirements.html"
+	})
+	var index bytes.Buffer
+	if err := project.Export(&index); err != nil {
+		return nil, 0, nil, fmt.Errorf("exporting project index: %w", err)
+	}
+	pages["index.html"] = index.Bytes()
 
 	return pages, totalReqs, g.CheckResults(), nil
 }
@@ -552,33 +567,38 @@ func (s *serveData) makeRebuildAndNotify() func() {
 
 // openBrowser opens the given URL in the default system browser.
 func openBrowser(url string) error {
+	var cmd *exec.Cmd
 	switch runtime.GOOS {
 	case "linux":
-		return exec.Command("xdg-open", url).Start()
+		cmd = exec.CommandContext(context.Background(), "xdg-open", url)
 	case "darwin":
-		return exec.Command("open", url).Start()
+		cmd = exec.CommandContext(context.Background(), "open", url)
 	case "windows":
-		return exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+		cmd = exec.CommandContext(context.Background(), "rundll32", "url.dll,FileProtocolHandler", url)
 	default:
 		return fmt.Errorf("unsupported platform %q to open browser", runtime.GOOS)
 	}
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("opening browser: %w", err)
+	}
+	return nil
 }
 
 // findDocDirsFlat finds all directories under root that contain a schema.yaml.
+// Entry-level walk errors are skipped: a watcher that sees the readable part
+// of the tree is more useful than none.
 func findDocDirsFlat(root string) []string {
 	var dirs []string
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return nil
+	_ = filepath.WalkDir(root, func(path string, d fs.DirEntry, walkErr error) error {
+		if walkErr != nil {
+			// Best-effort discovery: skip the unreadable entry/subtree.
+			return fs.SkipDir
 		}
 		if !d.IsDir() && d.Name() == "schema.yaml" {
 			dirs = append(dirs, filepath.Dir(path))
 		}
 		return nil
 	})
-	if err != nil {
-		return nil
-	}
 	return dirs
 }
 
@@ -627,7 +647,7 @@ func (s *serveData) sseHandler(w http.ResponseWriter, r *http.Request) {
 	}()
 
 	// Send initial connected event
-	fmt.Fprintf(w, "event: connected\ndata: \n\n")
+	_, _ = fmt.Fprintf(w, "event: connected\ndata: \n\n")
 	flusher.Flush()
 
 	for {
@@ -635,7 +655,7 @@ func (s *serveData) sseHandler(w http.ResponseWriter, r *http.Request) {
 		case <-r.Context().Done():
 			return
 		case <-client:
-			fmt.Fprintf(w, "event: reload\ndata: \n\n")
+			_, _ = fmt.Fprintf(w, "event: reload\ndata: \n\n")
 			flusher.Flush()
 		}
 	}
@@ -645,22 +665,9 @@ func (s *serveData) sseHandler(w http.ResponseWriter, r *http.Request) {
 func (s *serveData) fileHandler(w http.ResponseWriter, r *http.Request) {
 	path := r.URL.Path
 	if path == "/" || path == "" {
-		// Serve an index page listing available documents
-		s.mu.RLock()
-		var names []string
-		for p := range s.pages {
-			names = append(names, p)
-		}
-		sort.Strings(names)
-		s.mu.RUnlock()
-
-		if len(names) == 0 {
-			http.Error(w, "no documents", http.StatusNotFound)
-			return
-		}
-		// Redirect to first doc
-		http.Redirect(w, r, "/"+names[0], http.StatusFound)
-		return
+		// The project home page: document catalog, project-wide health,
+		// actionable queues, and cross-document search.
+		path = "/index.html"
 	}
 
 	// Strip leading /

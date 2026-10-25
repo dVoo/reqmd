@@ -7,8 +7,8 @@ import (
 	"strings"
 	"testing"
 
-	"reqmd/internal/graph"
-	"reqmd/internal/model"
+	"github.com/dVoo/reqmd/internal/graph"
+	"github.com/dVoo/reqmd/internal/model"
 )
 
 // jsonDocs builds a small two-document tree: one upstream with a version,
@@ -87,7 +87,7 @@ func encodeRows(t *testing.T, export func(w *bufio.Writer) error) []map[string]a
 	}
 
 	var rows []map[string]any
-	for _, line := range strings.Split(strings.TrimRight(buf.String(), "\n"), "\n") {
+	for line := range strings.SplitSeq(strings.TrimRight(buf.String(), "\n"), "\n") {
 		if line == "" {
 			continue
 		}

@@ -3,14 +3,13 @@ package cli
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 
-	"github.com/spf13/cobra"
+	"github.com/dVoo/reqmd/reqmd-import/exchange"
+	"github.com/dVoo/reqmd/reqmd-import/internal/writer"
 
-	"reqmd-import/exchange"
-	"reqmd-import/internal/writer"
+	"github.com/spf13/cobra"
 )
 
 // NewRootCmd builds the reqmd-import command tree. Rendering an exchange
@@ -47,13 +46,13 @@ Examples:
 }
 
 func run(cmd *cobra.Command, src, outDir string, check bool) error {
-	var in io.Reader = cmd.InOrStdin()
+	in := cmd.InOrStdin()
 	if src != "-" {
 		f, err := os.Open(src)
 		if err != nil {
 			return fmt.Errorf("open bundle %q: %w", src, err)
 		}
-		defer f.Close()
+		defer func() { _ = f.Close() }()
 		in = f
 	}
 
@@ -68,7 +67,7 @@ func run(cmd *cobra.Command, src, outDir string, check bool) error {
 	if err := writer.Write(outDir, files); err != nil {
 		return err
 	}
-	fmt.Fprintf(cmd.ErrOrStderr(), "reqmd-import: wrote %d file(s) to %s\n", len(files), outDir)
+	_, _ = fmt.Fprintf(cmd.ErrOrStderr(), "reqmd-import: wrote %d file(s) to %s\n", len(files), outDir)
 
 	if !check {
 		return nil
