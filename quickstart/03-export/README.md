@@ -61,6 +61,35 @@ Creates a LadybugDB graph database with one node per requirement and
 lbug graph-out/reqmd-graph.lbug
 ```
 
+## Export to a data warehouse (NDJSON)
+
+`reqmd export json` writes four flat NDJSON tables for reporting platforms
+(Databricks, Snowflake, BigQuery) to ingest directly — one JSON object per
+line, no nesting to unpack:
+
+```sh
+reqmd export json 02-trace-your-spec/ -o json-out/
+```
+
+| File | One row per |
+|------|--------------|
+| `requirements.ndjson` | content node — built-in attributes promoted to top-level keys, user attributes in the `attrs` envelope |
+| `traces.ndjson` | declared trace reference (with `resolved` and the `~N` pin if present) |
+| `results.ndjson` | measure verdict — only with `--results`, otherwise empty |
+| `findings.ndjson` | check finding (level, message, file) |
+
+```json
+{"attrs":{"priority":"High"},"id":"STK-GOAL-001","title":"Fast Boot","doc_path":"quickstart/02-trace-your-spec/stakeholder","level":"stakeholder-needs","type":"req",...}
+{"from":"SYS-001","to":"STK-GOAL-001","doc_id":"stakeholder","ref":"stakeholder/STK-GOAL-001","resolved":true}
+{"level":"WARNING","req_id":"SYS-001","message":"no upstream trace: no approved requirement from \"software\" traces to this item (2 draft downstreams ignored)"}
+```
+
+The output is a pure function of the tree (plus any `--results`), so repeated
+exports of the same tree are byte-identical — safe to load into a warehouse
+on every CI run. `--filter` limits `requirements.ndjson` to matching
+requirements; traces and findings are still computed over the full graph,
+the same semantics as the CSV and HTML exports.
+
 ## Export with verification results
 
 All export formats accept `--results` (see Steps 11 and 12):

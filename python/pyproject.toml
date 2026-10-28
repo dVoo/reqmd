@@ -8,7 +8,7 @@ name = "reqmd-io"
 # Versioned independently of the reqmd binaries: bump it only for a new
 # feature or an exchange-format change, not for every reqmd release.
 # Released by pushing a `py-v<version>` tag (see .github/workflows/publish-python.yml).
-version = "0.1.0"
+version = "0.2.0"
 description = "Build reqmd-import/v1 exchange bundles from Python — write importers for DOORS, codeBeamer, ReqIF, CSV, or any API without hand-writing reqmd Markdown."
 readme = "README.md"
 requires-python = ">=3.10"

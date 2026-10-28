@@ -10,7 +10,11 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `SPEC.md` — authoritative design spec (if absent, the spec tree under `spec/` is the source of truth)
 - `spec/workspace.dsl` — C4 model (Structurizr DSL) for architecture visualization
 - `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 hand-authored doc dirs (293 reqs; 1337 including the generated `03-software/imported/` proxies), V-model dogfood fixture
+- `QUICKSTART.md` — top-level 5-minute quick start (points into `quickstart/`)
 - `quickstart/` — step-by-step tutorial (01-get-started, 02-trace-your-spec, 03-export, 04-live-preview, 05-status-disposition, 06-ci-integration, 07-version-pins, 08-repin, 09-baseline-diff, 10-submodule-configuration, 11-verification-results-ctrf, 12-review-documentation, 13-custom-templates, 14-variant-management, 15-custom-importers)
+- `site/` — Hugo source for <https://reqmd.dev> (site mirror of the quickstart lives in `site/content/quickstart/`)
+- `bench.sh` — benchmark harness (builds `reqmd-bench-gen`/`reqmd-bench-run`, measures the real `spec/` baseline plus synthetic 71k–720k corpora)
+- `discussions/` — design RFCs and review notes (not rendered documentation)
 - `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli, filter)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
 - `go.mod` / `go.sum` — Go module `github.com/dVoo/reqmd` (1.26)

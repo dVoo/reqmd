@@ -31,7 +31,7 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
-FORMAT = "reqmd-import/v1"
+FORMAT = "github.com/dVoo/reqmd/reqmd-import/v1"
 
 __all__ = ["FORMAT", "Bundle", "Document", "Requirement"]
 

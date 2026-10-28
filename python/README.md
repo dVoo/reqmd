@@ -10,7 +10,13 @@ cannot drift from the Go renderer.
 ## Install
 
 ```sh
-pip install ./python        # from the repo root
+pip install reqmd-io
+```
+
+Or from the repo root:
+
+```sh
+pip install ./python
 ```
 
 ## Use

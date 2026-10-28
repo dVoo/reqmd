@@ -274,12 +274,16 @@ With `--results`, adds `Verdict` and `Verdict Source` columns.
 
 {{< details summary="Example output" >}}
 ```text
-exporting spec/ → csv-out/
-  spec/02-system  → csv-out/system-requirements.csv   (20 rows)
-  spec/03-software → csv-out/software-requirements.csv (31 rows)
-  spec/04-tests   → csv-out/tests-requirements.csv     (15 rows)
-  ...
-  22 documents, 281 requirements exported
+Wrote csv-out/00-aspice-requirements.csv
+Wrote csv-out/01-stakeholder-requirements.csv
+Wrote csv-out/01a-aspice-stakeholder-requirements.csv
+Wrote csv-out/02-system-requirements.csv
+...
+Wrote csv-out/03-software-requirements.csv
+Wrote csv-out/04-tests-requirements.csv
+
+22 CSV files, one per document (the bundled spec/ tree: 1337 requirements,
+including the generated code-proxy documents)
 ```
 
 Each CSV has columns: `Type, ID, Title, <schema attributes>, Body, Rationale`.

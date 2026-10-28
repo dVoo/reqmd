@@ -1,7 +1,7 @@
 # reqmd quickstart
 
 Get from zero to a validated, linked requirements tree in about five minutes.
-For the full tutorial — 14 numbered steps covering every feature — see the
+For the full tutorial — 15 numbered steps covering every feature — see the
 [`quickstart/`](quickstart/) tree or the rendered guide at
 <https://reqmd.dev/quickstart/>.
 

@@ -48,6 +48,7 @@ Summary: 5 total, 5 valid, 0 invalid, 0 parse errors, 1 warnings
 - [Trace validation in detail](#trace-validation-in-detail)
 - [FAQ](#faq)
 - [Disposition workflow](#disposition-workflow)
+- [Importing requirements](#importing-requirements)
 - [Verification & validation results](#verification--validation-results)
 - [Exit codes](#exit-codes)
 - [Real-world workflow](#real-world-workflow)
@@ -442,6 +443,7 @@ x-reqmd:
 | `source.format` | Source format: `archi`, `doxygen`, `gtest`, `pytest`, `junit`, `reqif` |
 | `id-prefix` | Enforces that all requirement IDs start with this prefix; collision is an ERROR |
 | `requires-trace-from` | Document-wide default coverage expectation; inherited by requirements that don't declare their own `requires-trace-from` (see [Per-document coverage defaults](#3a-per-document-coverage-defaults)) |
+| `disjoint-check` | Names an array-typed attribute (e.g. `variant`) that trace-linked requirements must share at least one value of. Repeatable as an array. Also settable via `--disjoint-check` on `check` and `export json`. Suppression: `reqmd-suppress: [disjoint-attribute]`. |
 | `additional-status-values` | Lowercase extensions to the built-in `status` enum (e.g. `[review]`). See [Status lifecycle](#4-status-lifecycle). |
 | `ignore-status` | When `true`, the document opts out of the status lifecycle (see [Opting out](#4b-opting-out-of-the-lifecycle)) |
 
@@ -449,7 +451,7 @@ x-reqmd:
 - No `external` field or `external: false` → normal authored requirement directory
 - `external: true` → proxy/generated directory for external or scanned artefacts
 
-### 5. Directory layout
+### 6. Directory layout
 
 Any folder with a `schema.yaml` is a document directory. ReqMD validates all `.md`
 files inside it (non-recursive), then recurses into subdirectories.
@@ -476,7 +478,7 @@ requirements/
     └── validate.yml               # CI: runs reqmd check on every PR
 ```
 
-### 6. Document frontmatter (YAML)
+### 7. Document frontmatter (YAML)
 
 Each `.md` file MAY include YAML frontmatter delimited by `---`, parsed via
 [goldmark-meta](https://github.com/yuin/goldmark-meta). The `description` key
@@ -493,7 +495,7 @@ Frontmatter keys from multiple `.md` files in the same document directory are
 merged with first-file-wins semantics. The `description` field is processed
 through goldmark, supporting inline Markdown (bold, code, links, etc.).
 
-### 7. Goldmark extensions
+### 8. Goldmark extensions
 
 ReqMD uses [goldmark](https://github.com/yuin/goldmark) for Markdown rendering
 in both parsing and HTML export, with these extensions enabled:
@@ -508,7 +510,7 @@ in both parsing and HTML export, with these extensions enabled:
 | **Emoji** | `github.com/yuin/goldmark-emoji` | GitHub-style `:joy:` → 😊 emoji |
 | **KaTeX** | `github.com/FurqanSoftware/goldmark-katex` | Math rendering: inline `$x^2$` and display `$$...$$` |
 
-### 8. Attribute filtering (`--filter`)
+### 9. Attribute filtering (`--filter`)
 
 Every command that reports on requirements (`check`, `ls`, `stats`,
 `export csv|html|json`, `serve`, `baseline diff`) accepts
@@ -791,7 +793,9 @@ runs these checks:
 | **ID prefix collision** | ERROR | Two directories declare the same `id-prefix` | **Yes** |
 | **Duplicate ID** | ERROR | Same requirement ID defined in two different documents | **Yes** |
 | **Ambiguous reference** | ERROR | Unqualified trace reference matches IDs in multiple documents | **Yes** |
+| **Version pin outdated** | ERROR | `trace: [UP-001~2]` but `UP-001` is at `version: 3` — upstream bumped, downstream needs re-verify. Demote to WARNING with `--relaxed-versions` | **Yes** |
 | **Version pin predated** | ERROR | `trace: [UP-001~5]` but `UP-001` is at `version: 2` — downstream claims a version that doesn't exist | **Yes** |
+| **Disjoint attribute** | ERROR | A `--disjoint-check <attr>` is active and a trace link's source and target have zero overlapping values for that attribute (empty/absent = "applies to all", exempt) | **Yes** |
 | **Missing verdict** | WARNING | An approved verification measure (a requirement with a `verify` attribute) has no verification result tracing to it. Only fires when `--results` is supplied. | No |
 | **Failing verdict** | ERROR | A verification measure's latest result has outcome `fail`. Only fires when `--results` is supplied. | **Yes** |
 
@@ -810,16 +814,13 @@ reqmd-suppress:
   - untraced
   - id-prefix
 ```
-Supported suppression names: `broken-ref`, `circular`, `untraced`, `no-downstream`,
-`disposition-reason`, `mandatory-disposition`, `id-prefix`, `version-pin`,
-`requires-trace-from-coverage`.
-
 Only **ERROR** level checks affect the exit code. WARNING and INFO are
 informational.
 
 Supported suppression names: `broken-ref`, `circular`, `untraced`, `no-downstream`,
 `disposition-reason`, `mandatory-disposition`, `id-prefix`, `version-pin`,
-`requires-trace-from-coverage`, `missing-verdict`, `failing-verdict`.
+`requires-trace-from-coverage`, `missing-verdict`, `failing-verdict`,
+`disjoint-attribute`.
 
 ## FAQ
 
@@ -876,6 +877,42 @@ disposition-reason: "Deferred to v2.0 — HW SPI interface not available until n
 | `rejected` | Not accepted | **Yes** |
 
 Disposition is orthogonal to trace coverage. Use `requires-trace-from: []` to explicitly state that no downstream coverage is expected.
+
+## Importing requirements
+
+Requirements rarely start inside reqmd. Two import paths share one JSON **exchange
+format** (`reqmd-import/v1`) and one renderer, so no importer can produce invalid
+Markdown or drift from the schema rules:
+
+```
+DOORS / codeBeamer / CSV ─▶ your script ─▶ reqmd-import/v1 JSON ─▶ reqmd-import ─▶ .md + schema.yaml
+source code (tree-sitter) ─▶ reqmd-code ─▶ reqmd-import/v1 JSON ──┘
+```
+
+**Source code.** `reqmd-code` extracts functions, types, and methods from C, C++,
+Go, Python, and Rust via tree-sitter and emits an exchange bundle; `reqmd-import`
+renders it as generated proxy documents, so traces from authored requirements
+resolve down to the code that implements them:
+
+```sh
+reqmd-code ./internal | reqmd-import - -o spec/03-software/imported
+reqmd check spec/
+```
+
+**ALM tools.** Any tool that can export CSV can feed reqmd. The Python package
+[`reqmd-io`](https://pypi.org/project/reqmd-io/) (`pip install reqmd-io`) emits
+the same exchange format from typed dataclasses, and the repo ships a generic
+DOORS/codeBeamer CSV reader:
+
+```sh
+python python/examples/csv_import.py doors-export.csv -o /tmp/doors.json --id-prefix DOORS-
+reqmd-import /tmp/doors.json -o spec/00-doors/
+```
+
+Rendered documents are generated — review them as diffs, commit them, and trace
+to them like any other requirement. See
+[`quickstart/15-custom-importers/`](quickstart/15-custom-importers/) for a
+worked example.
 
 ### Worked example — deferred with rationale (passes)
 
@@ -1037,6 +1074,7 @@ All export formats support `--results`:
 |--------|----------------------|
 | **CSV** | Two extra columns: `Verdict` (rolled-up pass/fail/skipped/inconclusive) and `Verdict Source` (result file) |
 | **HTML** | Color-coded verdict chips on measure cards — green (pass), red (fail), orange (inconclusive), gray (skipped), plus an explicit **no verdict** chip for eligible measures without a result. The rolled-up evidence list shows the contributing case, outcome, and source file. |
+| **JSON** | `results.ndjson` — one row per measure verdict (rolled-up outcome, contributing cases, source). Only with `--results`; otherwise the file is written empty. |
 | **Graph** | `RESULT:` pseudo-nodes with `outcome` and `source` properties, connected via `TracesTo` edges to their measures. Enables Cypher traversal from requirements through measures to verification results. |
 
 ```sh

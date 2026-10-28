@@ -8,7 +8,7 @@ reqmd is fast enough to run on every commit, every save, and every pull request 
 
 ## The headline
 
-The tool's own spec — 281 requirements defining reqmd itself — validates in **~16 milliseconds**. That's faster than a page load. For context, a typical project spec is in the hundreds, not the thousands.
+The tool's own spec — 281 requirements defining reqmd itself — validated in **~16 milliseconds**. That's faster than a page load. For context, a typical project spec is in the hundreds, not the thousands. (The bundled tree has since grown to 1,337 requirements — 293 hand-authored plus the generated code-proxy documents from `reqmd-code` — and stays in the same league: on the 12-core laptop cited below, `reqmd check spec/` finishes in ~60 ms.)
 
 ## How it scales at large sizes
 
