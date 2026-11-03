@@ -461,6 +461,18 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 			}
 			bodyBuf.WriteString("---")
 
+		case *ast.HTMLBlock:
+			// The generated-content marker is tool metadata, not content: it
+			// would otherwise open a phantom headingless node in every file the
+			// renderer writes. Both markers are recognized (the second is the
+			// pre-rename one). The renderer lives in another module, so the
+			// literals are duplicated here; TestE2E_* proves they still agree.
+			if isGeneratedMarker(v, src) {
+				continue
+			}
+			ensureOpenNode()
+			bodyBuf.WriteString(renderBlock(src, n))
+
 		default:
 			// Any other block (blockquote, list, etc.) → body text if inside a node
 			ensureOpenNode()
@@ -748,4 +760,28 @@ func ParseSingleFile(path string) ([]*model.Node, error) {
 	}
 	nodes, _, _, err := parseMD(src, path)
 	return nodes, err
+}
+
+// generatedMarker is the sentinel the renderer writes into every file it owns.
+// Its pre-rename spelling is still recognized so trees generated before the
+// renderer moved to reqmd-import keep parsing cleanly.
+const (
+	generatedMarker       = "<!-- reqmd: generated -->"
+	legacyGeneratedMarker = "<!-- reqmd-code: generated -->"
+)
+
+// isGeneratedMarker reports whether an HTML block is one of the renderer's
+// generated-content markers. Such a block is tool metadata: keeping it would
+// open a phantom headingless content node in every generated document.
+func isGeneratedMarker(block *ast.HTMLBlock, src []byte) bool {
+	var b strings.Builder
+	for i := range block.Lines().Len() {
+		seg := block.Lines().At(i)
+		b.Write(seg.Value(src))
+	}
+	switch strings.TrimSpace(b.String()) {
+	case generatedMarker, legacyGeneratedMarker:
+		return true
+	}
+	return false
 }

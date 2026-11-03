@@ -371,6 +371,18 @@ The `reqmd_io` Python package shall provide dataclasses (`Bundle`, `Document`, `
 
 *Rationale:* Importer authors should not hand-build dictionaries and rediscover the format's edge cases, but a second renderer in another language would drift from the Go one; restricting the helper to serialization gives the ergonomics without the divergence risk.
 
+## SW-IMP-008: Batched validation and status mapping
+```attr
+status: approved
+package: exchange
+priority: High
+trace:
+  - SYS-IMP-003
+```
+`exchange.Build` shall collect every violation of the exchange format in one pass and return them together as a `ValidationError` (at most 20 entries, each addressed by item path, with a trailing marker when the cap was hit) instead of stopping at the first, so a producer fixes a batch. `--validate-only` shall run the same validation and report the document and file counts without writing any file. `--status-map "Source=reqmd"` shall translate a source status vocabulary: a mapped value is used and added to the document's `x-reqmd.additional-status-values` when it is not a built-in, a value that already looks like a reqmd status passes through unchanged, and any other value falls back to `approved` while the original is preserved on the requirement as `x-reqmd.source-status`.
+
+*Rationale:* The format's value is that a third party can implement it; one-error-at-a-time feedback and an implicit knowledge of reqmd's status names are the friction that makes a contract unadoptable, while dropping a source status silently would lose what a reviewer needs.
+
 ## SW-PAR-002: Content-tree parsing
 ```attr
 status: approved

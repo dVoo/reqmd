@@ -732,9 +732,11 @@ func (g *Graph) checkRequiresTraceFromCoverage(rootDirs, leafDirs map[string]boo
 		// only inbounds that also match the filter count — a filtered-out
 		// requirement cannot act as a coverage provider (RFC §3.2), so a
 		// node whose only inbounds are filtered out is untraced in view.
+		// A leaf document sits at the bottom of the V: nothing traces *to* a test
+		// specification, so the missing-inbound check cannot apply there.
 		if node.isSuppressed("untraced") {
 			// skip — per-requirement opt-out
-		} else if !g.hasFilteredInbound(node) && !isRoot && !node.IsChild {
+		} else if !g.hasFilteredInbound(node) && !isRoot && !isLeaf && !node.IsChild {
 			results = append(results, CheckResult{
 				Level:   LevelWarning,
 				ReqID:   node.ReqID,

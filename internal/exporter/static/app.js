@@ -879,9 +879,22 @@
       writeState();
     }
 
+    // safeHref rejects anything but a same-origin path or a web/mail scheme
+    // before it is used for navigation. Exported links are built from document
+    // paths, but a crafted spec can put "javascript:" in a path: the export is
+    // an untrusted static artifact, so the sink is guarded rather than trusted.
+    function safeHref(href) {
+      if (!href) return '';
+      var value = String(href).trim();
+      if (/^(?:https?:|mailto:|#|\/|\.\.?\/)/i.test(value)) return value;
+      if (value.indexOf(':') === -1) return value; // a bare relative path
+      return '';
+    }
+
     function selectNode(id, href) {
       if (!byId[id]) {
-        if (href) location.href = href;
+        var target = safeHref(href);
+        if (target) location.href = target;
         return;
       }
       if (state.selected && state.selected !== id) state.trail.push(state.selected);
@@ -1857,7 +1870,8 @@
       catalog.addEventListener('click', function (e) {
         if (e.target.closest('a')) return;
         var row = e.target.closest('tr[data-href]');
-        if (row) location.href = row.getAttribute('data-href');
+        var href = row ? safeHref(row.getAttribute('data-href')) : '';
+        if (href) location.href = href;
       });
     }
   }

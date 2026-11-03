@@ -25,29 +25,30 @@ var validFixtures = []string{
 	"schema-only.json",
 }
 
-// invalidFixtures maps a fixture to the fragment Build must report. Each file
-// breaks exactly one semantic rule, so a failure points at one sentence of the
-// format document.
-var invalidFixtures = map[string]string{
-	"missing-kind.json":          "want \"requirement\" or \"section\"",
-	"requirement-without-key.json": "requirement without a key",
-	"duplicate-key.json":         "is used by both",
-	"unresolved-link.json":       `links to "missing"`,
-	"link-to-section.json":       "links may only target requirements",
-	"unknown-document-link.json": `unknown document "nope"`,
-	"undeclared-field.json":      `attribute "other" is not declared`,
-	"missing-required.json":      `missing required attribute "priority"`,
-	"nested-field-value.json":    "nested",
-	"bad-attribute-name.json":    "name may only contain",
-	"title-line-break.json":      "must not contain a line break",
-	"escaping-dir.json":          "escapes the output root",
-	"duplicate-output-path.json": "is claimed by both",
-	"empty-documents.json":       "bundle has no documents",
-	"duplicate-document-key.json": `document key "d" is used by both`,
-	"document-title-missing.json": "title is required",
-	"document-key-slash.json":     "must not contain '/' or whitespace",
-	"depth-budget.json":           "would render heading level",
-	"wrong-schema-url.json":       "bundle $schema is",
+// invalidFixtures must be rejected. Which rule each one breaks, and with which
+// message, is asserted once in build_test.go: the corpus's job is that the
+// published schema and the renderer agree about what is legal, not to restate
+// the wording of every error.
+var invalidFixtures = []string{
+	"missing-kind.json",
+	"requirement-without-key.json",
+	"duplicate-key.json",
+	"unresolved-link.json",
+	"link-to-section.json",
+	"unknown-document-link.json",
+	"undeclared-field.json",
+	"missing-required.json",
+	"nested-field-value.json",
+	"bad-attribute-name.json",
+	"title-line-break.json",
+	"escaping-dir.json",
+	"duplicate-output-path.json",
+	"empty-documents.json",
+	"duplicate-document-key.json",
+	"document-title-missing.json",
+	"document-key-slash.json",
+	"depth-budget.json",
+	"wrong-schema-url.json",
 }
 
 // TestFixtures_SchemaAcceptsValidBundles is the neutrality check: the published
@@ -94,23 +95,18 @@ func TestFixtures_ValidBundlesBuild(t *testing.T) {
 	}
 }
 
-// TestFixtures_InvalidBundlesReportTheirRule verifies each broken bundle names
-// the rule it breaks, so the corpus doubles as documentation of the errors.
-func TestFixtures_InvalidBundlesReportTheirRule(t *testing.T) {
-	for name, want := range invalidFixtures {
+// TestFixtures_InvalidBundlesAreRejected verifies the corpus's negative half:
+// nothing in it renders. A rejection at decode time (unknown field, nesting
+// guard) counts the same as one at build time — both are loud.
+func TestFixtures_InvalidBundlesAreRejected(t *testing.T) {
+	for _, name := range invalidFixtures {
 		t.Run(name, func(t *testing.T) {
 			b, err := Decode(strings.NewReader(string(readFixture(t, filepath.Join("invalid", name)))))
 			if err != nil {
-				// A decode-level rule (unknown field, depth guard) is a valid
-				// rejection too, as long as it is not silent.
 				return
 			}
-			_, err = b.Build()
-			if err == nil {
+			if _, err := b.Build(); err == nil {
 				t.Fatalf("invalid fixture %s was accepted", name)
-			}
-			if !strings.Contains(err.Error(), want) {
-				t.Errorf("error does not mention %q:\n%v", want, err)
 			}
 		})
 	}

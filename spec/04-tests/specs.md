@@ -72,6 +72,22 @@ Integration tests shall run the full pipeline end-to-end: parse a multi-level re
 
 *Rationale:* Integration tests catch cross-package contract violations that unit tests miss. Using the project's own specification as the fixture keeps that specification executable and current.
 
+## TST-INT-002: Import pipeline end-to-end
+```attr
+status: approved
+verify: Test
+test-type: integration
+disposition: implemented
+trace:
+  - SYS-IMP-002
+  - SYS-IMP-003
+  - SYS-CON-001
+  - SYS-CON-002
+```
+An end-to-end test shall exercise the pipeline across module boundaries, because every stage is otherwise tested only against hand-built fixtures. It shall take a real exchange bundle, render it, discover the rendered tree, validate it, and export it, then assert the outcome structurally: a section in the bundle is a section node in the parsed tree, the requirements beneath it are identified and validate with zero invalid, the requirements table carries requirement rows only with `section_path` naming their ancestor section and `ordinal` in document order, internal links and external refs both arrive as trace references, and CSV keeps the section row. A second integration test shall parse a real document with nested sections, prose and a leaf section, then assert both the unfiltered export and a filtered export: a folder that still leads to a matching requirement keeps its place, a folder whose requirements were all pruned is dropped, and a leaf section carrying prose survives. When a Python interpreter is available the documented CSV producer flow shall be exercised as well — CSV to bundle to rendered tree to a clean validation — and skipped with an explicit reason when it is not.
+
+*Rationale:* The pieces are individually tested but the seams are not, and the defects found while writing these tests were seam defects — a phantom content node in every generated file, and a wrong expectation about what filtering keeps — which unit tests with hand-built fixtures cannot see.
+
 ## TST-EXP-001: NDJSON table export tests
 ```attr
 status: approved
@@ -264,10 +280,11 @@ trace:
   - SW-IMP-004
   - SW-IMP-005
   - SW-IMP-006
+  - SW-IMP-008
 ```
-Unit tests shall cover the renderer: decoding (unknown field and trailing-data rejection), bundle validation (format mismatch, missing native-id or id-prefix, duplicate native-id, unknown parent or native-trace, reserved attr, escaping directory, parent cycle, duplicate output path), topology (children moved after their parents, multi-level heading depth), rendering (attr quoting and round-trip through a YAML parser, sorted deterministic attr order, unsupported nested attr rejected), schema generation (properties/required plus x-reqmd metadata), and idempotent writing (byte-identical re-runs, hand-authored files never clobbered).
+Tests shall enforce the format's invariants rather than any particular rendering. Every rejection rule stated in the exchange format document shall have a test that fails when the rule is removed, and every rejection shall be reported through one batched error naming the item path. Every valid bundle in the shared fixture corpus shall render without error and shall also satisfy the published JSON Schema, so the schema and the renderer cannot diverge. Rendering shall be asserted structurally — the heading outline (level, heading text, parsed attr block) and the item tree — never as matched substrings of generated Markdown, so formatting changes do not break a test that is about structure. Idempotency, quoting round-trip through a YAML parser, and the guarantee that hand-authored files are never rewritten shall be pinned.
 
-*Rationale:* The renderer is the only component that writes Markdown or YAML, so its validation, quoting, and idempotency guarantees are the correctness boundary for every importer — including the ones not written in this repository.
+*Rationale:* The renderer is the correctness boundary for every importer, including the ones not written in this repository. Pinning the rules instead of their wording means a new rule adds a test without rewriting the specification, and asserting structure instead of text means a formatting change cannot mask a nesting bug.
 
 ## TST-IMP-003: Python exchange helper tests
 ```attr
@@ -278,6 +295,6 @@ disposition: implemented
 trace:
   - SW-IMP-007
 ```
-Unit tests shall cover the `reqmd_io` package: snake_case fields serialized to the format's hyphenated keys, empty values omitted, numeric and boolean attribute values preserved, `external: true` preserved, and bundle JSON carrying the format version and writing to a file.
+Tests shall pin the Python helper's contract with the format rather than its internals: a generated bundle shall satisfy the published JSON Schema when a JSON-Schema implementation is available (the neutrality proof — a producer can be written without any Go code), section and requirement items shall be distinguishable by kind alone, nesting shall be reachable through a parent key so a flat source table stays a flat loop, and empty values shall be omitted so the wire form matches the Go producer's.
 
-*Rationale:* The helper mirrors a versioned contract; a serialization drift would surface as a rejected bundle downstream rather than at the producer, so the mapping is pinned by test.
+*Rationale:* The helper mirrors a versioned contract; a drift would surface as a rejected bundle downstream rather than at the producer, so the mapping is pinned by test — but pinned against the published schema, which is the artefact a third party actually implements.

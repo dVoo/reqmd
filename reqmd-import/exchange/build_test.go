@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	"github.com/dVoo/reqmd/reqmd-import/internal/writer"
+
+	"gopkg.in/yaml.v3"
 )
 
 // bundle wraps documents in a valid envelope.
@@ -73,24 +75,38 @@ func TestBuild_RendersDocument(t *testing.T) {
 	}))
 
 	md := got["docs/requirements.md"]
-	for _, want := range []string{
-		"# Docs",
-		writer.GeneratedMarker,
-		"Preamble prose.",
-		"## X-1: Brakes",
-		"```attr",
-		"status: approved",
-		"priority: High",
-		"trace:",
-		"  - SYS-001",
-	} {
-		if !strings.Contains(md, want) {
-			t.Errorf("rendered document is missing %q:\n%s", want, md)
-		}
+	if !strings.Contains(md, writer.GeneratedMarker) {
+		t.Error("rendered document is missing the generated marker")
 	}
-	schema := got["docs/schema.yaml"]
-	if !strings.Contains(schema, "x-reqmd") || !strings.Contains(schema, "id-prefix: X-") {
-		t.Errorf("schema is missing the x-reqmd block:\n%s", schema)
+	h := heading(t, md, "Brakes")
+	if h.Level != 2 {
+		t.Errorf("top-level requirement rendered at heading level %d, want 2", h.Level)
+	}
+	if h.Text != "X-1: Brakes" {
+		t.Errorf("heading = %q, want the ID prefix and title \"X-1: Brakes\"", h.Text)
+	}
+	if got := attrString(t, h, "status"); got != "approved" {
+		t.Errorf("status = %q, want approved", got)
+	}
+	if got := attrString(t, h, "priority"); got != "High" {
+		t.Errorf("priority = %q, want High", got)
+	}
+	if got := attrList(t, h, "trace"); len(got) != 1 || got[0] != "SYS-001" {
+		t.Errorf("trace = %v, want [SYS-001]", got)
+	}
+
+	// The schema is asserted as parsed YAML: field order and quoting are the
+	// renderer's business, the x-reqmd mapping is the contract.
+	schema := map[string]any{}
+	if err := yaml.Unmarshal([]byte(got["docs/schema.yaml"]), &schema); err != nil {
+		t.Fatalf("schema is not valid YAML: %v", err)
+	}
+	xr, ok := schema["x-reqmd"].(map[string]any)
+	if !ok {
+		t.Fatalf("schema has no x-reqmd block: %v", schema)
+	}
+	if xr["id-prefix"] != "X-" || xr["level"] != "system-requirements" {
+		t.Errorf("x-reqmd = %v, want id-prefix X- and level system-requirements", xr)
 	}
 }
 
@@ -122,18 +138,22 @@ func TestBuild_NestedSectionsAndDepth(t *testing.T) {
 	}))
 
 	md := got["d/requirements.md"]
-	for _, want := range []string{
-		"## Chapter",
-		"Chapter intro.",
-		"### R1: Req",
-		"#### R2: Child",
-	} {
-		if !strings.Contains(md, want) {
-			t.Errorf("missing %q in:\n%s", want, md)
-		}
+	chapter := heading(t, md, "Chapter")
+	if chapter.Level != 2 {
+		t.Errorf("section rendered at level %d, want 2", chapter.Level)
 	}
-	if strings.Contains(md, "\n## R1") {
-		t.Error("R1 must be nested under Chapter, not top level")
+	if chapter.Attrs != nil {
+		t.Errorf("a section must render no attr block, got %v", chapter.Attrs)
+	}
+	if !strings.Contains(md, "Chapter intro.") {
+		t.Error("section prose missing from the rendered document")
+	}
+	// Nesting is the contract: each level adds exactly one '#'.
+	if got := heading(t, md, "R1: Req").Level; got != 3 {
+		t.Errorf("R1 rendered at level %d, want 3 (one level under its section)", got)
+	}
+	if got := heading(t, md, "R2: Child").Level; got != 4 {
+		t.Errorf("R2 rendered at level %d, want 4 (one level under R1)", got)
 	}
 }
 
@@ -161,9 +181,9 @@ func TestBuild_LinksResolve(t *testing.T) {
 		},
 	))
 
-	md := got["down/requirements.md"]
-	if !strings.Contains(md, "  - upstream/UP-1") {
-		t.Errorf("cross-document link should be qualified by the target document-id:\n%s", md)
+	trace := attrList(t, heading(t, got["down/requirements.md"], "Down"), "trace")
+	if len(trace) != 1 || trace[0] != "upstream/UP-1" {
+		t.Errorf("trace = %v, want [upstream/UP-1] (qualified by the target document-id)", trace)
 	}
 }
 
@@ -191,9 +211,9 @@ func TestBuild_CrossDocumentLinkFallsBackToDir(t *testing.T) {
 		},
 	))
 
-	md := got["down/requirements.md"]
-	if !strings.Contains(md, "  - up-dir/UP-1") {
-		t.Errorf("link into a document without a document-id must use its dir:\n%s", md)
+	trace := attrList(t, heading(t, got["down/requirements.md"], "Down"), "trace")
+	if len(trace) != 1 || trace[0] != "up-dir/UP-1" {
+		t.Errorf("trace = %v, want [up-dir/UP-1] (dir fallback when the target has no document-id)", trace)
 	}
 }
 
@@ -218,14 +238,25 @@ func TestBuild_StatusMapping(t *testing.T) {
 		byPath[f.Path] = string(f.Data)
 	}
 	md := byPath["d/requirements.md"]
-	if !strings.Contains(md, "status: review") {
-		t.Errorf("mapped status missing:\n%s", md)
+	if got := attrString(t, heading(t, md, "Mapped"), "status"); got != "review" {
+		t.Errorf("mapped status = %q, want review", got)
 	}
-	if !strings.Contains(md, "status: approved") || !strings.Contains(md, `x-reqmd.source-status: Obsolete`) {
-		t.Errorf("unmapped status should fall back and keep provenance:\n%s", md)
+	unmapped := heading(t, md, "Unmapped")
+	if got := attrString(t, unmapped, "status"); got != "approved" {
+		t.Errorf("unmapped status = %q, want the approved fallback", got)
 	}
-	if !strings.Contains(byPath["d/schema.yaml"], "additional-status-values") {
-		t.Errorf("mapped non-builtin status must extend the schema enum:\n%s", byPath["d/schema.yaml"])
+	if got := attrString(t, unmapped, "x-reqmd.source-status"); got != "Obsolete" {
+		t.Errorf("provenance = %q, want the original status Obsolete", got)
+	}
+
+	schema := map[string]any{}
+	if err := yaml.Unmarshal([]byte(byPath["d/schema.yaml"]), &schema); err != nil {
+		t.Fatalf("schema is not valid YAML: %v", err)
+	}
+	xr, _ := schema["x-reqmd"].(map[string]any)
+	raw, ok := xr["additional-status-values"].([]any)
+	if !ok || len(raw) != 1 || raw[0] != "review" {
+		t.Errorf("additional-status-values = %v, want [review]", xr["additional-status-values"])
 	}
 }
 
