@@ -19,9 +19,9 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
 - `go.mod` / `go.sum` — Go module `github.com/dVoo/reqmd` (1.26)
 - `go.work` / `go.work.sum` — Go workspace linking `reqmd` (root), `reqmd-code`, and `reqmd-import`, so all three modules resolve each other from the repo root (`go build ./... ./reqmd-code/... ./reqmd-import/...`, `go test ./... ./reqmd-code/... ./reqmd-import/...`). Each keeps an independent `go.mod` and dependency set. Note: `./...` alone stops at the module boundary and does not descend into the nested modules.
-- `reqmd-code/` — Go module for the source-code extraction tool: it parses C, C++, Go, Python, and Rust with tree-sitter and emits a **reqmd-import/v1 exchange bundle** (JSON) on stdout. Invoked as `reqmd-code <source-dir>` (extraction is the tool's only job, so there is no subcommand). It writes no Markdown — `reqmd-import` renders the bundle. Language plugins live in `reqmd-code/internal/lang/` (currently C, C++, Go, Python, Rust), each self-registering via `lang.Register` in `init()` and blank-imported from `cmd/reqmd-code/main.go`. The canonical attr property set lives in `reqmd-code/internal/schema/standard_schema.yaml` and is projected into the bundle by `internal/schema`.
-- `reqmd-import/` — Go module for the exchange-format renderer. It owns the **only** Markdown/YAML writer (`internal/writer`): schema.yaml generation, attr-block quoting, heading depth, the `<!-- reqmd: generated -->` marker, and idempotent write-if-changed. `reqmd-import <bundle.json|-> -o <dir> [--check]`. Its public `exchange` package defines the `reqmd-import/v1` format and is imported by `reqmd-code` (producer) — this is the shared contract, so the format cannot drift between producer and renderer.
-- `python/` — `reqmd-io` (PyPI package `reqmd-io`, import name `reqmd_io`): typed dataclasses that emit `reqmd-import/v1` JSON. Deliberately contains **no** Markdown/YAML logic. `python/examples/csv_import.py` is a generic DOORS/codeBeamer CSV reader; `python/tests/` runs with `python -m unittest discover -s tests`. It versions **independently of the reqmd binaries** (bump only for a new feature or an exchange-format change) and is released by pushing a `py-v<version>` tag — never the bare `v*` prefix, which releases the binaries. `.github/workflows/publish-python.yml` builds, checks, and publishes it via PyPI Trusted Publishing; `python/pyproject.toml` holds the version.
+- `reqmd-code/` — Go module for the source-code extraction tool: it parses C, C++, Go, Python, and Rust with tree-sitter and emits an **exchange-format v1 bundle** (JSON) on stdout. Invoked as `reqmd-code <source-dir>` (extraction is the tool's only job, so there is no subcommand). It writes no Markdown — `reqmd-import` renders the bundle. Language plugins live in `reqmd-code/internal/lang/` (currently C, C++, Go, Python, Rust), each self-registering via `lang.Register` in `init()` and blank-imported from `cmd/reqmd-code/main.go`. The canonical attr property set lives in `reqmd-code/internal/schema/standard_schema.yaml` and is projected into the bundle by `internal/schema`.
+- `reqmd-import/` — Go module for the exchange-format renderer. It owns the **only** Markdown/YAML writer (`internal/writer`): schema.yaml generation, attr-block quoting, heading depth, the `<!-- reqmd: generated -->` marker, and idempotent write-if-changed. `reqmd-import <bundle.json|-> -o <dir> [--check]`. Its public `exchange` package defines the exchange format v1 (`Bundle`/`Document`/`Item`, nested items, batched validation, `--validate-only`, `--status-map`) and is imported by `reqmd-code` (producer) — this is the shared contract, so the format cannot drift between producer and renderer.
+- `python/` — `reqmd-io` (PyPI package `reqmd-io`, import name `reqmd_io`): typed dataclasses that emit exchange-format v1 JSON. Deliberately contains **no** Markdown/YAML logic. `python/examples/csv_import.py` is a generic DOORS/codeBeamer CSV reader; `python/tests/` runs with `python -m unittest discover -s tests`. It versions **independently of the reqmd binaries** (bump only for a new feature or an exchange-format change) and is released by pushing a `py-v<version>` tag — never the bare `v*` prefix, which releases the binaries. `.github/workflows/publish-python.yml` builds, checks, and publishes it via PyPI Trusted Publishing; `python/pyproject.toml` holds the version.
 - `.opencode/` — OpenCode tooling install (not part of the project)
 
 ## Key facts
@@ -257,26 +257,38 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   requirement content. `project.go` renders the project home; `reqmd serve`
   serves it at `/`. Client URL-state helpers are exported for
   `static/url_state.test.js`, run by `TestClientURLState` when Node is installed.
-- **Exchange-format import pipeline (`reqmd-import/v1`)**: Every importer is split
-  into a *producer* and the single *renderer*. Producers emit a JSON bundle
-  describing documents (`dir`, `id-prefix`, `level`, `upstream`, `properties`,
-  `requirements[]`); `reqmd-import` renders each document to `schema.yaml` +
-  `.md` via `internal/writer`. Comments extracted by `reqmd-code` are already
-  full reqmd IDs and go in `trace`; links to sibling items in the bundle use
-  `native-trace` and are rewritten to `<that document's id-prefix><native-id>`.
-  `parent` nests by native ID to any depth (the renderer reorders children under
-  their parents and each level adds one `#`; cycles are rejected). Native IDs
-  must be unique across a bundle. `status` defaults to `approved`; attrs take
-  scalars or flat lists and must not redefine the built-ins `status`/`trace`.
-  `exchange.Build` also rejects producer input that would corrupt a document
-  instead of writing it: an ID containing whitespace (nothing could `trace:` to
-  it), a `file` that is not a plain file name, a line break in a title or
-  notice, an attr name outside `[A-Za-z0-9._-]`, and a body that puts an `attr`
-  fence directly under a heading (in reqmd that pair *is* a requirement).
-  Values are quoted so reqmd's attr scanner cannot retype them — it resolves
-  plain scalars to null/bool/int and hands floats, timestamps, hex and big
-  integers to yaml.v3 (which retypes those too), so a string like `"123"` or
-  `"1.5"` must be quoted to stay a string.
+- **Exchange-format import pipeline (v1)**: Every importer is split into a
+  *producer* and the single *renderer*. The format is neutral: a bundle declares
+  `"$schema": "https://reqmd.dev/exchange/v1/schema.json"`, each document has a
+  stable `key` and `title`, and content is a **nested** tree of items whose
+  `kind` is `requirement` (content: an attr block, validated, traced, counted)
+  or `section` (structure only: heading, prose, children; no fields, no status,
+  never traced to, never counted). Folder-versus-leaf is derived from
+  `children`, never stored, so adding a subsection cannot change a node's kind.
+  Nesting replaces a parent pointer, so a cycle, an out-of-order child and a
+  dangling parent are unrepresentable. Requirements carry the producer's own
+  stable `key` (unique per document) which becomes
+  `<x-reqmd.id-prefix><key>`; `links` name other items by key (`"17"` locally,
+  `"brakes/17"` across documents) and are rewritten to full requirement IDs,
+  while `refs` carry external requirement IDs verbatim and are never resolved.
+  Everything reqmd-specific lives in the optional `x-reqmd` block (`id-prefix`,
+  `level`, `document-id`, `upstream`, `requires-trace-from`, `external`, `dir`,
+  `file`), so a producer that is not reqmd-aware omits it. `properties`/
+  `required` describe the attr-block JSON Schema; there is no field inheritance.
+  A `body` must contain no headings — a producer obligation the renderer does
+  **not** check, because that would need a Markdown parser in the render path.
+  `exchange.Build` validates every rule in one pass and reports the violations
+  together (max 20, addressed by item path): `$schema` mismatch, empty document
+  list, duplicate/malformed document key, missing title, unknown or missing
+  `kind`, requirement without key, duplicate key per document, fields or status
+  on a section, undeclared field, unsatisfied `required`, nested attribute
+  value, malformed attribute name, unresolved `link`, link to a section, title
+  with a line break, escaping directory, nesting deeper than six heading
+  levels, duplicate output path. `Decode` additionally rejects unknown fields,
+  trailing data and nesting beyond 32 levels. `--validate-only` runs the same
+  validation without writing; `--status-map "In Review=review"` maps a source
+  vocabulary (an unmapped foreign value falls back to `approved` and is kept as
+  `x-reqmd.source-status`).
   The `reqmd-code` bundle wraps this per package, and adds a requirement-less
   root document that carries the umbrella schema. The Go types in
   `reqmd-import/exchange` are the shared contract (imported by `reqmd-code`), and

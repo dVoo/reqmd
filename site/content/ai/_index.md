@@ -249,7 +249,7 @@ Three [Agent Skills](https://agentskills.io) bundle the day-to-day knowledge for
 |---|---|---|
 | `reqmd-usage` | [`/skills/reqmd-usage/SKILL.md`](/skills/reqmd-usage/SKILL.md) | The operational loop: `check`, tracing, coverage, status/disposition, version pins + `repin`, `--filter`, verification results, reading `--json`, suppression. |
 | `reqmd-authoring` | [`/skills/reqmd-authoring/SKILL.md`](/skills/reqmd-authoring/SKILL.md) | Creating and maintaining documents: layout, requirement anatomy, `schema.yaml` + `x-reqmd`, built-in attributes, the content model, restructuring. |
-| `reqmd-importers` | [`/skills/reqmd-importers/SKILL.md`](/skills/reqmd-importers/SKILL.md) | Writing a Python importer for DOORS, codeBeamer, a CSV, or an API: the `reqmd-import/v1` exchange format, `reqmd_io`, link mapping, attrs and schema, validation. |
+| `reqmd-importers` | [`/skills/reqmd-importers/SKILL.md`](/skills/reqmd-importers/SKILL.md) | Writing a Python importer for DOORS, codeBeamer, a CSV, or an API: the exchange format v1, `reqmd_io`, link mapping, attrs and schema, validation. |
 
 Copy the skill folder into whichever directory your agent loads skills from (for example `.claude/skills/`, `.agent/skills/`, or `~/.pi/agent/skills/`):
 
@@ -395,7 +395,7 @@ and "own your data." It gets both.
 - [Agent skill: `reqmd-authoring`](/skills/reqmd-authoring/SKILL.md) — authoring skill: documents, `schema.yaml`, attributes, maintenance.
 - [Agent skill: `reqmd-importers`](/skills/reqmd-importers/SKILL.md) — importer skill: the exchange format, `reqmd_io`, link mapping, ALM/CSV imports.
 - [Use cases](/use-cases/) — what reqmd is designed for, and what is out of scope.
-- [Code & ALM import](/import/) — `reqmd-code` extracts C, C++, Go, Python, and Rust symbols into the `reqmd-import/v1` exchange format; `reqmd-import` renders that bundle (or any custom importer's) into reqmd documents.
+- [Code & ALM import](/import/) — `reqmd-code` extracts C, C++, Go, Python, and Rust symbols into the exchange format; `reqmd-import` renders that bundle (or any custom importer's) into reqmd documents.
 - [<code>llms.txt</code>](/llms.txt) — a machine-readable index of this site for agents.
 - [<code>llms-full.txt</code>](/llms-full.txt) — the full plain-text dump of every page.
 - [FAQ](/faq/) — the questions an integrator asks.

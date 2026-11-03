@@ -1,0 +1,37 @@
+{
+  "$schema": "https://reqmd.dev/exchange/v1/schema.json",
+  "documents": [
+    {
+      "key": "up",
+      "title": "Up",
+      "x-reqmd": {
+        "id-prefix": "UP-",
+        "document-id": "upstream"
+      },
+      "items": [
+        {
+          "kind": "requirement",
+          "key": "1",
+          "title": "Up"
+        }
+      ]
+    },
+    {
+      "key": "down",
+      "title": "Down",
+      "x-reqmd": {
+        "id-prefix": "DN-"
+      },
+      "items": [
+        {
+          "kind": "requirement",
+          "key": "2",
+          "title": "Down",
+          "links": [
+            "up/1"
+          ]
+        }
+      ]
+    }
+  ]
+}

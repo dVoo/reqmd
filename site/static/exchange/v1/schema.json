@@ -5,7 +5,10 @@
   "description": "Shape of a reqmd exchange bundle. This schema validates structure only; cross-item rules (key resolution, uniqueness, required-field coverage, depth budget) are validated by the renderer and documented at https://reqmd.dev/exchange/v1/.",
   "type": "object",
   "additionalProperties": false,
-  "required": ["$schema", "documents"],
+  "required": [
+    "$schema",
+    "documents"
+  ],
   "properties": {
     "$schema": {
       "const": "https://reqmd.dev/exchange/v1/schema.json"
@@ -13,14 +16,19 @@
     "documents": {
       "type": "array",
       "minItems": 1,
-      "items": { "$ref": "#/$defs/document" }
+      "items": {
+        "$ref": "#/$defs/document"
+      }
     }
   },
   "$defs": {
     "document": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["key", "title"],
+      "required": [
+        "key",
+        "title"
+      ],
       "properties": {
         "key": {
           "type": "string",
@@ -28,14 +36,19 @@
           "pattern": "^[^/\\s]+$",
           "description": "Stable document identity, unique across the bundle. Qualifies cross-document links."
         },
-        "title": { "type": "string", "minLength": 1 },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
         "body": {
           "type": "string",
           "description": "Preamble prose rendered under the document title, before any item."
         },
         "items": {
           "type": "array",
-          "items": { "$ref": "#/$defs/item" }
+          "items": {
+            "$ref": "#/$defs/item"
+          }
         },
         "properties": {
           "type": "object",
@@ -43,9 +56,13 @@
         },
         "required": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "x-reqmd": { "$ref": "#/$defs/xreqmd" }
+        "x-reqmd": {
+          "$ref": "#/$defs/xreqmd"
+        }
       }
     },
     "xreqmd": {
@@ -53,32 +70,60 @@
       "additionalProperties": false,
       "description": "Renderer-specific configuration. Producers that are not reqmd-aware should omit it.",
       "properties": {
-        "id-prefix": { "type": "string" },
-        "level": { "type": "string" },
-        "document-id": { "type": "string" },
+        "id-prefix": {
+          "type": "string"
+        },
+        "level": {
+          "type": "string"
+        },
+        "dir": {
+          "type": "string",
+          "description": "Output directory relative to the output root. Defaults to the document key; must not escape the root."
+        },
+        "document-id": {
+          "type": "string"
+        },
         "upstream": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "level": { "type": "string" },
-            "sources": { "type": "array", "items": { "type": "string" } }
+            "level": {
+              "type": "string"
+            },
+            "sources": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
           }
         },
         "requires-trace-from": {
           "type": "array",
-          "items": { "type": "string" }
+          "items": {
+            "type": "string"
+          }
         },
-        "external": { "type": "boolean" },
-        "file": { "type": "string" }
+        "external": {
+          "type": "boolean"
+        },
+        "file": {
+          "type": "string"
+        }
       }
     },
     "item": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["kind"],
+      "required": [
+        "kind"
+      ],
       "properties": {
         "kind": {
-          "enum": ["requirement", "section"],
+          "enum": [
+            "requirement",
+            "section"
+          ],
           "description": "requirement renders a heading plus an attr block; section renders structure only."
         },
         "key": {
@@ -87,7 +132,9 @@
           "pattern": "^\\S+$",
           "description": "Stable identity, unique within the document. Required on requirements; forbidden on sections."
         },
-        "title": { "type": "string" },
+        "title": {
+          "type": "string"
+        },
         "body": {
           "type": "string",
           "description": "Markdown prose. Must not contain headings."
@@ -96,31 +143,76 @@
           "type": "object",
           "description": "Attr-block attributes. Requirements only. Scalars or flat lists of scalars."
         },
-        "status": { "type": "string" },
+        "status": {
+          "type": "string"
+        },
         "links": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "Keys of other items: 'key' in the same document, 'doc-key/key' across documents. Must resolve."
         },
         "refs": {
           "type": "array",
-          "items": { "type": "string" },
+          "items": {
+            "type": "string"
+          },
           "description": "External requirement IDs passed through verbatim. Never resolved or validated."
         },
         "children": {
           "type": "array",
-          "items": { "$ref": "#/$defs/item" },
+          "items": {
+            "$ref": "#/$defs/item"
+          },
           "description": "Nested items, in document order."
         }
       },
       "allOf": [
         {
-          "if": { "properties": { "kind": { "const": "requirement" } }, "required": ["kind"] },
-          "then": { "required": ["key"] }
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "requirement"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "required": [
+              "key"
+            ]
+          }
         },
         {
-          "if": { "properties": { "kind": { "const": "section" } }, "required": ["kind"] },
-          "then": { "not": { "anyOf": [{ "required": ["fields"] }, { "required": ["status"] }] } }
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "section"
+              }
+            },
+            "required": [
+              "kind"
+            ]
+          },
+          "then": {
+            "not": {
+              "anyOf": [
+                {
+                  "required": [
+                    "fields"
+                  ]
+                },
+                {
+                  "required": [
+                    "status"
+                  ]
+                }
+              ]
+            }
+          }
         }
       ]
     }

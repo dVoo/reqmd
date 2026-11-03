@@ -1,0 +1,45 @@
+{
+  "$schema": "https://reqmd.dev/exchange/v1/schema.json",
+  "documents": [
+    {
+      "key": "d",
+      "title": "D",
+      "items": [
+        {
+          "kind": "section",
+          "title": "s",
+          "children": [
+            {
+              "kind": "section",
+              "title": "s",
+              "children": [
+                {
+                  "kind": "section",
+                  "title": "s",
+                  "children": [
+                    {
+                      "kind": "section",
+                      "title": "s",
+                      "children": [
+                        {
+                          "kind": "section",
+                          "title": "s",
+                          "children": [
+                            {
+                              "kind": "section",
+                              "title": "s"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

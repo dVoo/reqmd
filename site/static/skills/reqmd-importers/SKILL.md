@@ -1,288 +1,179 @@
 ---
 name: reqmd-importers
-description: Write a Python importer that pulls requirements from another tool (DOORS, codeBeamer, Polarion, Jama, a CSV export, a REST API, a database) into a validated reqmd spec tree. Use when asked to import, mirror, sync, or convert external requirements into reqmd Markdown, or when working with the reqmd-import/v1 exchange format, reqmd_io, reqmd-import, or reqmd-code bundles. Triggers include "write an importer", "import DOORS into reqmd", "DOORS/codeBeamer CSV to requirements", "mirror an ALM into the spec", "exchange format", "reqmd-import", "reqmd_io", "migrate our requirements to Markdown".
+description: Write a reqmd importer — pull requirements out of DOORS, codeBeamer, a CSV, an API or a database into reqmd by emitting the exchange format (JSON) and letting reqmd-import render it into schema.yaml + Markdown.
 ---
 
 # Writing a reqmd importer
 
-How to get requirements out of another tool and into a reqmd tree **without
-hand-writing Markdown or a schema**.
-
 ## When to use
 
-- Mirroring requirements from an ALM (DOORS, codeBeamer, Polarion, Jama) into
-  reqmd as generated, diff-reviewed documents.
-- One-time migration (`migrate our legacy spec to Markdown`).
-- A nightly/CI sync from a CSV, REST API, database, or ReqIF export.
-- Debugging a bundle that `reqmd-import` rejected.
+You have requirements in another system (DOORS, codeBeamer, Polarion, JAMA, a
+CSV export, a REST API, a database) and want them validated, traceable and
+reviewable in reqmd. Also relevant when a producer emits a bundle that
+`reqmd-import` rejects and you need to know why.
 
-Not for: authoring requirements by hand (use `reqmd-authoring`), or operating
-an existing tree (use `reqmd-usage`).
+Not for this: reading reqmd (that is `reqmd ls`/`export`), or writing Markdown
+by hand (that is the authoring quickstart).
 
 ## Ground rules
 
-1. **You write JSON. You do not write Markdown or YAML.** The pipeline is
-   `producer → reqmd-import/v1 JSON → reqmd-import → .md + schema.yaml`. A
-   second Markdown writer in Python *will* drift from the renderer on quoting,
-   heading depth, and schema rules. There is exactly one renderer; use it.
-2. **One-way, content down.** The ALM is authoritative for what it owns; reqmd
-   is authoritative downstream. Never write imported prose back into the ALM.
-   Pushing *computed* facts (coverage, verdicts) back is a separate, safe job —
-   they are recomputed every run so they cannot conflict.
-3. **Keep the source tool's own stable ID.** `native_id` is the DOORS absolute
-   number or the codeBeamer item ID, not a hash and not a row number. The
-   rendered ID becomes `<id-prefix><native-id>`. Re-imports must never churn
-   IDs, or every `trace:` pointing at an imported requirement breaks.
-4. **Never invent a reqmd ID.** Supply `native_id`; the renderer stamps it.
-5. **Treat the renderer's rejections as bugs in your script**, not obstacles.
-   They exist to stop a malformed document at the boundary.
-6. **Imports land in a dedicated directory** that nothing hand-edits.
-
-## The pipeline
-
-```
-ALM / CSV / API ──▶ your Python script ──▶ bundle.json ──▶ reqmd-import ──▶ spec/00-doors/
-   (fetch + field map)      (reqmd_io)      (v1 format)      (renders)         (.md + schema.yaml)
-                                                                                    │
-                                                                            reqmd check spec/
-```
+1. **Your importer emits JSON, never Markdown or YAML.** `reqmd-import` is the
+   only writer, so quoting, heading depth and schema rules exist once.
+2. **Keep the source tool's own stable ID as `key`.** The rendered reqmd ID is
+   `<x-reqmd.id-prefix><key>` (`DOORS-17`). Re-imports must never churn IDs, or
+   every hand-written `trace:` breaks.
+3. **Never invent a reqmd ID.** Supply `key`; the renderer stamps the ID.
+4. **Structure is `kind: "section"`, content is `kind: "requirement"`.** A
+   section has no fields, is never traced to and is never counted as coverage.
+5. **Validate before you render.** `reqmd-import bundle.json --validate-only`
+   reports every violation in one run and writes nothing.
+6. The authoritative contract is `/exchange/v1/` (source:
+   `site/content/exchange/v1.md`) plus `schema.json` next to it. Read it before
+   inventing a field.
 
 ## Procedure
 
 ### 1. Decide the boundary
 
-Write down, before coding: which documents you produce, and which of them is
-authoritative where. A useful default is one imported document per source
-module, marked `external: true` (a proxy for content authored elsewhere).
+One reqmd document per module/tracker/spec, not one per item. Documents are
+cheap; cross-document links need a `document-id`.
 
 ### 2. Choose the document shape
 
-One `Document` per output directory:
-
-| Field | Notes |
-|---|---|
-| `dir` | Output subdirectory. `""` = the output root. Must not escape it. |
-| `id_prefix` | Prepended to every `native_id`. Use the source tool's tag: `DOORS-`, `CB-`. |
-| `level` | `x-reqmd.level`, e.g. `stakeholder-requirements`. Enables level-typed coverage. |
-| `document_id` | Stable id for qualified refs (`document_id/ID`) — survives moves and submodule assembly. |
-| `title` / `file` | Level-1 heading; `.md` filename (default `requirements.md`). `file` must be a plain file name — no `/`, no `..`. |
-| `external` | `true` for a mirror of content authored elsewhere (suppresses untraced noise, pins out of scope). |
-| `upstream` | `{"level": "...", "sources": ["../01-stakeholder/"]}` for doc-chain navigation. |
-| `properties` / `required` | The attr-block JSON Schema — see step 5. |
-
-A requirement-less document is valid and emits only `schema.yaml`. Use one as
-an umbrella (shared level + upstream) when producing many sibling documents.
+```python
+doc = Document(
+    key="brakes",                      # bundle-internal identity, unique, no "/"
+    title="Brakes Module",             # required
+    x_reqmd={                          # everything reqmd-specific
+        "id-prefix": "DOORS-",
+        "level": "stakeholder-requirements",
+        "document-id": "brakes",       # how trace refs qualify this document
+        "external": True,              # a mirror of content authored elsewhere
+        "dir": "brakes",               # output directory; omit to use the key
+    },
+    properties={"priority": {"type": "string"}},   # attr-block JSON Schema
+    required=["priority"],
+)
+```
 
 ### 3. Fetch and map items
 
 ```python
-from reqmd_io import Bundle, Document, Requirement
+from reqmd_io import Bundle, Document, Requirement, Section
 
-doc = Document(id_prefix="DOORS-", dir="brakes", file="package.md",
-               title="Brakes Module", level="stakeholder-requirements",
-               external=True,
-               properties={"priority": {"type": "string"}})
-
-for item in fetch_doors_module():          # your code: REST / DXL / CSV
-    doc.add(Requirement(
-        native_id=item.absolute_number,
-        title=item.heading,
-        body=item.text,
-        parent=item.parent_number or "",   # native id, same document
-        attrs={"priority": item.priority},
-    ))
-
-Bundle([doc]).write("brakes.json")
+for obj in doors_module.objects:
+    if obj.type == "Heading":
+        doc.add(Section(key=obj.number, title=obj.heading,
+                        body=obj.text or ""))
+        continue
+    doc.add(
+        Requirement(
+            key=obj.absolute_number,
+            title=obj.heading,
+            body=obj.text,                   # Markdown, no headings
+            fields={"priority": obj.priority},
+            links=obj.internal_link_keys,    # other items in this bundle
+            refs=obj.external_link_ids,      # IDs owned elsewhere, verbatim
+        ),
+        parent=obj.parent_number or "",      # breadth-first is fine
+    )
 ```
 
-- **`body` is Markdown.** Convert plain text to paragraphs if the source has
-  newlines; a raw multi-line string is written verbatim into the document.
-  Headings inside a body are fine — they become info items under the
-  requirement — but a fence whose info string is `attr` directly under a
-  heading is rejected, because in reqmd that pair *is* a requirement: an
-  imported description could otherwise add requirements of its own.
-- **`title` is the heading text** after the ID; omit it for a bare heading.
-- **`status` defaults to `approved`**, which is what makes imported items
-  satisfy downstream coverage. Set `draft` only if the source really is a draft.
-- **Keep provenance**: add `attrs={"x-reqmd.external-id": item.id,
-  "x-reqmd.external-url": item.web_url}` so reviewers get a deep link back — and
-  declare both in `properties`, or the generated schema rejects them.
+`doc.add(item, parent=key)` nests by key, so a flat table stays a flat loop.
+The parent must already have been added — add parents before children, or
+collect rows and nest in a second pass.
 
-### 4. Map links to `trace` vs `native_trace`
+### 4. `links` versus `refs`
 
-This is the payoff: relations become validated graph edges.
+- `links` — keys of other items **in this bundle**. The renderer resolves and
+  rewrites them; an unresolved link is an error. Use `"17"` for the same
+  document and `"brakes/17"` across documents. They must target requirements.
+- `refs` — requirement IDs owned by **someone else** (`SYS-BRAKE-001`). Written
+  verbatim into `trace:`. Never resolved by the importer; `reqmd check` reports
+  a missing target, which is the correct signal for an external document.
 
-- `trace` — **fully-qualified reqmd IDs**, passed through verbatim. Use for
-  links to hand-authored requirements (`"SYS-BRAKE-001"`, `"system/SYS-001"`).
-- `native_trace` — **native IDs of other items in this bundle**. The renderer
-  rewrites each to that item's full ID. Use for links to sibling imported items,
-  including items in a *different* document of the same bundle.
-
-When one source column mixes both, classify (the shipped CSV example does
-exactly this):
-
-```python
-import re
-REQMD_ID = re.compile(r"^(?:[a-z0-9_-]+/)?[A-Z][A-Z0-9-]+(?:~\d+)?$")
-
-trace, native_trace = [], []
-for link in split_links(item.links):       # your separator
-    (trace if REQMD_ID.match(link) else native_trace).append(link)
-```
-
-`native_id`s must be **unique across the whole bundle** — that is what makes
-cross-document `native_trace` unambiguous. If two source modules can reuse the
-same key, prefix it with the module.
+Both end up in the rendered `trace:` list.
 
 ### 5. Declare the attr schema
 
-Every attribute you emit must be declared, or the generated `schema.yaml`
-rejects it (`additionalProperties: false`):
+Every key you put in `fields` must appear in the document's `properties`, or the
+renderer rejects the requirement. Values are strings, numbers, booleans or flat
+lists of those. A JSON string stays a string even when it reads like `123`,
+`null` or `true` — send a real number when you mean one.
 
-```python
-properties={name: {"type": "string"} for name in attr_columns}
-# tighter, when you know the domain:
-properties={"priority": {"type": "string", "enum": ["High", "Medium", "Low"]}}
-required=["priority"]          # only if every item really has it
-```
-
-Attr values may be strings, numbers, booleans, or **flat lists** of those.
-Nested maps/lists are rejected — flatten them (`x.y` keys) instead.
-`status` and `trace` are reserved: they have dedicated fields.
-
-Attribute names may only contain letters, digits, `_`, `-` and `.`. A name with
-anything else (a colon, say) is rejected, because reqmd reads the attr block
-line by line and would silently file the value under a different name.
-
-Send a JSON number or boolean when you mean one: a JSON *string* stays a string,
-even when it reads like a number, `null`, or `true`.
+`required` means "every requirement in this document carries it". Nothing is
+inherited from a section: repeat the attribute on each requirement.
 
 ### 6. Render and validate
 
 ```sh
-pip install ./python                  # from the reqmd repo (not on PyPI)
-go build -o reqmd-import ./reqmd-import/cmd/reqmd-import
-
-python my_importer.py -o brakes.json
-./reqmd-import brakes.json -o spec/00-doors/          # render
-reqmd check spec/                                     # validate the whole tree
+reqmd-import bundle.json --validate-only     # validate only
+reqmd-import bundle.json -o spec/00-doors/   # render
+reqmd-import bundle.json -o spec/00-doors/ --check   # render + reqmd check
 ```
 
-Add `--check` to `reqmd-import` to run `reqmd check` on the output
-automatically (it needs `reqmd` on `PATH`).
-
-Review the diff like any other change: the generated documents are ordinary
-Markdown in the repo, so the PR diff *is* the review of the import.
+Re-running is a no-op when nothing changed; files without the
+`<!-- reqmd: generated -->` marker are never touched.
 
 ## Format reference
 
-`Requirement` fields (Python) / JSON keys:
+Document:
 
-| Field | Meaning |
-|---|---|
-| `native_id` / `native-id` | **Required.** Source tool's stable key. No whitespace — the rendered ID must be referenceable by `trace:`. |
-| `title`, `body` | Heading text; Markdown body after the attr block (single-line title). |
-| `status` | Built-in status; omitted → `approved`. |
-| `parent` / `parent` | Native id of the parent **in the same document**. |
-| `trace` | Fully-qualified reqmd IDs, verbatim. |
-| `native_trace` / `native-trace` | Native ids resolved inside the bundle. |
-| `attrs` | Everything else for the attr block. |
+| Field | Required | Meaning |
+| --- | --- | --- |
+| `key` | yes | Document identity, unique in the bundle, no `/` or whitespace |
+| `title` | yes | Level-1 heading |
+| `body` | no | Preamble prose under the title |
+| `items` | no | Nested items, in document order |
+| `properties` / `required` | no | Attr-block JSON Schema (requirements only) |
+| `x-reqmd` | no | `id-prefix`, `level`, `document-id`, `upstream`, `requires-trace-from`, `external`, `dir`, `file` |
 
-Bundle JSON shape:
+Item:
 
-```json
-{
-  "format": "reqmd-import/v1",
-  "documents": [
-    { "dir": "brakes", "id-prefix": "DOORS-", "level": "...",
-      "properties": { "...": { "type": "string" } },
-      "requirements": [
-        { "native-id": "17", "title": "Brake request", "body": "...",
-          "parent": "1", "native-trace": ["1"], "trace": ["SYS-BRAKE-001"],
-          "attrs": { "priority": "High" } }
-      ] }
-  ]
-}
-```
+| Field | Required | Meaning |
+| --- | --- | --- |
+| `kind` | yes | `"requirement"` or `"section"` |
+| `key` | requirements | Stable source ID, unique per document, no whitespace |
+| `title` | no | Heading text; omit for a prose block |
+| `body` | no | Markdown, **no headings** |
+| `fields` | no | Attr-block entries (rejected on sections) |
+| `status` | no | Source vocabulary; map with `--status-map` |
+| `links` | no | Keys of other items, must resolve to requirements |
+| `refs` | no | External requirement IDs, verbatim |
+| `children` | no | Nested items, document order |
 
-Renderer guarantees worth relying on:
+Bundle: `{"$schema": "https://reqmd.dev/exchange/v1/schema.json", "documents": [...]}`.
+Unknown fields are rejected everywhere.
 
-- Requirements may be listed in **any order**: children are reordered directly
-  under their parents, to any depth (`##`, `###`, `####`, …).
-- Unknown JSON fields and trailing data are **rejected** — a typo fails loudly.
-- Duplicate `native_id`s, unknown `parent`/`native-trace`, reserved attrs,
-  parent cycles, escaping `dir`s, and two documents claiming one output path are
-  all rejected with a precise message.
-- Content that would corrupt a document is rejected too, so a data-quality bug
-  in the source tool fails here instead of silently changing the tree: an ID
-  containing whitespace, a `file` that is not a plain file name, a line break in
-  a title or notice, an attribute name outside `A-Z a-z 0-9 _ - .`, and a body
-  that puts an `attr` fence directly under a heading.
-- Output is byte-deterministic and idempotent. Files carry a
-  `<!-- reqmd: generated -->` marker; **content without that marker is never
-  overwritten**, and unchanged files are not rewritten.
+## Rejections you will hit
 
-## Worked example: DOORS / codeBeamer CSV
+All are reported together, addressed by item path (`brakes/Hydraulics/17`):
 
-A generic reader for both tools ships in the repo — no code needed for the
-common case:
+- `kind` missing or unknown; a requirement without `key`; duplicate keys
+- `fields` on a section; an attribute not declared in `properties`; an
+  unsatisfied `required`; a nested object/list as an attribute value; an
+  attribute name outside `[A-Za-z0-9._-]`
+- a `link` that does not resolve, or resolves to a section
+- a title containing a line break; a document `key` containing `/`
+- nesting deeper than six heading levels (flatten in the producer)
+- two documents claiming the same output path
 
-```sh
-python python/examples/csv_import.py rows.csv -o doors.json \
-  --dir brakes --id-prefix DOORS- --title "Brakes Module" \
-  --level stakeholder-requirements --external \
-  --id-column "Absolute Number" --title-column "Object Heading" \
-  --body-column "Object Text" --parent-column Parent \
-  --trace-column Links --attr priority=Priority
-
-reqmd-import doors.json -o spec/00-doors/ --check
-```
-
-Use it as the template for a source with different column names, or when you
-need to fetch from an API instead of a file. See `quickstart/15-custom-importers/`
-for the end-to-end walkthrough.
+`body` containing a heading is a **producer obligation, not checked**: it will
+silently re-parent the tree. Split structure into sections instead.
 
 ## Pitfalls
 
-- **Do not hand-write `.md` or `schema.yaml`.** If the bundle format cannot
-  express what you need, extend producers' use of `attrs`/`properties` — or
-  raise it as a format change. Adding a second renderer is the failure mode this
-  architecture exists to prevent.
-- **A hand-authored `schema.yaml` in the output directory is never
-  overwritten** (that is the marker guard). If your import "did nothing" to the
-  schema, check for an existing hand-written document at that path — and give
-  imports their own directory instead.
-- **Colliding `native_id`s across documents.** Uniqueness is bundle-wide, not
-  per document. Namespace the key.
-- **An ALM key with a space or a slash in it.** DOORS and ReqIF frequently hand
-you keys like `Item 42`. A space makes the rendered ID un-referenceable, so it
-  is rejected: map the source key to a stable, reqmd-shaped one (usually
-  `ReqIF.ForeignID`) and keep the original in `attrs`
-  ("x-reqmd.external-id") for the way back.
-- **`parent` is document-local.** Cross-document parents are rejected; express
-  cross-document relationships as traces, not nesting.
-- **Declaring an attribute you never emit, or emitting one you never declare.**
-  Both fail validation. Keep the two in sync — derive `properties` from the same
-  mapping you build `attrs` from.
-- **Assuming `trace` resolves.** A ref to a requirement outside the tree is a
-  WARNING (`broken reference`), so exit code 0 does not mean the link is good.
-  Import the upstream document too, or fix the ID.
-- **Assuming `--check` found the binary.** `--check` shells out to `reqmd` on
-  `PATH`; run `reqmd check` yourself if it is not installed.
-- **`external: true` does not mean "ignore me".** It suppresses untraced noise
-  and pins; the document is still validated and still participates in coverage.
-- **Never edit a generated document by hand.** The next import overwrites it.
-  Fix the producer, or make the requirement hand-authored in a different
-  document.
+- **Reusing keys across source modules.** Keys are document-scoped, so `17` in
+  two documents is fine — but a cross-document `link` must say `doc-key/17`.
+- **`body` with Markdown headings.** The most common way to corrupt a tree.
+- **Numbers typed as strings.** `fields={"line": "12"}` renders as `"12"`; if
+  the schema says integer, pass `12`.
+- **Sections with fields.** A source heading that carries its own metadata has
+  no representation: put the metadata on the requirements beneath it.
+- **Assuming the reqmd ID.** Always `<id-prefix><key>`; never hand-mint one.
 
-## Verification
+## Worked example
 
-1. `reqmd-import bundle.json -o <dir>` succeeds (no rejection messages).
-2. `reqmd check <root>` exits 0 with **0 invalid and 0 parse errors**; read the
-   warnings — broken refs introduced by the import show up there.
-3. Re-run the importer, then confirm the tree is unchanged: a second
-   `reqmd-import` writes nothing (byte-identical output is not rewritten).
-   Every ID in the tree is identical across the two runs.
-4. Spot-check one rendered document: hierarchy is nested (`##`/`###`), the attr
-   block is valid YAML, and `trace`/`native_trace` links resolved to full IDs.
-5. `reqmd ls <root> | grep '<ID>'` finds an imported requirement you expect.
+`python/examples/csv_import.py` is a complete DOORS/codeBeamer reader; see
+quickstart step 15 for the invocation, including `--kind-column "Object Type"`
+to turn `Heading`/`Text` rows into sections.

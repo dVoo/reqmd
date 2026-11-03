@@ -1,11 +1,14 @@
 # reqmd-io
 
-Build [`reqmd-import/v1`](../reqmd-import) exchange bundles from Python.
+Build [exchange-format](../site/content/exchange/v1.md) bundles from Python.
 
 This library only emits the JSON exchange format — it contains no Markdown or
 YAML logic. `reqmd-import` is the single renderer that turns a bundle into
 reqmd documents (`schema.yaml` + `.md`), so an importer written in Python
 cannot drift from the Go renderer.
+
+The contract: [exchange format v1](/site/content/exchange/v1.md) ·
+[`schema.json`](../site/static/exchange/v1/schema.json).
 
 ## Install
 
@@ -22,49 +25,63 @@ pip install ./python
 ## Use
 
 ```python
-from reqmd_io import Bundle, Document, Requirement
+from reqmd_io import Bundle, Document, Requirement, Section
 
-doc = Document(id_prefix="DOORS-", dir="brakes", level="stakeholder-requirements",
-               title="Brakes Module", external=True,
-               properties={"priority": {"type": "string", "enum": ["High", "Low"]}})
+doc = Document(
+    key="brakes",
+    title="Brakes Module",
+    x_reqmd={"id-prefix": "DOORS-", "level": "stakeholder-requirements",
+             "external": True, "dir": "brakes"},
+    properties={"priority": {"type": "string", "enum": ["High", "Low"]}},
+)
 
-doc.add(Requirement(native_id="17", title="Brake request",
+doc.add(Section(title="Hydraulics", body="The hydraulic circuit."))
+doc.add(Requirement(key="17", title="Brake request",
                     body="The pedal shall request braking.",
-                    attrs={"priority": "High"}))
-doc.add(Requirement(native_id="42", title="Brake pressure", parent="17",
-                    native_trace=["17"], trace=["SYS-001"],
-                    attrs={"priority": "Low"}))
+                    fields={"priority": "High"}))
+doc.add(Requirement(key="42", title="Brake pressure",
+                    links=["17"], refs=["SYS-001"],
+                    fields={"priority": "Low"}), parent="17")
 
 Bundle([doc]).write("brakes.json")
 ```
 
 ```sh
+reqmd-import brakes.json --validate-only   # report every violation, write nothing
 reqmd-import brakes.json -o spec/00-doors/
 reqmd check spec/
 ```
 
 Key points:
 
-- `native_id` is the source tool's own stable ID (a DOORS object number, a
-  codeBeamer item ID). The reqmd ID becomes `<id_prefix><native_id>`, so
-  re-imports never churn IDs and hand-authored `trace:` links keep resolving.
-  It must not contain whitespace (an `Item 42` key is rejected: nothing could
-  ever `trace:` to the ID it produces).
-- `trace` holds fully-qualified reqmd IDs. `native_trace` holds native IDs of
-  other items in the same bundle and is rewritten to that item's full ID.
-- `attrs` take strings, numbers, booleans, or flat lists of those. A string
-  stays a string even when it looks like a number or `null`, so pass a real
-  number or boolean when you mean one. Names may only contain letters, digits,
-  `_`, `-` and `.`. The built-ins `status` and `trace` are reserved (there are
-  dedicated fields).
-- `body` is Markdown and may contain headings (they become info items), but not
-  a fence whose info string is `attr` directly under a heading — that pair would
-  become a requirement of its own.
-- `properties` declares the attr-block JSON Schema; regenerating with a new
-  attr means adding it there.
+- `kind` separates content from structure: `Requirement` gets an attr block and
+  is validated, traced and counted; `Section` is a heading with prose and
+  children. Both are the same wire `kind` — folder-versus-leaf is derived from
+  whether a section has children, so adding a subsection never changes a type.
+- `key` is the source tool's own stable ID (a DOORS object number, a codeBeamer
+  item ID), unique per document. The reqmd ID becomes
+  `<x_reqmd["id-prefix"]><key>`, so re-imports never churn IDs and
+  hand-authored `trace:` links keep resolving. It must not contain whitespace.
+- `links` name other items by key (`"17"`, or `"brakes/17"` across documents)
+  and are rewritten to full requirement IDs. `refs` hold IDs owned elsewhere
+  and are passed through verbatim.
+- `doc.add(item, parent=key)` nests by key, so a flat source table stays a flat
+  loop. The parent must already have been added.
+- `fields` are the attr-block entries (sections never carry them). Values take
+  strings, numbers, booleans or flat lists of those; a string stays a string
+  even when it looks like a number or `null`, so pass a real number or boolean
+  when you mean one. Names may only contain letters, digits, `_`, `-` and `.`.
+- `body` is Markdown and **must not contain headings** — structure belongs in
+  sections.
+- `status` is your own vocabulary. `reqmd-import --status-map "In Review=review"`
+  translates it; an unmapped value falls back to reqmd's default and is kept as
+  `x-reqmd.source-status`.
+- `properties` declares the attr-block JSON Schema; a new attribute means
+  adding it there.
 
 A complete, runnable importer is in [`examples/csv_import.py`](examples/csv_import.py)
-— one generic reader for DOORS and codeBeamer CSV exports.
+— one generic reader for DOORS and codeBeamer CSV exports, with
+`--kind-column` to map a row-type column onto requirement versus section.
 
 ## Test
 

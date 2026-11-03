@@ -12,15 +12,15 @@ problem:
 - **ALM tools** — the DOORS or codeBeamer items that product managers review
   need to land in the spec tree as generated, reviewed-as-diffs documents.
 
-Both are handled the same way: a small producer emits one JSON **exchange
-format** (`reqmd-import/v1`), and a single renderer (`reqmd-import`) writes the
-actual reqmd documents. Nobody but the renderer writes `attr` blocks or
+Both are handled the same way: a small producer emits one JSON bundle in the
+[exchange format](/exchange/v1/), and a single renderer (`reqmd-import`) writes
+the actual reqmd documents. Nobody but the renderer writes `attr` blocks or
 `schema.yaml`.
 
 ```
-DOORS / codeBeamer / CSV ──▶ your script ──▶ reqmd-import/v1 JSON ──┐
+DOORS / codeBeamer / CSV ──▶ your script ──▶ exchange JSON ──┐
                                                                      ├─▶ reqmd-import ──▶ .md + schema.yaml ──▶ reqmd check
-source code (tree-sitter) ─▶ reqmd-code ─────▶ reqmd-import/v1 JSON ─┘
+source code (tree-sitter) ─▶ reqmd-code ─────▶ exchange JSON ─┘
 ```
 
 Why one renderer: a second Markdown writer in Python (or Java, or DXL) would
@@ -108,31 +108,32 @@ under `reqmd-code/internal/lang/<lang>/` and self-register it via
 
 ## ALM tools and anything else: the exchange format
 
-Any tool that can print JSON can feed reqmd. The full field reference, the
-renderer's rules, and two complete examples live on the
-[exchange format page](/exchange/v1/); the machine-readable contract is
-[`schema.json`](/exchange/v1/schema.json).
+Any tool that can print JSON can feed reqmd. A producer writes one JSON bundle;
+`reqmd-import` renders it into `schema.yaml` plus Markdown. The format is
+neutral: nothing reqmd-specific is required of you, and the few reqmd-only
+decisions (ID prefix, V-model level, upstream wiring) live in an optional
+`x-reqmd` block.
 
-A minimal bundle:
+A minimal bundle — one section grouping two requirements:
 
 ```json
 {
-  "format": "reqmd-import/v1",
+  "$schema": "https://reqmd.dev/exchange/v1/schema.json",
   "documents": [
     {
-      "dir": "brakes",
-      "file": "package.md",
+      "key": "brakes",
       "title": "Brakes Module",
-      "level": "stakeholder-requirements",
-      "id-prefix": "DOORS-",
-      "external": true,
       "properties": {"priority": {"type": "string", "enum": ["High", "Low"]}},
-      "requirements": [
-        {"native-id": "17", "title": "Brake request",
-         "body": "The pedal shall request braking.", "attrs": {"priority": "High"}},
-        {"native-id": "42", "title": "Brake pressure", "parent": "17",
-         "native-trace": ["17"], "trace": ["SYS-BRAKE-001"],
-         "attrs": {"priority": "Low"}}
+      "x-reqmd": {"id-prefix": "DOORS-", "level": "stakeholder-requirements",
+                  "external": true, "dir": "brakes"},
+      "items": [
+        {"kind": "section", "title": "Hydraulics",
+         "children": [
+           {"kind": "requirement", "key": "17", "title": "Brake request",
+            "body": "The pedal shall request braking.", "fields": {"priority": "High"}},
+           {"kind": "requirement", "key": "42", "title": "Brake pressure",
+            "fields": {"priority": "Low"}, "links": ["17"], "refs": ["SYS-BRAKE-001"]}
+         ]}
       ]
     }
   ]
@@ -140,81 +141,45 @@ A minimal bundle:
 ```
 
 ```sh
+reqmd-import brakes.json --validate-only      # report every violation, write nothing
 reqmd-import brakes.json -o spec/00-doors/ --check
 ```
 
 The format deliberately keeps the *source tool's* stable IDs:
 
-- `native-id` is the DOORS object number or codeBeamer item ID. The reqmd ID
-  becomes `<id-prefix><native-id>` (`DOORS-17`). Re-imports never churn IDs, so
-  hand-written `trace:` links keep resolving. It must not contain whitespace: a
-  key like `Item 42` would produce an ID that no `trace:` could ever reference.
-- `parent` nests by native ID to any depth (each level adds one `#`); the
-  renderer reorders children under their parents, so a producer can emit items
-  in any order.
-- `trace` holds fully-qualified reqmd IDs. `native-trace` holds native IDs of
-  other items in the bundle — the renderer rewrites them to full IDs for you.
-- `attrs` are the remaining attribute-block entries. Values take strings,
-  numbers, booleans, or flat lists of those; a JSON string stays a string even
-  when it reads like a number, `null`, or `true`, so send a real number or
-  boolean when you mean one. Names may only contain letters, digits, `_`, `-`
-  and `.`. `status` and `trace` are reserved (they have dedicated fields), and
-  `status` defaults to `approved`, so imported items count as upstream coverage
-  providers.
-- `body` is Markdown and may contain headings — they become info items under
-  the requirement. It must not put a fence whose info string is `attr` directly
-  under a heading, because in reqmd that pair *is* a requirement: an imported
-  description could otherwise add requirements of its own.
+- `kind` is `requirement` (content: an attr block, validated, traced, counted)
+  or `section` (structure only: a heading, its prose, its children). A section
+  that has children renders as a folder; one without renders as a prose block.
+- `key` is the DOORS object number or codeBeamer item ID, unique per document.
+  The reqmd ID becomes `<x-reqmd.id-prefix><key>` (`DOORS-17`), so re-imports
+  never churn IDs and hand-written `trace:` links keep resolving.
+- `children` nest items in document order. There is no parent pointer to get
+  wrong: a missing parent, an out-of-order child and a cycle are unrepresentable.
+- `links` name other items by key (`"17"`, or `"brakes/17"` across documents)
+  and are rewritten to full requirement IDs; `refs` hold IDs owned elsewhere and
+  are passed through verbatim.
+- `fields` are the attr-block entries (sections never carry them). A JSON
+  string stays a string even when it reads like a number, `null` or `true`, so
+  send a real number or boolean when you mean one.
+- `body` is Markdown and **must not contain headings** — structure belongs in
+  sections. Doc comments with headings are split into sections by `reqmd-code`
+  for exactly this reason.
+- `status` is your own vocabulary. `--status-map "In Review=review"` translates
+  it; an unmapped value falls back to reqmd's default and is kept as
+  `x-reqmd.source-status`.
 - `properties` / `required` describe the attr block's JSON Schema, which the
   renderer writes into the document's `schema.yaml`.
-- `external: true` marks the document a proxy for content authored elsewhere.
+- `x-reqmd.external: true` marks the document a proxy for content authored
+  elsewhere.
 
-Titles and notices must be single-line, and `file` must be a plain file name.
-Anything that would silently corrupt a document — a line break in a title, an
-attribute name containing a colon, an ID with a space in it — is rejected with a
-precise message instead of being written.
+The renderer never normalizes, reorders or drops: anything that would corrupt a
+document — a dangling link, a section with fields, an undeclared attribute, a
+line break in a title, a nesting deeper than six heading levels — is rejected,
+and every violation is reported in one run with an item path.
 
-Emitted files carry a `<!-- reqmd: generated -->` marker. A re-run rewrites
-generated files only: hand-authored content in the same tree is never
-clobbered, and unchanged output is not rewritten at all.
-
-### Writing an importer in Python
-
-`pip install ./python` gives you `reqmd_io`, a dependency-free helper that only
-builds the exchange JSON — it contains no YAML or Markdown logic, so it cannot
-drift from the renderer.
-
-```python
-from reqmd_io import Bundle, Document, Requirement
-
-doc = Document(id_prefix="CB-", dir="codebeamer", level="stakeholder-requirements",
-               title="codeBeamer Requirements", external=True,
-               properties={"priority": {"type": "string"}})
-
-for item in my_codebeamer_pull():           # your REST/DXL/CSV code
-    doc.add(Requirement(native_id=item.id, title=item.name, body=item.description,
-                        parent=item.parent_id,
-                        native_trace=[link.target for link in item.links],
-                        attrs={"priority": item.priority}))
-
-Bundle([doc]).write("codebeamer.json")
-```
-
-```sh
-reqmd-import codebeamer.json -o spec/00-codebeamer/
-```
-
-A complete, runnable reader for DOORS and codeBeamer CSV exports ships at
-[`python/examples/csv_import.py`](https://github.com/dVoo/reqmd/blob/main/python/examples/csv_import.py);
-[Quickstart 15](/quickstart/) walks it end to end.
-
-### The authority rule
-
-Import mirrors **content down** (ALM → reqmd) into generated, `external: true`
-documents. It is deliberately one-way: reqmd is authoritative for its own
-downstream layers and does not write prose back into a database-backed tool.
-What *is* worth pushing back are recomputed facts (coverage, verdicts, current
-downstream versions), because those are idempotent and cannot conflict.
+Full field reference, every rule and two complete examples:
+[exchange format v1](/exchange/v1/) · machine-readable
+[`schema.json`](/exchange/v1/schema.json).
 
 ## The trace gap
 
@@ -274,7 +239,7 @@ The agent — and the human — can then answer questions like:
 ## Architecture
 
 ```
-  walkdir (per-file)                    JSON bundle (reqmd-import/v1)
+  walkdir (per-file)                    JSON bundle (exchange v1)
     → language plugin (tree-sitter)            │
       → symbols                                ▼
         → trace inference                  reqmd-import

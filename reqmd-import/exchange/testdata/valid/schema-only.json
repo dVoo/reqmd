@@ -1,0 +1,14 @@
+{
+  "$schema": "https://reqmd.dev/exchange/v1/schema.json",
+  "documents": [
+    {
+      "key": "root",
+      "title": "Umbrella",
+      "x-reqmd": {
+        "id-prefix": "IMP-",
+        "level": "imported-requirements",
+        "dir": "."
+      }
+    }
+  ]
+}

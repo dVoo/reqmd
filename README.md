@@ -87,7 +87,7 @@ git clone https://github.com/dVoo/reqmd
 cd reqmd
 go build -o reqmd ./cmd/reqmd
 go build -o reqmd-code ./reqmd-code/cmd/reqmd-code     # source-code extractor
-# the single renderer for the reqmd-import/v1 exchange format:
+# the single renderer for the exchange format v1:
 go build -o reqmd-import ./reqmd-import/cmd/reqmd-import
 ```
 
@@ -881,12 +881,12 @@ Disposition is orthogonal to trace coverage. Use `requires-trace-from: []` to ex
 ## Importing requirements
 
 Requirements rarely start inside reqmd. Two import paths share one JSON **exchange
-format** (`reqmd-import/v1`) and one renderer, so no importer can produce invalid
+format** (the [exchange format v1](https://reqmd.dev/exchange/v1/)) and one renderer, so no importer can produce invalid
 Markdown or drift from the schema rules:
 
 ```
-DOORS / codeBeamer / CSV ─▶ your script ─▶ reqmd-import/v1 JSON ─▶ reqmd-import ─▶ .md + schema.yaml
-source code (tree-sitter) ─▶ reqmd-code ─▶ reqmd-import/v1 JSON ──┘
+DOORS / codeBeamer / CSV ─▶ your script ─▶ exchange JSON ─▶ reqmd-import ─▶ .md + schema.yaml
+source code (tree-sitter) ─▶ reqmd-code ─▶ exchange JSON ──┘
 ```
 
 **Source code.** `reqmd-code` extracts functions, types, and methods from C, C++,

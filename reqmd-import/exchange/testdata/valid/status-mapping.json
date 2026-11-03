@@ -1,0 +1,23 @@
+{
+  "$schema": "https://reqmd.dev/exchange/v1/schema.json",
+  "documents": [
+    {
+      "key": "d",
+      "title": "D",
+      "items": [
+        {
+          "kind": "requirement",
+          "key": "1",
+          "title": "Mapped",
+          "status": "In Review"
+        },
+        {
+          "kind": "requirement",
+          "key": "2",
+          "title": "Already reqmd",
+          "status": "draft"
+        }
+      ]
+    }
+  ]
+}

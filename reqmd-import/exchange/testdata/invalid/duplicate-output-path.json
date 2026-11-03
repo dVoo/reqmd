@@ -1,0 +1,33 @@
+{
+  "$schema": "https://reqmd.dev/exchange/v1/schema.json",
+  "documents": [
+    {
+      "key": "a",
+      "title": "A",
+      "x-reqmd": {
+        "dir": "same"
+      },
+      "items": [
+        {
+          "kind": "requirement",
+          "key": "1",
+          "title": "R"
+        }
+      ]
+    },
+    {
+      "key": "b",
+      "title": "B",
+      "x-reqmd": {
+        "dir": "same"
+      },
+      "items": [
+        {
+          "kind": "requirement",
+          "key": "2",
+          "title": "R"
+        }
+      ]
+    }
+  ]
+}

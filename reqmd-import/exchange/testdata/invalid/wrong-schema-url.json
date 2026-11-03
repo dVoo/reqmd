@@ -1,0 +1,9 @@
+{
+  "$schema": "https://example.invalid/schema.json",
+  "documents": [
+    {
+      "key": "d",
+      "title": "D"
+    }
+  ]
+}

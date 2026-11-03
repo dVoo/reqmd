@@ -1,0 +1,44 @@
+{
+  "$schema": "https://reqmd.dev/exchange/v1/schema.json",
+  "documents": [
+    {
+      "key": "root",
+      "title": "Imported proxies",
+      "x-reqmd": {
+        "id-prefix": "IMP-",
+        "level": "software-requirements",
+        "dir": "."
+      }
+    },
+    {
+      "key": "parser",
+      "title": "Package: parser",
+      "x-reqmd": {
+        "id-prefix": "IMP-parser-",
+        "dir": "parser",
+        "file": "package.md",
+        "document-id": "parser"
+      },
+      "items": [
+        {
+          "kind": "section",
+          "title": "parser.go",
+          "children": [
+            {
+              "kind": "requirement",
+              "key": "Parser-1a2b",
+              "title": "Parser",
+              "children": [
+                {
+                  "kind": "requirement",
+                  "key": "Parse-3c4d",
+                  "title": "Parse"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "$schema": "https://reqmd.dev/exchange/v1/schema.json",
+  "documents": [
+    {
+      "key": "brakes",
+      "title": "Brakes Module",
+      "properties": {
+        "priority": {
+          "type": "string",
+          "enum": [
+            "High",
+            "Low"
+          ]
+        }
+      },
+      "required": [
+        "priority"
+      ],
+      "x-reqmd": {
+        "id-prefix": "DOORS-",
+        "level": "stakeholder-requirements",
+        "external": true,
+        "dir": "brakes"
+      },
+      "items": [
+        {
+          "kind": "section",
+          "title": "Hydraulics",
+          "body": "The hydraulic circuit.",
+          "children": [
+            {
+              "kind": "requirement",
+              "key": "17",
+              "title": "Brake request",
+              "body": "The vehicle shall decelerate on demand.",
+              "status": "approved",
+              "fields": {
+                "priority": "High"
+              },
+              "refs": [
+                "SYS-BRAKE-001"
+              ],
+              "links": [
+                "42"
+              ]
+            },
+            {
+              "kind": "requirement",
+              "key": "42",
+              "title": "Brake pressure",
+              "fields": {
+                "priority": "High"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

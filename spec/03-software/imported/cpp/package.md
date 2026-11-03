@@ -1,0 +1,279 @@
+# Package: cpp
+
+<!-- reqmd: generated -->
+
+## reqmd-code/internal/lang/cpp/cpp.go
+### IMP-cpp-queriesFS-d04d9fb: queriesFS
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 44
+x-reqmd.symbol-kind: var
+trace: []
+```
+
+go:embed queries/*.scm
+
+### IMP-cpp-CppLanguage-a5123ff: CppLanguage
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 47
+x-reqmd.symbol-kind: type
+trace: []
+```
+
+CppLanguage is the C++ language plugin. Implements lang.Language.
+
+#### IMP-cpp-Name-c083e66: Name
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 53
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+Name returns the canonical language identifier.
+
+#### IMP-cpp-Extensions-a3b1a4b: Extensions
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 58
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+Extensions returns the file extensions this plugin handles. The .h
+ header extension is intentionally left to the C plugin; C++ headers
+ use .hpp/.hh/.hxx so extension dispatch is unambiguous.
+
+#### IMP-cpp-Grammar-bada57e: Grammar
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 63
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+Grammar returns the tree-sitter-cpp grammar language.
+
+#### IMP-cpp-Query-6c4c423: Query
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 70
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+Query returns the embedded tree-sitter query for symbol extraction.
+ If the query file is missing (a packaging error), it returns an empty
+ query rather than panicking; Parse will then emit zero symbols.
+
+#### IMP-cpp-BindDoc-1131f80: BindDoc
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 83
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+BindDoc returns the cleaned doc comment for the given declaration
+ node. It walks backwards over any contiguous run of `//` line
+ comments and `/* ... */` block comments, joins them with newlines,
+ and strips comment markers. Returns the empty string when no
+ preceding comment is present.
+
+#### IMP-cpp-Parse-474d5ec: Parse
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 149
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+Parse parses the given C++ source bytes and returns a flat list of
+ top-level symbols, in source order. It uses the embedded tree-sitter
+ query to find function, method, type, variable, and macro
+ declarations, and drops type specifiers that are merely the inner
+ half of a typedef (those are emitted once, via the typedef itself).
+
+### IMP-cpp-cleanComment-42f5382: cleanComment
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 114
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+cleanComment strips C++ comment markers from a comment node's text
+ and trims per-line whitespace. Both `//` line comments and
+ `/* ... */` block comments arrive as a single tree-sitter `comment`
+ node; the leading delimiter distinguishes the two styles. The
+ conventional single space after the marker (`// foo` → `foo`) is
+ dropped, as is per-line indentation inside block comments.
+
+### IMP-cpp-symbolFromMatch-1cfbb4d: symbolFromMatch
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 210
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+symbolFromMatch builds a model.Symbol from the per-match capture map.
+ The map keys are the @-names from queries/symbols.scm. Returns false
+ when the match has no usable captures or refers to a function-local
+ declaration.
+
+### IMP-cpp-enclosingTypeName-d4884d9: enclosingTypeName
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 262
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+enclosingTypeName walks up the parent chain from a method node to the
+ enclosing class_specifier or struct_specifier and returns the class's
+ name text (e.g. "Calculator" for `class Calculator { int add(...); }`).
+ Returns "" when the method has no enclosing type (e.g. an out-of-line
+ member definition at namespace scope).
+
+### IMP-cpp-init-302f5ca: init
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
+x-reqmd.source-line: 279
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+## reqmd-code/internal/lang/cpp/cpp_test.go
+### IMP-cpp-TestCppLanguageRegisters-b4e1f07: TestCppLanguageRegisters
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
+x-reqmd.source-line: 12
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestCppLanguageRegisters verifies that CppLanguage self-registered
+ itself with the global lang.Registry on package init.
+
+### IMP-cpp-TestParseSample-d121fe1: TestParseSample
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
+x-reqmd.source-line: 27
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestParseSample verifies that Parse correctly identifies and classifies
+ symbols in a representative C++ file: a class with an inline method and
+ a declared method, a struct with a method, and a free function. The
+ inline method must not be double-counted as a free function, and the
+ method Receiver must carry the enclosing class name.
+
+### IMP-cpp-TestParseTypedefDedup-6a60476: TestParseTypedefDedup
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
+x-reqmd.source-line: 97
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestParseTypedefDedup verifies that a `typedef struct Foo { ... } Foo;`
+ emits exactly one type symbol (the typedef alias), not two.
+
+### IMP-cpp-TestParseAliasAndMacro-ea9f73a: TestParseAliasAndMacro
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
+x-reqmd.source-line: 117
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestParseAliasAndMacro verifies `using` aliases, enums, and macros are
+ classified as type/const symbols.
+
+### IMP-cpp-TestParseLocalDeclarationsSkipped-a02d761: TestParseLocalDeclarationsSkipped
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
+x-reqmd.source-line: 144
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestParseLocalDeclarationsSkipped verifies that declarations inside
+ function bodies (local structs, local variables) are not emitted as
+ top-level symbols.
+
+### IMP-cpp-TestParseEmpty-70d0368: TestParseEmpty
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
+x-reqmd.source-line: 179
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestParseEmpty handles zero-byte input gracefully.
+
+### IMP-cpp-TestCleanComment-16cd52e: TestCleanComment
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
+x-reqmd.source-line: 192
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestCleanComment covers both `//` line comments and `/* ... */` block
+ comments, including multi-line blocks.
+
+### IMP-cpp-TestBindDocIncludesDoc-6cb546c: TestBindDocIncludesDoc
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
+x-reqmd.source-line: 210
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestBindDocIncludesDoc verifies that BindDoc attaches the full comment
+ block (including a reqmd:trace marker) to the following declaration.
+

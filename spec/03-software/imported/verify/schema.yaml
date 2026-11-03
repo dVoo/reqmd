@@ -1,17 +1,6 @@
 <!-- reqmd: generated -->
-$id: https://reqmd.dev/schemas/imported-v1.json
 $schema: https://json-schema.org/draft/2020-12/schema
 additionalProperties: false
-description: |
-    Standard schema for machine-generated requirements produced by reqmd-code.
-    Generated items are first-class coverage providers (status defaults to
-    'approved') and carry provenance metadata via x-reqmd.imported and
-    x-reqmd.source-* attributes that the extractor writes into every
-    emitted requirement.
-
-    Built-in attributes (status, trace, disposition, disposition-reason,
-    version, requires-trace-from) are injected automatically by reqmd and
-    must not be redefined in this schema.
 properties:
     x-reqmd.heuristic-trace:
         description: |
@@ -39,9 +28,9 @@ properties:
     x-reqmd.symbol-kind:
         description: The kind of source-code symbol (function, method, type, const, var).
         type: string
-title: Auto-imported requirements (reqmd-code)
 type: object
 x-reqmd:
+    document-id: verify
     id-prefix: IMP-verify-
     level: imported-requirements
     upstream:

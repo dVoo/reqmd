@@ -1,0 +1,24 @@
+{
+  "$schema": "https://reqmd.dev/exchange/v1/schema.json",
+  "documents": [
+    {
+      "key": "d",
+      "title": "D",
+      "items": [
+        {
+          "kind": "section",
+          "key": "s",
+          "title": "S"
+        },
+        {
+          "kind": "requirement",
+          "key": "1",
+          "title": "A",
+          "links": [
+            "s"
+          ]
+        }
+      ]
+    }
+  ]
+}
