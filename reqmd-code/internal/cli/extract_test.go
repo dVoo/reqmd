@@ -117,9 +117,15 @@ func (Bar) Baz() {}
 		t.Errorf("alpha document meta = %q/%q", alpha.Title, alpha.XReqmd.File)
 	}
 
+	// The package document groups symbols into one section per source file.
+	if len(alpha.Items) != 1 || alpha.Items[0].Kind != exchange.KindSection || alpha.Items[0].Title != "a.go" {
+		t.Fatalf("alpha items = %+v, want a single section for a.go", alpha.Items)
+	}
 	native := map[string]exchange.Item{}
 	for _, r := range allItems(alpha.Items) {
-		native[r.Title] = r
+		if r.Kind == exchange.KindRequirement {
+			native[r.Title] = r
+		}
 	}
 	if len(native) != 3 {
 		t.Fatalf("want 3 requirements (Foo, Bar, Baz), got %d", len(native))

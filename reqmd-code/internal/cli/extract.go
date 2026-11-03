@@ -285,8 +285,28 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 		// childOf collects methods per type key so they can be nested once the
 		// parent's position in source order is known.
 		childOf := make(map[string][]exchange.Item, len(syms))
-		items := make([]exchange.Item, 0, len(syms))
+		// Symbols are emitted into one section per source file, in source
+		// order: the file list is contiguous because syms is sorted by file.
+		var sections []exchange.Item
+		var fileItems []exchange.Item
+		curFile := ""
+		flushFile := func() {
+			if curFile == "" {
+				return
+			}
+			sections = append(sections, exchange.Item{
+				Kind:     exchange.KindSection,
+				Title:    relPath(srcDir, curFile),
+				Children: nestMethods(fileItems, childOf),
+			})
+			fileItems = nil
+			childOf = make(map[string][]exchange.Item, len(syms))
+		}
 		for _, s := range syms {
+			if s.File != curFile {
+				flushFile()
+				curFile = s.File
+			}
 			explicit, heuristic := extractor.ExtractTraces(s.Doc, f.heuristicTraces)
 			// Methods are stored under "Receiver.Name" in nativeFor to
 			// disambiguate from a same-named top-level function; top-level
@@ -329,15 +349,10 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 					continue
 				}
 			}
-			items = append(items, item)
+			fileItems = append(fileItems, item)
 		}
-
-		// Attach collected methods to their type, preserving source order.
-		for i := range items {
-			if kids, ok := childOf[items[i].Key]; ok {
-				items[i].Children = append(items[i].Children, kids...)
-			}
-		}
+		flushFile()
+		items := sections
 
 		doc := withXReqmd(base)
 		doc.Key = pkgName
@@ -435,4 +450,30 @@ func withXReqmd(doc exchange.Document) exchange.Document {
 	}
 	doc.XReqmd = &xr
 	return doc
+}
+
+// nestMethods attaches collected methods to their type, preserving source order.
+// A method whose type lives in another file stays at its own file's level: the
+// file section is the authoritative grouping.
+func nestMethods(items []exchange.Item, childOf map[string][]exchange.Item) []exchange.Item {
+	if len(childOf) == 0 {
+		return items
+	}
+	for i := range items {
+		if kids, ok := childOf[items[i].Key]; ok {
+			items[i].Children = append(items[i].Children, kids...)
+		}
+	}
+	return items
+}
+
+// relPath renders a source file relative to the scanned root, so a per-file
+// section title is "parser.go" rather than an absolute build path. A file
+// outside the root keeps its full path.
+func relPath(root, file string) string {
+	rel, err := filepath.Rel(root, file)
+	if err != nil || rel == "" || strings.HasPrefix(rel, "..") {
+		return file
+	}
+	return filepath.ToSlash(rel)
 }
