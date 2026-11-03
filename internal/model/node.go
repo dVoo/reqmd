@@ -1,7 +1,9 @@
 // Package model defines the content tree for a parsed reqmd document
-// (requirements, containers, and info nodes), the built-in attribute
-// keys, and the shared helpers that graph checks and exporters operate on.
+// (requirements and sections), the built-in attribute keys, and the shared
+// helpers that graph checks and exporters operate on.
 package model
+
+import "strings"
 
 // Kind discriminates the node types in a document's content tree.
 type Kind int
@@ -83,6 +85,35 @@ type SourceConfig struct {
 	Path   string `yaml:"path,omitempty" json:"path,omitempty"`
 	Format string `yaml:"format,omitempty" json:"format,omitempty"`
 }
+
+// CollectSectionPaths returns, for every requirement in the tree, the titles of
+// its ancestor sections joined by " / " (empty when it has none). It is the one
+// implementation of "where does this requirement sit in the document?" shared by
+// the NDJSON export (the section_path column) and the baseline diff (a parent
+// delta), so the two can never disagree.
+func CollectSectionPaths(nodes []*Node) map[string]string {
+	out := make(map[string]string)
+	var walk func(nodes []*Node, path []string)
+	walk = func(nodes []*Node, path []string) {
+		for _, n := range nodes {
+			if n.Kind == KindRequirement {
+				out[n.ID] = strings.Join(path, sectionPathSeparator)
+				walk(n.Children, path)
+				continue
+			}
+			if n.Title == "" {
+				walk(n.Children, path)
+				continue
+			}
+			walk(n.Children, append(path, n.Title))
+		}
+	}
+	walk(nodes, nil)
+	return out
+}
+
+// sectionPathSeparator joins ancestor section titles in a section path.
+const sectionPathSeparator = " / "
 
 // Document groups all content sharing a single schema.yaml. Nodes holds
 // the ordered content tree; every heading in every .md file is a node

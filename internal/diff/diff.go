@@ -36,6 +36,7 @@ type ReqDiff struct {
 	Category    Category     `json:"category"`
 	Title       string       `json:"title,omitempty"`
 	DocPath     string       `json:"docPath"`
+	SectionPath string       `json:"sectionPath,omitempty"`
 	AttrChanges []AttrChange `json:"attrChanges,omitempty"`
 }
 
@@ -91,6 +92,8 @@ func Diff(docs1, docs2 []model.Document, schemas1, schemas2 map[string]map[strin
 	// Build maps: reqID → Requirement, grouped by doc path
 	map1 := buildReqMap(docs1)
 	map2 := buildReqMap(docs2)
+	sections1 := buildSectionPaths(docs1)
+	sections2 := buildSectionPaths(docs2)
 
 	result := &Result{Tag1: tag1, Tag2: tag2}
 
@@ -115,6 +118,8 @@ func Diff(docs1, docs2 []model.Document, schemas1, schemas2 map[string]map[strin
 	for _, docPath := range paths {
 		requids1 := map1[docPath]
 		requids2 := map2[docPath]
+		sect1 := sections1[docPath]
+		sect2 := sections2[docPath]
 
 		dd := DocDiff{Path: docPath}
 
@@ -151,13 +156,20 @@ func Diff(docs1, docs2 []model.Document, schemas1, schemas2 map[string]map[strin
 			case !ok1 && ok2:
 				rd.Category = Added
 				rd.Title = r2.Title
+				rd.SectionPath = sect2[id]
 				dd.Added++
 				result.Added++
 
 			default:
-				// Both exist — diff attributes
+				// Both exist — diff attributes. A requirement that moved to a
+				// different chapter is a modification even when every attribute
+				// is identical, so the section path is reported as "parent".
 				rd.Title = r2.Title
+				rd.SectionPath = sect2[id]
 				changes := diffAttrs(differ, r1.Attrs, r2.Attrs)
+				if oldPath, newPath := sect1[id], sect2[id]; oldPath != newPath {
+					changes = append(changes, AttrChange{Key: "parent", OldVal: oldPath, NewVal: newPath})
+				}
 				if len(changes) > 0 {
 					rd.Category = Modified
 					rd.AttrChanges = changes
@@ -257,6 +269,18 @@ func buildReqMap(docs []model.Document) map[string]map[string]*model.Node {
 			byID[req.ID] = req
 		}
 		result[doc.Path] = byID
+	}
+	return result
+}
+
+// buildSectionPaths maps document path -> requirement ID -> the joined titles of
+// its ancestor sections. Sections are context, not content: a requirement moving
+// between chapters is a real review event even though no attribute changed, so
+// the diff reports it as a "parent" delta on the requirement.
+func buildSectionPaths(docs []model.Document) map[string]map[string]string {
+	result := make(map[string]map[string]string)
+	for _, doc := range docs {
+		result[doc.Path] = model.CollectSectionPaths(doc.Nodes)
 	}
 	return result
 }

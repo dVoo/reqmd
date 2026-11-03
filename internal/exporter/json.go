@@ -92,17 +92,16 @@ func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 		if doc.XReqmd != nil {
 			level = doc.XReqmd.Level
 		}
-		ordinal := 0
-		walkJSONRequirements(doc.Nodes, nil, func(n *model.Node, sectionPath string) {
-			ordinal++
+		sectionPaths := model.CollectSectionPaths(doc.Nodes)
+		for i, n := range doc.Requirements() {
 			rows = append(rows, jsonRequirement{
 				DocPath:           doc.Path,
 				DocTitle:          doc.Title,
 				Level:             level,
 				ID:                n.ID,
 				Title:             n.Title,
-				SectionPath:       sectionPath,
-				Ordinal:           ordinal,
+				SectionPath:       sectionPaths[n.ID],
+				Ordinal:           i + 1,
 				ParentID:          n.ParentID,
 				Source:            n.Source,
 				Suppressions:      n.Suppressions,
@@ -113,9 +112,9 @@ func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 				Trace:             model.AttrList(n.Attrs, model.AttrTrace),
 				RequiresTraceFrom: model.AttrList(n.Attrs, model.AttrRequiresTraceFrom),
 				Version:           n.Attrs["version"],
-				Attrs:             remainingAttrs(n.Attrs),
+				Attrs: remainingAttrs(n.Attrs),
 			})
-		})
+		}
 	}
 
 	sort.SliceStable(rows, func(a, b int) bool {
@@ -308,27 +307,6 @@ func (j *JSON) ExportFindings(w io.Writer, g *graph.Graph) error {
 		}
 	}
 	return nil
-}
-
-// walkJSONRequirements visits requirement nodes in document order, carrying the
-// titles of their ancestor sections. The warehouse tables carry requirements
-// only — sections are structure — so this is the tree walk they use: the
-// joined ancestor titles become the `section_path` column, which lets a
-// reporting platform group requirements by subsystem or chapter without a
-// separate dimension table or a join.
-func walkJSONRequirements(nodes []*model.Node, path []string, fn func(*model.Node, string)) {
-	for _, n := range nodes {
-		if n.Kind == model.KindRequirement {
-			fn(n, strings.Join(path, " / "))
-			walkJSONRequirements(n.Children, path, fn)
-			continue
-		}
-		if n.Title == "" {
-			walkJSONRequirements(n.Children, path, fn)
-			continue
-		}
-		walkJSONRequirements(n.Children, append(path, n.Title), fn)
-	}
 }
 
 // remainingAttrs returns a copy of attrs without the promoted built-in

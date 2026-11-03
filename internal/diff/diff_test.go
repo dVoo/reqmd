@@ -204,6 +204,53 @@ func TestDiff_Mixed(t *testing.T) {
 	}
 }
 
+// TestDiff_SectionMove verifies that moving a requirement to another chapter is
+// reported as a modification with a "parent" delta, even though no attribute
+// changed: sections are context, and a move changes what the requirement is
+// about.
+func TestDiff_SectionMove(t *testing.T) {
+	build := func(chapter string) []model.Document {
+		return []model.Document{{
+			Path: "doc",
+			Nodes: []*model.Node{{
+				Kind:  model.KindSection,
+				Title: chapter,
+				Level: 2,
+				Children: []*model.Node{{
+					Kind:  model.KindRequirement,
+					ID:    "SYS-001",
+					Title: "Parser",
+					Level: 3,
+					Attrs: map[string]any{"status": "approved"},
+				}},
+			}},
+		}}
+	}
+
+	result := Diff(build("Hydraulics"), build("Electronics"), nil, nil, "v1", "v2")
+
+	if result.Modified != 1 {
+		t.Fatalf("modified = %d, want 1 (section move)", result.Modified)
+	}
+	req := result.Documents[0].Reqs[0]
+	if req.SectionPath != "Electronics" {
+		t.Errorf("SectionPath = %q, want Electronics", req.SectionPath)
+	}
+	if len(req.AttrChanges) != 1 {
+		t.Fatalf("attr changes = %+v, want exactly one parent delta", req.AttrChanges)
+	}
+	got := req.AttrChanges[0]
+	if got.Key != "parent" || got.OldVal != "Hydraulics" || got.NewVal != "Electronics" {
+		t.Errorf("delta = %+v, want parent Hydraulics -> Electronics", got)
+	}
+
+	// A requirement that stayed put is unchanged.
+	same := Diff(build("Hydraulics"), build("Hydraulics"), nil, nil, "v1", "v2")
+	if same.Modified != 0 || same.Unchanged != 1 {
+		t.Errorf("unchanged comparison = modified %d / unchanged %d, want 0/1", same.Modified, same.Unchanged)
+	}
+}
+
 func TestSchemas_AddedProperty(t *testing.T) {
 	schemas1 := map[string]map[string]any{
 		"doc1": {"properties": map[string]any{"a": "string"}},
