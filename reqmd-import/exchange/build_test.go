@@ -457,8 +457,8 @@ func TestDecodeRejectsTrailingData(t *testing.T) {
 // same bytes, so re-running an import is a no-op.
 func TestBuild_IsIdempotent(t *testing.T) {
 	b := bundle(Document{
-		Key:        "d",
-		Title:      "D",
+		Key:   "d",
+		Title: "D",
 		Properties: map[string]any{
 			"z": map[string]any{"type": "string"},
 			"a": map[string]any{"type": "string"},
