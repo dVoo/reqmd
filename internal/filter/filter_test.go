@@ -1,6 +1,7 @@
 package filter
 
 import (
+	"fmt"
 	"strings"
 	"testing"
 
@@ -348,14 +349,15 @@ func TestFilterDocs_DoesNotMutateOriginal(t *testing.T) {
 	}
 }
 
-func TestFilterDocs_KeepsItems(t *testing.T) {
+func TestFilterDocs_KeepsSectionsThatStillLeadSomewhere(t *testing.T) {
 	docs := testDocs()
 	docs[0].Nodes = []*model.Node{
-		{Kind: model.KindSection, Title: "Section", Children: []*model.Node{
+		{Kind: model.KindSection, Title: "Section", Body: "Section intro.", Children: []*model.Node{
 			testReq("SW-001", "Parser", map[string]any{"status": "approved"}),
 			testReq("SW-002", "Schema", map[string]any{"status": "draft"}),
 		}},
-		{Kind: model.KindSection, Title: "Note"},
+		{Kind: model.KindSection, Title: "Note", Body: "A leaf information item."},
+		{Kind: model.KindSection, Title: "Empty heading"},
 	}
 	f, err := Compile(`status == "approved"`, validAttrsFor(docs))
 	if err != nil {
@@ -369,21 +371,87 @@ func TestFilterDocs_KeepsItems(t *testing.T) {
 
 	nodes := filtered[0].Nodes
 	if len(nodes) != 2 {
-		t.Fatalf("expected 2 top-level nodes (container + info), got %d", len(nodes))
+		t.Fatalf("expected 2 top-level nodes (folder + leaf note), got %d: %+v", len(nodes), titles(nodes))
 	}
-	container := nodes[0]
-	if container.Kind != model.KindSection || container.Title != "Section" {
-		t.Fatalf("nodes[0] = %v %q, want container Section", container.Kind, container.Title)
+	folder := nodes[0]
+	if folder.Kind != model.KindSection || folder.Title != "Section" {
+		t.Fatalf("nodes[0] = %v %q, want section Section", folder.Kind, folder.Title)
 	}
-	if len(container.Children) != 1 || container.Children[0].ID != "SW-001" {
-		t.Fatalf("container children = %+v, want [SW-001] (SW-002 pruned)", container.Children)
+	if len(folder.Children) != 1 || folder.Children[0].ID != "SW-001" {
+		t.Fatalf("folder children = %+v, want [SW-001] (SW-002 pruned)", folder.Children)
 	}
 	if nodes[1].Kind != model.KindSection || nodes[1].Title != "Note" {
-		t.Fatalf("nodes[1] = %v %q, want info Note", nodes[1].Kind, nodes[1].Title)
+		t.Fatalf("nodes[1] = %v %q, want leaf section Note", nodes[1].Kind, nodes[1].Title)
 	}
 	if reqs := filtered[0].Requirements(); len(reqs) != 1 || reqs[0].ID != "SW-001" {
 		t.Fatalf("Requirements() = %+v, want [SW-001]", reqs)
 	}
+}
+
+// A section that had children but lost them all to the filter is context for
+// content that is gone: it is dropped even when it carries prose.
+func TestFilterDocs_DropsSectionThatLostAllChildren(t *testing.T) {
+	docs := testDocs()
+	docs[0].Nodes = []*model.Node{
+		{Kind: model.KindSection, Title: "Draft chapter", Body: "Introduces draft-only requirements.", Children: []*model.Node{
+			testReq("SW-001", "Parser", map[string]any{"status": "draft"}),
+		}},
+		{Kind: model.KindSection, Title: "Approved chapter", Children: []*model.Node{
+			testReq("SW-002", "Schema", map[string]any{"status": "approved"}),
+		}},
+	}
+	f, err := Compile(`status == "approved"`, validAttrsFor(docs))
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	filtered, err := f.FilterDocs(docs)
+	if err != nil {
+		t.Fatalf("FilterDocs: %v", err)
+	}
+	nodes := filtered[0].Nodes
+	if len(nodes) != 1 || nodes[0].Title != "Approved chapter" {
+		t.Fatalf("top-level nodes = %+v, want only [Approved chapter]", titles(nodes))
+	}
+}
+
+// A leaf section is content: it survives a filter even with no requirements in
+// sight. A rationale-only section counts as content too.
+func TestFilterDocs_KeepsLeafSectionsAndPreamble(t *testing.T) {
+	docs := testDocs()
+	docs[0].Nodes = []*model.Node{
+		{Kind: model.KindSection, Level: 0, Body: "Preamble prose."},
+		{Kind: model.KindSection, Title: "Decision note", Rationale: "Because."},
+		{Kind: model.KindSection, Title: "Approved", Children: []*model.Node{
+			testReq("SW-001", "Parser", map[string]any{"status": "approved"}),
+		}},
+	}
+	f, err := Compile(`status == "approved"`, validAttrsFor(docs))
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+	filtered, err := f.FilterDocs(docs)
+	if err != nil {
+		t.Fatalf("FilterDocs: %v", err)
+	}
+	nodes := filtered[0].Nodes
+	if len(nodes) != 3 {
+		t.Fatalf("top-level nodes = %+v, want preamble, leaf note and section", titles(nodes))
+	}
+	if nodes[0].Level != 0 || nodes[0].Body != "Preamble prose." {
+		t.Fatalf("nodes[0] = %+v, want surviving preamble", nodes[0])
+	}
+	if nodes[1].Title != "Decision note" || nodes[1].Rationale != "Because." {
+		t.Fatalf("nodes[1] = %+v, want surviving rationale-only section", nodes[1])
+	}
+}
+
+// titles is a debug helper for prune assertions.
+func titles(nodes []*model.Node) []string {
+	out := make([]string, 0, len(nodes))
+	for _, n := range nodes {
+		out = append(out, fmt.Sprintf("%q(body=%q,children=%d)", n.Title, n.Body, len(n.Children)))
+	}
+	return out
 }
 
 func TestFilterDocs_ReattachesChildrenOfPrunedReq(t *testing.T) {

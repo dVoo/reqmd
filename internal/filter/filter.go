@@ -232,15 +232,25 @@ func (f *Filter) MatchingIDs(docs []model.Document) (map[string]struct{}, error)
 	return ids, nil
 }
 
-// pruneNodes returns the subset of a node list to keep: all non-
-// requirement nodes are kept; requirement nodes are kept only when they
-// match the filter. Children of a pruned requirement are re-attached to
-// the pruned node's position so no matching requirement is lost. Kept
-// nodes are shallow copies — the input tree is never mutated, so
-// multiple filtered views of the same documents stay independent.
+// pruneNodes returns the subset of a node list to keep: requirements are kept
+// only when they match the filter; children of a pruned requirement are
+// re-attached to the pruned node's position so no matching requirement is lost.
+//
+// Sections are kept only when they still lead somewhere: a section with
+// surviving children stays (with their prose), a section that had children but
+// lost them all is dropped — its prose was an introduction to content the
+// filter removed — and a bare heading with no prose at all is dropped. A
+// section that never had children and carries prose (a leaf information item,
+// or the headingless document preamble) is content and is kept regardless of
+// the filter. This rule is presentational: it never affects MatchingIDs, so
+// `check` stays requirement-scoped.
+//
+// Kept nodes are shallow copies — the input tree is never mutated, so multiple
+// filtered views of the same documents stay independent.
 func (f *Filter) pruneNodes(nodes []*model.Node) ([]*model.Node, error) {
 	var out []*model.Node
 	for _, n := range nodes {
+		hadChildren := len(n.Children) > 0
 		children, err := f.pruneNodes(n.Children)
 		if err != nil {
 			return nil, err
@@ -252,6 +262,17 @@ func (f *Filter) pruneNodes(nodes []*model.Node) ([]*model.Node, error) {
 			}
 			if !match {
 				out = append(out, children...)
+				continue
+			}
+		} else {
+			switch {
+			case len(children) > 0:
+				// still leads somewhere — keep with pruned children
+			case hadChildren:
+				// was a folder whose content is gone; the prose was its intro
+				continue
+			case n.Body == "" && n.Rationale == "":
+				// bare heading, renders as nothing
 				continue
 			}
 		}
