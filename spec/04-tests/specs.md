@@ -250,7 +250,7 @@ trace:
   - SW-IMP-002
   - SW-IMP-003
 ```
-Unit tests shall cover the `reqmd-code` pipeline: language plugin parse/classification for C, C++, Go, Python, and Rust (kinds, method receivers, doc binding, top-level-only scope rules), trace extraction (explicit `reqmd:trace` markers and opt-in heuristic IDs), and the emitted exchange bundle (per-package documents with distinct id-prefixes, native-id-keyed requirements, method parents, provenance attrs, deterministic output across runs, and duplicate-symbol dedup). The bundle shall be decoded and rendered back through the shared exchange package so the producer/renderer contract is exercised end to end.
+Unit tests shall cover the `reqmd-code` pipeline: language plugin parse/classification for C, C++, Go, Python, and Rust (kinds, method receivers, doc binding, top-level-only scope rules), trace extraction (explicit `reqmd:trace` markers and opt-in heuristic IDs), and the emitted exchange bundle (per-package documents with distinct id-prefixes, one file section per source file, key-identified requirements, methods nested under their type, doc comments rendered as child sections rather than requirement bodies, provenance attrs, deterministic output across runs, and duplicate-symbol dedup). The bundle shall be decoded and rendered back through the shared exchange package so the producer/renderer contract is exercised end to end.
 
 *Rationale:* reqmd-code closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the bundle's determinism is what makes re-running the extractor a safe no-op in CI.
 

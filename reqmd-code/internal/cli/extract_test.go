@@ -132,13 +132,21 @@ func (Bar) Baz() {}
 	}
 	// Baz is a method on Bar, so it nests as Bar's child item. The renderer
 	// turns that into heading depth, so there is no parent pointer to check.
+	// Children carry the doc-comment section first, then nested symbols.
 	bar := native["Bar"]
-	if len(bar.Children) != 1 || bar.Children[0].Title != "Baz" {
-		t.Errorf("Bar children = %+v, want [Baz]", bar.Children)
+	var barMembers []string
+	for _, c := range bar.Children {
+		if c.Kind == exchange.KindRequirement {
+			barMembers = append(barMembers, c.Title)
+		}
 	}
-	foo := native["Foo"]
-	if len(foo.Children) != 0 {
-		t.Errorf("Foo should have no children, got %d", len(foo.Children))
+	if len(barMembers) != 1 || barMembers[0] != "Baz" {
+		t.Errorf("Bar requirement children = %v, want [Baz]", barMembers)
+	}
+	for _, c := range native["Foo"].Children {
+		if c.Kind == exchange.KindRequirement {
+			t.Errorf("Foo should have no nested requirements, got %q", c.Title)
+		}
 	}
 
 	// The rendered document is valid reqmd input.
@@ -342,4 +350,86 @@ func keys(m map[string]string) []string {
 		out = append(out, k)
 	}
 	return out
+}
+
+// TestDocSections covers moving doc comments out of requirement bodies: the
+// intro becomes an untitled section, every heading becomes a section, and a
+// heading inside a fenced block is left alone as prose.
+func TestDocSections(t *testing.T) {
+	doc := "Foo does foo.\n\nUsage:\n\n## Options\n\n- fast\n\n```\n## not a heading\n```\n\n## Notes\n\nCareful."
+	got := docSections(doc)
+	if len(got) != 3 {
+		t.Fatalf("want intro + 2 sections, got %d: %+v", len(got), got)
+	}
+	if got[0].Title != "" || !strings.Contains(got[0].Body, "Foo does foo.") {
+		t.Errorf("intro section = %+v, want untitled prose", got[0])
+	}
+	if got[1].Title != "Options" || !strings.Contains(got[1].Body, "- fast") {
+		t.Errorf("first section = %+v, want Options with its prose", got[1])
+	}
+	if got[2].Title != "Notes" {
+		t.Errorf("second section title = %q, want Notes", got[2].Title)
+	}
+	if !strings.Contains(got[1].Body, "## not a heading") {
+		t.Errorf("a fenced heading must stay in the prose, got %q", got[1].Body)
+	}
+	if strings.Contains(got[2].Body, "not a heading") {
+		t.Errorf("the fenced block must not leak into the next section, got %q", got[2].Body)
+	}
+	for _, sec := range got {
+		if sec.Kind != exchange.KindSection {
+			t.Errorf("doc section kind = %q, want section", sec.Kind)
+		}
+		if len(sec.Fields) > 0 {
+			t.Errorf("doc section must carry no fields, got %v", sec.Fields)
+		}
+	}
+
+	if empty := docSections("   \n"); empty != nil {
+		t.Errorf("an empty doc comment yields no sections, got %+v", empty)
+	}
+}
+
+// TestRunExtract_DocCommentBecomesSection verifies the wiring end to end: the
+// symbol keeps the attr block and its doc prose moves into a child section, and
+// a Markdown heading in the doc does not break the rendered nesting.
+func TestRunExtract_DocCommentBecomesSection(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+// Foo does foo.
+//
+// ## Behaviour
+//
+// It is careful.
+func Foo() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	alpha := docByDir(t, bundle, "alpha")
+
+	var foo exchange.Item
+	for _, it := range allItems(alpha.Items) {
+		if it.Title == "Foo" {
+			foo = it
+		}
+	}
+	if foo.Key == "" {
+		t.Fatal("Foo requirement missing")
+	}
+	if foo.Body != "" {
+		t.Errorf("doc prose must move out of the requirement body, got %q", foo.Body)
+	}
+	if len(foo.Children) != 2 || foo.Children[0].Title != "" || foo.Children[1].Title != "Behaviour" {
+		t.Fatalf("Foo children = %+v, want intro section + Behaviour", foo.Children)
+	}
+
+	// The rendered document is still valid reqmd: no heading escaped the tree.
+	files := renderTo(t, bundle)
+	md := files["alpha/package.md"]
+	if strings.Contains(md, "\n## Behaviour") {
+		t.Errorf("a doc heading must be re-levelled inside the symbol:\n%s", md)
+	}
+	if !strings.Contains(md, "#### Behaviour") {
+		t.Errorf("doc heading should render nested under the symbol:\n%s", md)
+	}
 }

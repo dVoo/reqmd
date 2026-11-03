@@ -333,10 +333,13 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 				Key:    nativeID,
 				Title:  s.Name,
 				Status: "approved",
-				Body:   s.Doc,
 				Fields: attrs,
 				Refs:   explicit,
 			}
+			// The doc comment becomes content nodes under the symbol rather
+			// than its body: a section body may not contain headings, and a
+			// doc comment often does.
+			item.Children = append(item.Children, docSections(s.Doc)...)
 			// Methods nest under their type as a child item, which is how the
 			// renderer expresses heading depth now that items are a tree.
 			if s.Kind == model.SymbolMethod && s.Receiver != "" {
@@ -476,4 +479,74 @@ func relPath(root, file string) string {
 		return file
 	}
 	return filepath.ToSlash(rel)
+}
+
+// docSections turns a doc comment into section items: the prose before the
+// first heading becomes an untitled section (rendered as a plain prose block),
+// and every heading becomes a child section carrying the prose beneath it.
+// Headings are consumed here so no body ever contains one — the renderer's
+// contract is that structure lives in items, never in prose. Fenced code
+// blocks are skipped so a commented-out "#include" or a Markdown example is not
+// mistaken for a heading.
+func docSections(doc string) []exchange.Item {
+	if strings.TrimSpace(doc) == "" {
+		return nil
+	}
+	var out []exchange.Item
+	var intro []string
+	var cur *exchange.Item
+	var body []string
+	inFence := false
+
+	flushBody := func() {
+		if cur == nil {
+			return
+		}
+		cur.Body = strings.TrimSpace(strings.Join(body, "\n"))
+		body = nil
+	}
+
+	for _, line := range strings.Split(doc, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "```") || strings.HasPrefix(trimmed, "~~~") {
+			inFence = !inFence
+		}
+		if !inFence {
+			if level, title, ok := atxHeading(trimmed); ok && level >= 1 {
+				flushBody()
+				if cur != nil {
+					out = append(out, *cur)
+				}
+				cur = &exchange.Item{Kind: exchange.KindSection, Title: title}
+				continue
+			}
+		}
+		if cur == nil {
+			intro = append(intro, line)
+			continue
+		}
+		body = append(body, line)
+	}
+	flushBody()
+	if cur != nil {
+		out = append(out, *cur)
+	}
+	if text := strings.TrimSpace(strings.Join(intro, "\n")); text != "" {
+		// The intro is content, so it is an untitled section rather than a
+		// heading: an outline entry per symbol would flood the sidebar.
+		out = append([]exchange.Item{{Kind: exchange.KindSection, Body: text}}, out...)
+	}
+	return out
+}
+
+// atxHeading parses "## Title" into its level and text.
+func atxHeading(line string) (int, string, bool) {
+	n := 0
+	for n < len(line) && line[n] == '#' {
+		n++
+	}
+	if n == 0 || n > 6 || n == len(line) || line[n] != ' ' {
+		return 0, "", false
+	}
+	return n, strings.TrimSpace(line[n+1:]), true
 }

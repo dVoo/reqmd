@@ -293,7 +293,7 @@ priority: High
 trace:
   - SYS-IMP-001
 ```
-The `reqmd-code` extractor shall walk a source tree, dispatch each file to the `lang` plugin claiming its extension, parse symbols in parallel via a worker pool, bind adjacent doc comments, and extract explicit `reqmd:trace` markers plus (opt-in) heuristic bare-ID references from the bound docs. It shall group symbols into per-package documents and hand them to the exchange bundle emitter as native-id-keyed requirements with stable, line-independent IDs.
+The `reqmd-code` extractor shall walk a source tree, dispatch each file to the `lang` plugin claiming its extension, parse symbols in parallel via a worker pool, bind adjacent doc comments, and extract explicit `reqmd:trace` markers plus (opt-in) heuristic bare-ID references from the bound docs. It shall group symbols into per-package documents whose items are one `kind: section` per source file (titled by the path relative to the scanned root), with the symbols as that section's children and methods nested under their type; a method whose type lives in another file stays at its own file's level. Doc comments shall be emitted as child `kind: section` items rather than requirement bodies — the prose before the first heading as an untitled section, every heading as a further section — so no body ever contains a heading, and symbols reach the exchange bundle emitter as key-identified requirements with stable, line-independent IDs.
 
 *Rationale:* Decoupling the walk from parsing (and parsing from emitting) keeps the pipeline independently testable and lets the worker pool absorb per-file tree-sitter cost.
 
