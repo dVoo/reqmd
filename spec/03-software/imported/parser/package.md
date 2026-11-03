@@ -742,12 +742,13 @@ parseMDChunk parses a single chunk of markdown (possibly the whole file)
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 484
+x-reqmd.source-line: 504
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
-assembleTree builds the document content tree from a flat, ordered node
+reqmd:trace SW-PAR-002
+ assembleTree builds the document content tree from a flat, ordered node
  stream. A node's parent is the nearest preceding heading with a
  shallower level; requirements additionally get ParentID pointing at the
  nearest preceding requirement heading. Sections keep KindSection whether
@@ -759,7 +760,7 @@ assembleTree builds the document content tree from a flat, ordered node
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 512
+x-reqmd.source-line: 532
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -773,7 +774,7 @@ popByLevel removes stack entries whose level is >= target, mirroring
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 521
+x-reqmd.source-line: 541
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -786,7 +787,7 @@ reqStackEntry tracks an open requirement at a heading level during the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 527
+x-reqmd.source-line: 547
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -799,7 +800,7 @@ popStackToLevel removes entries whose level is >= targetLevel.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 544
+x-reqmd.source-line: 564
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -820,7 +821,7 @@ findRootSplits scans src line-by-line to find byte offsets where root-level
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 600
+x-reqmd.source-line: 620
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -834,7 +835,7 @@ nextLine returns the line at byte offset pos (without the trailing \n)
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 611
+x-reqmd.source-line: 631
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -848,7 +849,7 @@ headingLevelBytes returns the heading level (1-6) and true if the line
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 627
+x-reqmd.source-line: 647
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -861,7 +862,7 @@ nextNonBlankIsAttrBytes checks if the next non-blank line after byte
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 646
+x-reqmd.source-line: 666
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -875,7 +876,7 @@ isNextAttrBlock returns true if n's next sibling is a ```attr fence.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 661
+x-reqmd.source-line: 681
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -889,7 +890,7 @@ splitHeadingID splits a heading like "REQ-001: This is a title"
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 670
+x-reqmd.source-line: 690
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -901,7 +902,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 684
+x-reqmd.source-line: 704
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -911,7 +912,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 692
+x-reqmd.source-line: 712
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -921,7 +922,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 701
+x-reqmd.source-line: 721
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -931,7 +932,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 712
+x-reqmd.source-line: 732
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -941,22 +942,70 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 722
+x-reqmd.source-line: 747
 x-reqmd.symbol-kind: function
 trace: []
 ```
+
+renderBlock returns the source markdown of a block that has no dedicated
+ case: lists, tables, blockquotes, and raw HTML. The body of a node is
+ markdown, so the block's original source is the faithful representation —
+ concatenating the line segments instead would drop the list markers and the
+ line breaks between items, turning a list into one run-on paragraph.
 
 ### IMP-parser-ParseSingleFile-250a119: ParseSingleFile
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
-x-reqmd.source-line: 744
+x-reqmd.source-line: 784
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 ParseSingleFile is used by `reqmd check <file> --schema <schema>`.
+
+### IMP-parser-generatedMarker-3ef3883: generatedMarker
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/parser/parser.go
+x-reqmd.source-line: 796
+x-reqmd.symbol-kind: const
+trace: []
+```
+
+generatedMarker is the sentinel the renderer writes into every file it owns.
+ Its pre-rename spelling is still recognized so trees generated before the
+ renderer moved to reqmd-import keep parsing cleanly.
+
+### IMP-parser-legacyGeneratedMarker-640e6be: legacyGeneratedMarker
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/parser/parser.go
+x-reqmd.source-line: 796
+x-reqmd.symbol-kind: const
+trace: []
+```
+
+generatedMarker is the sentinel the renderer writes into every file it owns.
+ Its pre-rename spelling is still recognized so trees generated before the
+ renderer moved to reqmd-import keep parsing cleanly.
+
+### IMP-parser-isGeneratedMarker-22d244b: isGeneratedMarker
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/parser/parser.go
+x-reqmd.source-line: 804
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+isGeneratedMarker reports whether an HTML block is one of the renderer's
+ generated-content markers. Such a block is tool metadata: keeping it would
+ open a phantom headingless content node in every generated document.
 
 ## internal/parser/parser_test.go
 ### IMP-parser-parseReqTree-07a3a65: parseReqTree
@@ -964,7 +1013,7 @@ ParseSingleFile is used by `reqmd check <file> --schema <schema>`.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 14
+x-reqmd.source-line: 15
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -977,7 +1026,7 @@ parseReqTree is a test helper: parses src and returns the assembled
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 24
+x-reqmd.source-line: 25
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -989,7 +1038,7 @@ reqsOf returns the flat requirement list of an assembled tree.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 30
+x-reqmd.source-line: 31
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1002,7 +1051,7 @@ TestParseMD_Full verifies a normal requirement with heading, attr block,
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 60
+x-reqmd.source-line: 61
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1015,7 +1064,7 @@ TestParseMD_NoRationale verifies that a requirement without *Rationale:*
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 73
+x-reqmd.source-line: 74
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1028,7 +1077,7 @@ TestParseMD_MultipleRequirements verifies that multiple requirements
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 96
+x-reqmd.source-line: 97
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1041,7 +1090,7 @@ TestParseMD_HeadingWithoutAttrIsInfo verifies that a heading without an
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 119
+x-reqmd.source-line: 120
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1054,7 +1103,7 @@ TestParseMD_BadYAML verifies that invalid YAML inside an ```attr``` block
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 132
+x-reqmd.source-line: 133
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1067,7 +1116,7 @@ TestParseMD_NonAttrCodeBlock verifies that a fenced code block with a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 146
+x-reqmd.source-line: 147
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1080,7 +1129,7 @@ TestParseMD_EmptyFile verifies that parsing an empty source returns
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 158
+x-reqmd.source-line: 159
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1093,7 +1142,7 @@ TestParseMD_ThematicBreak verifies that thematic breaks (---) inside
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 172
+x-reqmd.source-line: 173
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1106,7 +1155,7 @@ TestParseMD_ArrayAttr verifies that an attribute with a YAML array value
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 195
+x-reqmd.source-line: 196
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1119,7 +1168,7 @@ TestParseMD_SubReqUnderParent verifies that a ### heading with an attr block
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 226
+x-reqmd.source-line: 227
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1132,7 +1181,7 @@ TestParseMD_MultipleSubReqs verifies that multiple ### sub-requirements
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 245
+x-reqmd.source-line: 246
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1145,7 +1194,7 @@ TestParseMD_SubReqDynamicLevel verifies that a ### heading with attr block
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 261
+x-reqmd.source-line: 262
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1158,7 +1207,7 @@ TestParseMD_SubHeadingBecomesInfo verifies that a ### heading without an
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 292
+x-reqmd.source-line: 293
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1172,7 +1221,7 @@ TestParseMD_DynamicReqLevel verifies that requirements chain by heading
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 316
+x-reqmd.source-line: 317
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1187,7 +1236,7 @@ TestParseMD_H1IsDocumentTitle verifies that a level-1 heading is treated
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 350
+x-reqmd.source-line: 351
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1202,7 +1251,7 @@ TestParseMD_SecondH1Rejected verifies that a second level-1 heading is a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 368
+x-reqmd.source-line: 369
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1215,7 +1264,7 @@ TestParseSingleFile verifies ParseSingleFile reads a real file from disk
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 407
+x-reqmd.source-line: 408
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1228,7 +1277,7 @@ TestParseMD_Title verifies that a heading with "ID: Title" format
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 422
+x-reqmd.source-line: 423
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1240,7 +1289,7 @@ TestParseMD_NoTitle verifies that a heading without ": " has empty Title.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 438
+x-reqmd.source-line: 439
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1253,7 +1302,7 @@ TestParseMD_TitleWithColonInTitle verifies that only the first ": " splits
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 455
+x-reqmd.source-line: 456
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1267,7 +1316,7 @@ TestParseMD_ContainerHoldsRequirements verifies that a container heading
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 489
+x-reqmd.source-line: 490
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1281,7 +1330,7 @@ TestParseMD_UserExample1 reproduces the scenario the user described:
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 533
+x-reqmd.source-line: 534
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1294,7 +1343,7 @@ TestParseMD_DeepNesting verifies requirements at arbitrary depth
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 553
+x-reqmd.source-line: 554
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1308,7 +1357,7 @@ TestParseMD_ContainerDoesNotBreakDeeperChain verifies that a container
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 599
+x-reqmd.source-line: 600
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1321,7 +1370,7 @@ TestParseMD_LevelGapNoContainer verifies that a heading gap without a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 615
+x-reqmd.source-line: 616
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1334,7 +1383,7 @@ TestParseMD_SiblingContainersBreakChain verifies that multiple containers
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 632
+x-reqmd.source-line: 633
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1348,7 +1397,7 @@ TestParseMD_Preamble verifies that leading prose before the first heading
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 669
+x-reqmd.source-line: 670
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1362,7 +1411,7 @@ TestParseMD_RequirementlessFile verifies that a file with no requirement
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 696
+x-reqmd.source-line: 697
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1375,7 +1424,7 @@ TestParseMD_ChunkedPreamble verifies that the parallel chunked path
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 723
+x-reqmd.source-line: 724
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1389,7 +1438,7 @@ TestParseMD_LevelGapUnderContainer verifies that a requirement inside a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 737
+x-reqmd.source-line: 738
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1399,7 +1448,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 744
+x-reqmd.source-line: 745
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1409,7 +1458,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 753
+x-reqmd.source-line: 754
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1419,7 +1468,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 766
+x-reqmd.source-line: 767
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1429,8 +1478,93 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
-x-reqmd.source-line: 786
+x-reqmd.source-line: 787
 x-reqmd.symbol-kind: function
 trace: []
 ```
+
+### IMP-parser-bigDoc-6733460: bigDoc
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/parser/parser_test.go
+x-reqmd.source-line: 808
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+bigDoc builds a document large enough to take the chunked parse path: a
+ title, preamble prose, a root container holding requirements, then many root
+ requirements. Its size matters — parseMD only splits above
+ parseParallelThreshold.
+
+### IMP-parser-nodeSummary-15b10d4: nodeSummary
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/parser/parser_test.go
+x-reqmd.source-line: 831
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+nodeSummary renders a tree into a comparable string so the chunked result can
+ be compared with the serial one without walking structs field by field.
+
+### IMP-parser-TestParseMD_ChunkedMatchesSerial-40309b2: TestParseMD_ChunkedMatchesSerial
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/parser/parser_test.go
+x-reqmd.source-line: 843
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestParseMD_ChunkedMatchesSerial is the invariant behind the parallel path:
+ batching roots into chunks must produce exactly the tree the single-pass
+ parser produces, including the preamble (chunk 0 covers [0, first root)).
+
+### IMP-parser-TestParseMD_ChunkedKeepsPreambleAndBoundaries-20ab508: TestParseMD_ChunkedKeepsPreambleAndBoundaries
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/parser/parser_test.go
+x-reqmd.source-line: 868
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestParseMD_ChunkedKeepsPreambleAndBoundaries checks the two properties the
+ chunking exists for: leading prose and the container it opens must not be
+ dropped, and no requirement may be lost or duplicated at a chunk boundary.
+
+### IMP-parser-TestParseMD_ListBodyPreserved-976e285: TestParseMD_ListBodyPreserved
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/parser/parser_test.go
+x-reqmd.source-line: 915
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestParseMD_ListBodyPreserved pins the body-capture contract for blocks that
+ have no dedicated case: a list in a requirement body must keep its markers and
+ its line breaks, and must be separated from the prose above it. Concatenating
+ the AST line segments dropped both, which turned every bullet list into one
+ run-on paragraph in the HTML export.
+
+### IMP-parser-TestParseMD_TableBodyPreserved-bad15b3: TestParseMD_TableBodyPreserved
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/parser/parser_test.go
+x-reqmd.source-line: 934
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestParseMD_TableBodyPreserved covers the other block that used to be
+ flattened: a GFM table must survive as markdown, rows intact.
 

@@ -702,3 +702,26 @@ func TestProjectIndex(t *testing.T) {
 		t.Error("project page must not load assets from a CDN")
 	}
 }
+
+// TestHTMLExportMermaidDiagram covers diagram rendering: the fence becomes a
+// client-rendered container carrying the pinned runtime, and a page without a
+// diagram stays free of that external request.
+func TestHTMLExportMermaidDiagram(t *testing.T) {
+	doc := basicDoc()
+	doc.Nodes[0].Body = "```mermaid\ngraph TD\n  A --> B\n```\n"
+
+	out := exportPage(t, &HTML{}, doc, doc.Properties)
+	for _, want := range []string{
+		`<pre class="mermaid">`,
+		`<script src="` + mermaidCDN + `"></script>`,
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("diagram page missing %q", want)
+		}
+	}
+
+	plain := exportPage(t, &HTML{}, basicDoc(), basicDoc().Properties)
+	if strings.Contains(plain, "cdn.jsdelivr.net") {
+		t.Error("page without a diagram must stay free of external scripts")
+	}
+}

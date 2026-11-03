@@ -437,7 +437,7 @@ cleanFileName rejects a .md name that is not a plain file name in the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 13
+x-reqmd.source-line: 15
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -449,7 +449,7 @@ bundle wraps documents in a valid envelope.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 18
+x-reqmd.source-line: 20
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -461,7 +461,7 @@ render builds the bundle and returns rendered files keyed by path.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 32
+x-reqmd.source-line: 34
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -473,7 +473,7 @@ renderErr builds and returns the validation error text.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 43
+x-reqmd.source-line: 45
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -486,7 +486,7 @@ wantProblems asserts that every fragment appears in the error report, i.e.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 52
+x-reqmd.source-line: 54
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -496,7 +496,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 99
+x-reqmd.source-line: 115
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -509,7 +509,7 @@ TestBuild_NestedSectionsAndDepth covers the tree: a section renders a heading
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 142
+x-reqmd.source-line: 162
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -522,7 +522,7 @@ TestBuild_LinksResolve covers document-local and cross-document links: a link
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 172
+x-reqmd.source-line: 192
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -535,7 +535,7 @@ TestBuild_CrossDocumentLinkFallsBackToDir covers a target document without a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 203
+x-reqmd.source-line: 223
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -549,7 +549,7 @@ TestBuild_StatusMapping covers the renderer-side status map: a mapped value is
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 233
+x-reqmd.source-line: 264
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -561,7 +561,7 @@ TestBuild_SchemaOnlyDocument covers a document without items.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 243
+x-reqmd.source-line: 274
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -571,7 +571,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 251
+x-reqmd.source-line: 282
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -581,7 +581,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 268
+x-reqmd.source-line: 299
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -594,7 +594,7 @@ TestBuild_BatchesViolations is the core producer-facing guarantee: every
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 290
+x-reqmd.source-line: 321
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -604,7 +604,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 423
+x-reqmd.source-line: 454
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -616,7 +616,7 @@ nestItems builds a chain of sections deep enough to exceed the render budget.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 430
+x-reqmd.source-line: 461
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -626,7 +626,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 448
+x-reqmd.source-line: 479
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -636,7 +636,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 458
+x-reqmd.source-line: 489
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -649,7 +649,7 @@ TestBuild_IsIdempotent verifies byte-determinism: the same bundle renders the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
-x-reqmd.source-line: 494
+x-reqmd.source-line: 525
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -801,4 +801,179 @@ trace: []
 ```
 
 checkNesting rejects a bundle nested deeper than maxDepth.
+
+## reqmd-import/exchange/fixtures_test.go
+### IMP-exchange-schemaPath-fbc19b6: schemaPath
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/fixtures_test.go
+x-reqmd.source-line: 17
+x-reqmd.symbol-kind: const
+trace: []
+```
+
+schemaPath is the published contract this format claims to implement. The
+ fixtures below are the shared corpus a third-party producer can copy: every
+ valid bundle must satisfy both the schema (shape) and Build (semantics), and
+ every invalid bundle names the rule it breaks.
+
+### IMP-exchange-validFixtures-200e162: validFixtures
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/fixtures_test.go
+x-reqmd.source-line: 20
+x-reqmd.symbol-kind: var
+trace: []
+```
+
+validFixtures must pass the schema and Build.
+
+### IMP-exchange-invalidFixtures-ed4f6df: invalidFixtures
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/fixtures_test.go
+x-reqmd.source-line: 32
+x-reqmd.symbol-kind: var
+trace: []
+```
+
+invalidFixtures must be rejected. Which rule each one breaks, and with which
+ message, is asserted once in build_test.go: the corpus's job is that the
+ published schema and the renderer agree about what is legal, not to restate
+ the wording of every error.
+
+### IMP-exchange-TestFixtures_SchemaAcceptsValidBundles-86a7784: TestFixtures_SchemaAcceptsValidBundles
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/fixtures_test.go
+x-reqmd.source-line: 56
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestFixtures_SchemaAcceptsValidBundles is the neutrality check: the published
+ schema alone accepts every well-formed bundle, with no Go-specific knowledge.
+
+### IMP-exchange-TestFixtures_ValidBundlesBuild-54be37a: TestFixtures_ValidBundlesBuild
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/fixtures_test.go
+x-reqmd.source-line: 84
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestFixtures_ValidBundlesBuild verifies every valid fixture renders.
+
+### IMP-exchange-TestFixtures_InvalidBundlesAreRejected-a84c3e7: TestFixtures_InvalidBundlesAreRejected
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/fixtures_test.go
+x-reqmd.source-line: 101
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestFixtures_InvalidBundlesAreRejected verifies the corpus's negative half:
+ nothing in it renders. A rejection at decode time (unknown field, nesting
+ guard) counts the same as one at build time — both are loud.
+
+### IMP-exchange-readFixture-e1b130f: readFixture
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/fixtures_test.go
+x-reqmd.source-line: 116
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+readFixture loads one fixture from the corpus.
+
+## reqmd-import/exchange/outline_test.go
+### IMP-exchange-outlineHeading-a41963a: outlineHeading
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/outline_test.go
+x-reqmd.source-line: 17
+x-reqmd.symbol-kind: type
+trace: []
+```
+
+This file holds the structural assertions the rendering tests use instead of
+ substring matching. A rendered document is asserted through its outline —
+ heading level, heading text, and the parsed attr block — so a change in
+ formatting (spacing, quoting style, key order) does not break a test that is
+ really about structure, while a change in nesting or identity does.
+ outlineHeading is one rendered heading.
+
+### IMP-exchange-outline-e94c7e4: outline
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/outline_test.go
+x-reqmd.source-line: 26
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+outline parses a rendered document into its headings. It only understands the
+ shape the renderer produces (ATX headings, opaque ```attr blocks), which is
+ exactly what the assertions need.
+
+### IMP-exchange-atxLevel-450428d: atxLevel
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/outline_test.go
+x-reqmd.source-line: 63
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+atxLevel parses "### Text" into its level and text.
+
+### IMP-exchange-heading-c8a7344: heading
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/outline_test.go
+x-reqmd.source-line: 76
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+heading returns the outline entry whose text contains want, failing when it
+ is absent or ambiguous.
+
+### IMP-exchange-attrString-c97aca4: attrString
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/outline_test.go
+x-reqmd.source-line: 95
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+attrString reads a string attribute from a parsed heading.
+
+### IMP-exchange-attrList-6998c75: attrList
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/outline_test.go
+x-reqmd.source-line: 109
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+attrList reads a list attribute from a parsed heading.
 

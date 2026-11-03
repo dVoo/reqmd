@@ -431,3 +431,30 @@ func Foo() {}
 		t.Fatalf("missing alpha/package.md; got %v", keys(files))
 	}
 }
+
+// TestDocSections_GodocSeparator guards against a decorative rule becoming a
+// setext heading: "-----" under a text line renders as an h2, which would turn
+// a Godoc separator into a section that swallows the symbols after it.
+func TestDocSections_GodocSeparator(t *testing.T) {
+	doc := "First paragraph.\n\n" +
+		"---------------------------------------------------------------------------\n" +
+		" x-reqmd.requires-trace-from document default (SYS-FMT-003)\n" +
+		" ---------------------------------------------------------------------------\n\n" +
+		"Second paragraph.\n"
+	got := docSections(doc)
+	if len(got) != 1 {
+		t.Fatalf("want a single intro section, got %d: %+v", len(got), got)
+	}
+	body := got[0].Body
+	for _, banned := range []string{"-----", "------"} {
+		if strings.Contains(body, banned) {
+			t.Errorf("decorative rule leaked into the prose: %q", body)
+		}
+	}
+	if !strings.Contains(body, "First paragraph.") || !strings.Contains(body, "Second paragraph.") {
+		t.Errorf("prose around the separator was lost: %q", body)
+	}
+	if !strings.Contains(body, "x-reqmd.requires-trace-from document default") {
+		t.Errorf("the separator's caption should survive as prose: %q", body)
+	}
+}

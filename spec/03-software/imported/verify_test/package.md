@@ -25,9 +25,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- CTRF parser
- ---------------------------------------------------------------------------
+CTRF parser
  ctrfReport builds a minimal CTRF JSON report with the given tests.
 
 ### IMP-verify_test-TestLoadCTRF_PassFail-b91f1a4: TestLoadCTRF_PassFail
@@ -97,9 +95,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Multi-file merge
- ---------------------------------------------------------------------------
+Multi-file merge
 
 ### IMP-verify_test-TestMergeLatest_PinStrippedFromKey-f51f924: TestMergeLatest_PinStrippedFromKey
 ```attr
@@ -121,9 +117,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Auto-detection (non-CTRF json skipped)
- ---------------------------------------------------------------------------
+Auto-detection (non-CTRF json skipped)
 
 ### IMP-verify_test-TestLoadResults_PlainJsonCTRFShapeAccepted-f530cff: TestLoadResults_PlainJsonCTRFShapeAccepted
 ```attr
@@ -175,9 +169,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Synthesize
- ---------------------------------------------------------------------------
+Synthesize
 
 ### IMP-verify_test-TestIsResultNode-d92525e: TestIsResultNode
 ```attr
@@ -199,9 +191,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- v2 binding (patterns C/D/E)
- ---------------------------------------------------------------------------
+v2 binding (patterns C/D/E)
 
 ### IMP-verify_test-TestLoadCTRF_CaseAndVerifies_SynthesizesCaseBinding-9262656: TestLoadCTRF_CaseAndVerifies_SynthesizesCaseBinding
 ```attr

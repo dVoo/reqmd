@@ -4,7 +4,13 @@ description: Stakeholder goals define the high-level business and technical obje
 
 # reqmd Stakeholder Goals
 
-## STK-GOAL-001: Text-first Git-native authoring
+High-level business and technical objectives that the reqmd tool must satisfy. As the top V-model layer they have no upstream traces.
+
+## Authoring and validation
+
+Goals about how requirements are written and how they are checked.
+
+### STK-GOAL-001: Text-first Git-native authoring
 ```attr
 priority: Critical
 source: Product
@@ -14,7 +20,7 @@ The requirement management tool shall enable text-first, Git-native authoring of
 
 *Rationale:* Engineers work in IDEs and version control daily. A plain-text format that diffs cleanly and reviews in standard pull requests minimizes tool-switching friction. A scaffolded starting point removes the blank-page cost of adopting a schema-driven format.
 
-## STK-GOAL-002: Human-readable machine-parsable specs
+### STK-GOAL-002: Human-readable machine-parsable specs
 ```attr
 priority: Critical
 source: Engineering
@@ -24,7 +30,7 @@ Requirement documents shall be human-readable in any Markdown renderer and simul
 
 *Rationale:* Non-technical stakeholders review requirements in rendered form (GitHub, GitLab, docs sites). Automated tooling needs structured data for validation and export. Both modes must coexist in the same file.
 
-## STK-GOAL-003: Schema-driven validation
+### STK-GOAL-003: Schema-driven validation
 ```attr
 priority: Critical
 source: Quality
@@ -34,7 +40,7 @@ The tool shall validate requirements against a project-defined schema, rejecting
 
 *Rationale:* Manual review alone does not scale. Schema-driven validation catches missing fields, invalid values, and broken trace chains automatically in CI. Scoping keeps incremental CI affordable on large trees.
 
-## STK-GOAL-004: Multi-format export for review and analytics
+### STK-GOAL-004: Multi-format export for review and analytics
 ```attr
 priority: High
 source: Product
@@ -44,7 +50,11 @@ The tool shall export requirement specifications to standard interchange formats
 
 *Rationale:* Tier-1 suppliers and homologation authorities require structured export formats. CSV covers basic exchange; HTML supports human trace navigation; NDJSON feeds analytics and dashboards without a bespoke integration; the graph export serves cross-cutting dependency and impact queries.
 
-## STK-GOAL-005: V-model traceability
+## Evidence and reporting
+
+Goals about what the toolchain produces and how it is evidenced.
+
+### STK-GOAL-005: V-model traceability
 ```attr
 priority: High
 source: Safety
@@ -54,7 +64,7 @@ The tool shall support V-model traceability patterns conformant with ASPICE and 
 
 *Rationale:* Functional safety standards mandate bidirectional traceability from stakeholder needs through system requirements, software requirements, and test specifications. Heading-level hierarchy lets authors decompose requirements naturally while the tool auto-links child-to-parent traces.
 
-## STK-GOAL-006: Verification results close the V-model
+### STK-GOAL-006: Verification results close the V-model
 ```attr
 priority: High
 source: Quality
@@ -64,7 +74,7 @@ The tool shall consume verification and validation results produced by automated
 
 *Rationale:* A trace to a test specification proves that verification was *planned*, not that it *passed*. ASPICE requires recording and evaluating verification results. Loading results per invocation (CTRF reports and review documents) keeps run-to-run churn out of git while still failing CI on a failing or missing verdict.
 
-## STK-GOAL-007: Interoperable requirement ingestion
+### STK-GOAL-007: Interoperable requirement ingestion
 ```attr
 priority: High
 source: Engineering

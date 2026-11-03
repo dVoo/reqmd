@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -797,5 +798,168 @@ not enough fields here
 	}
 	if result["invalid"] != "abc123" {
 		t.Errorf("unexpected SHA: %s", result["invalid"])
+	}
+}
+
+// bigDoc builds a document large enough to take the chunked parse path: a
+// title, preamble prose, a root container holding requirements, then many root
+// requirements. Its size matters — parseMD only splits above
+// parseParallelThreshold.
+func bigDoc(t *testing.T, roots int) []byte {
+	t.Helper()
+	var b strings.Builder
+	b.WriteString("# Big Spec\n\nIntro prose that must survive chunking.\n\n")
+	b.WriteString("## Chapter\n\nContainer prose.\n\n")
+	for _, id := range []string{"BIG-0001", "BIG-0002"} {
+		b.WriteString("### " + id + ": In chapter\n\n```attr\nstatus: approved\n```\n\nBody of " + id + ".\n\n")
+	}
+	for i := 0; i < roots; i++ {
+		id := fmt.Sprintf("BIG-%04d", i+100)
+		b.WriteString("## " + id + ": Root requirement\n\n```attr\nstatus: approved\n```\n\n")
+		b.WriteString(strings.Repeat("Filler prose that pads the file past the parallel threshold. ", 12))
+		b.WriteString("\n\n")
+	}
+	src := []byte(b.String())
+	if len(src) < parseParallelThreshold {
+		t.Fatalf("fixture is %d bytes, below the %d-byte parallel threshold", len(src), parseParallelThreshold)
+	}
+	return src
+}
+
+// nodeSummary renders a tree into a comparable string so the chunked result can
+// be compared with the serial one without walking structs field by field.
+func nodeSummary(nodes []*model.Node, depth int) string {
+	var b strings.Builder
+	for _, n := range nodes {
+		fmt.Fprintf(&b, "%*s%s|%s|%s|L%d\n", depth*2, "", n.Kind.String(), n.ID, n.Title, n.Level)
+		b.WriteString(nodeSummary(n.Children, depth+1))
+	}
+	return b.String()
+}
+
+// TestParseMD_ChunkedMatchesSerial is the invariant behind the parallel path:
+// batching roots into chunks must produce exactly the tree the single-pass
+// parser produces, including the preamble (chunk 0 covers [0, first root)).
+func TestParseMD_ChunkedMatchesSerial(t *testing.T) {
+	src := bigDoc(t, 400)
+
+	chunked, title, _, err := parseMD(src, "big.md")
+	if err != nil {
+		t.Fatalf("parseMD (chunked): %v", err)
+	}
+	// The serial reference: one parse of the whole file, assembled the same way.
+	flat, serialTitle, _, err := parseMDChunk(src, "big.md")
+	if err != nil {
+		t.Fatalf("parseMDChunk (serial reference): %v", err)
+	}
+	serial := assembleTree(flat)
+
+	if title != serialTitle {
+		t.Errorf("title = %q, want %q", title, serialTitle)
+	}
+	if got, want := nodeSummary(chunked, 0), nodeSummary(serial, 0); got != want {
+		t.Fatalf("chunked tree differs from serial tree\n--- chunked ---\n%s\n--- serial ---\n%s", got, want)
+	}
+}
+
+// TestParseMD_ChunkedKeepsPreambleAndBoundaries checks the two properties the
+// chunking exists for: leading prose and the container it opens must not be
+// dropped, and no requirement may be lost or duplicated at a chunk boundary.
+func TestParseMD_ChunkedKeepsPreambleAndBoundaries(t *testing.T) {
+	const roots = 400
+	src := bigDoc(t, roots)
+
+	nodes, title, _, err := parseMD(src, "big.md")
+	if err != nil {
+		t.Fatalf("parseMD: %v", err)
+	}
+	if title != "Big Spec" {
+		t.Errorf("document title = %q, want %q (chunk 0 must include the preamble)", title, "Big Spec")
+	}
+
+	// Root 0 is the preamble info node (leading prose), root 1 the container.
+	if len(nodes) < 2 {
+		t.Fatalf("roots = %d, want at least preamble + chapter", len(nodes))
+	}
+	if nodes[0].Kind != model.KindSection || nodes[0].Level != 0 || !strings.Contains(nodes[0].Body, "Intro prose") {
+		t.Errorf("root 0 = %+v, want the headingless preamble", nodes[0])
+	}
+	chapter := nodes[1]
+	if chapter.Title != "Chapter" || len(chapter.Children) != 2 {
+		t.Fatalf("root 1 = %+v, want Chapter holding 2 requirements", chapter)
+	}
+
+	// Every root requirement must be present exactly once, in document order.
+	var want []string
+	for i := 0; i < roots; i++ {
+		want = append(want, fmt.Sprintf("BIG-%04d", i+100))
+	}
+	var got []string
+	for _, r := range model.CollectRequirements(nodes) {
+		got = append(got, r.ID)
+	}
+	if len(got) != roots+2 {
+		t.Errorf("requirements = %d, want %d", len(got), roots+2)
+	}
+	tail := got[2:] // skip the two chapter children
+	if strings.Join(tail, ",") != strings.Join(want, ",") {
+		t.Errorf("root requirement order/content changed by chunking:\n got %v\nwant %v", tail, want)
+	}
+}
+
+// TestParseMD_ListBodyPreserved pins the body-capture contract for blocks that
+// have no dedicated case: a list in a requirement body must keep its markers and
+// its line breaks, and must be separated from the prose above it. Concatenating
+// the AST line segments dropped both, which turned every bullet list into one
+// run-on paragraph in the HTML export.
+func TestParseMD_ListBodyPreserved(t *testing.T) {
+	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+		"Para intro:\n\n- one\n- two\n- three\n\nAfter.\n")
+	nodes, _, _, err := parseMD(src, "list.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	reqs := model.CollectRequirements(assembleTree(nodes))
+	if len(reqs) != 1 {
+		t.Fatalf("requirements = %d, want 1", len(reqs))
+	}
+	want := "Para intro:\n\n- one\n- two\n- three\n\nAfter."
+	if got := reqs[0].Body; got != want {
+		t.Errorf("body =\n%q\nwant\n%q", got, want)
+	}
+}
+
+// TestParseMD_TableBodyPreserved covers the other block that used to be
+// flattened: a GFM table must survive as markdown, rows intact.
+func TestParseMD_TableBodyPreserved(t *testing.T) {
+	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+		"| a | b |\n| --- | --- |\n| 1 | 2 |\n")
+	nodes, _, _, err := parseMD(src, "table.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	reqs := model.CollectRequirements(assembleTree(nodes))
+	body := reqs[0].Body
+	for _, want := range []string{"| a | b |", "| --- | --- |", "| 1 | 2 |"} {
+		if !strings.Contains(body, want) {
+			t.Errorf("table row %q missing from body %q", want, body)
+		}
+	}
+}
+
+// TestParseMD_MermaidFencePreserved verifies that a mermaid block survives the
+// parser with its delimiters intact. Without them the exporter cannot turn it
+// into a diagram and renders the diagram source as prose.
+func TestParseMD_MermaidFencePreserved(t *testing.T) {
+	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+		"```mermaid\ngraph TD\n  A --> B\n```\n")
+	nodes, _, _, err := parseMD(src, "diagram.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	reqs := model.CollectRequirements(assembleTree(nodes))
+	want := "```mermaid\ngraph TD\n  A --> B\n```\n\n"
+	if got := reqs[0].Body; got != want {
+		t.Errorf("body =\n%q\nwant\n%q", got, want)
 	}
 }

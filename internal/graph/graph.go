@@ -158,6 +158,7 @@ func (g *Graph) inFilter(reqID string) bool {
 	return ok
 }
 
+// reqmd:trace SW-GRA-001
 // New builds a pure Go in-memory adjacency graph from all parsed documents.
 // It creates one CachedNode per requirement and populates Inbound/Outbound
 // adjacency from trace attributes. Broken trace references (target ID not

@@ -257,6 +257,20 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   requirement content. `project.go` renders the project home; `reqmd serve`
   serves it at `/`. Client URL-state helpers are exported for
   `static/url_state.test.js`, run by `TestClientURLState` when Node is installed.
+- **Diagrams**: ` ```mermaid ` blocks reach the exporter as body Markdown because
+  `mdParser` deliberately registers no diagram extenders — their AST
+  transformers replace the fenced block with a node that carries no fence
+  lines, and the parser's fallback would emit the diagram source as prose
+  (`internal/parser/parser.go`). The exporter's `bodyRenderer` registers
+  `&mermaid.Extender{RenderMode: RenderModeClient, MermaidURL: mermaidCDN}`, so a
+  diagram body becomes a `<pre class="mermaid">` container plus a script tag for
+  the pinned CDN runtime (`mermaidCDN` in `internal/exporter/html.go`, kept in
+  step with the site's pin). Client mode is set explicitly: the zero value is
+  `RenderModeAuto`, which silently switches to *server* rendering (needs `mmdc`
+  plus a Chromium) whenever `mmdc` is on `$PATH`, and fails the whole body if the
+  CLI breaks. This CDN load is the only documented exception to the offline
+  export guarantee — see `SW-EXP-004`. The export itself needs no browser, no
+  Node, and no vendored blob; `static/app.js` only styles the container.
 - **Exchange-format import pipeline (v1)**: Every importer is split into a
   *producer* and the single *renderer*. The format is neutral: a bundle declares
   `"$schema": "https://reqmd.dev/exchange/v1/schema.json"`, each document has a

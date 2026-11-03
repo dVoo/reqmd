@@ -83,6 +83,7 @@ func Build(root string, promoteUnpinned bool) (Result, error) {
 	return res, nil
 }
 
+// reqmd:trace SW-REPIN-001
 // Apply rewrites each file containing at least one outdated or
 // unpinned delta. Predated deltas are reported back in the Skipped
 // slice and never applied — they are data-integrity errors that

@@ -112,6 +112,11 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
   color: var(--fg-muted);
 }
 .prose img { max-width: 100%; height: auto; }
+.prose pre.mermaid {
+  background: none; border: 0; padding: 0; margin: 0 0 0.8em;
+  overflow-x: auto; text-align: center; font-family: inherit;
+}
+.prose pre.mermaid svg { max-width: 100%; height: auto; }
 
 /* ── app bar ── */
 .app-bar {

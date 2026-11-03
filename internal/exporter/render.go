@@ -273,7 +273,9 @@ func linkHref(resolveLink func(string) string, id string) string {
 // renderDocHead writes the <!DOCTYPE> + <html> + <head> block. The
 // stylesheet and client script are inlined: there is no runtime CDN request,
 // so an exported page is fully offline. The theme is applied by a small head
-// script before first paint to avoid a light/dark flash.
+// script before first paint to avoid a light/dark flash. The one exception is
+// a diagram-bearing body, which the Mermaid extender annotates with its own
+// pinned runtime script (see SW-EXP-004).
 func renderDocHead(b *bufio.Writer, title string) {
 	_, _ = b.WriteString("<!DOCTYPE html>\n")
 	_, _ = b.WriteString("<html lang=\"en\">\n")
@@ -488,6 +490,7 @@ func renderToolbar(b *bufio.Writer, doc model.Document, rd *renderData) {
 	_, _ = b.WriteString("</div>\n")
 }
 
+// reqmd:trace SW-EXP-002
 // renderDocumentView writes the server-rendered reading view: one card per
 // requirement, containers as collapsible sections, and info items as plain
 // blocks. Contents are visible by default (no x-cloak), so the reading view

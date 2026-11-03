@@ -7,9 +7,15 @@ description: >
   (00-aspice/) and reqmd's system features (02-system/).
 ---
 
+
+
 # ASPICE v4.0 Stakeholder Requirements for reqmd
 
-## ASP-SR-001: Structured requirement organization
+## System engineering
+
+Requirements that keep the requirement model, its hierarchy, tracing and change handling coherent.
+
+### ASP-SR-001: Structured requirement organization
 ```attr
 process: SYS
 aspice-bp: ["SYS2-BP2", "SWE1-BP2", "HWE1-BP2", "MLE1-BP2"]
@@ -28,8 +34,7 @@ The tool shall support structured organization of requirements using configurabl
 
 *Already fulfilled by:* Dynamic reqLevel discovery, `x-reqmd.id-prefix` in schema, document directory grouping.
 
-
-## ASP-SR-002: Schema-based requirement validation
+### ASP-SR-002: Schema-based requirement validation
 ```attr
 process: SYS
 aspice-bp: ["SYS2-BP1", "SWE1-BP1", "HWE1-BP1", "MLE1-BP1"]
@@ -48,8 +53,7 @@ The tool shall validate requirements against a project-defined schema, enforcing
 
 *Already fulfilled by:* Schema compilation and validation per document directory (internal/schema/).
 
-
-## ASP-SR-003: Heading-level hierarchy decomposition
+### ASP-SR-003: Heading-level hierarchy decomposition
 ```attr
 process: SYS
 aspice-bp: ["SYS2-BP2", "SWE1-BP2"]
@@ -66,8 +70,7 @@ The tool shall support requirement decomposition through heading-level hierarchy
 
 *Already fulfilled by:* Dynamic reqLevel parser, `###` sub-requirement detection via `isNextAttrBlock()`, Pass 3 auto-edges in graph.
 
-
-## ASP-SR-004: Cross-document traceability
+### ASP-SR-004: Cross-document traceability
 ```attr
 process: SYS
 aspice-bp: ["SYS2-BP5", "SYS3-BP4", "SWE1-BP5", "SWE2-BP4", "SWE3-BP4", "HWE1-BP5", "HWE2-BP5"]
@@ -89,8 +92,7 @@ The tool shall establish bidirectional traceability between requirements at adja
 
 *Already fulfilled by:* `trace` attribute, graph `CachedNode` with Inbound/Outbound, `upstream` document chaining, check results for broken references.
 
-
-## ASP-SR-005: Trace chain validation
+### ASP-SR-005: Trace chain validation
 ```attr
 process: SYS
 aspice-bp: ["SYS2-BP5", "SYS3-BP4", "SWE4-BP4", "SWE5-BP6", "SWE6-BP4", "HWE3-BP5", "HWE4-BP5"]
@@ -112,8 +114,7 @@ The tool shall verify completeness and integrity of trace chains, detecting brok
 
 *Already fulfilled by:* Graph Pass 2 (10 checks), `checkUntraced()`, `checkCircular()`, `checkBrokenReference()`, etc.
 
-
-## ASP-SR-006: Requirement-to-verification traceability and result recording
+### ASP-SR-006: Requirement-to-verification traceability and result recording
 ```attr
 process: SYS
 aspice-bp: ["SYS4-BP1", "SYS4-BP2", "SYS4-BP3", "SYS4-BP4", "SYS5-BP1", "SYS5-BP2", "SYS5-BP3", "SYS5-BP4", "SWE4-BP1", "SWE4-BP2", "SWE4-BP3", "SWE4-BP4", "SWE5-BP1", "SWE5-BP3", "SWE5-BP4", "SWE5-BP5", "SWE5-BP6", "SWE6-BP1", "SWE6-BP2", "SWE6-BP3", "SWE6-BP4", "VAL1-BP1", "VAL1-BP2", "VAL1-BP3", "HWE3-BP1", "HWE3-BP3", "HWE3-BP4", "HWE3-BP5", "HWE4-BP1", "HWE4-BP3", "HWE4-BP4", "HWE4-BP5", "MLE4-BP1", "MLE4-BP3", "MLE4-BP6"]
@@ -163,65 +164,7 @@ The tool shall support traceability between requirements and their verification 
 
 *Already fulfilled by:* `verify` attribute for measure declaration, `--results` flag for ephemeral result loading on `check` and `serve`, CTRF parser (`internal/verify`), manual-results markdown loading, `missing-verdict` / `failing-verdict` / `version-pin` graph checks, `verified: pass` verdict annotation in check output, verdict badges in HTML export and live serve preview.
 
-
-## ASP-SR-007: Change tracking for requirements
-```attr
-process: SUP
-aspice-bp: ["SUP10-BP4"]
-status: approved
-disposition: implemented
-coverage: Full
-trace:
-  - ASP-SUP10-BP4
-```
-The tool shall support recording of change information for individual requirements, enabling bidirectional traceability between change requests and affected requirements.
-
-*Rationale:* ASPICE SUP.10 requires traceability between change requests and affected work products. reqmd's built-in `version` attribute tracks version changes at the individual requirement level. The `disposition` and `disposition-reason` attributes document the resolution state. Change request IDs can be referenced via the `trace` attribute to establish explicit links.
-
-*Already fulfilled by:* `version` built-in, `disposition`/`disposition-reason` attributes, `trace` attribute for CR linking.
-
-
-## ASP-SR-008: Automated quality validation
-```attr
-process: SUP
-aspice-bp: ["SUP1-BP3", "SUP1-BP6"]
-status: approved
-disposition: implemented
-coverage: Full
-trace:
-  - ASP-SUP1-BP3
-  - ASP-SUP1-BP6
-```
-The tool shall automatically validate requirement work products against defined quality criteria, report non-conformances with severity levels, and provide machine-readable output for CI pipeline integration.
-
-*Rationale:* ASPICE SUP.1 requires quality assurance of work products and resolution of non-conformances. reqmd's validation pipeline (parse → schema validate → graph build → trace check) produces structured results with severity levels (ERROR, WARNING, INFO). The `--json` flag outputs machine-readable reports suitable for CI integration. Exit codes distinguish success (0), validation errors (1), and parse errors (2).
-
-*Already fulfilled by:* 4-pass validation pipeline, severity levels, `--json` flag, exit codes (0/1/2).
-
-
-## ASP-SR-009: Configuration management support
-```attr
-process: SUP
-aspice-bp: ["SUP8-BP1", "SUP8-BP2", "SUP8-BP3", "SUP8-BP5", "SUP8-BP7"]
-status: draft
-disposition: deferred
-disposition-reason: No built-in baseline capture or configuration management tool integration beyond what the VCS provides.
-coverage: Partial
-trace:
-  - ASP-SUP8-BP1
-  - ASP-SUP8-BP2
-  - ASP-SUP8-BP3
-  - ASP-SUP8-BP5
-  - ASP-SUP8-BP7
-```
-The tool shall support configuration management of requirement work products through unique identification, version tracking, and consistent baseline representation.
-
-*Rationale:* ASPICE SUP.8 requires identification, property definition, and control of configuration items. reqmd provides unique requirement identification via ID prefixes and the `version` built-in attribute. However, baseline management (SUP.8.BP5) and configuration management mechanisms (SUP.8.BP3) are delegated to the version control system (git). reqmd supports this by being Git-native: requirements are plain-text files that diff cleanly, and git tags/snapshots serve as baselines.
-
-*Already fulfilled by:* Unique IDs per requirement, `version` attribute, Git-native file format. *Gap:* No built-in baseline capture or configuration management tool integration beyond what the VCS provides.
-
-
-## ASP-SR-010: Readable requirement documentation
+### ASP-SR-010: Readable requirement documentation
 ```attr
 process: SYS
 aspice-bp: ["SYS1-BP4", "SYS5-BP5", "SWE6-BP5", "VAL1-BP5", "SUP8-BP6"]
@@ -241,8 +184,7 @@ The tool shall generate human-readable requirement documentation that communicat
 
 *Already fulfilled by:* HTML export with cards, tree TOC, trace tabs, dark mode, search/filter.
 
-
-## ASP-SR-011: Interdependency analysis
+### ASP-SR-011: Interdependency analysis
 ```attr
 process: SYS
 aspice-bp: ["SYS2-BP3", "SWE1-BP3", "SWE2-BP3", "MLE1-BP3"]
@@ -262,46 +204,7 @@ The tool shall support analysis of requirement interdependencies to detect incon
 
 *Already fulfilled by:* Graph query methods, circular dependency detection, no-downstream check. *Gap:* Semantic correctness analysis is a human review concern.
 
-## ASP-SR-013: Issue and change tracking
-```attr
-process: SUP
-aspice-bp: ["SUP9-BP1", "SUP9-BP6", "SUP10-BP1", "SUP10-BP5", "SUP10-BP6"]
-status: draft
-disposition: deferred
-disposition-reason: No built-in issue/CR workflow.
-coverage: Partial
-trace:
-  - ASP-SUP9-BP1
-  - ASP-SUP9-BP6
-  - ASP-SUP10-BP1
-  - ASP-SUP10-BP5
-  - ASP-SUP10-BP6
-```
-The tool shall support unique identification and tracking of issues and change requests that affect requirements.
-
-*Rationale:* ASPICE SUP.9 and SUP.10 require unique identification, tracking, and closure confirmation for problems and change requests. reqmd supports this through unique requirement IDs that can reference external issue/CR IDs via the `trace` attribute. The `disposition` and `disposition-reason` attributes document resolution state. The tool's validation ensures trace integrity when CRs are linked. However, dedicated issue/CR management (workflow, approval, lifecycle) is delegated to external systems.
-
-*Already fulfilled by:* Unique IDs, `trace` for CR linking, `disposition`/`disposition-reason`. *Gap:* No built-in issue/CR workflow.
-
-## ASP-SR-015: External standard referencing
-```attr
-process: REU
-aspice-bp: ["REU2-BP1", "REU2-BP5"]
-status: approved
-disposition: implemented
-coverage: Full
-trace:
-  - ASP-REU2-BP1
-  - ASP-REU2-BP5
-```
-The tool shall support referencing and reusing requirements from external standards, including those not authored within the tool itself.
-
-*Rationale:* ASPICE REU.2 requires selection and provision of reusable products. reqmd supports this through the `external: true` flag on document directories, which marks requirements as external references. External requirements participate in the graph for trace validation (they can be traced to/from) but are exempt from certain checks (untraced suppression). The ASPICE v4.0 base practices (00-aspice/) are themselves expressed as external reqmd requirements, demonstrating this pattern.
-
-*Already fulfilled by:* `external: true` flag, external requirements in graph, cross-document trace resolution.
-
-
-## ASP-SR-016: Portable export distribution
+### ASP-SR-016: Portable export distribution
 ```attr
 process: SYS
 aspice-bp: ["SYS2-BP6", "SYS3-BP5", "SWE1-BP6", "SWE2-BP5", "HWE1-BP6", "HWE2-BP6", "MLE1-BP6", "MLE2-BP7"]
@@ -324,8 +227,7 @@ The tool shall enable distribution of requirement documentation and impact analy
 
 *Already fulfilled by:* Standalone HTML export, CSV export, trace chain tab strip, tree TOC sidebar.
 
-
-## ASP-SR-017: Impact analysis support
+### ASP-SR-017: Impact analysis support
 ```attr
 process: SYS
 aspice-bp: ["SYS2-BP3", "SYS2-BP4", "SWE1-BP3", "SWE1-BP4", "HWE1-BP3", "HWE1-BP4"]
@@ -347,27 +249,7 @@ The tool shall support impact analysis by identifying all requirements affected 
 
 *Already fulfilled by:* Graph traversal methods (`UpstreamNeighbors`, `DownstreamNeighbors`), bidirectional Inbound/Outbound edges. *Gap:* No dedicated `reqmd impact <id>` CLI command yet — current impact analysis requires using the graph API programmatically.
 
-
-## ASP-SR-018: Requirement metrics and measurement
-```attr
-process: MAN
-aspice-bp: ["MAN6-BP2", "MAN6-BP3", "MAN6-BP4"]
-status: draft
-disposition: deferred
-disposition-reason: No historical trend tracking or metric dashboard.
-coverage: Partial
-trace:
-  - ASP-MAN6-BP2
-  - ASP-MAN6-BP3
-  - ASP-MAN6-BP4
-```
-The tool shall provide metrics and measurements on requirement artifacts, including completeness, trace coverage, and attribute distribution.
-
-*Rationale:* ASPICE MAN.6 requires specifying, collecting, and analyzing metrics. reqmd's `stats` command provides attribute-value breakdowns per document directory, showing distributions of all requirement attributes. The `ls` command lists all requirements with their attributes. The `--json` flag on all commands supports integration with external analytics tools. However, trend analysis over time and historical metric collection are out of scope — reqmd provides point-in-time snapshots.
-
-*Already fulfilled by:* `stats` command with attribute breakdowns, `ls` command, `--json` output on all commands. *Gap:* No historical trend tracking or metric dashboard.
-
-## ASP-SR-020: V-model refinement levels
+### ASP-SR-020: V-model refinement levels
 ```attr
 process: SYS
 aspice-bp: ["SYS5-BP2", "SWE4-BP2", "SWE5-BP3", "SWE6-BP2", "HWE3-BP3", "HWE4-BP3", "VAL1-BP2"]
@@ -389,8 +271,7 @@ The tool shall support V-model work product progression through multiple levels 
 
 *Already fulfilled by:* Multi-level doc chain, `upstream` config, trace chain tab strip in HTML export, configurable per-dir schema.
 
-
-## ASP-SR-021: Safety attribute support
+### ASP-SR-021: Safety attribute support
 ```attr
 process: SYS
 aspice-bp: ["SYS2-BP1", "SWE1-BP1"]
@@ -408,7 +289,11 @@ The tool shall support safety attribute assignment to requirements (ASIL QM/A/B/
 
 *Already fulfilled by:* User-defined schema attributes, JSON Schema validation (required, enum, type). *Gap:* ASIL consistency across the V-model trace chain is not validated — deferred to external tooling via graph export.
 
-## ASP-SR-022: Source-code traceability
+## Software engineering
+
+Requirements that keep the software-level derivation and its verification consistent.
+
+### ASP-SR-022: Source-code traceability
 ```attr
 process: SWE
 aspice-bp: ["SYS2-BP5", "SWE1-BP5", "SWE3-BP3"]
@@ -425,3 +310,126 @@ The tool shall support traceability between source-code artifacts and requiremen
 *Rationale:* ASPICE traceability BPs require consistency and bidirectional traceability across the development workflow (SYS.2.BP5, SWE.1.BP5) and implementation of software units (SWE.3.BP3). reqmd's companion `reqmd-code` tool walks C, C++, Go, Python, and Rust source with tree-sitter grammars, turns every top-level symbol into a generated requirement (`status: approved`, `x-reqmd.imported: true`, stable package+symbol-hashed IDs), binds the adjacent doc comment as the body, extracts explicit `reqmd:trace` markers and opt-in heuristic IDs, and emits a `reqmd-import/v1` exchange bundle that `reqmd-import` renders into per-package `.md` files in the spec tree. The generated requirements validate, export, and diff like any other document, so a deleted or renamed implementation surfaces as a broken trace in the same `reqmd check` that catches broken spec references.
 
 *Already fulfilled by:* `reqmd-code` (language plugins for C, C++, Go, Python, Rust; `reqmd:trace` markers; `--heuristic-traces`) emitting the exchange bundle, rendered by `reqmd-import` into generated `.md` files validated by the standard pipeline (`x-reqmd.imported`, source provenance attributes).
+
+## Supporting processes
+
+Requirements covering quality assurance, configuration management, problem resolution and change requests.
+
+### ASP-SR-007: Change tracking for requirements
+```attr
+process: SUP
+aspice-bp: ["SUP10-BP4"]
+status: approved
+disposition: implemented
+coverage: Full
+trace:
+  - ASP-SUP10-BP4
+```
+The tool shall support recording of change information for individual requirements, enabling bidirectional traceability between change requests and affected requirements.
+
+*Rationale:* ASPICE SUP.10 requires traceability between change requests and affected work products. reqmd's built-in `version` attribute tracks version changes at the individual requirement level. The `disposition` and `disposition-reason` attributes document the resolution state. Change request IDs can be referenced via the `trace` attribute to establish explicit links.
+
+*Already fulfilled by:* `version` built-in, `disposition`/`disposition-reason` attributes, `trace` attribute for CR linking.
+
+### ASP-SR-008: Automated quality validation
+```attr
+process: SUP
+aspice-bp: ["SUP1-BP3", "SUP1-BP6"]
+status: approved
+disposition: implemented
+coverage: Full
+trace:
+  - ASP-SUP1-BP3
+  - ASP-SUP1-BP6
+```
+The tool shall automatically validate requirement work products against defined quality criteria, report non-conformances with severity levels, and provide machine-readable output for CI pipeline integration.
+
+*Rationale:* ASPICE SUP.1 requires quality assurance of work products and resolution of non-conformances. reqmd's validation pipeline (parse → schema validate → graph build → trace check) produces structured results with severity levels (ERROR, WARNING, INFO). The `--json` flag outputs machine-readable reports suitable for CI integration. Exit codes distinguish success (0), validation errors (1), and parse errors (2).
+
+*Already fulfilled by:* 4-pass validation pipeline, severity levels, `--json` flag, exit codes (0/1/2).
+
+### ASP-SR-009: Configuration management support
+```attr
+process: SUP
+aspice-bp: ["SUP8-BP1", "SUP8-BP2", "SUP8-BP3", "SUP8-BP5", "SUP8-BP7"]
+status: draft
+disposition: deferred
+disposition-reason: No built-in baseline capture or configuration management tool integration beyond what the VCS provides.
+coverage: Partial
+trace:
+  - ASP-SUP8-BP1
+  - ASP-SUP8-BP2
+  - ASP-SUP8-BP3
+  - ASP-SUP8-BP5
+  - ASP-SUP8-BP7
+```
+The tool shall support configuration management of requirement work products through unique identification, version tracking, and consistent baseline representation.
+
+*Rationale:* ASPICE SUP.8 requires identification, property definition, and control of configuration items. reqmd provides unique requirement identification via ID prefixes and the `version` built-in attribute. However, baseline management (SUP.8.BP5) and configuration management mechanisms (SUP.8.BP3) are delegated to the version control system (git). reqmd supports this by being Git-native: requirements are plain-text files that diff cleanly, and git tags/snapshots serve as baselines.
+
+*Already fulfilled by:* Unique IDs per requirement, `version` attribute, Git-native file format. *Gap:* No built-in baseline capture or configuration management tool integration beyond what the VCS provides.
+
+### ASP-SR-013: Issue and change tracking
+```attr
+process: SUP
+aspice-bp: ["SUP9-BP1", "SUP9-BP6", "SUP10-BP1", "SUP10-BP5", "SUP10-BP6"]
+status: draft
+disposition: deferred
+disposition-reason: No built-in issue/CR workflow.
+coverage: Partial
+trace:
+  - ASP-SUP9-BP1
+  - ASP-SUP9-BP6
+  - ASP-SUP10-BP1
+  - ASP-SUP10-BP5
+  - ASP-SUP10-BP6
+```
+The tool shall support unique identification and tracking of issues and change requests that affect requirements.
+
+*Rationale:* ASPICE SUP.9 and SUP.10 require unique identification, tracking, and closure confirmation for problems and change requests. reqmd supports this through unique requirement IDs that can reference external issue/CR IDs via the `trace` attribute. The `disposition` and `disposition-reason` attributes document resolution state. The tool's validation ensures trace integrity when CRs are linked. However, dedicated issue/CR management (workflow, approval, lifecycle) is delegated to external systems.
+
+*Already fulfilled by:* Unique IDs, `trace` for CR linking, `disposition`/`disposition-reason`. *Gap:* No built-in issue/CR workflow.
+
+## Management processes
+
+Requirements covering project and risk management expectations the tool must support.
+
+### ASP-SR-018: Requirement metrics and measurement
+```attr
+process: MAN
+aspice-bp: ["MAN6-BP2", "MAN6-BP3", "MAN6-BP4"]
+status: draft
+disposition: deferred
+disposition-reason: No historical trend tracking or metric dashboard.
+coverage: Partial
+trace:
+  - ASP-MAN6-BP2
+  - ASP-MAN6-BP3
+  - ASP-MAN6-BP4
+```
+The tool shall provide metrics and measurements on requirement artifacts, including completeness, trace coverage, and attribute distribution.
+
+*Rationale:* ASPICE MAN.6 requires specifying, collecting, and analyzing metrics. reqmd's `stats` command provides attribute-value breakdowns per document directory, showing distributions of all requirement attributes. The `ls` command lists all requirements with their attributes. The `--json` flag on all commands supports integration with external analytics tools. However, trend analysis over time and historical metric collection are out of scope — reqmd provides point-in-time snapshots.
+
+*Already fulfilled by:* `stats` command with attribute breakdowns, `ls` command, `--json` output on all commands. *Gap:* No historical trend tracking or metric dashboard.
+
+## Reuse management
+
+Requirements covering reuse of requirement assets across projects.
+
+### ASP-SR-015: External standard referencing
+```attr
+process: REU
+aspice-bp: ["REU2-BP1", "REU2-BP5"]
+status: approved
+disposition: implemented
+coverage: Full
+trace:
+  - ASP-REU2-BP1
+  - ASP-REU2-BP5
+```
+The tool shall support referencing and reusing requirements from external standards, including those not authored within the tool itself.
+
+*Rationale:* ASPICE REU.2 requires selection and provision of reusable products. reqmd supports this through the `external: true` flag on document directories, which marks requirements as external references. External requirements participate in the graph for trace validation (they can be traced to/from) but are exempt from certain checks (untraced suppression). The ASPICE v4.0 base practices (00-aspice/) are themselves expressed as external reqmd requirements, demonstrating this pattern.
+
+*Already fulfilled by:* `external: true` flag, external requirements in graph, cross-document trace resolution.

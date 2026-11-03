@@ -74,6 +74,7 @@ type jsonRequirement struct {
 	Version           any            `json:"version"`
 }
 
+// reqmd:trace SW-EXP-003
 // ExportRequirements writes one NDJSON row per requirement across all authored
 // documents. Sections are structure, not facts, so they are not rows: their
 // titles reach the fact table as the `section_path` column on the requirements
@@ -112,7 +113,7 @@ func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 				Trace:             model.AttrList(n.Attrs, model.AttrTrace),
 				RequiresTraceFrom: model.AttrList(n.Attrs, model.AttrRequiresTraceFrom),
 				Version:           n.Attrs["version"],
-				Attrs: remainingAttrs(n.Attrs),
+				Attrs:             remainingAttrs(n.Attrs),
 			})
 		}
 	}

@@ -465,9 +465,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Manual-results loading (loadManualDir)
- ---------------------------------------------------------------------------
+Manual-results loading (loadManualDir)
  TestLoadManualDir_ResultFields creates a temp results dir with a schema.yaml
  and a .md file holding a manual-results requirement (outcome, trace,
  verifier, evidence, verified-at), then asserts loadManualDir returns one
@@ -483,9 +481,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- resultFromReq — direct construction tests
- ---------------------------------------------------------------------------
+resultFromReq — direct construction tests
 
 ### IMP-verify-TestResultFromReq_NoOutcomeNotAResult-7a130a2: TestResultFromReq_NoOutcomeNotAResult
 ```attr

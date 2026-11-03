@@ -140,12 +140,13 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 105
+x-reqmd.source-line: 106
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
-RenderDocument renders a document: title, generated marker, optional
+reqmd:trace SW-IMP-005
+ RenderDocument renders a document: title, generated marker, optional
  preamble prose, then the items in the order given. Depth is carried per item,
  so a section's children must follow it in the slice.
 
@@ -154,7 +155,7 @@ RenderDocument renders a document: title, generated marker, optional
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 129
+x-reqmd.source-line: 130
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -170,7 +171,7 @@ RenderItem renders one item: heading, then (for a requirement) the attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 162
+x-reqmd.source-line: 163
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -183,7 +184,7 @@ writeAttr writes the attr-block body: status first, then the remaining
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 180
+x-reqmd.source-line: 181
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -193,7 +194,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 209
+x-reqmd.source-line: 210
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -203,7 +204,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 225
+x-reqmd.source-line: 226
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -213,7 +214,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 241
+x-reqmd.source-line: 242
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -225,7 +226,7 @@ writeRefList writes a YAML block list, or `key: []` when empty.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 259
+x-reqmd.source-line: 260
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -243,7 +244,7 @@ quoteIfNeeded formats a value as a YAML scalar that reqmd reads back
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 279
+x-reqmd.source-line: 280
 x-reqmd.symbol-kind: function
 trace: []
 ```

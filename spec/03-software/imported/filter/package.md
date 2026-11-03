@@ -53,7 +53,7 @@ Filter is a compiled attribute filter expression. It is safe for
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 174
+x-reqmd.source-line: 175
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -65,7 +65,7 @@ Expr returns the original expression string.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 178
+x-reqmd.source-line: 179
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -78,7 +78,7 @@ Refs returns the sorted, deduplicated list of variable names
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 183
+x-reqmd.source-line: 184
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -92,7 +92,7 @@ Match evaluates the compiled expression against a single requirement.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 202
+x-reqmd.source-line: 203
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -109,7 +109,7 @@ FilterDocs returns a new []model.Document containing only matching
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 219
+x-reqmd.source-line: 220
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -123,7 +123,7 @@ MatchingIDs returns a set of requirement IDs that match the filter.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 250
+x-reqmd.source-line: 251
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -149,12 +149,13 @@ pruneNodes returns the subset of a node list to keep: requirements are kept
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 85
+x-reqmd.source-line: 86
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
-Compile parses, validates, and compiles a filter expression (strict
+reqmd:trace SW-FIL-001
+ Compile parses, validates, and compiles a filter expression (strict
  mode).
 
  validAttrs is the union of all schema property names (plus built-in
@@ -172,7 +173,7 @@ Compile parses, validates, and compiles a filter expression (strict
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 98
+x-reqmd.source-line: 99
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -191,7 +192,7 @@ CompileRelaxed compiles a filter expression without hard-failing on
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 106
+x-reqmd.source-line: 107
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -206,7 +207,7 @@ compile is the shared implementation for strict and relaxed modes.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 289
+x-reqmd.source-line: 290
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -220,7 +221,7 @@ buildEnv constructs the expr evaluation environment for a requirement:
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 300
+x-reqmd.source-line: 301
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -234,7 +235,7 @@ BuildValidAttrs computes the union of all schema property names across
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 317
+x-reqmd.source-line: 318
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -249,7 +250,7 @@ BuildFoundAttrs computes the union of every attribute key actually
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 332
+x-reqmd.source-line: 333
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -263,7 +264,7 @@ WriteWarnings writes relaxed-mode filter warnings to w, one per line,
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 347
+x-reqmd.source-line: 348
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -283,7 +284,7 @@ CompileForDocs compiles an expression against the attribute union of the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 366
+x-reqmd.source-line: 367
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -297,7 +298,7 @@ refCollector implements ast.Visitor and collects all IdentifierNode
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
-x-reqmd.source-line: 370
+x-reqmd.source-line: 371
 x-reqmd.symbol-kind: method
 trace: []
 ```

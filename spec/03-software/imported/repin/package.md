@@ -60,12 +60,13 @@ Build parses the spec tree at root and returns the list of
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 101
+x-reqmd.source-line: 102
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
-Apply rewrites each file containing at least one outdated or
+reqmd:trace SW-REPIN-001
+ Apply rewrites each file containing at least one outdated or
  unpinned delta. Predated deltas are reported back in the Skipped
  slice and never applied — they are data-integrity errors that
  require manual review.
@@ -86,7 +87,7 @@ Apply rewrites each file containing at least one outdated or
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 173
+x-reqmd.source-line: 174
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -112,7 +113,7 @@ applyToFile rewrites the attr-block portions of src so that each
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 203
+x-reqmd.source-line: 204
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -126,7 +127,7 @@ refPair is a pre-computed (oldRef, newRef) pair ready for byte
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 209
+x-reqmd.source-line: 210
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -139,7 +140,7 @@ buildPairs projects a slice of RepinDelta into refPairs, dropping
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 234
+x-reqmd.source-line: 235
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -162,7 +163,7 @@ applyPairsToBlock scans block and emits a new []byte with every
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 291
+x-reqmd.source-line: 292
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -185,7 +186,7 @@ isRefBoundary reports whether the match at [start, end) inside buf
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 323
+x-reqmd.source-line: 324
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -202,7 +203,7 @@ newRefFrom computes the new source-form ref string for a delta.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 330
+x-reqmd.source-line: 331
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -215,7 +216,7 @@ attrRange is an inclusive [start, end) byte range covering the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 341
+x-reqmd.source-line: 342
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -235,7 +236,7 @@ locateAttrBlocks scans src for ```attr\n ... \n``` fences and
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 381
+x-reqmd.source-line: 382
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -248,7 +249,7 @@ bytesSliceReplace returns a new []byte with src[start:end]
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 387
+x-reqmd.source-line: 388
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -261,7 +262,7 @@ stripPinForDisplay removes a trailing ~N from a ref so the dry-run
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 398
+x-reqmd.source-line: 399
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -278,7 +279,7 @@ FormatText renders the Result as the human-readable change list
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
-x-reqmd.source-line: 419
+x-reqmd.source-line: 420
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -297,9 +298,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Helpers
- ---------------------------------------------------------------------------
+Helpers
  writeFile creates a temp dir, writes content, and returns the dir path
  (caller is responsible for cleanup via t.TempDir()).
 
@@ -343,9 +342,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Build
- ---------------------------------------------------------------------------
+Build
 
 ### IMP-repin-TestBuild_PromoteUnpinned-9dcb605: TestBuild_PromoteUnpinned
 ```attr
@@ -387,9 +384,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Apply: file rewrite semantics
- ---------------------------------------------------------------------------
+Apply: file rewrite semantics
 
 ### IMP-repin-TestApply_PromoteAddsPin-026610f: TestApply_PromoteAddsPin
 ```attr
@@ -468,9 +463,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- newRefFrom
- ---------------------------------------------------------------------------
+newRefFrom
 
 ### IMP-repin-TestLocateAttrBlocks-c978a8e: TestLocateAttrBlocks
 ```attr
@@ -482,9 +475,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- locateAttrBlocks
- ---------------------------------------------------------------------------
+locateAttrBlocks
 
 ### IMP-repin-TestLocateAttrBlocks_NoBlocks-ce0a15e: TestLocateAttrBlocks_NoBlocks
 ```attr
@@ -516,9 +507,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- FormatText
- ---------------------------------------------------------------------------
+FormatText
 
 ### IMP-repin-TestFormatText_Outdated-6b59b62: TestFormatText_Outdated
 ```attr
@@ -540,9 +529,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- JSON output
- ---------------------------------------------------------------------------
+JSON output
 
 ### IMP-repin-TestBuild_SortedByFile-d604ba6: TestBuild_SortedByFile
 ```attr
@@ -554,10 +541,8 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Sort order — repin reuses graph's sort; this is a regression test
+Sort order — repin reuses graph's sort; this is a regression test
  to ensure Build preserves it.
- ---------------------------------------------------------------------------
 
 ### IMP-repin-TestApply_PreservesFileMode-ff4fcfc: TestApply_PreservesFileMode
 ```attr

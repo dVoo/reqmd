@@ -89,9 +89,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Filter-aware coverage checking (RFC §3.2)
- ---------------------------------------------------------------------------
+Filter-aware coverage checking (RFC §3.2)
  TestFilterAwareCoverage_FilteredOutInboundNoFalseFailure verifies that
  a requirement excluded by the filter does not cause a false coverage
  failure for a filtered-in requirement. This is the core behavioral
@@ -149,9 +147,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Disjoint-attribute check (RFC §3.5)
- ---------------------------------------------------------------------------
+Disjoint-attribute check (RFC §3.5)
  TestDisjointAttribute_ZeroIntersection_Errors verifies that a trace link
  between two requirements with non-overlapping variant arrays produces an
  ERROR.
@@ -205,9 +201,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Test helpers
- ---------------------------------------------------------------------------
+Test helpers
 
 ### IMP-graph_test-filterByCode-940e9bc: filterByCode
 ```attr
@@ -250,9 +244,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Helper factories
- ---------------------------------------------------------------------------
+Helper factories
 
 ### IMP-graph_test-doc-89b07e8: doc
 ```attr
@@ -286,9 +278,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 1. Empty docs
- ---------------------------------------------------------------------------
+1. Empty docs
 
 ### IMP-graph_test-TestNew_SingleDocNoTraces-25a3ee8: TestNew_SingleDocNoTraces
 ```attr
@@ -300,9 +290,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Helpers
- ---------------------------------------------------------------------------
+Helpers
 
 ### IMP-graph_test-TestNew_ValidTrace-4ec3872: TestNew_ValidTrace
 ```attr
@@ -314,9 +302,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 3. Valid trace — two requirements, one traces to the other
- ---------------------------------------------------------------------------
+3. Valid trace — two requirements, one traces to the other
 
 ### IMP-graph_test-TestNew_DanglingTrace-cc5846e: TestNew_DanglingTrace
 ```attr
@@ -328,9 +314,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 4. Dangling trace — one req traces to a non-existent ID
- ---------------------------------------------------------------------------
+4. Dangling trace — one req traces to a non-existent ID
 
 ### IMP-graph_test-TestNew_CircularTrace-b4c4fb9: TestNew_CircularTrace
 ```attr
@@ -342,9 +326,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 5. Circular trace — A→B→C→A
- ---------------------------------------------------------------------------
+5. Circular trace — A→B→C→A
 
 ### IMP-graph_test-TestNew_OrphanDetection-ca28cfa: TestNew_OrphanDetection
 ```attr
@@ -356,9 +338,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 6. Orphan detection — A→B means A has no incoming → orphan
- ---------------------------------------------------------------------------
+6. Orphan detection — A→B means A has no incoming → orphan
 
 ### IMP-graph_test-TestNew_RootBoundarySuppressesOrphan-fa26002: TestNew_RootBoundarySuppressesOrphan
 ```attr
@@ -370,9 +350,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 7. Orphan suppression via directory boundary (no upstream sources)
- ---------------------------------------------------------------------------
+7. Orphan suppression via directory boundary (no upstream sources)
 
 ### IMP-graph_test-TestNew_NonBoundaryOrphanAndMissing-92dfcdf: TestNew_NonBoundaryOrphanAndMissing
 ```attr
@@ -384,9 +362,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 8. Orphan and missing-downstream when NOT in a boundary directory
- ---------------------------------------------------------------------------
+8. Orphan and missing-downstream when NOT in a boundary directory
 
 ### IMP-graph_test-TestNew_DispositionSuppressesOrphan-b5783e9: TestNew_DispositionSuppressesOrphan
 ```attr
@@ -398,9 +374,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 9. Orphan suppression via disposition (no root boundary, but disposition set)
- ---------------------------------------------------------------------------
+9. Orphan suppression via disposition (no root boundary, but disposition set)
 
 ### IMP-graph_test-TestNew_DispositionWithoutRationale-887598d: TestNew_DispositionWithoutRationale
 ```attr
@@ -412,9 +386,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 10. Disposition without rationale — deferred/rejected with no rationale
- ---------------------------------------------------------------------------
+10. Disposition without rationale — deferred/rejected with no rationale
 
 ### IMP-graph_test-TestNew_NeedsCoverageSatisfied-7fe97b4: TestNew_NeedsCoverageSatisfied
 ```attr
@@ -426,9 +398,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 11. `needs` attribute — explicit coverage expectations
- ---------------------------------------------------------------------------
+11. `needs` attribute — explicit coverage expectations
 
 ### IMP-graph_test-TestNew_NeedsCoverageMissing-0c33538: TestNew_NeedsCoverageMissing
 ```attr
@@ -480,9 +450,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- x-reqmd.requires-trace-from document default (SYS-FMT-003)
- ---------------------------------------------------------------------------
+x-reqmd.requires-trace-from document default (SYS-FMT-003)
 
 ### IMP-graph_test-TestXReqmdDefault_InheritedMissingCoverageWarns-7c196f2: TestXReqmdDefault_InheritedMissingCoverageWarns
 ```attr
@@ -574,9 +542,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 12. Neighbors — A traces to B and C
- ---------------------------------------------------------------------------
+12. Neighbors — A traces to B and C
 
 ### IMP-graph_test-TestNeighbors_NonExistent-be45fdd: TestNeighbors_NonExistent
 ```attr
@@ -588,9 +554,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 13. Neighbors — non-existent reqID
- ---------------------------------------------------------------------------
+13. Neighbors — non-existent reqID
 
 ### IMP-graph_test-TestTitle-d3f4598: TestTitle
 ```attr
@@ -602,9 +566,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 14. Title
- ---------------------------------------------------------------------------
+14. Title
 
 ### IMP-graph_test-TestNew_CrossDocTrace-75db6ec: TestNew_CrossDocTrace
 ```attr
@@ -626,9 +588,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 15. Multiple broken refs from same requirement
- ---------------------------------------------------------------------------
+15. Multiple broken refs from same requirement
 
 ### IMP-graph_test-TestNew_ExternalSuppressesOrphan-edb2f77: TestNew_ExternalSuppressesOrphan
 ```attr
@@ -640,9 +600,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 16. External suppresses orphan
- ---------------------------------------------------------------------------
+16. External suppresses orphan
 
 ### IMP-graph_test-TestNew_ChildSuppressesOrphan-6dc8030: TestNew_ChildSuppressesOrphan
 ```attr
@@ -654,9 +612,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 17. Child requirement suppresses orphan via IsChild
- ---------------------------------------------------------------------------
+17. Child requirement suppresses orphan via IsChild
 
 ### IMP-graph_test-TestNew_DuplicateIDAcrossDocuments-3378030: TestNew_DuplicateIDAcrossDocuments
 ```attr
@@ -668,9 +624,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 18. Duplicate ID across documents
- ---------------------------------------------------------------------------
+18. Duplicate ID across documents
 
 ### IMP-graph_test-TestNew_PrefixCollisionIsError-2c9d507: TestNew_PrefixCollisionIsError
 ```attr
@@ -682,9 +636,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 19. Prefix collision is WARNING, not ERROR
- ---------------------------------------------------------------------------
+19. Prefix collision is WARNING, not ERROR
 
 ### IMP-graph_test-TestNew_VersionPinCurrent-689a8e7: TestNew_VersionPinCurrent
 ```attr
@@ -696,9 +648,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- 20. Version-pin checks — current, outdated, predated, no-pin, missing version, external, suppressed
- ---------------------------------------------------------------------------
+20. Version-pin checks — current, outdated, predated, no-pin, missing version, external, suppressed
 
 ### IMP-graph_test-TestNew_VersionPinOutdated-b73f1f6: TestNew_VersionPinOutdated
 ```attr
@@ -812,9 +762,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Status lifecycle tests
- ---------------------------------------------------------------------------
+Status lifecycle tests
  T3: missing status attr → default (approved). A node with no `status`
  attr is treated as approved, so it counts as a coverage provider.
 
@@ -981,9 +929,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: outdated pin
- ---------------------------------------------------------------------------
+RepinDeltas: outdated pin
 
 ### IMP-graph_test-TestRepinDeltas_Current-860500f: TestRepinDeltas_Current
 ```attr
@@ -995,9 +941,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: current pin → no delta
- ---------------------------------------------------------------------------
+RepinDeltas: current pin → no delta
 
 ### IMP-graph_test-TestRepinDeltas_Predated-d8fa80d: TestRepinDeltas_Predated
 ```attr
@@ -1009,9 +953,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: predated pin → reported but not auto-fixable
- ---------------------------------------------------------------------------
+RepinDeltas: predated pin → reported but not auto-fixable
 
 ### IMP-graph_test-TestRepinDeltas_UnpinnedNoPromote-98e2368: TestRepinDeltas_UnpinnedNoPromote
 ```attr
@@ -1023,9 +965,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: unpinned ref (no promote) → empty
- ---------------------------------------------------------------------------
+RepinDeltas: unpinned ref (no promote) → empty
 
 ### IMP-graph_test-TestRepinDeltas_UnpinnedPromote-a30bced: TestRepinDeltas_UnpinnedPromote
 ```attr
@@ -1037,9 +977,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: unpinned ref (promote) → unpinned delta
- ---------------------------------------------------------------------------
+RepinDeltas: unpinned ref (promote) → unpinned delta
 
 ### IMP-graph_test-TestRepinDeltas_ExternalSkipped-6325c87: TestRepinDeltas_ExternalSkipped
 ```attr
@@ -1051,9 +989,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: external upstream → skipped
- ---------------------------------------------------------------------------
+RepinDeltas: external upstream → skipped
 
 ### IMP-graph_test-TestRepinDeltas_UnversionedSkipped-24d2f96: TestRepinDeltas_UnversionedSkipped
 ```attr
@@ -1065,9 +1001,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: unversioned upstream → skipped
- ---------------------------------------------------------------------------
+RepinDeltas: unversioned upstream → skipped
 
 ### IMP-graph_test-TestRepinDeltas_Suppressed-a3ca150: TestRepinDeltas_Suppressed
 ```attr
@@ -1079,9 +1013,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: suppressed node → skipped
- ---------------------------------------------------------------------------
+RepinDeltas: suppressed node → skipped
 
 ### IMP-graph_test-TestRepinDeltas_QualifiedSourceRef-e928c8e: TestRepinDeltas_QualifiedSourceRef
 ```attr
@@ -1093,9 +1025,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: qualified ref (doc-id/ID~N) → SourceRef preserves the form
- ---------------------------------------------------------------------------
+RepinDeltas: qualified ref (doc-id/ID~N) → SourceRef preserves the form
 
 ### IMP-graph_test-TestRepinDeltas_ResultSkipped-f14a86d: TestRepinDeltas_ResultSkipped
 ```attr
@@ -1107,9 +1037,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: result pseudo-requirement is not a source
- ---------------------------------------------------------------------------
+RepinDeltas: result pseudo-requirement is not a source
 
 ### IMP-graph_test-TestRepinDeltas_SyntheticSkipped-24f7093: TestRepinDeltas_SyntheticSkipped
 ```attr
@@ -1121,10 +1049,8 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: any node from a Synthetic document is not a source
+RepinDeltas: any node from a Synthetic document is not a source
  (future synthesized test-case nodes must not be rewritten in the report)
- ---------------------------------------------------------------------------
 
 ### IMP-graph_test-TestRepinDeltas_Sorted-ddd1237: TestRepinDeltas_Sorted
 ```attr
@@ -1136,9 +1062,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- RepinDeltas: stable sort by file → reqID → sourceRef
- ---------------------------------------------------------------------------
+RepinDeltas: stable sort by file → reqID → sourceRef
 
 ## internal/graph/verify_test.go
 ### IMP-graph_test-resultReq-fbde745: resultReq
@@ -1197,9 +1121,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- No result nodes → outcome checks are no-ops
- ---------------------------------------------------------------------------
+No result nodes → outcome checks are no-ops
 
 ### IMP-graph_test-TestMissingVerdict_MeasureWithoutResult-ccad749: TestMissingVerdict_MeasureWithoutResult
 ```attr
@@ -1211,9 +1133,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- missing-verdict: approved measure with no result → WARNING
- ---------------------------------------------------------------------------
+missing-verdict: approved measure with no result → WARNING
 
 ### IMP-graph_test-TestMissingVerdict_MeasureWithResult_NoFinding-c5f09be: TestMissingVerdict_MeasureWithResult_NoFinding
 ```attr
@@ -1245,9 +1165,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- failing-verdict: measure with fail result → ERROR
- ---------------------------------------------------------------------------
+failing-verdict: measure with fail result → ERROR
 
 ### IMP-graph_test-TestFailingVerdict_MeasurePasses_NoFinding-584ebda: TestFailingVerdict_MeasurePasses_NoFinding
 ```attr
@@ -1269,9 +1187,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- version-pin reuse: stale result pin triggers existing check
- ---------------------------------------------------------------------------
+version-pin reuse: stale result pin triggers existing check
 
 ### IMP-graph_test-staleResultReq-ef37d32: staleResultReq
 ```attr
@@ -1295,9 +1211,7 @@ x-reqmd.symbol-kind: const
 trace: []
 ```
 
----------------------------------------------------------------------------
- case-keyed chains (patterns C/D/E): cased results + synthesized TC nodes
- ---------------------------------------------------------------------------
+case-keyed chains (patterns C/D/E): cased results + synthesized TC nodes
  bootTimeCase is the case key used by the case-keyed chain fixtures.
 
 ### IMP-graph_test-casedResultReq-41bde99: casedResultReq

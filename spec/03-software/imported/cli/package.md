@@ -404,6 +404,102 @@ TestCheckCmd_RelaxedFilterAllowsUndeclared pins the --relaxed-filter
  schema.yaml is rejected by the default typo check and accepted — with a
  warning instead of an error — when the flag is set.
 
+## internal/cli/e2e_test.go
+### IMP-cli-bundleFixture-721d374: bundleFixture
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/cli/e2e_test.go
+x-reqmd.source-line: 18
+x-reqmd.symbol-kind: const
+trace: []
+```
+
+bundleFixture is a real exchange bundle: sections grouping requirements, an
+ internal link, an external ref, a declared schema and x-reqmd metadata.
+
+### IMP-cli-renderBundle-16e747f: renderBundle
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/cli/e2e_test.go
+x-reqmd.source-line: 22
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+renderBundle runs a bundle through the renderer and writes the files it
+ produces into dir, exactly as `reqmd-import` does.
+
+### IMP-cli-TestE2E_ExchangeBundleToCheckAndExports-f638a3c: TestE2E_ExchangeBundleToCheckAndExports
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/cli/e2e_test.go
+x-reqmd.source-line: 46
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestE2E_ExchangeBundleToCheckAndExports is the whole chain in one test: an
+ exchange bundle becomes reqmd documents, those documents validate, and the
+ exports carry the structure the bundle declared. It asserts behaviour across
+ module boundaries (exchange → parser → graph → exporter) instead of inside a
+ single package, which is where the pipeline actually breaks.
+
+### IMP-cli-TestE2E_SectionsSurviveParseAndFilter-ad82110: TestE2E_SectionsSurviveParseAndFilter
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/cli/e2e_test.go
+x-reqmd.source-line: 140
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestE2E_SectionsSurviveParseAndFilter covers the section model end to end in
+ reqmd core: a real document is parsed into a tree, and a filtered view drops
+ a folder whose requirements were all pruned while keeping leaf sections.
+
+### IMP-cli-TestE2E_CSVImporterToCheckChain-e38dc5a: TestE2E_CSVImporterToCheckChain
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/cli/e2e_test.go
+x-reqmd.source-line: 242
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestE2E_CSVImporterToCheckChain runs the documented flagship flow when a
+ Python interpreter is available: DOORS CSV → reqmd_io bundle → renderer →
+ check. It is skipped rather than failed when python3 is missing, the same way
+ the client-side JS tests skip without node.
+
+### IMP-cli-ndjsonRows-818dc52: ndjsonRows
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/cli/e2e_test.go
+x-reqmd.source-line: 293
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+ndjsonRows reads a JSON-lines table.
+
+### IMP-cli-keysOf-6e4a82e: keysOf
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/cli/e2e_test.go
+x-reqmd.source-line: 314
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+keysOf lists map keys for failure messages.
+
 ## internal/cli/export_test.go
 ### IMP-cli-TestExportCSV_Filter-7a4ad02: TestExportCSV_Filter
 ```attr
@@ -1341,12 +1437,13 @@ extractFlags carries the CLI flags for extraction. Using a struct
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 76
+x-reqmd.source-line: 77
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
-runExtract is the cobra RunE body. Splitting it out of the constructor
+reqmd:trace SW-IMP-001
+ runExtract is the cobra RunE body. Splitting it out of the constructor
  keeps the flag wiring in NewRootCmd and the actual work here, so
  this function is straightforward to call from a test if we ever want
  to exercise the pipeline without going through cobra.
@@ -1356,7 +1453,7 @@ runExtract is the cobra RunE body. Splitting it out of the constructor
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 128
+x-reqmd.source-line: 129
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1370,7 +1467,7 @@ Walk the source tree. We collect (file, plugin) pairs first, then
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 178
+x-reqmd.source-line: 179
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1388,7 +1485,7 @@ Parse every file in parallel, one result slot per job: no channel to
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 412
+x-reqmd.source-line: 413
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1402,7 +1499,7 @@ extSet is a tiny helper for the --lang filter: build a set of the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 423
+x-reqmd.source-line: 424
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1416,7 +1513,7 @@ nativeKey is a symbol's disambiguation key inside its package. Methods are
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 431
+x-reqmd.source-line: 432
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1428,7 +1525,7 @@ countRequirements counts requirement-kind items in a document tree.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 444
+x-reqmd.source-line: 445
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1441,7 +1538,7 @@ withXReqmd returns a copy of doc whose x-reqmd block can be mutated without
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 461
+x-reqmd.source-line: 462
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1455,7 +1552,7 @@ nestMethods attaches collected methods to their type, preserving source order.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 476
+x-reqmd.source-line: 477
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1469,7 +1566,7 @@ relPath renders a source file relative to the scanned root, so a per-file
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 491
+x-reqmd.source-line: 492
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1487,12 +1584,25 @@ docSections turns a doc comment into section items: the prose before the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 543
+x-reqmd.source-line: 551
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 atxHeading parses "## Title" into its level and text.
+
+### IMP-cli-isRuleLine-1b1c203: isRuleLine
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/cli/extract.go
+x-reqmd.source-line: 564
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+isRuleLine reports whether a line is a decorative rule: three or more of the
+ same Markdown rule character, nothing else.
 
 ## reqmd-code/internal/cli/extract_test.go
 ### IMP-cli-runTestExtract-4e9ac61: runTestExtract
@@ -1704,6 +1814,20 @@ trace: []
 TestRunExtract_DocCommentBecomesSection verifies the wiring end to end: the
  symbol keeps the attr block and its doc prose moves into a child section, and
  a Markdown heading in the doc does not break the rendered nesting.
+
+### IMP-cli-TestDocSections_GodocSeparator-f91f647: TestDocSections_GodocSeparator
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
+x-reqmd.source-line: 438
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestDocSections_GodocSeparator guards against a decorative rule becoming a
+ setext heading: "-----" under a text line renders as an h2, which would turn
+ a Godoc separator into a section that swallows the symbols after it.
 
 ## reqmd-import/internal/cli/root.go
 ### IMP-cli-runOptions-7da2fca: runOptions

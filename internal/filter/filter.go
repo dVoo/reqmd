@@ -70,6 +70,7 @@ type Filter struct {
 	refs    []string // validated variable names referenced in the expression
 }
 
+// reqmd:trace SW-FIL-001
 // Compile parses, validates, and compiles a filter expression (strict
 // mode).
 //

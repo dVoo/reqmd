@@ -1,6 +1,11 @@
+
 # reqmd Software Components
 
-## SW-PAR-001: Goldmark-based markdown parser
+## Parsing and content model
+
+Discovery, AST parsing, the content tree, and the error handling that wraps them.
+
+### SW-PAR-001: Goldmark-based markdown parser
 ```attr
 status: approved
 package: parser
@@ -13,7 +18,36 @@ The parser package shall use goldmark to walk the Markdown AST, extracting requi
 
 *Rationale:* goldmark provides a battle-tested CommonMark AST. Deterministic merge ordering keeps output stable regardless of goroutine scheduling. Content-tree semantics live in SW-PAR-002.
 
-## SW-SCH-001: JSON Schema compilation
+### SW-PAR-002: Content-tree parsing
+```attr
+status: approved
+package: parser
+priority: High
+requires-trace-from: [test-specs]
+trace:
+  - SYS-CON-001
+```
+The parser package shall emit a flat node stream per `.md` file — one `model.Node` per heading (kind requirement or section) except the level-1 document title, which is captured as the file title and excluded from the stream — with prose, rationales, code blocks, and thematic breaks attached to the open node's body — and assemble it into the document content tree with `assembleTree`: parent = nearest preceding heading with a shallower level; `ParentID` set for requirements to the nearest ancestor requirement; every non-requirement heading keeps `KindSection` regardless of whether it has children, so folder-ness stays derived from `Children`. Requirement headings shall be level 2 or higher; a level-1 heading with an `attr` block shall be rejected as a parse error, and a level-1 heading that is not the first heading in its file shall be rejected too, so a title can never be silently discarded. Frontmatter is not used as a title fallback: the h1 is the only title source. Multi-file documents shall merge per-file trees in `mdFiles` (sorted) order so output ordering is deterministic regardless of parse parallelism, take the document title from the first file's h1 heading, and the parallel chunked path shall include the file preamble in chunk 0 so leading prose and headings are never dropped.
+
+*Rationale:* The chunked parse path previously split files at root-requirement boundaries, silently discarding the preamble. Assembly after concatenating chunk node streams (instead of per-chunk) preserves nesting across chunk boundaries (e.g. a container in chunk 0 holding a requirement in chunk 1) while keeping parse parallelism.
+
+### SW-ERR-001: Parser discovery error handling
+```attr
+status: approved
+package: parser
+priority: High
+trace:
+  - SYS-FMT-001
+```
+The parser package shall surface discovery errors (unreadable directories, malformed schema.yaml, unparseable .md) as `ParseError` entries in the report rather than aborting the run, so that a single bad file does not mask the rest of the tree. `Discover` walks the tree, locates every directory containing a `schema.yaml`, and parses all `.md` files in that directory in parallel; per-file failures are collected and reported with file context.
+
+*Rationale:* Partial-failure reporting lets CI surface every problem in one run instead of failing fast on the first error and hiding subsequent issues. Parallel parsing keeps large trees fast; error collection preserves the worker-pool's throughput benefit.
+
+## Schema and validation
+
+Compiling the JSON Schema, enforcing the status lifecycle, and the suppression list.
+
+### SW-SCH-001: JSON Schema compilation
 ```attr
 status: approved
 package: schema
@@ -27,7 +61,35 @@ The schema package shall compile `schema.yaml` via `github.com/google/jsonschema
 
 *Rationale:* The Google jsonschema-go library is the official JSON Schema 2020-12 implementation for Go with zero external dependencies. Direct map access avoids marshal/unmarshal overhead on the hot validation path. Keeping parent-child out of the schema keeps the validation layer focused on project-specific attributes.
 
-## SW-GRA-001: In-memory directed graph
+### SW-STS-001: Status lifecycle enforcement
+```attr
+status: approved
+package: schema
+priority: Medium
+trace:
+  - SYS-STS-001
+```
+The schema package shall validate `x-reqmd.additional-status-values` (lowercase-only matching `^[a-z][a-z0-9_-]*$`, no reserved built-in collision, no duplicates) and extend the built-in `status` enum per document accordingly. The graph shall gate coverage on status: only `approved` requirements satisfy a `requires-trace-from` expectation, and a missing-coverage message shall append the count of draft downstreams ignored. The exporter shall hide the status filter for documents with `x-reqmd.ignore-status: true`.
+
+*Rationale:* The status axis is enforced at three points — schema (valid extension values), graph (coverage provider gate), and exporter (status filter visibility) — so the lifecycle is consistent across validation, coverage, and rendered output.
+
+### SW-SUP-001: Check suppression
+```attr
+status: approved
+package: graph
+priority: Medium
+trace:
+  - SYS-SUP-001
+```
+The graph package shall parse a `reqmd-suppress: [<code>...]` attribute into each requirement's suppression set and skip the listed graph checks when collecting results for that requirement.
+
+*Rationale:* Suppression is a per-requirement opt-out evaluated at result-collection time, so it composes with every existing and future graph check without touching each check's logic.
+
+## Graph, checks and filtering
+
+The in-memory graph, the check catalog that runs over it, and the filter that scopes a view.
+
+### SW-GRA-001: In-memory directed graph
 ```attr
 status: approved
 package: graph
@@ -41,7 +103,7 @@ During Pass 1 each node's `requires-trace-from` expectation shall be resolved to
 
 *Rationale:* Three sub-passes guarantee deterministic node initialization before edge construction. The `IsChild` flag propagates into untraced-check suppression. Pure Go adjacency eliminates temp-directory I/O and serialization overhead.
 
-## SW-CHK-001: Trace integrity, coverage, and workflow checks
+### SW-CHK-001: Trace integrity, coverage, and workflow checks
 ```attr
 status: approved
 package: graph
@@ -61,7 +123,127 @@ Every check shall honour the declaring requirement's suppression set and the act
 
 *Rationale:* ISO 26262 requires demonstrated absence of broken or circular traces. ERROR-level checks enforce structural integrity; WARNING-level checks flag maintainability concerns without blocking CI. Untraced suppression for sub-requirements avoids false positives — children are expected to be referenced by their parent, not by external traces.
 
-## SW-EXP-001: CSV, HTML, and graph export
+### SW-DIS-001: Disjoint-attribute graph check
+```attr
+status: approved
+package: graph
+priority: Medium
+trace:
+  - SYS-CHK-003
+```
+The graph package shall implement `checkDisjointAttribute` (code `disjoint-attribute`), enabled via `SetDisjointAttrs` populated from the `--disjoint-check` flag or `x-reqmd.disjoint-check`. For every trace edge, the source and target requirements must share at least one value of each named array attribute; zero intersection shall produce an ERROR result, and an empty or absent value is exempt. The check shall respect `reqmd-suppress`.
+
+*Rationale:* The check is a pure graph pass over already-built edges, so it adds no new data structures; naming the attribute per invocation keeps it project-configurable without a new built-in.
+
+### SW-LEV-001: Level-typed coverage resolution
+```attr
+status: approved
+package: graph
+priority: High
+trace:
+  - SYS-FMT-005
+```
+The graph package shall index document directories by their `x-reqmd.level` and resolve each `requires-trace-from` token against that index: a token matching a declared level expands to every directory at that level (any approved inbound from any of them satisfies coverage), a token matching a `document-id` resolves as today, and a token matching neither shall produce a WARNING. Coverage tokens inherited from the `x-reqmd.requires-trace-from` document default (resolved onto the node during Pass 1, SYS-FMT-003) shall be resolved through the same index and are indistinguishable from per-requirement declarations downstream of node creation.
+
+*Rationale:* Level indexing is built once at graph construction from data the parser already exposes, so coverage checks stay O(1) per token while remaining correct as directories within a level are added or removed.
+
+### SW-SAF-001: Version-pin demotion in check
+```attr
+status: approved
+package: cli
+priority: Medium
+trace:
+  - SYS-VAL-001
+```
+The `check` command shall accept a `--relaxed-versions` flag that demotes `version-pin` findings with `direction: "outdated"` (upstream newer than the pin) from ERROR to WARNING. Predated findings (pin ahead of upstream) remain ERROR regardless of the flag, since they indicate a downstream referencing a version that does not exist on the upstream.
+
+*Rationale:* Outdated pins are often intentional (a downstream validated against a known-good older version and has not yet revalidated); demoting them to WARNING lets teams adopt version pinning without blocking CI on every upstream bump. Predated pins are data-integrity errors and must always block.
+
+### SW-SAF-002: Graph construction safety
+```attr
+status: approved
+package: graph
+priority: High
+trace:
+  - SYS-VAL-001
+```
+The graph package's `New` constructor shall build the in-memory directed graph from parsed requirements without performing I/O or side effects, so that graph construction is deterministic and cannot fail at runtime. Node creation, trace-edge building, and parent-child edge building run as three ordered sub-passes over the already-parsed in-memory document set.
+
+*Rationale:* Keeping graph construction pure (no file I/O, no network, no allocations beyond the adjacency slices) means the graph can be rebuilt cheaply on every file change in `serve` mode and unit-tested without fixtures. The three-sub-pass ordering guarantees nodes exist before edges are wired.
+
+### SW-FIL-001: Attribute filter engine
+```attr
+status: approved
+package: filter
+priority: Medium
+trace:
+  - SYS-FIL-001
+```
+The `internal/filter` package shall compile a `--filter` expression once at startup into bytecode using expr-lang, reject at compile time any expression referencing an attribute not declared in some `schema.yaml` (global typo check), and evaluate the bytecode against each requirement's attribute map plus the built-in `id` and `title` variables. Per-document attribute absence shall evaluate to nil (no error) via `AllowUndefinedVariables`. The package shall provide a `MatchingIDs` helper and document filtering (`FilterDocs`).
+
+Under `--relaxed-filter` the package shall instead downgrade the typo check to a warning and admit any attribute present on a requirement even when no schema declares it: `BuildFoundAttrs` collects the attribute keys actually used, `CompileRelaxed` compiles against that union and returns the warnings, and `WriteWarnings` emits them.
+
+*Rationale:* Compile-once/eval-many keeps per-requirement filtering cheap on large trees; the global schema check turns attribute typos into a startup error instead of silent empty matches, with `--relaxed-filter` as the opt-out for trees that intentionally carry informal attributes.
+
+## Verification results
+
+Ingesting automated and manual evidence and rolling it up into outcome-gated checks.
+
+### SW-VER-001: CTRF report parser
+```attr
+status: approved
+package: verify
+priority: High
+trace:
+  - SYS-VAL-002
+```
+The `internal/verify` package shall parse CTRF JSON reports (top-level `results.tests[]`) and map each test to a measure ID via the `tests[].extra.x-reqmd.id` field. CTRF `status` shall map to reqmd `outcome` as: `passed→pass`, `failed→fail`, `skipped→skipped`, `pending|other→inconclusive`, and any status with `flaky: true→inconclusive`. Tests with no `x-reqmd.id` shall be skipped with a WARNING. The `~N` version pin in the measure ID shall be preserved.
+
+*Rationale:* CTRF is the open standard for JSON test reports. Using its `extra` extension point for the measure ID survives test renaming and avoids brittle name-parsing. Flaky tests are inconclusive because a pass-after-fail is not a clean pass.
+
+### SW-VER-002: Manual-results markdown loader
+```attr
+status: approved
+package: verify
+priority: High
+trace:
+  - SYS-VAL-002
+```
+The `internal/verify` package shall load manual-results markdown directories via `parser.Discover`, extracting `x-reqmd.outcome`, `x-reqmd.verifier`, `x-reqmd.evidence`, `x-reqmd.verified-at`, and `trace` from each requirement's attr block. Manual-results dirs live outside the spec root and carry their own user-supplied `schema.yaml`.
+
+*Rationale:* Reusing the existing document pipeline for manual results avoids a parallel parser and keeps schema validation uniform. Keeping results outside the spec root ensures a normal `check` never sees them.
+
+### SW-VER-003: Result merge and synthesis
+```attr
+status: approved
+package: verify
+priority: High
+trace:
+  - SYS-VAL-002
+```
+The `internal/verify` package shall merge all loaded results by (measure, case) key (stripping `~N` pins from the key), keeping the latest result per key by CTRF `tests[].stop` (ms-epoch) or manual `x-reqmd.verified-at`. Each merged result shall be synthesized as a pseudo-requirement with ID `RESULT:<target>`, `trace: [MEASURE-ID~N]` (pin preserved for version-pin checks), `x-reqmd.outcome: <verdict>`, and `status: approved`, then appended to the document slice before `graph.New`. Result attributes (`x-reqmd.outcome`, `x-reqmd.verifier`, `x-reqmd.evidence`, `x-reqmd.verified-at`) are tool-owned and namespaced under `x-reqmd.*` so they never collide with authored schema attributes.
+
+*Rationale:* Collapsing to one result per measure reflects "latest verdict wins" without storing history in-file. The synthetic `RESULT:` prefix lets graph checks distinguish result nodes from authored ones. Preserving the pin on the trace edge makes the existing `version-pin` check detect stale results with no new logic.
+
+### SW-VER-004: Outcome-gated graph checks
+```attr
+status: approved
+package: graph
+priority: High
+trace:
+  - SYS-VAL-002
+```
+The graph shall run two new checks when result pseudo-requirements are present: `missing-verdict` (WARNING — an approved verification measure, identified by a non-empty `verify` attribute, has no result tracing to it; draft measures are skipped) and `failing-verdict` (ERROR — a measure's latest result has outcome `fail`). Both checks are no-ops when no result nodes exist. Both are suppressible via `reqmd-suppress`.
+
+Each check shall operate on the measure's rolled-up evidence set: its own attached results plus the results attached to approved, in-filter nodes in its inbound trace closure (authored downstream test specs and synthesized test cases). Aggregation is strict — any fail → fail, else inconclusive → inconclusive, else skipped → skipped, else empty → none, else pass — computed bottom-up and memoized so a check pass stays linear. A measure whose evidence set is non-empty shall also emit an INFO-level `verdict` result carrying the rolled-up outcome, so a run with `--results` is visibly distinct from a run without results. `missing-verdict` messages report the count of draft downstream cases ignored; `failing-verdict` names the failing case(s) and their source file(s). Deferred/rejected measures (expectsVerification) are exempt from both checks. The `MeasureVerdicts` accessor shall expose the rolled-up verdict and its evidence set per node for exporters.
+
+*Rationale:* A measure is defined by the `verify` attribute, not by inbound edges — a measure with no result has no inbound result edge, so the check must key on `verify`. Draft measures are skipped because a draft measure is not yet expected to have results. Roll-up closes the V-model gap where requirements are verified through downstream test specs or CI cases rather than a direct result edge; the severity lattice is associative, so bottom-up memoization keeps large trees linear.
+
+## Exporters
+
+The three output formats and the trace-link resolution they share.
+
+### SW-EXP-001: CSV, HTML, and graph export
 ```attr
 status: approved
 package: exporter
@@ -79,62 +261,52 @@ The HTML export shall serve Table, Trace, and Coverage views from one embedded `
 
 The HTML export shall adapt coverage, verification, and link health from the graph's `CoverageStates`, `VerificationStates`, and `TraceRefs` APIs, including `no verdict` in the verification denominator over eligible measures, and shall carry version-pin direction per link so stale links are never inferred from link presence.
 
-The HTML export shall embed its stylesheet and client controller and load no external scripts (no CDN), and shall render a project home page (`index.html`) with a document catalog, project-wide health, actionable exception queues, and cross-document requirement search.
+The HTML export shall embed its stylesheet and client controller and load no external scripts (no CDN), and shall render a project home page (`index.html`) with a document catalog, project-wide health, actionable exception queues, and cross-document requirement search. The one external request a page may make is the pinned Mermaid runtime on a page that contains a diagram (SW-EXP-004).
 
 The HTML export SHALL render requirement body and rationale through goldmark to support inline Markdown syntax (code spans, emphasis, emoji, math, fenced code blocks) rather than plain text escaping.
 
 *Rationale:* CSV covers bulk data exchange; HTML supports human traceability review with full Markdown rendering and navigation features. Nested child cards preserve V-model decomposition visually. Graph export via ladybugdb provides a persistent queryable graph database for the planned `reqmd-query` standalone analysis tool.
 
-## SW-CLI-001: Cobra command dispatch
+### SW-EXP-002: Item-aware export
 ```attr
 status: approved
-package: cli
-priority: Critical
-trace:
-  - SYS-CLI-001
-```
-The `internal/cli` package shall use cobra to dispatch subcommands (the `export` subcommands live in `internal/cli/export`) and coordinate the full pipeline: parse documents, compile schemas, validate attributes, build the graph, load verification results, run graph checks, and format the report to stdout with the appropriate exit code. Shared flag handling — `--filter`/`--relaxed-filter` compilation plus warning output, and `--results` loading — shall live in one helper used by every command that accepts those flags, so filter and results semantics cannot drift between `check`, `ls`, `stats`, `serve`, and the exporters.
-
-*Rationale:* Cobra provides standard CLI conventions (help text, flags, subcommands). A single coordinator function ensures consistent pipeline execution across all commands.
-
-
-## SW-ERR-001: Parser discovery error handling
-```attr
-status: approved
-package: parser
-priority: High
-trace:
-  - SYS-FMT-001
-```
-The parser package shall surface discovery errors (unreadable directories, malformed schema.yaml, unparseable .md) as `ParseError` entries in the report rather than aborting the run, so that a single bad file does not mask the rest of the tree. `Discover` walks the tree, locates every directory containing a `schema.yaml`, and parses all `.md` files in that directory in parallel; per-file failures are collected and reported with file context.
-
-*Rationale:* Partial-failure reporting lets CI surface every problem in one run instead of failing fast on the first error and hiding subsequent issues. Parallel parsing keeps large trees fast; error collection preserves the worker-pool's throughput benefit.
-
-## SW-SAF-001: Version-pin demotion in check
-```attr
-status: approved
-package: cli
+package: exporter
 priority: Medium
+requires-trace-from: [test-specs]
 trace:
-  - SYS-VAL-001
+  - SYS-CON-002
 ```
-The `check` command shall accept a `--relaxed-versions` flag that demotes `version-pin` findings with `direction: "outdated"` (upstream newer than the pin) from ERROR to WARNING. Predated findings (pin ahead of upstream) remain ERROR regardless of the flag, since they indicate a downstream referencing a version that does not exist on the upstream.
+The exporter package shall render the document tree depth-first: requirement cards with child cards nested, sections with children as collapsible folders, and leaf sections (including the headingless document preamble) as plain blocks. Requirement anchors shall be the requirement ID; section anchors shall be a slug derived from the section title (`sec-<slug>`, `sec-preamble` for an untitled section) with a deterministic numeric suffix on collision, so a bookmark to a section survives the insertion of unrelated items and a filtered export uses the same anchors as the unfiltered one. Print output shall reveal the contents of collapsed folders. Top-level items shall render at heading level 2 (level 1 is the document title) and nested items at their native depth, so the heading outline never starts below the title. The server-rendered sidebar outline shall mirror the same tree, and the embedded `pageModel` shall carry every node (requirements plus `container`/`info` items) with a `type` discriminator, so filtering, counts, and scroll-spy agree with the DOM; the client-side search and counts shall apply to requirements only, while the command palette shall additionally offer section titles as navigation targets (opening the folder and scrolling to it) without counting them. CSV export shall emit a `Type` column and rows for all nodes in document order.
 
-*Rationale:* Outdated pins are often intentional (a downstream validated against a known-good older version and has not yet revalidated); demoting them to WARNING lets teams adopt version pinning without blocking CI on every upstream bump. Predated pins are data-integrity errors and must always block.
+*Rationale:* Structure must not be lost between Markdown and the review surface. Deriving the outline, the filter set, and the view model from one tree walk keeps the file view faithful to the source and avoids a second, drifting representation of the document (the previous flat `parentId`/`children` index).
 
-## SW-SAF-002: Graph construction safety
+### SW-EXP-003: NDJSON table export
 ```attr
 status: approved
-package: graph
-priority: High
+package: exporter
+priority: Medium
+requires-trace-from: [test-specs]
 trace:
-  - SYS-VAL-001
+  - SYS-EXP-001
 ```
-The graph package's `New` constructor shall build the in-memory directed graph from parsed requirements without performing I/O or side effects, so that graph construction is deterministic and cannot fail at runtime. Node creation, trace-edge building, and parent-child edge building run as three ordered sub-passes over the already-parsed in-memory document set.
+The exporter shall expose one writer per table — requirements, traces, results, and findings — each serializing one record per JSON line. The requirements table shall contain requirement rows only: sections are structure, so their titles are carried as a `section_path` column on the requirements beneath them (ancestor section titles joined by ` / `, empty when there is no section ancestor) rather than as rows of their own, and each row carries `ordinal`, its 1-based position in document order. The table has no `type` column. Built-in attributes shall be promoted to top-level columns (`trace`, `requires_trace_from`, `status`, `disposition`, `disposition_reason`, `version`, `verify`), remaining attributes shall stay in an `attrs` envelope, and every fixed column shall be emitted on every row (null when unset) so warehouse schema inference sees the full column set. Requirement rows shall be ordered by document path and requirement ID; `section_path` provides grouping and `ordinal` provides authoring order, while the physical row order carries no meaning. A writer shall be a pure function of (tree, results): no state carried between calls, and byte-identical output for identical input. Trace rows shall carry the declared reference, the resolved target, the pin, and the resolution state; finding rows shall carry level, code, direction, outcome, file, and message.
 
-*Rationale:* Keeping graph construction pure (no file I/O, no network, no allocations beyond the adjacency slices) means the graph can be rebuilt cheaply on every file change in `serve` mode and unit-tested without fixtures. The three-sub-pass ordering guarantees nodes exist before edges are wired.
+*Rationale:* Warehouse loaders infer schema from a sample of rows, so a column missing from the sampled row becomes a load error. Promoting the built-ins and padding every row costs a few bytes and removes per-query JSON extraction, while determinism makes the export diffable and cacheable.
 
-## SW-SEC-001: Exporter trace-link resolution
+### SW-EXP-004: Mermaid diagrams in exported HTML
+```attr
+status: approved
+package: exporter
+priority: Medium
+requires-trace-from: [test-specs]
+trace:
+  - SYS-HTM-001
+```
+The parser shall preserve a fenced code block labelled `mermaid` in a node body or rationale verbatim, delimiters included, as body Markdown; diagram extenders shall not be registered on the parsing goldmark instance, because their AST transformers replace the fenced block with a node that carries no fence lines and the parser would then emit the diagram source as prose. The HTML export shall render such blocks as `mermaid` containers holding the source and shall render the diagram in the browser with the Mermaid client runtime, loaded from one version-pinned CDN URL held in a single constant in the exporter. This load is the only documented exception to the export's network-free guarantee: a page that contains no diagram shall make no external request, and the export shall require no browser, no Node.js, and no Mermaid CLI on the exporting machine. Server-side diagram rendering is out of scope. The diagram source shall remain visible as text when scripting is disabled, so a page whose runtime failed to load still conveys the diagram's content.
+
+*Rationale:* Mermaid is the diagram vocabulary the documentation site already uses, so one runtime keeps the two pipelines consistent. Client-side rendering keeps a single static binary and a fast export; the alternatives are rejected because shelling out to the Mermaid CLI needs a Chromium install and costs seconds per diagram, and a server-side Go renderer costs binary size and a toolchain floor. Vendoring the runtime into the binary was rejected too, because it adds megabytes to every build for a feature most specs do not use.
+
+### SW-SEC-001: Exporter trace-link resolution
 ```attr
 status: approved
 package: exporter
@@ -146,7 +318,23 @@ The `internal/exporter` package shall resolve cross-document trace links through
 
 *Rationale:* HTML export is the primary human-review artifact and may be served over HTTP or opened from the filesystem. Relative-only links keep the output portable, and escaping at every interpolation point means requirement prose — which is untrusted input from the exporter's point of view — cannot inject markup or script.
 
-## SW-SRV-001: Live-reload serve subcommand
+## CLI and serve
+
+Command dispatch and the live-reload preview.
+
+### SW-CLI-001: Cobra command dispatch
+```attr
+status: approved
+package: cli
+priority: Critical
+trace:
+  - SYS-CLI-001
+```
+The `internal/cli` package shall use cobra to dispatch subcommands (the `export` subcommands live in `internal/cli/export`) and coordinate the full pipeline: parse documents, compile schemas, validate attributes, build the graph, load verification results, run graph checks, and format the report to stdout with the appropriate exit code. Shared flag handling — `--filter`/`--relaxed-filter` compilation plus warning output, and `--results` loading — shall live in one helper used by every command that accepts those flags, so filter and results semantics cannot drift between `check`, `ls`, `stats`, `serve`, and the exporters.
+
+*Rationale:* Cobra provides standard CLI conventions (help text, flags, subcommands). A single coordinator function ensures consistent pipeline execution across all commands.
+
+### SW-SRV-001: Live-reload serve subcommand
 ```attr
 status: approved
 package: cli
@@ -161,7 +349,37 @@ The `serve` subcommand shall accept a repeatable `--results <path>` flag that lo
 
 *Rationale:* A live preview shortens the author→review feedback loop for the HTML output. fsnotify gives sub-second response on supported platforms; the polling fallback keeps `serve` usable on network filesystems and in containers. Separating graph checks from full validation keeps rebuilds fast enough for interactive use. Extending `--results` to `serve` closes the V-model right side in the interactive authoring loop: a failing verdict turns the status line red immediately, without leaving the editor to run `check`.
 
-## SW-BAS-001: Baseline diff via git tags
+## Scaffolding, pinning and baselines
+
+The authoring and maintenance commands around the core pipeline.
+
+### SW-INI-001: Scaffolding presets
+```attr
+status: approved
+package: cli
+priority: Medium
+requires-trace-from: [test-specs]
+trace:
+  - SYS-INI-001
+```
+The `init` subcommand shall render a schema template and an example document from one of three embedded presets (`generic`, `aspice`, `results`) or from a custom preset directory, then write both into the target directory. Embedded templates shall be `go:embed`-ed so the binary has no runtime asset dependency. A custom preset shall be detected by path shape (separator, `.`, `..`, or an existing directory) and shall supply `schema.yaml.tmpl` or `schema.yaml` plus `example.md.tmpl` or a single `.md` file; both files are parsed as Go templates with `.ID`, `.Title`, `.Level`, and `.IDPrefix`. The `results` preset shall default to level `verify-results` and prefix `VR-` and shall title the schema as verification results; every preset shall honour `--id`, `--title`, `--level`, and `--id-prefix`. An existing `schema.yaml` or example document shall abort the run unless `--force` is given.
+
+*Rationale:* Embedding the templates keeps `reqmd init` usable from a single downloaded binary. Built-in and custom presets share one renderer, so the built-ins exercise the custom path on every run and the custom feature cannot rot into a separate code path.
+
+### SW-REPIN-001: Version-pin delta computation and in-place rewrite
+```attr
+status: approved
+package: repin
+priority: High
+requires-trace-from: [test-specs]
+trace:
+  - SYS-REPIN-001
+```
+The `repin` package shall separate computation from application: `Build(root, promoteUnpinned)` parses the tree and returns a sorted result of deltas (kind `outdated`, `unpinned`, or `predated`) plus per-file counts, and `Apply(root, deltas)` rewrites the affected files in place, touching only ` ```attr ` blocks so surrounding Markdown prose is preserved byte for byte. A delta whose original source ref is not found in any attr block shall be a no-op and shall not count as applied; predated deltas shall be listed in the apply report's skipped set and never written. Replacements shall match whole refs (bounded by non-identifier bytes) so an unpinned promote cannot rewrite the bare ID inside an already-pinned sibling, and the `--json` contract (`deltas[]`, `by_file`, and the `outdated`/`unpinned`/`predated` counts) shall be stable.
+
+*Rationale:* The command edits source files, so its safety properties are the whole feature: an unanchored string replacement would corrupt an adjacent pinned ref, and a rewrite escaping the attr block would damage authored prose. Splitting computation from application keeps the dry-run and the apply path on one change set, so what the user reviewed is exactly what is written.
+
+### SW-BAS-001: Baseline diff via git tags
 ```attr
 status: approved
 package: cli
@@ -173,119 +391,11 @@ The `baseline diff <tag1> <tag2>` subcommand shall compare requirement specifica
 
 *Rationale:* Requirement-level diffs drive change-impact analysis and release notes. Using git tags as baseline anchors inherits the team's existing version-control workflow; `git archive` avoids checking out tags into separate worktrees, keeping the operation fast and side-effect-free. Submodule diff surfaces pinned-dependency drift that requirement diffs alone miss.
 
-## SW-VER-001: CTRF report parser
-```attr
-status: approved
-package: verify
-priority: High
-trace:
-  - SYS-VAL-002
-```
-The `internal/verify` package shall parse CTRF JSON reports (top-level `results.tests[]`) and map each test to a measure ID via the `tests[].extra.x-reqmd.id` field. CTRF `status` shall map to reqmd `outcome` as: `passed→pass`, `failed→fail`, `skipped→skipped`, `pending|other→inconclusive`, and any status with `flaky: true→inconclusive`. Tests with no `x-reqmd.id` shall be skipped with a WARNING. The `~N` version pin in the measure ID shall be preserved.
+## Import pipeline
 
-*Rationale:* CTRF is the open standard for JSON test reports. Using its `extra` extension point for the measure ID survives test renaming and avoids brittle name-parsing. Flaky tests are inconclusive because a pass-after-fail is not a clean pass.
+Source extraction, the neutral exchange format, and the single renderer every producer feeds.
 
-## SW-VER-002: Manual-results markdown loader
-```attr
-status: approved
-package: verify
-priority: High
-trace:
-  - SYS-VAL-002
-```
-The `internal/verify` package shall load manual-results markdown directories via `parser.Discover`, extracting `x-reqmd.outcome`, `x-reqmd.verifier`, `x-reqmd.evidence`, `x-reqmd.verified-at`, and `trace` from each requirement's attr block. Manual-results dirs live outside the spec root and carry their own user-supplied `schema.yaml`.
-
-*Rationale:* Reusing the existing document pipeline for manual results avoids a parallel parser and keeps schema validation uniform. Keeping results outside the spec root ensures a normal `check` never sees them.
-
-## SW-VER-003: Result merge and synthesis
-```attr
-status: approved
-package: verify
-priority: High
-trace:
-  - SYS-VAL-002
-```
-The `internal/verify` package shall merge all loaded results by (measure, case) key (stripping `~N` pins from the key), keeping the latest result per key by CTRF `tests[].stop` (ms-epoch) or manual `x-reqmd.verified-at`. Each merged result shall be synthesized as a pseudo-requirement with ID `RESULT:<target>`, `trace: [MEASURE-ID~N]` (pin preserved for version-pin checks), `x-reqmd.outcome: <verdict>`, and `status: approved`, then appended to the document slice before `graph.New`. Result attributes (`x-reqmd.outcome`, `x-reqmd.verifier`, `x-reqmd.evidence`, `x-reqmd.verified-at`) are tool-owned and namespaced under `x-reqmd.*` so they never collide with authored schema attributes.
-
-*Rationale:* Collapsing to one result per measure reflects "latest verdict wins" without storing history in-file. The synthetic `RESULT:` prefix lets graph checks distinguish result nodes from authored ones. Preserving the pin on the trace edge makes the existing `version-pin` check detect stale results with no new logic.
-
-## SW-VER-004: Outcome-gated graph checks
-```attr
-status: approved
-package: graph
-priority: High
-trace:
-  - SYS-VAL-002
-```
-The graph shall run two new checks when result pseudo-requirements are present: `missing-verdict` (WARNING — an approved verification measure, identified by a non-empty `verify` attribute, has no result tracing to it; draft measures are skipped) and `failing-verdict` (ERROR — a measure's latest result has outcome `fail`). Both checks are no-ops when no result nodes exist. Both are suppressible via `reqmd-suppress`.
-
-Each check shall operate on the measure's rolled-up evidence set: its own attached results plus the results attached to approved, in-filter nodes in its inbound trace closure (authored downstream test specs and synthesized test cases). Aggregation is strict — any fail → fail, else inconclusive → inconclusive, else skipped → skipped, else empty → none, else pass — computed bottom-up and memoized so a check pass stays linear. A measure whose evidence set is non-empty shall also emit an INFO-level `verdict` result carrying the rolled-up outcome, so a run with `--results` is visibly distinct from a run without results. `missing-verdict` messages report the count of draft downstream cases ignored; `failing-verdict` names the failing case(s) and their source file(s). Deferred/rejected measures (expectsVerification) are exempt from both checks. The `MeasureVerdicts` accessor shall expose the rolled-up verdict and its evidence set per node for exporters.
-
-*Rationale:* A measure is defined by the `verify` attribute, not by inbound edges — a measure with no result has no inbound result edge, so the check must key on `verify`. Draft measures are skipped because a draft measure is not yet expected to have results. Roll-up closes the V-model gap where requirements are verified through downstream test specs or CI cases rather than a direct result edge; the severity lattice is associative, so bottom-up memoization keeps large trees linear.
-
-## SW-FIL-001: Attribute filter engine
-```attr
-status: approved
-package: filter
-priority: Medium
-trace:
-  - SYS-FIL-001
-```
-The `internal/filter` package shall compile a `--filter` expression once at startup into bytecode using expr-lang, reject at compile time any expression referencing an attribute not declared in some `schema.yaml` (global typo check), and evaluate the bytecode against each requirement's attribute map plus the built-in `id` and `title` variables. Per-document attribute absence shall evaluate to nil (no error) via `AllowUndefinedVariables`. The package shall provide a `MatchingIDs` helper and document filtering (`FilterDocs`).
-
-Under `--relaxed-filter` the package shall instead downgrade the typo check to a warning and admit any attribute present on a requirement even when no schema declares it: `BuildFoundAttrs` collects the attribute keys actually used, `CompileRelaxed` compiles against that union and returns the warnings, and `WriteWarnings` emits them.
-
-*Rationale:* Compile-once/eval-many keeps per-requirement filtering cheap on large trees; the global schema check turns attribute typos into a startup error instead of silent empty matches, with `--relaxed-filter` as the opt-out for trees that intentionally carry informal attributes.
-
-## SW-DIS-001: Disjoint-attribute graph check
-```attr
-status: approved
-package: graph
-priority: Medium
-trace:
-  - SYS-CHK-003
-```
-The graph package shall implement `checkDisjointAttribute` (code `disjoint-attribute`), enabled via `SetDisjointAttrs` populated from the `--disjoint-check` flag or `x-reqmd.disjoint-check`. For every trace edge, the source and target requirements must share at least one value of each named array attribute; zero intersection shall produce an ERROR result, and an empty or absent value is exempt. The check shall respect `reqmd-suppress`.
-
-*Rationale:* The check is a pure graph pass over already-built edges, so it adds no new data structures; naming the attribute per invocation keeps it project-configurable without a new built-in.
-
-## SW-STS-001: Status lifecycle enforcement
-```attr
-status: approved
-package: schema
-priority: Medium
-trace:
-  - SYS-STS-001
-```
-The schema package shall validate `x-reqmd.additional-status-values` (lowercase-only matching `^[a-z][a-z0-9_-]*$`, no reserved built-in collision, no duplicates) and extend the built-in `status` enum per document accordingly. The graph shall gate coverage on status: only `approved` requirements satisfy a `requires-trace-from` expectation, and a missing-coverage message shall append the count of draft downstreams ignored. The exporter shall hide the status filter for documents with `x-reqmd.ignore-status: true`.
-
-*Rationale:* The status axis is enforced at three points — schema (valid extension values), graph (coverage provider gate), and exporter (status filter visibility) — so the lifecycle is consistent across validation, coverage, and rendered output.
-
-## SW-SUP-001: Check suppression
-```attr
-status: approved
-package: graph
-priority: Medium
-trace:
-  - SYS-SUP-001
-```
-The graph package shall parse a `reqmd-suppress: [<code>...]` attribute into each requirement's suppression set and skip the listed graph checks when collecting results for that requirement.
-
-*Rationale:* Suppression is a per-requirement opt-out evaluated at result-collection time, so it composes with every existing and future graph check without touching each check's logic.
-
-## SW-LEV-001: Level-typed coverage resolution
-```attr
-status: approved
-package: graph
-priority: High
-trace:
-  - SYS-FMT-005
-```
-The graph package shall index document directories by their `x-reqmd.level` and resolve each `requires-trace-from` token against that index: a token matching a declared level expands to every directory at that level (any approved inbound from any of them satisfies coverage), a token matching a `document-id` resolves as today, and a token matching neither shall produce a WARNING. Coverage tokens inherited from the `x-reqmd.requires-trace-from` document default (resolved onto the node during Pass 1, SYS-FMT-003) shall be resolved through the same index and are indistinguishable from per-requirement declarations downstream of node creation.
-
-*Rationale:* Level indexing is built once at graph construction from data the parser already exposes, so coverage checks stay O(1) per token while remaining correct as directories within a level are added or removed.
-
-## SW-IMP-001: Source-code extraction pipeline
+### SW-IMP-001: Source-code extraction pipeline
 ```attr
 status: approved
 package: extractor
@@ -297,7 +407,7 @@ The `reqmd-code` extractor shall walk a source tree, dispatch each file to the `
 
 *Rationale:* Decoupling the walk from parsing (and parsing from emitting) keeps the pipeline independently testable and lets the worker pool absorb per-file tree-sitter cost.
 
-## SW-IMP-002: Language plugin registry
+### SW-IMP-002: Language plugin registry
 ```attr
 status: approved
 package: lang
@@ -309,7 +419,7 @@ The `internal/lang` registry shall define the `Language` interface (name, extens
 
 *Rationale:* The registry lets a new language land as a single self-registering package with no changes to the extractor or exchange emitter; scope rules keep generated IDs unique within a package.
 
-## SW-IMP-003: Exchange bundle emitter
+### SW-IMP-003: Exchange bundle emitter
 ```attr
 status: approved
 package: extractor
@@ -323,7 +433,7 @@ The emitter shall order symbols deterministically by (file, start line, name) so
 
 *Rationale:* The emitter is the boundary between code analysis and file syntax: it produces a data structure, not Markdown, so a determinism bug surfaces as a diff in the bundle instead of a corrupted requirement file.
 
-## SW-IMP-004: Exchange format contract
+### SW-IMP-004: Exchange format contract
 ```attr
 status: approved
 package: exchange
@@ -335,7 +445,7 @@ The `reqmd-import/exchange` package shall define the exchange bundle types (`Bun
 
 *Rationale:* Every producer (a Go binary, a Python script, a future ReqIF reader) is untrusted input from the renderer's point of view. Failing at the contract boundary gives a precise message about the bundle instead of a malformed requirement file, and a shared types package makes producer/renderer drift a compile error rather than a runtime surprise.
 
-## SW-IMP-005: Document renderer
+### SW-IMP-005: Document renderer
 ```attr
 status: approved
 package: writer
@@ -347,7 +457,7 @@ The renderer shall resolve each requirement's ID to `<id-prefix><key>`, rewrite 
 
 *Rationale:* One renderer is what makes the exchange format worth having: quoting, heading depth, and determinism live in a single implementation, so a new importer cannot invent a second, subtly different Markdown dialect, and re-running an import in CI is a safe no-op that leaves hand-authored files alone.
 
-## SW-IMP-006: Document schema writer
+### SW-IMP-006: Document schema writer
 ```attr
 status: approved
 package: writer
@@ -359,7 +469,7 @@ For every document in a bundle the renderer shall emit a `schema.yaml` built fro
 
 *Rationale:* Producers describe the attr block as data; the renderer owns the JSON-Schema envelope so every generated document is validated against exactly the attributes its producer emits, without anyone hand-writing a schema.
 
-## SW-IMP-007: Python exchange helper
+### SW-IMP-007: Python exchange helper
 ```attr
 status: approved
 package: python
@@ -371,7 +481,7 @@ The `reqmd_io` Python package shall provide dataclasses (`Bundle`, `Document`, `
 
 *Rationale:* Importer authors should not hand-build dictionaries and rediscover the format's edge cases, but a second renderer in another language would drift from the Go one; restricting the helper to serialization gives the ergonomics without the divergence risk.
 
-## SW-IMP-008: Batched validation and status mapping
+### SW-IMP-008: Batched validation and status mapping
 ```attr
 status: approved
 package: exchange
@@ -382,68 +492,3 @@ trace:
 `exchange.Build` shall collect every violation of the exchange format in one pass and return them together as a `ValidationError` (at most 20 entries, each addressed by item path, with a trailing marker when the cap was hit) instead of stopping at the first, so a producer fixes a batch. `--validate-only` shall run the same validation and report the document and file counts without writing any file. `--status-map "Source=reqmd"` shall translate a source status vocabulary: a mapped value is used and added to the document's `x-reqmd.additional-status-values` when it is not a built-in, a value that already looks like a reqmd status passes through unchanged, and any other value falls back to `approved` while the original is preserved on the requirement as `x-reqmd.source-status`.
 
 *Rationale:* The format's value is that a third party can implement it; one-error-at-a-time feedback and an implicit knowledge of reqmd's status names are the friction that makes a contract unadoptable, while dropping a source status silently would lose what a reviewer needs.
-
-## SW-PAR-002: Content-tree parsing
-```attr
-status: approved
-package: parser
-priority: High
-requires-trace-from: [test-specs]
-trace:
-  - SYS-CON-001
-```
-The parser package shall emit a flat node stream per `.md` file — one `model.Node` per heading (kind requirement or section) except the level-1 document title, which is captured as the file title and excluded from the stream — with prose, rationales, code blocks, and thematic breaks attached to the open node's body — and assemble it into the document content tree with `assembleTree`: parent = nearest preceding heading with a shallower level; `ParentID` set for requirements to the nearest ancestor requirement; every non-requirement heading keeps `KindSection` regardless of whether it has children, so folder-ness stays derived from `Children`. Requirement headings shall be level 2 or higher; a level-1 heading with an `attr` block shall be rejected as a parse error, and a level-1 heading that is not the first heading in its file shall be rejected too, so a title can never be silently discarded. Frontmatter is not used as a title fallback: the h1 is the only title source. Multi-file documents shall merge per-file trees in `mdFiles` (sorted) order so output ordering is deterministic regardless of parse parallelism, take the document title from the first file's h1 heading, and the parallel chunked path shall include the file preamble in chunk 0 so leading prose and headings are never dropped.
-
-*Rationale:* The chunked parse path previously split files at root-requirement boundaries, silently discarding the preamble. Assembly after concatenating chunk node streams (instead of per-chunk) preserves nesting across chunk boundaries (e.g. a container in chunk 0 holding a requirement in chunk 1) while keeping parse parallelism.
-
-## SW-EXP-002: Item-aware export
-```attr
-status: approved
-package: exporter
-priority: Medium
-requires-trace-from: [test-specs]
-trace:
-  - SYS-CON-002
-```
-The exporter package shall render the document tree depth-first: requirement cards with child cards nested, sections with children as collapsible folders, and leaf sections (including the headingless document preamble) as plain blocks. Requirement anchors shall be the requirement ID; section anchors shall be a slug derived from the section title (`sec-<slug>`, `sec-preamble` for an untitled section) with a deterministic numeric suffix on collision, so a bookmark to a section survives the insertion of unrelated items and a filtered export uses the same anchors as the unfiltered one. Print output shall reveal the contents of collapsed folders. Top-level items shall render at heading level 2 (level 1 is the document title) and nested items at their native depth, so the heading outline never starts below the title. The server-rendered sidebar outline shall mirror the same tree, and the embedded `pageModel` shall carry every node (requirements plus `container`/`info` items) with a `type` discriminator, so filtering, counts, and scroll-spy agree with the DOM; the client-side search and counts shall apply to requirements only, while the command palette shall additionally offer section titles as navigation targets (opening the folder and scrolling to it) without counting them. CSV export shall emit a `Type` column and rows for all nodes in document order.
-
-*Rationale:* Structure must not be lost between Markdown and the review surface. Deriving the outline, the filter set, and the view model from one tree walk keeps the file view faithful to the source and avoids a second, drifting representation of the document (the previous flat `parentId`/`children` index).
-
-## SW-EXP-003: NDJSON table export
-```attr
-status: approved
-package: exporter
-priority: Medium
-requires-trace-from: [test-specs]
-trace:
-  - SYS-EXP-001
-```
-The exporter shall expose one writer per table — requirements, traces, results, and findings — each serializing one record per JSON line. The requirements table shall contain requirement rows only: sections are structure, so their titles are carried as a `section_path` column on the requirements beneath them (ancestor section titles joined by ` / `, empty when there is no section ancestor) rather than as rows of their own, and each row carries `ordinal`, its 1-based position in document order. The table has no `type` column. Built-in attributes shall be promoted to top-level columns (`trace`, `requires_trace_from`, `status`, `disposition`, `disposition_reason`, `version`, `verify`), remaining attributes shall stay in an `attrs` envelope, and every fixed column shall be emitted on every row (null when unset) so warehouse schema inference sees the full column set. Requirement rows shall be ordered by document path and requirement ID; `section_path` provides grouping and `ordinal` provides authoring order, while the physical row order carries no meaning. A writer shall be a pure function of (tree, results): no state carried between calls, and byte-identical output for identical input. Trace rows shall carry the declared reference, the resolved target, the pin, and the resolution state; finding rows shall carry level, code, direction, outcome, file, and message.
-
-*Rationale:* Warehouse loaders infer schema from a sample of rows, so a column missing from the sampled row becomes a load error. Promoting the built-ins and padding every row costs a few bytes and removes per-query JSON extraction, while determinism makes the export diffable and cacheable.
-
-## SW-INI-001: Scaffolding presets
-```attr
-status: approved
-package: cli
-priority: Medium
-requires-trace-from: [test-specs]
-trace:
-  - SYS-INI-001
-```
-The `init` subcommand shall render a schema template and an example document from one of three embedded presets (`generic`, `aspice`, `results`) or from a custom preset directory, then write both into the target directory. Embedded templates shall be `go:embed`-ed so the binary has no runtime asset dependency. A custom preset shall be detected by path shape (separator, `.`, `..`, or an existing directory) and shall supply `schema.yaml.tmpl` or `schema.yaml` plus `example.md.tmpl` or a single `.md` file; both files are parsed as Go templates with `.ID`, `.Title`, `.Level`, and `.IDPrefix`. The `results` preset shall default to level `verify-results` and prefix `VR-` and shall title the schema as verification results; every preset shall honour `--id`, `--title`, `--level`, and `--id-prefix`. An existing `schema.yaml` or example document shall abort the run unless `--force` is given.
-
-*Rationale:* Embedding the templates keeps `reqmd init` usable from a single downloaded binary. Built-in and custom presets share one renderer, so the built-ins exercise the custom path on every run and the custom feature cannot rot into a separate code path.
-
-## SW-REPIN-001: Version-pin delta computation and in-place rewrite
-```attr
-status: approved
-package: repin
-priority: High
-requires-trace-from: [test-specs]
-trace:
-  - SYS-REPIN-001
-```
-The `repin` package shall separate computation from application: `Build(root, promoteUnpinned)` parses the tree and returns a sorted result of deltas (kind `outdated`, `unpinned`, or `predated`) plus per-file counts, and `Apply(root, deltas)` rewrites the affected files in place, touching only ` ```attr ` blocks so surrounding Markdown prose is preserved byte for byte. A delta whose original source ref is not found in any attr block shall be a no-op and shall not count as applied; predated deltas shall be listed in the apply report's skipped set and never written. Replacements shall match whole refs (bounded by non-identifier bytes) so an unpinned promote cannot rewrite the bare ID inside an already-pinned sibling, and the `--json` contract (`deltas[]`, `by_file`, and the `outdated`/`unpinned`/`predated` counts) shall be stable.
-
-*Rationale:* The command edits source files, so its safety properties are the whole feature: an unanchored string replacement would corrupt an adjacent pinned ref, and a rewrite escaping the attr block would damage authored prose. Splitting computation from application keeps the dry-run and the apply path on one change set, so what the user reviewed is exactly what is written.

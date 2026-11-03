@@ -26,7 +26,6 @@ import (
 	emoji "github.com/yuin/goldmark-emoji"
 	highlighting "github.com/yuin/goldmark-highlighting/v2"
 	meta "github.com/yuin/goldmark-meta"
-	"go.abhg.dev/goldmark/mermaid"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 )
@@ -42,12 +41,17 @@ var (
 
 // mdParser is the shared goldmark instance used by parseMD.
 // Constructed once at package init to avoid re-running extension Init for every .md file.
+//
+// Diagram extenders (mermaid, d2, …) are deliberately absent: mdParser only
+// walks the AST and never renders, and their AST transformers replace the
+// fenced code block with a node that carries only lines, so the parser would
+// emit the diagram source without its fence delimiters. They belong on the
+// exporter's renderer, which runs after the body Markdown is reassembled.
 var mdParser = goldmark.New(
 	goldmark.WithExtensions(
 		extension.Table,
 		extension.Strikethrough,
 		extension.TaskList,
-		&mermaid.Extender{},
 		&fences.Extender{},
 		highlighting.Highlighting,
 		emoji.Emoji,
@@ -474,9 +478,16 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 			bodyBuf.WriteString(renderBlock(src, n))
 
 		default:
-			// Any other block (blockquote, list, etc.) → body text if inside a node
+			// Any other block (blockquote, list, table, raw HTML) → body text if
+			// inside a node. A blank line separates it from the preceding prose,
+			// or the block glues onto the paragraph above it.
 			ensureOpenNode()
-			bodyBuf.WriteString(renderBlock(src, n))
+			if block := renderBlock(src, n); block != "" {
+				if bodyBuf.Len() > 0 {
+					bodyBuf.WriteString("\n\n")
+				}
+				bodyBuf.WriteString(block)
+			}
 		}
 	}
 
@@ -487,6 +498,7 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 	return nodes, title, frontmatter, nil
 }
 
+// reqmd:trace SW-PAR-002
 // assembleTree builds the document content tree from a flat, ordered node
 // stream. A node's parent is the nearest preceding heading with a
 // shallower level; requirements additionally get ParentID pointing at the
@@ -731,25 +743,45 @@ func renderFence(f *ast.FencedCodeBlock, src []byte) string {
 	return b.String()
 }
 
+// renderBlock returns the source markdown of a block that has no dedicated
+// case: lists, tables, blockquotes, and raw HTML. The body of a node is
+// markdown, so the block's original source is the faithful representation —
+// concatenating the line segments instead would drop the list markers and the
+// line breaks between items, turning a list into one run-on paragraph.
 func renderBlock(src []byte, n ast.Node) string {
-	var b strings.Builder
-	// Collect all text content from unrecognized block elements
-	_ = ast.Walk(n, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+	start, stop := -1, -1
+	_ = ast.Walk(n, func(m ast.Node, entering bool) (ast.WalkStatus, error) {
 		if !entering {
 			return ast.WalkContinue, nil
 		}
-		// Only block nodes have Lines() — inline nodes (e.g., italic text)
+		// Only block nodes have Lines() — inline nodes (e.g. italic text)
 		// panic when Lines() is called.
-		if n.Type() == ast.TypeInline {
+		if m.Type() == ast.TypeInline {
 			return ast.WalkContinue, nil
 		}
-		for i := range n.Lines().Len() {
-			seg := n.Lines().At(i)
-			b.Write(seg.Value(src))
+		for i := range m.Lines().Len() {
+			seg := m.Lines().At(i)
+			if start < 0 || seg.Start < start {
+				start = seg.Start
+			}
+			if seg.Stop > stop {
+				stop = seg.Stop
+			}
 		}
 		return ast.WalkContinue, nil
 	})
-	return b.String()
+	if start < 0 || stop <= start || stop > len(src) {
+		return ""
+	}
+	// Widen to whole lines: a leaf segment starts after the list marker (or the
+	// blockquote marker, or the indentation), so slicing at seg.Start would drop
+	// the marker and glue the item onto whatever precedes it.
+	lineStart := bytes.LastIndexByte(src[:start], '\n') + 1
+	lineEnd := len(src)
+	if nl := bytes.IndexByte(src[stop:], '\n'); nl >= 0 {
+		lineEnd = stop + nl
+	}
+	return strings.TrimRight(string(src[lineStart:lineEnd]), " \t")
 }
 
 // ParseSingleFile is used by `reqmd check <file> --schema <schema>`.

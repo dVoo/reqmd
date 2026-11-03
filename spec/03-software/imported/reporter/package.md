@@ -425,9 +425,7 @@ x-reqmd.symbol-kind: type
 trace: []
 ```
 
----------------------------------------------------------------------------
- JSON output types (private — serialized via json.Marshal)
- ---------------------------------------------------------------------------
+JSON output types (private — serialized via json.Marshal)
 
 ### IMP-reporter-jsonSummary-86ada34: jsonSummary
 ```attr

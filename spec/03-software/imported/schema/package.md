@@ -604,9 +604,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- Status built-in: extension mechanism (additional-status-values)
- ---------------------------------------------------------------------------
+Status built-in: extension mechanism (additional-status-values)
  T8 / T17: additional-status-values accepted and applied to the built-in
  `status` enum. Empty array is a no-op (T17), values extend the enum
  (T8) so the validator accepts them.
@@ -695,9 +693,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
----------------------------------------------------------------------------
- x-reqmd.requires-trace-from document default
- ---------------------------------------------------------------------------
+x-reqmd.requires-trace-from document default
 
 ### IMP-schema-TestCompile_RequiresTraceFromDefaultAccepted-d9d1299: TestCompile_RequiresTraceFromDefaultAccepted
 ```attr

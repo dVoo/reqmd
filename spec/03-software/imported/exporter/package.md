@@ -1723,12 +1723,13 @@ SetVerdicts stores verification verdicts for JSON export, mirroring CSV.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 82
+x-reqmd.source-line: 83
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
-ExportRequirements writes one NDJSON row per requirement across all authored
+reqmd:trace SW-EXP-003
+ ExportRequirements writes one NDJSON row per requirement across all authored
  documents. Sections are structure, not facts, so they are not rows: their
  titles reach the fact table as the `section_path` column on the requirements
  beneath them. Synthetic documents (verification results and test cases) are
@@ -1739,7 +1740,7 @@ ExportRequirements writes one NDJSON row per requirement across all authored
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 155
+x-reqmd.source-line: 156
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -1754,7 +1755,7 @@ ExportTraces writes one NDJSON row per declared trace reference, read
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 232
+x-reqmd.source-line: 233
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -1769,7 +1770,7 @@ ExportResults writes one NDJSON row per measure with a non-empty
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 277
+x-reqmd.source-line: 278
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -1817,7 +1818,7 @@ jsonRequirement is one row of requirements.ndjson. Built-in attributes
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 141
+x-reqmd.source-line: 142
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1834,7 +1835,7 @@ jsonTrace is one row of traces.ndjson: one declared trace reference.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 212
+x-reqmd.source-line: 213
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1847,7 +1848,7 @@ jsonCase is one contributing verification result in a measure's
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 220
+x-reqmd.source-line: 221
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1859,7 +1860,7 @@ jsonResult is one row of results.ndjson: one rolled-up measure verdict.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 264
+x-reqmd.source-line: 265
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1872,7 +1873,7 @@ jsonFinding is one row of findings.ndjson, mirroring the reporter's
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 314
+x-reqmd.source-line: 315
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1885,7 +1886,7 @@ remainingAttrs returns a copy of attrs without the promoted built-in
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
-x-reqmd.source-line: 333
+x-reqmd.source-line: 334
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2783,12 +2784,13 @@ renderToolbar writes the view switcher, search field, active-filter chips
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 495
+x-reqmd.source-line: 496
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
-renderDocumentView writes the server-rendered reading view: one card per
+reqmd:trace SW-EXP-002
+ renderDocumentView writes the server-rendered reading view: one card per
  requirement, containers as collapsible sections, and info items as plain
  blocks. Contents are visible by default (no x-cloak), so the reading view
  survives a JavaScript failure or an offline file:// open.
@@ -2798,7 +2800,7 @@ renderDocumentView writes the server-rendered reading view: one card per
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 520
+x-reqmd.source-line: 521
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2810,7 +2812,7 @@ renderEmptyState writes a consistent empty-state block.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 529
+x-reqmd.source-line: 530
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2825,7 +2827,7 @@ renderSectionBlock writes a non-requirement node. A section with children is
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 561
+x-reqmd.source-line: 562
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2839,7 +2841,7 @@ renderCard writes one requirement card. Semantic state is carried on data
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 612
+x-reqmd.source-line: 613
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2851,7 +2853,7 @@ renderCardHeader writes the ID/title heading and the anchor link.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 632
+x-reqmd.source-line: 633
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2865,7 +2867,7 @@ renderCardFlags writes the state chips. Only exceptional or decision-
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 655
+x-reqmd.source-line: 656
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2878,7 +2880,7 @@ statusChip renders a chip only for non-approved statuses: an approved
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 666
+x-reqmd.source-line: 667
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2891,7 +2893,7 @@ coverageChip renders coverage problems only (missing or unresolved); a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 693
+x-reqmd.source-line: 694
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2904,7 +2906,7 @@ verdictChip renders the rolled-up verdict, or an explicit no-verdict chip
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 709
+x-reqmd.source-line: 710
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -2916,7 +2918,7 @@ attrRow is one rendered attribute cell in a requirement card.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 718
+x-reqmd.source-line: 719
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2930,7 +2932,7 @@ attrRows returns the attribute cells to render, in display order: the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 747
+x-reqmd.source-line: 748
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2942,7 +2944,7 @@ renderAttrGrid writes the attribute definition list.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 764
+x-reqmd.source-line: 765
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2954,7 +2956,7 @@ renderRationale writes the rationale block when present.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 772
+x-reqmd.source-line: 773
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2966,7 +2968,7 @@ renderEvidenceList writes the rolled-up verification evidence.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 798
+x-reqmd.source-line: 799
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2979,7 +2981,7 @@ renderTraceLinks writes the upstream/downstream trace columns with the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 809
+x-reqmd.source-line: 810
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -2991,7 +2993,7 @@ renderTraceColumn writes one direction column.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 821
+x-reqmd.source-line: 822
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -3003,7 +3005,7 @@ renderTraceLink writes one link with its pin/version state.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 851
+x-reqmd.source-line: 852
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -3016,7 +3018,7 @@ renderPalette writes the command-palette overlay. Overlays are the only
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 867
+x-reqmd.source-line: 868
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -3028,7 +3030,7 @@ renderShortcuts writes the keyboard-shortcut dialog.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
-x-reqmd.source-line: 895
+x-reqmd.source-line: 896
 x-reqmd.symbol-kind: function
 trace: []
 ```

@@ -274,7 +274,7 @@ CachedNode is an in-memory typed representation of a requirement node,
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1542
+x-reqmd.source-line: 1545
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -288,7 +288,7 @@ isSuppressed returns true if the given check name is in this node's
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1552
+x-reqmd.source-line: 1555
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -359,7 +359,7 @@ inFilter reports whether a requirement ID is in the active filter set.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 429
+x-reqmd.source-line: 430
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -373,7 +373,7 @@ firstDocID returns the first document-id associated with any of the given
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 449
+x-reqmd.source-line: 450
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -392,7 +392,7 @@ inferBoundaries returns two maps describing the V-model topology:
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 491
+x-reqmd.source-line: 492
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -406,7 +406,7 @@ resolveCoverageSource resolves a coverage-expectation token (a document-id or a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 522
+x-reqmd.source-line: 523
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -436,7 +436,7 @@ CheckResults runs all Pass 2 validation checks and returns the combined results.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 549
+x-reqmd.source-line: 550
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -449,7 +449,7 @@ checkCircular detects cycles using DFS on the in-memory cached nodes.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 590
+x-reqmd.source-line: 591
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -462,7 +462,7 @@ ensureBoundaries computes the V-model boundaries when CheckResults has not
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 600
+x-reqmd.source-line: 601
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -476,7 +476,7 @@ coverageState classifies one node using the coverage rules of
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 612
+x-reqmd.source-line: 613
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -489,7 +489,7 @@ explicitCoverage classifies a requirement that declares (or inherits) a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 641
+x-reqmd.source-line: 642
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -503,7 +503,7 @@ inboundFrom reports whether an in-filter, approved inbound requirement comes
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 668
+x-reqmd.source-line: 669
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -517,7 +517,7 @@ genericCoverage applies the boundary-aware untraced rule for requirements
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 689
+x-reqmd.source-line: 690
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -537,7 +537,7 @@ checkRequiresTraceFromCoverage runs two related checks:
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 766
+x-reqmd.source-line: 769
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -552,7 +552,7 @@ hasFilteredInbound reports whether any inbound edge originates from a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 776
+x-reqmd.source-line: 779
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -566,7 +566,7 @@ hasFilteredOutbound reports whether any outbound edge targets a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 786
+x-reqmd.source-line: 789
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -580,7 +580,7 @@ checkDispositionReason detects nodes where disposition is set to a value
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 813
+x-reqmd.source-line: 816
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -594,7 +594,7 @@ checkMandatoryDisposition detects nodes in directories where
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 841
+x-reqmd.source-line: 844
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -609,7 +609,7 @@ checkIDPrefixes validates that every requirement ID matches the declared
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 889
+x-reqmd.source-line: 892
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -627,7 +627,7 @@ pinStatus classifies a single version pin against its target's
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 922
+x-reqmd.source-line: 925
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -650,7 +650,7 @@ checkVersionPins compares each downstream requirement's `~N` version pin
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 967
+x-reqmd.source-line: 970
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -665,7 +665,7 @@ measureGate applies the shared eligibility gate for the outcome-gated
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 987
+x-reqmd.source-line: 990
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -689,7 +689,7 @@ checkMissingVerdict flags approved verification measures whose rolled-up
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1032
+x-reqmd.source-line: 1035
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -709,7 +709,7 @@ checkFailingVerdict flags approved measures whose rolled-up verdict is
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1073
+x-reqmd.source-line: 1076
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -722,7 +722,7 @@ hasResultNodes reports whether any synthesized result pseudo-requirement
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1081
+x-reqmd.source-line: 1084
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -737,7 +737,7 @@ isMeasure reports whether a node is a verification measure — a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1162
+x-reqmd.source-line: 1165
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -749,7 +749,7 @@ evidenceItem derives an EvidenceItem from a synthesized result node.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1176
+x-reqmd.source-line: 1179
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -763,7 +763,7 @@ evidenceCase resolves the case key of a result node: the `#case` suffix on
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1195
+x-reqmd.source-line: 1198
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -781,7 +781,7 @@ measureEvidence gathers the evidence set of a requirement: its own
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1254
+x-reqmd.source-line: 1257
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -793,7 +793,7 @@ failingEvidence returns the evidence items whose outcome is fail.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1268
+x-reqmd.source-line: 1271
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -807,7 +807,7 @@ severityOf computes the rolled-up severity of a node's evidence set,
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1311
+x-reqmd.source-line: 1314
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -820,7 +820,7 @@ measureSeverity returns the rolled-up severity of a measure's evidence
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1320
+x-reqmd.source-line: 1323
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -836,7 +836,7 @@ latestOutcomeFor returns the outcome and source file of the result node
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1341
+x-reqmd.source-line: 1344
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -855,7 +855,7 @@ checkVerdicts emits an INFO-level result for each measure that has a
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1378
+x-reqmd.source-line: 1381
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -869,7 +869,7 @@ MeasureOutcome returns the latest verification outcome for a measure
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1400
+x-reqmd.source-line: 1403
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -886,7 +886,7 @@ rollupVerdict computes the strict verdict roll-up for a node from its
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1424
+x-reqmd.source-line: 1427
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -902,7 +902,7 @@ MeasureVerdicts returns, for every non-synthetic node with a non-empty
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1444
+x-reqmd.source-line: 1447
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -915,7 +915,7 @@ HasResults reports whether the graph contains any synthesized result
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1452
+x-reqmd.source-line: 1455
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -930,7 +930,7 @@ RootDirs returns the document directory paths at the top of the V-model
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1461
+x-reqmd.source-line: 1464
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -946,14 +946,12 @@ LeafDirs returns a sorted slice of document directory paths that are at
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1483
+x-reqmd.source-line: 1486
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
----------------------------------------------------------------------------
- Query / inspection methods on *Graph
- ---------------------------------------------------------------------------
+Query / inspection methods on *Graph
  NodeCount returns the number of requirement nodes in the graph.
 
 #### IMP-graph-UpstreamNeighbors-5e29545: UpstreamNeighbors
@@ -961,7 +959,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1489
+x-reqmd.source-line: 1492
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -974,7 +972,7 @@ UpstreamNeighbors returns the requirement IDs that the given requirement
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1498
+x-reqmd.source-line: 1501
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -987,7 +985,7 @@ DownstreamNeighbors returns the requirement IDs that trace TO the given
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1511
+x-reqmd.source-line: 1514
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -1004,7 +1002,7 @@ ResolveTraceRef resolves a raw trace reference (as written in the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1535
+x-reqmd.source-line: 1538
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -1018,7 +1016,7 @@ Documents returns the document slice the graph was built from, in the
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1585
+x-reqmd.source-line: 1588
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -1055,7 +1053,7 @@ RepinDeltas computes the list of version-pin changes the repin
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1654
+x-reqmd.source-line: 1657
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -1070,7 +1068,7 @@ isCoverageProvider reports whether a node counts as a valid upstream
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1674
+x-reqmd.source-line: 1677
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -1087,12 +1085,13 @@ checkDisjointAttribute verifies that for every trace link, the source and
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 171
+x-reqmd.source-line: 172
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
-New builds a pure Go in-memory adjacency graph from all parsed documents.
+reqmd:trace SW-GRA-001
+ New builds a pure Go in-memory adjacency graph from all parsed documents.
  It creates one CachedNode per requirement and populates Inbound/Outbound
  adjacency from trace attributes. Broken trace references (target ID not
  found in any document) are collected as WARNING results.
@@ -1108,7 +1107,7 @@ New builds a pure Go in-memory adjacency graph from all parsed documents.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1092
+x-reqmd.source-line: 1095
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1123,14 +1122,12 @@ expectsVerification reports whether a measure's disposition still expects
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1107
+x-reqmd.source-line: 1110
 x-reqmd.symbol-kind: type
 trace: []
 ```
 
----------------------------------------------------------------------------
- Evidence-set roll-up (strict aggregation)
- ---------------------------------------------------------------------------
+Evidence-set roll-up (strict aggregation)
  severity ranks verification outcomes for strict roll-up aggregation:
  any fail → fail, else inconclusive → inconclusive, else skipped →
  skipped, else pass; an empty evidence set has severity none.
@@ -1140,7 +1137,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1109
+x-reqmd.source-line: 1112
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1150,7 +1147,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1109
+x-reqmd.source-line: 1112
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1160,7 +1157,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1109
+x-reqmd.source-line: 1112
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1170,7 +1167,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1109
+x-reqmd.source-line: 1112
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1180,7 +1177,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1109
+x-reqmd.source-line: 1112
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1190,7 +1187,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1118
+x-reqmd.source-line: 1121
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1202,7 +1199,7 @@ outcomeSeverity maps an outcome string onto the severity lattice.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1134
+x-reqmd.source-line: 1137
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1214,7 +1211,7 @@ severityOutcome maps a severity back to its outcome string ("" for none).
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1154
+x-reqmd.source-line: 1157
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1229,7 +1226,7 @@ EvidenceItem is one verification result contributing to a measure's
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1388
+x-reqmd.source-line: 1391
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1246,7 +1243,7 @@ NodeVerdict is the rolled-up verdict and a representative result source
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1469
+x-reqmd.source-line: 1472
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1261,7 +1258,7 @@ sortedKeys returns the keys of a string-keyed map in sorted order.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1666
+x-reqmd.source-line: 1669
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1273,7 +1270,7 @@ CodeDisjointAttribute is the check code for the disjoint-attribute check.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1743
+x-reqmd.source-line: 1746
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1286,7 +1283,7 @@ intersects reports whether two string slices have at least one element
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1759
+x-reqmd.source-line: 1762
 x-reqmd.symbol-kind: function
 trace: []
 ```

@@ -104,10 +104,19 @@ func docTitle(doc model.Document) string {
 }
 
 // bodyRenderer renders requirement body markdown to HTML.
+// mermaidCDN is the pinned Mermaid runtime that a page containing a diagram
+// loads, and the only external request an exported page ever makes (SW-EXP-004).
+// Keep it in step with the version the documentation site pins.
+const mermaidCDN = "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js"
+
 var bodyRenderer = goldmark.New(
 	goldmark.WithExtensions(
 		extension.GFM,
-		&mermaid.Extender{},
+		// Client rendering: the block becomes a container, and the extender
+		// emits the runtime script next to it. Server rendering (RenderModeAuto
+		// with mmdc on $PATH) is deliberately never used: it needs a browser on
+		// the exporting machine and takes seconds per diagram.
+		&mermaid.Extender{RenderMode: mermaid.RenderModeClient, MermaidURL: mermaidCDN},
 		&fences.Extender{},
 		highlighting.Highlighting,
 		emoji.Emoji,

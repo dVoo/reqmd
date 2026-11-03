@@ -99,6 +99,7 @@ func writeIfChanged(path string, data []byte) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
+// reqmd:trace SW-IMP-005
 // RenderDocument renders a document: title, generated marker, optional
 // preamble prose, then the items in the order given. Depth is carried per item,
 // so a section's children must follow it in the slice.

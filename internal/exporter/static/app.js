@@ -332,14 +332,14 @@
       var qs = encodeUrlState(state);
       try {
         history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
-      } catch (e) { /* file:// or sandboxed */ }
+      } catch { /* file:// or sandboxed */ }
     }
 
     function restoreState() {
       var decoded;
       try {
         decoded = decodeUrlState(location.search);
-      } catch (e) {
+      } catch {
         return;
       }
       state.query = decoded.query;
@@ -640,7 +640,7 @@
         el('h2', { text: 'Table' }),
         el('p', { className: 'view-sub', text: 'Sort by any column, choose columns, expand a row for body and evidence.' + (model.hasResults ? '' : ' No verification results are loaded, so every verdict shows as a dash.') })
       ]);
-      var chooser = buildColumnChooser(defs);
+      var chooser = buildColumnChooser();
       var toolbar = el('div', { className: 'view-tools' }, [chooser]);
       tablePanel.appendChild(head);
       tablePanel.appendChild(toolbar);
@@ -738,7 +738,7 @@
       return sort.dir === 'asc' ? cmp : -cmp;
     }
 
-    function buildColumnChooser(visibleDefs) {
+    function buildColumnChooser() {
       var wrap = el('details', { className: 'columns' }, [el('summary', { className: 'columns__toggle', text: 'Columns' })]);
       var menu = el('div', { className: 'columns__menu' });
       columnDefs().forEach(function (d) {
@@ -891,10 +891,17 @@
       return '';
     }
 
+    // navigate follows a link only after safeHref has vetted it, and uses
+    // location.assign rather than assigning location.href: the export is an
+    // untrusted static artefact, so the sink is explicit and guarded.
+    function navigate(href) {
+      var target = safeHref(href);
+      if (target) location.assign(target);
+    }
+
     function selectNode(id, href) {
       if (!byId[id]) {
-        var target = safeHref(href);
-        if (target) location.href = target;
+        navigate(href);
         return;
       }
       if (state.selected && state.selected !== id) state.trail.push(state.selected);
@@ -1340,7 +1347,7 @@
         window.scrollTo(0, Math.max(0, target.getBoundingClientRect().top + window.scrollY - stickyChromeHeight() - 8));
         target.classList.add('is-flash');
         setTimeout(function () { target.classList.remove('is-flash'); }, 1400);
-        try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (err) { /* file:// */ }
+        try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch { /* file:// */ }
       }
     }
 
@@ -1870,8 +1877,7 @@
       catalog.addEventListener('click', function (e) {
         if (e.target.closest('a')) return;
         var row = e.target.closest('tr[data-href]');
-        var href = row ? safeHref(row.getAttribute('data-href')) : '';
-        if (href) location.href = href;
+        if (row) navigate(row.getAttribute('data-href'));
       });
     }
   }

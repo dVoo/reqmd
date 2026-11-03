@@ -69,6 +69,7 @@ Examples:
 	return cmd
 }
 
+// reqmd:trace SW-IMP-001
 // runExtract is the cobra RunE body. Splitting it out of the constructor
 // keeps the flag wiring in NewRootCmd and the actual work here, so
 // this function is straightforward to call from a test if we ever want
@@ -506,10 +507,17 @@ func docSections(doc string) []exchange.Item {
 		body = nil
 	}
 
-	for _, line := range strings.Split(doc, "\n") {
+	for line := range strings.SplitSeq(doc, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, "```") || strings.HasPrefix(trimmed, "~~~") {
 			inFence = !inFence
+		}
+		// Godoc separators (a rule of dashes, equals signs, stars or
+		// underscores) are decoration. Worse, a rule directly under a text line
+		// is a *setext heading* once rendered, so it would silently become a
+		// section that swallows the symbols that follow.
+		if !inFence && isRuleLine(trimmed) {
+			continue
 		}
 		if !inFence {
 			if level, title, ok := atxHeading(trimmed); ok && level >= 1 {
@@ -549,4 +557,22 @@ func atxHeading(line string) (int, string, bool) {
 		return 0, "", false
 	}
 	return n, strings.TrimSpace(line[n+1:]), true
+}
+
+// isRuleLine reports whether a line is a decorative rule: three or more of the
+// same Markdown rule character, nothing else.
+func isRuleLine(line string) bool {
+	if len(line) < 3 {
+		return false
+	}
+	c := line[0]
+	if c != '-' && c != '=' && c != '*' && c != '_' {
+		return false
+	}
+	for i := range len(line) {
+		if line[i] != c {
+			return false
+		}
+	}
+	return true
 }
