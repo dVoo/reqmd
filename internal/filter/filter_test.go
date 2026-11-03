@@ -351,11 +351,11 @@ func TestFilterDocs_DoesNotMutateOriginal(t *testing.T) {
 func TestFilterDocs_KeepsItems(t *testing.T) {
 	docs := testDocs()
 	docs[0].Nodes = []*model.Node{
-		{Kind: model.KindContainer, Title: "Section", Children: []*model.Node{
+		{Kind: model.KindSection, Title: "Section", Children: []*model.Node{
 			testReq("SW-001", "Parser", map[string]any{"status": "approved"}),
 			testReq("SW-002", "Schema", map[string]any{"status": "draft"}),
 		}},
-		{Kind: model.KindInfo, Title: "Note"},
+		{Kind: model.KindSection, Title: "Note"},
 	}
 	f, err := Compile(`status == "approved"`, validAttrsFor(docs))
 	if err != nil {
@@ -372,13 +372,13 @@ func TestFilterDocs_KeepsItems(t *testing.T) {
 		t.Fatalf("expected 2 top-level nodes (container + info), got %d", len(nodes))
 	}
 	container := nodes[0]
-	if container.Kind != model.KindContainer || container.Title != "Section" {
+	if container.Kind != model.KindSection || container.Title != "Section" {
 		t.Fatalf("nodes[0] = %v %q, want container Section", container.Kind, container.Title)
 	}
 	if len(container.Children) != 1 || container.Children[0].ID != "SW-001" {
 		t.Fatalf("container children = %+v, want [SW-001] (SW-002 pruned)", container.Children)
 	}
-	if nodes[1].Kind != model.KindInfo || nodes[1].Title != "Note" {
+	if nodes[1].Kind != model.KindSection || nodes[1].Title != "Note" {
 		t.Fatalf("nodes[1] = %v %q, want info Note", nodes[1].Kind, nodes[1].Title)
 	}
 	if reqs := filtered[0].Requirements(); len(reqs) != 1 || reqs[0].ID != "SW-001" {

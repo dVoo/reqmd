@@ -452,7 +452,7 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
 .item__head { cursor: pointer; display: flex; gap: 0.5rem; align-items: baseline; }
 .item__title { margin: 0; font-size: 0.95rem; color: var(--fg); }
 .item__body { margin-top: 0.45rem; padding-left: 0.2rem; }
-.item--container > details > .item__body { border-left: 1px solid var(--border); padding-left: 0.8rem; }
+.item--section > details > .item__body { border-left: 1px solid var(--border); padding-left: 0.8rem; }
 
 /* ── table view ── */
 .table-scroll { overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }

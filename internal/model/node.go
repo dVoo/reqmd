@@ -11,12 +11,12 @@ const (
 	// block. It is the zero value so existing Node literals that omit
 	// Kind remain requirements.
 	KindRequirement Kind = iota
-	// KindContainer is a heading without an attr block that has child
-	// nodes — a folder-like grouping of requirements and other items.
-	KindContainer
-	// KindInfo is a heading without an attr block and no children, or a
-	// prose block that precedes any heading.
-	KindInfo
+	// KindSection is every non-requirement node: a heading without an attr
+	// block, or the headingless prose block that precedes the first
+	// heading. Whether a section behaves like a folder (children) or a
+	// leaf prose block is derived from Children, never stored, so the kind
+	// cannot flip when a subsection is added.
+	KindSection
 )
 
 // String returns the lowercase display name used in text and JSON output.
@@ -24,10 +24,8 @@ func (k Kind) String() string {
 	switch k {
 	case KindRequirement:
 		return "req"
-	case KindContainer:
-		return "container"
-	case KindInfo:
-		return "info"
+	case KindSection:
+		return "section"
 	default:
 		return ""
 	}
@@ -52,7 +50,7 @@ type Node struct {
 }
 
 // IsRequirement reports whether the node is a requirement (as opposed to
-// a container or info item).
+// a section).
 func (n *Node) IsRequirement() bool {
 	return n.Kind == KindRequirement
 }

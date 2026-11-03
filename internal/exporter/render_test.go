@@ -31,13 +31,13 @@ func testDoc() model.Document {
 		Children: []*model.Node{child},
 	}
 	container := &model.Node{
-		Kind:     model.KindContainer,
+		Kind:     model.KindSection,
 		Title:    "Section",
 		Level:    2,
 		Body:     "Container body.",
 		Children: []*model.Node{root},
 	}
-	info := &model.Node{Kind: model.KindInfo, Title: "Note", Level: 2, Body: "Info body."}
+	info := &model.Node{Kind: model.KindSection, Title: "Note", Level: 2, Body: "Info body."}
 	return model.Document{
 		Path:   "/test/doc",
 		Title:  "Test Document",
@@ -245,8 +245,8 @@ func TestBuildPageModel(t *testing.T) {
 			container = &m.Nodes[i]
 		}
 	}
-	if container == nil || container.Type != "container" {
-		t.Errorf("container node = %+v, want type container", container)
+	if container == nil || container.Type != "section" {
+		t.Errorf("section node = %+v, want type section", container)
 	}
 	// The model deliberately carries no body: the Document view is the single
 	// representation of requirement prose.

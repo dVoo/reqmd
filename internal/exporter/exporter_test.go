@@ -436,9 +436,9 @@ func TestCSVExportItems(t *testing.T) {
 		Path:   "/test/doc",
 		Schema: schemaWithTitle("Test Export"),
 		Nodes: []*model.Node{
-			{Kind: model.KindContainer, Title: "Section One", Level: 1, Body: "Container prose."},
+			{Kind: model.KindSection, Title: "Section One", Level: 1, Body: "Container prose."},
 			{ID: "REQ-001", Attrs: map[string]any{"status": "approved"}},
-			{Kind: model.KindInfo, Title: "Note", Level: 2, Body: "Some note."},
+			{Kind: model.KindSection, Title: "Note", Level: 2, Body: "Some note."},
 		},
 	}
 
@@ -452,9 +452,9 @@ func TestCSVExportItems(t *testing.T) {
 		t.Fatalf("expected 4 lines (header + 3 nodes), got %d", len(lines))
 	}
 	wantRows := []string{
-		"container,,Section One,,Container prose.,",
+		"section,,Section One,,Container prose.,",
 		"req,REQ-001,,approved,,",
-		"info,,Note,,Some note.,",
+		"section,,Note,,Some note.,",
 	}
 	for i, want := range wantRows {
 		if lines[i+1] != want {

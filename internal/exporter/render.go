@@ -506,10 +506,8 @@ func renderDocumentView(b *bufio.Writer, doc model.Document, rd *renderData, pro
 			switch n.Kind {
 			case model.KindRequirement:
 				renderCard(b, n, propOrder, an, resolveLink, depth > 0)
-			case model.KindContainer:
-				renderContainerBlock(b, n, anchor, depth > 0)
-			case model.KindInfo:
-				renderInfoBlock(b, n, anchor, depth > 0)
+			case model.KindSection:
+				renderSectionBlock(b, n, anchor, depth > 0)
 			}
 			walk(n.Children, depth+1)
 		}
@@ -524,38 +522,35 @@ func renderEmptyState(b *bufio.Writer, title, body string) {
 		html.EscapeString(title), html.EscapeString(body))
 }
 
-// renderContainerBlock writes a collapsible section for a container node.
-func renderContainerBlock(b *bufio.Writer, node *model.Node, anchor string, isChild bool) {
-	class := "item item--container"
+// renderSectionBlock writes a non-requirement node. A section with children is
+// a collapsible folder (expanded by default, so browser find and print reach
+// the content); a section without children is a plain prose block, heading
+// optional — an untitled section is the document preamble.
+func renderSectionBlock(b *bufio.Writer, node *model.Node, anchor string, isChild bool) {
+	class := "item item--section"
 	if isChild {
 		class += " item--child"
 	}
 	escAnchor := html.EscapeString(anchor)
 	_, _ = fmt.Fprintf(b, "<section class=\"%s\" id=\"%s\" data-anchor=\"%s\">\n", class, escAnchor, escAnchor)
-	_, _ = b.WriteString("<details open>\n")
-	tag := itemHeadingTag(node.Level, isChild)
-	_, _ = fmt.Fprintf(b, "<summary class=\"item__head\"><%s class=\"item__title\">%s</%s><a class=\"anchor\" href=\"#%s\" aria-label=\"Link to this section\">#</a></summary>\n",
-		tag, html.EscapeString(node.Title), tag, escAnchor)
-	if node.Body != "" {
-		_, _ = fmt.Fprintf(b, "<div class=\"item__body prose\">\n%s\n</div>\n", renderMarkdown(node.Body))
+	hasChildren := len(node.Children) > 0
+	if hasChildren {
+		_, _ = b.WriteString("<details open>\n")
 	}
-	_, _ = b.WriteString("</details>\n</section>\n")
-}
-
-// renderInfoBlock writes a plain block for a leaf info item.
-func renderInfoBlock(b *bufio.Writer, node *model.Node, anchor string, isChild bool) {
-	class := "item"
-	if isChild {
-		class += " item--child"
-	}
-	escAnchor := html.EscapeString(anchor)
-	_, _ = fmt.Fprintf(b, "<section class=\"%s\" id=\"%s\" data-anchor=\"%s\">\n", class, escAnchor, escAnchor)
 	if node.Title != "" {
 		tag := itemHeadingTag(node.Level, isChild)
-		_, _ = fmt.Fprintf(b, "<%s class=\"item__title\">%s</%s>\n", tag, html.EscapeString(node.Title), tag)
+		if hasChildren {
+			_, _ = fmt.Fprintf(b, "<summary class=\"item__head\"><%s class=\"item__title\">%s</%s><a class=\"anchor\" href=\"#%s\" aria-label=\"Link to this section\">#</a></summary>\n",
+				tag, html.EscapeString(node.Title), tag, escAnchor)
+		} else {
+			_, _ = fmt.Fprintf(b, "<%s class=\"item__title\">%s</%s>\n", tag, html.EscapeString(node.Title), tag)
+		}
 	}
 	if node.Body != "" {
 		_, _ = fmt.Fprintf(b, "<div class=\"item__body prose\">\n%s\n</div>\n", renderMarkdown(node.Body))
+	}
+	if hasChildren {
+		_, _ = b.WriteString("</details>\n")
 	}
 	_, _ = b.WriteString("</section>\n")
 }

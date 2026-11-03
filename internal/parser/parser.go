@@ -351,7 +351,7 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 	// or other blocks appear before the first heading, so nothing is dropped.
 	ensureOpenNode := func() {
 		if cur == nil {
-			cur = &model.Node{Kind: model.KindInfo, Level: 0, Source: sourcePath}
+			cur = &model.Node{Kind: model.KindSection, Level: 0, Source: sourcePath}
 			nodes = append(nodes, cur)
 		}
 	}
@@ -386,7 +386,7 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 			}
 
 			closeNode()
-			kind := model.KindInfo
+			kind := model.KindSection
 			if hasAdjacentAttr {
 				kind = model.KindRequirement
 			}
@@ -470,8 +470,9 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 // assembleTree builds the document content tree from a flat, ordered node
 // stream. A node's parent is the nearest preceding heading with a
 // shallower level; requirements additionally get ParentID pointing at the
-// nearest preceding requirement heading. Info nodes with children are
-// promoted to KindContainer.
+// nearest preceding requirement heading. Sections keep KindSection whether
+// they end up with children or not: folder-ness is derived from Children, so
+// adding a subsection never changes a node's kind.
 func assembleTree(nodes []*model.Node) []*model.Node {
 	var roots []*model.Node
 	var stack []*model.Node    // open headings by level
@@ -494,7 +495,6 @@ func assembleTree(nodes []*model.Node) []*model.Node {
 			stack = append(stack, n)
 		}
 	}
-	promoteContainers(roots)
 	return roots
 }
 
@@ -506,16 +506,6 @@ func popByLevel(stack []*model.Node, target int) []*model.Node {
 		stack = stack[:len(stack)-1]
 	}
 	return stack
-}
-
-// promoteContainers upgrades info nodes that have children to containers.
-func promoteContainers(nodes []*model.Node) {
-	for _, n := range nodes {
-		promoteContainers(n.Children)
-		if n.Kind == model.KindInfo && len(n.Children) > 0 {
-			n.Kind = model.KindContainer
-		}
-	}
 }
 
 // reqStackEntry tracks an open requirement at a heading level during the

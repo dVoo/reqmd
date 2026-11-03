@@ -55,7 +55,7 @@ func jsonDocs() []model.Document {
 			{
 				ID:     "Group",
 				Title:  "A container",
-				Kind:   model.KindContainer,
+				Kind:   model.KindSection,
 				Source: "/spec/down/dn.md",
 			},
 		},
@@ -161,7 +161,7 @@ func TestJSONExportRequirements(t *testing.T) {
 	}
 
 	grp := byID["Group"]
-	if grp["type"] != "container" {
+	if grp["type"] != "section" {
 		t.Errorf("Group type = %v, want container", grp["type"])
 	}
 }

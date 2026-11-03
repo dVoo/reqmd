@@ -306,7 +306,7 @@ func TestHTMLExportItems(t *testing.T) {
 		Schema: schemaWithTitle("Test Export"),
 		Nodes: []*model.Node{
 			{
-				Kind:  model.KindContainer,
+				Kind:  model.KindSection,
 				Title: "Section One",
 				Level: 1,
 				Body:  "Container prose.",
@@ -314,13 +314,13 @@ func TestHTMLExportItems(t *testing.T) {
 					{ID: "REQ-001", Attrs: map[string]any{"status": "approved"}, Body: "Req body."},
 				},
 			},
-			{Kind: model.KindInfo, Title: "Note", Level: 2, Body: "Some note."},
+			{Kind: model.KindSection, Title: "Note", Level: 2, Body: "Some note."},
 		},
 	}
 	out := exportPage(t, &HTML{}, doc, []string{"status"})
 
-	if !strings.Contains(out, `<section class="item item--container" id="item-1"`) {
-		t.Error("container section missing")
+	if !strings.Contains(out, `<section class="item item--section" id="item-1"`) {
+		t.Error("section with children missing")
 	}
 	if !strings.Contains(out, "Section One") || !strings.Contains(out, "Container prose.") {
 		t.Error("container content missing")
@@ -328,8 +328,8 @@ func TestHTMLExportItems(t *testing.T) {
 	if !strings.Contains(out, `<article class="req req--child" id="REQ-001"`) {
 		t.Error("child card missing")
 	}
-	if !strings.Contains(out, `<section class="item" id="item-2"`) {
-		t.Error("info section missing")
+	if !strings.Contains(out, `<section class="item item--section" id="item-2"`) {
+		t.Error("leaf section missing")
 	}
 	if !strings.Contains(out, "1 requirement · 2 items") {
 		t.Error("doc count line missing")
@@ -339,8 +339,10 @@ func TestHTMLExportItems(t *testing.T) {
 	for _, n := range m.Nodes {
 		types = append(types, n.Type)
 	}
-	if types[0] != "container" || types[2] != "info" {
-		t.Errorf("model types = %v, want container ... info", types)
+	// The client uses an empty type as "this is a requirement"; only
+	// non-requirement nodes carry a kind string.
+	if len(types) != 3 || types[0] != "section" || types[1] != "" || types[2] != "section" {
+		t.Errorf("model types = %v, want [section \"\" section]", types)
 	}
 }
 

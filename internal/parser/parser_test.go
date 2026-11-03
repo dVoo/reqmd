@@ -100,8 +100,8 @@ func TestParseMD_HeadingWithoutAttrIsInfo(t *testing.T) {
 		t.Fatalf("expected 1 node, got %d", len(nodes))
 	}
 	n := nodes[0]
-	if n.Kind != model.KindInfo {
-		t.Errorf("Kind = %v, want KindInfo", n.Kind)
+	if n.Kind != model.KindSection {
+		t.Errorf("Kind = %v, want KindSection", n.Kind)
 	}
 	if n.Title != "Section Title" {
 		t.Errorf("Title = %q, want %q", n.Title, "Section Title")
@@ -272,8 +272,8 @@ func TestParseMD_SubHeadingBecomesInfo(t *testing.T) {
 		t.Fatalf("expected 1 child info node, got %d", len(req.Children))
 	}
 	info := req.Children[0]
-	if info.Kind != model.KindInfo {
-		t.Errorf("child Kind = %v, want KindInfo", info.Kind)
+	if info.Kind != model.KindSection {
+		t.Errorf("child Kind = %v, want KindSection", info.Kind)
 	}
 	if info.Title != "Sub Heading" {
 		t.Errorf("child Title = %q, want %q", info.Title, "Sub Heading")
@@ -335,7 +335,7 @@ func TestParseMD_H1IsDocumentTitle(t *testing.T) {
 	if len(nodes) != 2 {
 		t.Fatalf("expected 2 roots (intro info + req), got %d", len(nodes))
 	}
-	if nodes[0].Kind != model.KindInfo || nodes[0].Title != "" || nodes[0].Body != "Intro prose." {
+	if nodes[0].Kind != model.KindSection || nodes[0].Title != "" || nodes[0].Body != "Intro prose." {
 		t.Errorf("nodes[0] = %+v, want leading info node with prose", nodes[0])
 	}
 	if nodes[1].Kind != model.KindRequirement || nodes[1].ID != "REQ-001" || nodes[1].ParentID != "" {
@@ -430,7 +430,7 @@ func TestParseMD_TitleWithColonInTitle(t *testing.T) {
 }
 
 // TestParseMD_ContainerHoldsRequirements verifies that a container heading
-// (no attr block) becomes a KindContainer node that holds the requirements
+// (no attr block) becomes a KindSection node that holds the requirements
 // nested under it, which stay top-level (no requirement parent).
 func TestParseMD_ContainerHoldsRequirements(t *testing.T) {
 	src := []byte("## REQ-1\n```attr\nid: REQ-1\n```\nBody 1.\n\n## Container\n\n### REQ-2\n```attr\nid: REQ-2\n```\nBody 2.\n")
@@ -442,8 +442,8 @@ func TestParseMD_ContainerHoldsRequirements(t *testing.T) {
 		t.Errorf("nodes[0] = %v %q, want requirement REQ-1", nodes[0].Kind, nodes[0].ID)
 	}
 	container := nodes[1]
-	if container.Kind != model.KindContainer {
-		t.Errorf("nodes[1] Kind = %v, want KindContainer", container.Kind)
+	if container.Kind != model.KindSection {
+		t.Errorf("nodes[1] Kind = %v, want KindSection", container.Kind)
 	}
 	if container.Title != "Container" {
 		t.Errorf("container Title = %q, want %q", container.Title, "Container")
@@ -486,7 +486,7 @@ func TestParseMD_UserExample1(t *testing.T) {
 	var findContainer func(nodes []*model.Node, title string) *model.Node
 	findContainer = func(nodes []*model.Node, title string) *model.Node {
 		for _, n := range nodes {
-			if n.Kind == model.KindContainer && n.Title == title {
+			if n.Kind == model.KindSection && n.Title == title {
 				return n
 			}
 			if c := findContainer(n.Children, title); c != nil {
@@ -555,7 +555,7 @@ func TestParseMD_ContainerDoesNotBreakDeeperChain(t *testing.T) {
 		t.Fatalf("expected 1 root, got %d", len(nodes))
 	}
 	r1 := nodes[0]
-	if len(r1.Children) != 1 || r1.Children[0].Kind != model.KindContainer || r1.Children[0].Title != "Section" {
+	if len(r1.Children) != 1 || r1.Children[0].Kind != model.KindSection || r1.Children[0].Title != "Section" {
 		t.Fatalf("R1 children = %+v, want [container Section]", r1.Children)
 	}
 	section := r1.Children[0]
@@ -566,7 +566,7 @@ func TestParseMD_ContainerDoesNotBreakDeeperChain(t *testing.T) {
 	if len(r2.Children) != 2 {
 		t.Fatalf("R2 children = %d, want 2", len(r2.Children))
 	}
-	if r2.Children[0].Kind != model.KindInfo || r2.Children[0].Title != "Info" {
+	if r2.Children[0].Kind != model.KindSection || r2.Children[0].Title != "Info" {
 		t.Errorf("R2 children[0] = %v %q, want info Info", r2.Children[0].Kind, r2.Children[0].Title)
 	}
 	if r2.Children[1].Kind != model.KindRequirement || r2.Children[1].ID != "R2.1" {
@@ -622,8 +622,8 @@ func TestParseMD_Preamble(t *testing.T) {
 		t.Fatalf("expected 2 root nodes (preamble + requirement), got %d", len(nodes))
 	}
 	preamble := nodes[0]
-	if preamble.Kind != model.KindInfo {
-		t.Errorf("preamble Kind = %v, want KindInfo", preamble.Kind)
+	if preamble.Kind != model.KindSection {
+		t.Errorf("preamble Kind = %v, want KindSection", preamble.Kind)
 	}
 	if preamble.Title != "" {
 		t.Errorf("preamble Title = %q, want empty", preamble.Title)
@@ -659,11 +659,11 @@ func TestParseMD_RequirementlessFile(t *testing.T) {
 		t.Fatalf("expected 2 roots, got %d", len(nodes))
 	}
 	intro := nodes[0]
-	if intro.Kind != model.KindInfo || intro.Title != "" || intro.Body != "Just some background." {
+	if intro.Kind != model.KindSection || intro.Title != "" || intro.Body != "Just some background." {
 		t.Errorf("nodes[0] = %v %q/%q, want leading info/background", intro.Kind, intro.Title, intro.Body)
 	}
 	details := nodes[1]
-	if details.Kind != model.KindInfo || details.Title != "Details" || details.Body != "More prose." {
+	if details.Kind != model.KindSection || details.Title != "Details" || details.Body != "More prose." {
 		t.Errorf("nodes[1] = %v %q/%q, want info Details/More prose.", details.Kind, details.Title, details.Body)
 	}
 	if reqs := reqsOf(nodes); len(reqs) != 0 {
@@ -692,7 +692,7 @@ func TestParseMD_ChunkedPreamble(t *testing.T) {
 		}
 	}
 	// Preamble prose survives the chunked path; the h1 title is not a node.
-	if len(nodes) != 4 || nodes[0].Kind != model.KindInfo || nodes[0].Body != "Intro prose." {
+	if len(nodes) != 4 || nodes[0].Kind != model.KindSection || nodes[0].Body != "Intro prose." {
 		t.Errorf("preamble not preserved: %+v", nodes)
 	}
 }

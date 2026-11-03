@@ -76,8 +76,7 @@ func TestKindString(t *testing.T) {
 		kind Kind
 	}{
 		{want: "req", kind: KindRequirement},
-		{want: "container", kind: KindContainer},
-		{want: "info", kind: KindInfo},
+		{want: "section", kind: KindSection},
 	}
 	for _, c := range cases {
 		if got := c.kind.String(); got != c.want {
@@ -91,8 +90,8 @@ func TestCollectRequirements(t *testing.T) {
 	reqA := &Node{Kind: KindRequirement, ID: "A"}
 	reqB := &Node{Kind: KindRequirement, ID: "B"}
 	reqC := &Node{Kind: KindRequirement, ID: "C"}
-	info := &Node{Kind: KindInfo, Title: "Notes", Children: []*Node{reqB}}
-	container := &Node{Kind: KindContainer, Title: "Section", Children: []*Node{reqA, info}}
+	info := &Node{Kind: KindSection, Title: "Notes", Children: []*Node{reqB}}
+	container := &Node{Kind: KindSection, Title: "Section", Children: []*Node{reqA, info}}
 	nodes := []*Node{container, reqC}
 
 	got := CollectRequirements(nodes)
@@ -108,9 +107,9 @@ func TestCollectRequirements(t *testing.T) {
 
 func TestDocumentRequirements(t *testing.T) {
 	d := Document{Nodes: []*Node{
-		{Kind: KindContainer, Title: "Section", Children: []*Node{
+		{Kind: KindSection, Title: "Section", Children: []*Node{
 			{Kind: KindRequirement, ID: "REQ-001"},
-			{Kind: KindInfo, Title: "Note", Children: []*Node{
+			{Kind: KindSection, Title: "Note", Children: []*Node{
 				{Kind: KindRequirement, ID: "REQ-002"},
 			}},
 		}},
