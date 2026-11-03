@@ -112,6 +112,9 @@ menu:
     - name: "AI"
       pageRef: "/ai"
       weight: 70
+    - name: "Exchange format"
+      pageRef: "/exchange"
+      weight: 80
   footer:
     - name: "Source"
       url: "https://github.com/dVoo/reqmd"

@@ -1,0 +1,128 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reqmd.dev/exchange/v1/schema.json",
+  "title": "reqmd exchange format v1",
+  "description": "Shape of a reqmd exchange bundle. This schema validates structure only; cross-item rules (key resolution, uniqueness, required-field coverage, depth budget) are validated by the renderer and documented at https://reqmd.dev/exchange/v1/.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["$schema", "documents"],
+  "properties": {
+    "$schema": {
+      "const": "https://reqmd.dev/exchange/v1/schema.json"
+    },
+    "documents": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/document" }
+    }
+  },
+  "$defs": {
+    "document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["key", "title"],
+      "properties": {
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^/\\s]+$",
+          "description": "Stable document identity, unique across the bundle. Qualifies cross-document links."
+        },
+        "title": { "type": "string", "minLength": 1 },
+        "body": {
+          "type": "string",
+          "description": "Preamble prose rendered under the document title, before any item."
+        },
+        "items": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/item" }
+        },
+        "properties": {
+          "type": "object",
+          "description": "JSON Schema property definitions for requirement fields."
+        },
+        "required": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "x-reqmd": { "$ref": "#/$defs/xreqmd" }
+      }
+    },
+    "xreqmd": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Renderer-specific configuration. Producers that are not reqmd-aware should omit it.",
+      "properties": {
+        "id-prefix": { "type": "string" },
+        "level": { "type": "string" },
+        "document-id": { "type": "string" },
+        "upstream": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "level": { "type": "string" },
+            "sources": { "type": "array", "items": { "type": "string" } }
+          }
+        },
+        "requires-trace-from": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "external": { "type": "boolean" },
+        "file": { "type": "string" }
+      }
+    },
+    "item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": ["requirement", "section"],
+          "description": "requirement renders a heading plus an attr block; section renders structure only."
+        },
+        "key": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^\\S+$",
+          "description": "Stable identity, unique within the document. Required on requirements; forbidden on sections."
+        },
+        "title": { "type": "string" },
+        "body": {
+          "type": "string",
+          "description": "Markdown prose. Must not contain headings."
+        },
+        "fields": {
+          "type": "object",
+          "description": "Attr-block attributes. Requirements only. Scalars or flat lists of scalars."
+        },
+        "status": { "type": "string" },
+        "links": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Keys of other items: 'key' in the same document, 'doc-key/key' across documents. Must resolve."
+        },
+        "refs": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "External requirement IDs passed through verbatim. Never resolved or validated."
+        },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/item" },
+          "description": "Nested items, in document order."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "kind": { "const": "requirement" } }, "required": ["kind"] },
+          "then": { "required": ["key"] }
+        },
+        {
+          "if": { "properties": { "kind": { "const": "section" } }, "required": ["kind"] },
+          "then": { "not": { "anyOf": [{ "required": ["fields"] }, { "required": ["status"] }] } }
+        }
+      ]
+    }
+  }
+}

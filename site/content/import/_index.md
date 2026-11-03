@@ -108,7 +108,12 @@ under `reqmd-code/internal/lang/<lang>/` and self-register it via
 
 ## ALM tools and anything else: the exchange format
 
-Any tool that can print JSON can feed reqmd. A minimal bundle:
+Any tool that can print JSON can feed reqmd. The full field reference, the
+renderer's rules, and two complete examples live on the
+[exchange format page](/exchange/v1/); the machine-readable contract is
+[`schema.json`](/exchange/v1/schema.json).
+
+A minimal bundle:
 
 ```json
 {
