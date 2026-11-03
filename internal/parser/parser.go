@@ -345,6 +345,7 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 	var nodes []*model.Node
 	var cur *model.Node
 	var waitingForAttr bool
+	var seenHeading bool
 	var title string
 	var bodyBuf strings.Builder
 	// ensureOpenNode creates a headingless info node (level 0) when prose
@@ -373,11 +374,17 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 			heading := collectInlineText(v, src)
 
 			// Level 1 is the document title, never content: it cannot be a
-			// requirement, and it does not become a container or info node.
+			// requirement, and it does not become a section node. It must also
+			// be the first heading in the file — a second h1 would silently
+			// lose its text, so it is rejected instead.
 			if level == 1 {
 				if hasAdjacentAttr {
 					return nil, "", frontmatter, fmt.Errorf("%s: heading %q is a level-1 requirement; requirement headings must be level 2 or higher (h1 is the document title)", sourcePath, heading)
 				}
+				if seenHeading {
+					return nil, "", frontmatter, fmt.Errorf("%s: heading %q is a second level-1 heading; the h1 is the document title and must be the first heading in the file", sourcePath, heading)
+				}
+				seenHeading = true
 				closeNode()
 				if title == "" {
 					title = strings.TrimSpace(heading)
@@ -385,6 +392,7 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 				continue
 			}
 
+			seenHeading = true
 			closeNode()
 			kind := model.KindSection
 			if hasAdjacentAttr {

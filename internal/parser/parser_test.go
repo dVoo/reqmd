@@ -343,6 +343,26 @@ func TestParseMD_H1IsDocumentTitle(t *testing.T) {
 	}
 }
 
+// TestParseMD_SecondH1Rejected verifies that a second level-1 heading is a
+// parse error. Before this rule the heading text was silently dropped: only
+// the first h1 became the title, and the second one's prose was re-attached
+// to a fresh headingless node.
+func TestParseMD_SecondH1Rejected(t *testing.T) {
+	src := []byte("# First\n\nIntro.\n\n## REQ-001\n```attr\nid: REQ-001\n```\nBody.\n\n# Second\n\nMore.\n")
+	_, _, _, err := parseMD(src, "test.md")
+	if err == nil {
+		t.Fatal("expected error for a second level-1 heading, got nil")
+	}
+	if !strings.Contains(err.Error(), "second level-1 heading") {
+		t.Errorf("error = %q, want mention of a second level-1 heading", err)
+	}
+	// An h1 that is not the first heading but the only one is rejected too.
+	src = []byte("## REQ-001\n```attr\nid: REQ-001\n```\n\n# Late title\n")
+	if _, _, _, err := parseMD(src, "test.md"); err == nil {
+		t.Error("expected error for an h1 after content, got nil")
+	}
+}
+
 // TestParseSingleFile verifies ParseSingleFile reads a real file from disk
 // and produces the correct results. Uses t.TempDir() for the temp file.
 func TestParseSingleFile(t *testing.T) {
