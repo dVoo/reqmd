@@ -1,4 +1,4 @@
-"""reqmd_io — build `reqmd-import/v1` exchange bundles from Python.
+"""reqmd_io — build reqmd exchange-format bundles from Python.
 
 A thin, dependency-free helper for writing reqmd importers. It only produces
 the JSON exchange format; reqmd-import is the single renderer that turns that
@@ -7,15 +7,22 @@ no Markdown or YAML logic, so it cannot drift from the Go renderer.
 
 Typical importer::
 
-    from reqmd_io import Bundle, Document, Requirement
+    from reqmd_io import Bundle, Document, Requirement, Section
 
-    doc = Document(dir="brakes", id_prefix="DOORS-", level="stakeholder-requirements",
-                   title="Brakes Module")
+    doc = Document(key="brakes", title="Brakes Module",
+                   x_reqmd={"id-prefix": "DOORS-", "level": "stakeholder-requirements"},
+                   properties={"priority": {"type": "string"}},
+                   required=["priority"])
+
+    doc.add(Section(title="Hydraulics", body="The hydraulic circuit."))
     for item in doors_module.objects:
-        doc.add(Requirement(native_id=item.number, title=item.heading, body=item.text,
-                            parent=item.parent_number,
-                            native_trace=[l.target for l in item.out_links],
-                            attrs={"priority": item.priority}))
+        doc.add(
+            Requirement(key=item.number, title=item.heading, body=item.text,
+                        status=item.status, fields={"priority": item.priority},
+                        links=[link.target_key for link in item.links],
+                        refs=[link.external_id for link in item.external_links]),
+            parent="Hydraulics",
+        )
 
     Bundle([doc]).write("doors-brakes.json")
 
@@ -31,9 +38,21 @@ import sys
 from dataclasses import dataclass, field
 from typing import Any
 
-FORMAT = "github.com/dVoo/reqmd/reqmd-import/v1"
+SCHEMA_URL = "https://reqmd.dev/exchange/v1/schema.json"
 
-__all__ = ["FORMAT", "Bundle", "Document", "Requirement"]
+KIND_REQUIREMENT = "requirement"
+KIND_SECTION = "section"
+
+__all__ = [
+    "SCHEMA_URL",
+    "KIND_REQUIREMENT",
+    "KIND_SECTION",
+    "Bundle",
+    "Document",
+    "Item",
+    "Requirement",
+    "Section",
+]
 
 
 def _clean(data: dict[str, Any]) -> dict[str, Any]:
@@ -43,89 +62,116 @@ def _clean(data: dict[str, Any]) -> dict[str, Any]:
 
 
 @dataclass
-class Requirement:
-    """One imported requirement, keyed by the source tool's own stable ID.
+class Item:
+    """Base class for one content item.
 
-    ``native_id`` is the only required field: the rendered reqmd ID is the
-    owning document's ``id_prefix`` + ``native_id``. ``trace`` holds
-    fully-qualified reqmd IDs passed through verbatim; ``native_trace`` holds
-    native ids resolved within the bundle (use it for links to sibling items).
+    ``kind`` is the only difference between content and structure: a
+    requirement renders an attr block, a section renders structure only. Items
+    nest through ``children``; the flat ``parent`` argument of
+    :meth:`Document.add` is resolved into that tree, so a producer that holds a
+    flat table never has to build it by hand.
     """
 
-    native_id: str
+    kind: str = KIND_REQUIREMENT
+    key: str = ""
     title: str = ""
     body: str = ""
+    fields: dict[str, Any] = field(default_factory=dict)
     status: str = ""
-    parent: str = ""
-    trace: list[str] = field(default_factory=list)
-    native_trace: list[str] = field(default_factory=list)
-    attrs: dict[str, Any] = field(default_factory=dict)
+    links: list[str] = field(default_factory=list)
+    refs: list[str] = field(default_factory=list)
+    children: list[Item] = field(default_factory=list)
 
     def to_dict(self) -> dict[str, Any]:
-        return _clean(
-            {
-                "native-id": self.native_id,
-                "title": self.title,
-                "body": self.body,
-                "status": self.status,
-                "parent": self.parent,
-                "trace": self.trace,
-                "native-trace": self.native_trace,
-                "attrs": self.attrs,
-            }
-        )
+        data = {
+            "kind": self.kind,
+            "key": self.key,
+            "title": self.title,
+            "body": self.body,
+            "fields": self.fields,
+            "status": self.status,
+            "links": self.links,
+            "refs": self.refs,
+            "children": [c.to_dict() for c in self.children],
+        }
+        return _clean(data)
+
+
+@dataclass
+class Requirement(Item):
+    """One imported requirement, identified by the source tool's own stable id.
+
+    ``key`` is required: the rendered reqmd ID is the owning document's
+    ``id-prefix`` + ``key``. ``links`` name other items by key (``"17"`` in the
+    same document, ``"brakes/17"`` across documents). ``refs`` hold external
+    requirement IDs and are passed through verbatim.
+    """
+
+    kind: str = KIND_REQUIREMENT
+
+
+@dataclass
+class Section(Item):
+    """Structure: a heading with prose and children, never an attr block.
+
+    A section carries no ``fields`` and no ``status``; both are rejected by the
+    renderer. An untitled section renders as a plain prose block.
+    """
+
+    kind: str = KIND_SECTION
 
 
 @dataclass
 class Document:
-    """One reqmd document directory: schema.yaml plus, when it has
-    requirements, one .md file."""
+    """One reqmd document: a schema plus, when it has items, one Markdown file.
 
-    id_prefix: str = ""
-    dir: str = ""
-    file: str = ""
+    ``key`` and ``title`` are required. Everything reqmd-specific lives in
+    ``x_reqmd`` (``id-prefix``, ``level``, ``document-id``, ``upstream``,
+    ``requires-trace-from``, ``external``, ``dir``, ``file``); a producer that
+    knows nothing about reqmd leaves it empty.
+    """
+
+    key: str = ""
     title: str = ""
-    notice: str = ""
-    level: str = ""
-    document_id: str = ""
-    upstream: dict[str, Any] | None = None
-    requires_trace_from: list[str] = field(default_factory=list)
-    external: bool = False
-    schema_id: str = ""
-    schema_title: str = ""
-    schema_description: str = ""
+    body: str = ""
+    items: list[Item] = field(default_factory=list)
     properties: dict[str, Any] = field(default_factory=dict)
     required: list[str] = field(default_factory=list)
-    requirements: list[Requirement] = field(default_factory=list)
+    x_reqmd: dict[str, Any] = field(default_factory=dict)
 
-    def add(self, requirement: Requirement) -> Document:
-        """Append a requirement. Returns self so calls can be chained."""
-        self.requirements.append(requirement)
+    # add appends an item, nesting it under the item whose key is `parent`.
+    # A flat source table (DOORS objects, CSV rows) therefore stays a flat
+    # loop; the tree is assembled here rather than in every importer.
+    def add(self, item: Item, parent: str = "") -> Document:
+        """Append an item, under ``parent`` when given. Returns self."""
+        if parent:
+            target = self._find(parent)
+            if target is None:
+                raise KeyError(f"document {self.key!r}: no item with key {parent!r}")
+            target.children.append(item)
+        else:
+            self.items.append(item)
         return self
 
+    def _find(self, key: str) -> Item | None:
+        stack = list(self.items)
+        while stack:
+            it = stack.pop()
+            if it.key == key:
+                return it
+            stack.extend(it.children)
+        return None
+
     def to_dict(self) -> dict[str, Any]:
-        data: dict[str, Any] = {
-            "dir": self.dir,
-            "file": self.file,
+        data = {
+            "key": self.key,
             "title": self.title,
-            "notice": self.notice,
-            "id-prefix": self.id_prefix,
-            "level": self.level,
-            "document-id": self.document_id,
-            "upstream": self.upstream,
-            "requires-trace-from": self.requires_trace_from,
-            "external": self.external,
-            "schema-id": self.schema_id,
-            "schema-title": self.schema_title,
-            "schema-description": self.schema_description,
+            "body": self.body,
+            "items": [i.to_dict() for i in self.items],
             "properties": self.properties,
             "required": self.required,
-            "requirements": [r.to_dict() for r in self.requirements],
+            "x-reqmd": self.x_reqmd,
         }
-        # external=False is meaningful-intent-free when absent, so drop it;
-        # every other empty value is dropped by _clean.
-        if not self.external:
-            data.pop("external", None)
         return _clean(data)
 
 
@@ -141,7 +187,10 @@ class Bundle:
         return self
 
     def to_dict(self) -> dict[str, Any]:
-        return {"format": FORMAT, "documents": [d.to_dict() for d in self.documents]}
+        return {
+            "$schema": SCHEMA_URL,
+            "documents": [d.to_dict() for d in self.documents],
+        }
 
     def to_json(self, indent: int = 2) -> str:
         return json.dumps(self.to_dict(), indent=indent, ensure_ascii=False) + "\n"

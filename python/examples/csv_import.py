@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Import a DOORS or codeBeamer CSV export into a reqmd-import/v1 bundle.
+"""Import a DOORS or codeBeamer CSV export into an exchange-format bundle.
 
 One generic reader covers both tools, because both export rows with an item
 id, a heading, a description, optional parent, and optional link columns.
@@ -29,7 +29,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from reqmd_io import Bundle, Document, Requirement  # noqa: E402
+from reqmd_io import Bundle, Document, Requirement, Section  # noqa: E402
 
 # A fully-qualified reqmd ID (optionally doc-qualified, optionally version-pinned)
 # as written by hand in the spec tree. Anything else in a link column is treated
@@ -41,7 +41,8 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     p.add_argument("csv", help="CSV export from DOORS/codeBeamer")
     p.add_argument("-o", "--output", default="-", help="output bundle path ('-' = stdout)")
-    p.add_argument("--dir", default="", help="output document directory (default: bundle root)")
+    p.add_argument("--key", default="imported", help="document key (the bundle-internal identity)")
+    p.add_argument("--dir", default="", help="output document directory (default: the document key)")
     p.add_argument("--id-prefix", required=True, help='reqmd ID prefix, e.g. "DOORS-"')
     p.add_argument("--title", default="", help="document title")
     p.add_argument("--level", default="", help="x-reqmd.level for the document")
@@ -51,6 +52,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--body-column", default="Description", help="column holding the body text")
     p.add_argument("--parent-column", default="", help="column holding the parent item's id")
     p.add_argument("--trace-column", default="", help="column holding link targets (';' or '|' separated)")
+    p.add_argument("--kind-column", default="",
+                   help="column holding the row type: a row whose value matches --section-value "
+                        "(DOORS 'Heading') becomes a section, one matching --info-value (DOORS 'Text') "
+                        "a leaf section, everything else a requirement")
+    p.add_argument("--section-value", default="Heading", help="--kind-column value that marks a section")
+    p.add_argument("--info-value", default="Text", help="--kind-column value that marks a leaf section")
     p.add_argument("--attr", action="append", default=[], metavar="NAME=COLUMN",
                    help="map a CSV column to an attr-block attribute; repeatable")
     return p.parse_args(argv)
@@ -74,14 +81,14 @@ def main(argv: list[str] | None = None) -> int:
     args = parse_args(sys.argv[1:] if argv is None else argv)
     attr_columns = parse_attrs(args.attr)
 
+    x_reqmd = {"id-prefix": args.id_prefix, "level": args.level, "external": args.external}
+    if args.dir:
+        x_reqmd["dir"] = args.dir
+    x_reqmd["file"] = "package.md"
     doc = Document(
-        id_prefix=args.id_prefix,
-        dir=args.dir,
-        file="package.md",
+        key=args.key or "imported",
         title=args.title or "Imported requirements",
-        notice="This file is auto-generated. Do not edit by hand.",
-        level=args.level,
-        external=args.external,
+        x_reqmd=x_reqmd,
         # Every mapped attr is a free-form string; declare it so the generated
         # schema accepts the attr block.
         properties={name: {"type": "string"} for name in attr_columns},
@@ -95,6 +102,10 @@ def main(argv: list[str] | None = None) -> int:
         print(f"cannot read {args.csv}: {exc}", file=sys.stderr)
         return 1
 
+    by_key: dict = {}
+    parents: dict = {}
+    roots: list = []
+
     for row in rows:
         native_id = (row.get(args.id_column) or "").strip()
         if not native_id:
@@ -105,20 +116,54 @@ def main(argv: list[str] | None = None) -> int:
             for link in split_links(row.get(args.trace_column, "")):
                 (trace if REQMD_ID.match(link) else native_trace).append(link)
 
-        req = Requirement(
-            native_id=native_id,
-            title=(row.get(args.title_column) or "").strip(),
-            body=(row.get(args.body_column) or "").strip(),
-            parent=(row.get(args.parent_column) or "").strip(),
-            trace=trace,
-            native_trace=native_trace,
-            attrs={name: (row.get(col) or "").strip() for name, col in attr_columns.items()},
-        )
-        doc.add(req)
+        title = (row.get(args.title_column) or "").strip()
+        body = (row.get(args.body_column) or "").strip()
+        row_kind = (row.get(args.kind_column) or "").strip() if args.kind_column else ""
+        # DOORS marks headings "Heading" and pure text "Text"; both are sections
+        # in the format, because folder-versus-leaf is derived from whether a
+        # section has children. Only the requirement path carries fields.
+        if row_kind and row_kind in {args.section_value, args.info_value}:
+            item = Section(key=native_id, title=title, body=body)
+        else:
+            item = Requirement(
+                key=native_id,
+                title=title,
+                body=body,
+                links=native_trace,
+                refs=trace,
+                fields={name: (row.get(col) or "").strip() for name, col in attr_columns.items()},
+            )
+        by_key[native_id] = item
+        parent_key = (row.get(args.parent_column) or "").strip() if args.parent_column else ""
+        if parent_key:
+            parents[native_id] = parent_key
+        else:
+            roots.append(item)
+
+    # Rows need not arrive in hierarchy order, so nesting is a second pass over
+    # the collected items rather than a single streaming add.
+    for key, parent_key in parents.items():
+        parent = by_key.get(parent_key)
+        if parent is None:
+            roots.append(by_key[key])
+            print(f"csv_import: warning: {key} has unknown parent {parent_key}, kept at top level",
+                  file=sys.stderr)
+            continue
+        parent.children.append(by_key[key])
+    doc.items.extend(roots)
 
     bundle.write(args.output)
-    print(f"csv_import: {len(doc.requirements)} requirement(s) from {args.csv}", file=sys.stderr)
+    requirements = sum(1 for i in _walk(doc.items) if i.kind == "requirement")
+    print(f"csv_import: {requirements} requirement(s) from {args.csv}", file=sys.stderr)
     return 0
+
+
+def _walk(items: list) -> list:
+    out = []
+    for item in items:
+        out.append(item)
+        out.extend(_walk(item.children))
+    return out
 
 
 if __name__ == "__main__":

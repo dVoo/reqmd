@@ -367,7 +367,7 @@ priority: Medium
 trace:
   - SYS-IMP-002
 ```
-The `reqmd_io` Python package shall provide dataclasses (`Bundle`, `Document`, `Requirement`) that serialize to the `reqmd-import/v1` format, with the format's hyphenated keys and `omitempty`-equivalent behaviour (empty values omitted), and shall contain no Markdown or YAML logic. It shall be dependency-free and importable as `reqmd_io`, and the repository shall ship a runnable example importer that reads a DOORS/codeBeamer CSV export into a bundle.
+The `reqmd_io` Python package shall provide dataclasses (`Bundle`, `Document`, `Item`, `Requirement`, `Section`) that serialize to the exchange format, with the format's hyphens and `omitempty`-equivalent behaviour (empty values omitted), and shall contain no Markdown or YAML logic. It shall be dependency-free and importable as `reqmd_io`; `Document.add(item, parent=<key>)` shall nest by key so a producer holding a flat table keeps a flat loop instead of assembling the item tree by hand. The repository shall ship a runnable example importer that reads a DOORS/codeBeamer CSV export into a bundle and maps a row-type column onto requirement versus section. Its test suite shall validate a generated bundle against the published `schema.json` when a JSON-Schema library is available, which proves the format is implementable without any Go code.
 
 *Rationale:* Importer authors should not hand-build dictionaries and rediscover the format's edge cases, but a second renderer in another language would drift from the Go one; restricting the helper to serialization gives the ergonomics without the divergence risk.
 
