@@ -627,6 +627,7 @@ body.density-compact .grid th, body.density-compact .grid td { padding: 0.24rem 
 body.density-compact .toc__link { padding: 0.15rem 0.35rem; }
 body.density-compact .tile { padding: 0.4rem 0.6rem; }
 
+
 /* ── responsive ── */
 @media (max-width: 900px) {
   .shell { grid-template-columns: minmax(0, 1fr); }
@@ -663,9 +664,8 @@ body.density-compact .tile { padding: 0.4rem 0.6rem; }
 .shortcuts__head .shortcuts__title { margin: 0; }
 .shortcuts .icon-btn { font-size: 1rem; }
 
-/* The chain closes the Document view, so its collapsed summary sits directly
-   under the last card. */
-.view--document .doc-chain { margin: 1.2rem 0 0; }
+/* The chain opens the Document view: orientation before the requirements. */
+.view--document .doc-chain { margin: 0 0 1.2rem; }
 .view--document .doc-chain .chain-stack { padding-top: 0.2rem; }
 
 .results__count { border-bottom: 0 !important; color: var(--fg-muted); font-size: 0.76rem; }

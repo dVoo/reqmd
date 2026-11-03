@@ -409,10 +409,10 @@ func renderDocChain(b *bufio.Writer, g DocChainGraph) {
 	for _, t := range g.Downstream {
 		totalDown += len(t.Cards)
 	}
-	// Orientation, not the task: always collapsed so the reading view keeps
-	// the reader's attention.
+	// Orientation first: the block opens at the top of the reading view so the
+	// reader sees where the current document sits before scanning requirements.
 	_, _ = b.WriteString("<nav class=\"doc-chain doc-chain--deep\" aria-label=\"Document traceability chain\">\n")
-	_, _ = b.WriteString("  <details class=\"chain-details\">\n")
+	_, _ = b.WriteString("  <details class=\"chain-details\" open>\n")
 
 	_, _ = b.WriteString("    <summary class=\"chain-summary\">\n")
 	_, _ = b.WriteString("      <span class=\"chain-summary__label\">Traceability chain</span>\n")
@@ -498,6 +498,7 @@ func renderToolbar(b *bufio.Writer, doc model.Document, rd *renderData) {
 func renderDocumentView(b *bufio.Writer, doc model.Document, rd *renderData, propOrder []string, an *Analysis, resolveLink func(string) string, chain DocChainGraph) {
 	_, _ = b.WriteString("<section class=\"view view--document\" data-view-panel=\"document\">\n")
 	_, _ = b.WriteString("<main class=\"doc\">\n")
+	renderDocChain(b, chain)
 	if len(doc.Nodes) == 0 {
 		renderEmptyState(b, "No requirements", "This document contains no requirement nodes.")
 	}
@@ -517,7 +518,6 @@ func renderDocumentView(b *bufio.Writer, doc model.Document, rd *renderData, pro
 		}
 	}
 	walk(doc.Nodes, 0)
-	renderDocChain(b, chain)
 	_, _ = b.WriteString("</main>\n</section>\n")
 }
 

@@ -180,13 +180,13 @@ func TestHTMLExportDocChain(t *testing.T) {
 	if !strings.Contains(output, `<nav class="doc-chain`) {
 		t.Error("output should contain doc-chain nav element")
 	}
-	// The chain is orientation only: always collapsed, so it can never push
-	// the reader past the toolbar.
-	if strings.Contains(output, `<details class="chain-details" open>`) {
-		t.Error("chain details must always start collapsed")
+	// The chain is orientation: it opens the reading view and starts expanded so
+	// the reader sees the current document in its context immediately.
+	if !strings.Contains(output, `<details class="chain-details" open>`) {
+		t.Error("chain details must start expanded")
 	}
-	if !strings.Contains(output, `<details class="chain-details">`) {
-		t.Error("output should contain the chain-details folding wrapper")
+	if strings.Index(output, `<nav class="doc-chain`) > strings.Index(output, `<article class="req`) {
+		t.Error("chain must render before the requirement cards")
 	}
 	// Summary header.
 	if !strings.Contains(output, `chain-summary`) {
@@ -344,9 +344,9 @@ func TestHTMLExportDocChainDeep(t *testing.T) {
 	if !strings.Contains(output, `doc-chain doc-chain--deep`) {
 		t.Error("deep chain should add doc-chain--deep class")
 	}
-	// Details should NOT have open attribute (collapsed by default).
-	if strings.Contains(output, `<details class="chain-details" open>`) {
-		t.Error("deep chain details should NOT have open attribute by default")
+	// Deep chain stays expanded too: it scrolls inside max-height instead.
+	if !strings.Contains(output, `<details class="chain-details" open>`) {
+		t.Error("deep chain details should have open attribute")
 	}
 	// Deep chain compacts cards via the doc-chain--deep modifier class
 	// (already asserted above) — the markup itself stays identical, so we
