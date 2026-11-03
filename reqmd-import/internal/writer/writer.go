@@ -1,7 +1,7 @@
-// Package writer renders reqmd markdown from resolved requirements and
-// writes generated files idempotently. It is the single renderer for every
-// importer: producers emit the reqmd-import/v1 exchange format, reqmd-import
-// turns it into .md + schema.yaml here.
+// Package writer renders reqmd markdown from resolved items and writes
+// generated files idempotently. It is the single renderer for every importer:
+// producers emit the reqmd exchange format, reqmd-import turns it into .md +
+// schema.yaml here.
 package writer
 
 import (
@@ -27,16 +27,32 @@ const GeneratedMarker = "<!-- reqmd: generated -->"
 // hand-authored content.
 const legacyMarker = "<!-- reqmd-code: generated -->"
 
-// Req is one resolved requirement to render: its final reqmd ID, the trace
-// refs, the remaining attr-block entries, and its heading nesting depth.
-type Req struct {
-	Attrs  map[string]any
+// Kind discriminates a rendered item. A requirement gets an attr block; a
+// section never does, which is the only difference reqmd cares about.
+const (
+	KindRequirement = "requirement"
+	KindSection     = "section"
+)
+
+// Item is one resolved content item to render: its heading depth, its final
+// reqmd ID (requirements only), the trace refs, and the remaining attr-block
+// entries.
+type Item struct {
+	Fields map[string]any
+	Kind   string
 	ID     string
 	Title  string
 	Status string
 	Body   string
 	Trace  []string
 	Depth  int
+}
+
+// IsRequirement reports whether the item renders an attr block. Only an
+// explicit KindSection makes a section: the zero value is a requirement, so an
+// item built without a kind can never silently lose its attr block.
+func (i Item) IsRequirement() bool {
+	return i.Kind != KindSection
 }
 
 // File is one rendered output file, relative to the output root.
@@ -83,19 +99,20 @@ func writeIfChanged(path string, data []byte) error {
 	return os.WriteFile(path, data, 0o644)
 }
 
-// RenderDocument renders a document: title, generated marker, optional notice
-// line, then one section per requirement in the order given.
-func RenderDocument(title, notice string, reqs []Req) (string, error) {
+// RenderDocument renders a document: title, generated marker, optional
+// preamble prose, then the items in the order given. Depth is carried per item,
+// so a section's children must follow it in the slice.
+func RenderDocument(title, preamble string, items []Item) (string, error) {
 	var b strings.Builder
 	fmt.Fprintf(&b, "# %s\n\n", title)
 	b.WriteString(GeneratedMarker)
 	b.WriteString("\n\n")
-	if notice != "" {
-		b.WriteString(notice)
+	if preamble != "" {
+		b.WriteString(preamble)
 		b.WriteString("\n\n")
 	}
-	for _, r := range reqs {
-		s, err := RenderRequirement(r)
+	for _, it := range items {
+		s, err := RenderItem(it)
 		if err != nil {
 			return "", err
 		}
@@ -104,48 +121,59 @@ func RenderDocument(title, notice string, reqs []Req) (string, error) {
 	return b.String(), nil
 }
 
-// RenderRequirement renders one requirement: heading, attr block, body. Depth
-// is the nesting level: 0 renders "##", 1 renders "###", and so on (reqmd
-// accepts any heading level from h2 down).
-func RenderRequirement(r Req) (string, error) {
+// RenderItem renders one item: heading, then (for a requirement) the attr
+// block, then the body. Depth is the nesting level: 0 renders "##", 1 renders
+// "###", and so on (reqmd accepts any heading level from h2 down). An item
+// without a title renders as a plain prose block, which is how the headingless
+// document preamble and untitled sections are represented.
+func RenderItem(it Item) (string, error) {
 	var b strings.Builder
-	heading := strings.Repeat("#", 2+r.Depth)
-	if r.Title != "" {
-		fmt.Fprintf(&b, "%s %s: %s\n", heading, r.ID, r.Title)
-	} else {
-		fmt.Fprintf(&b, "%s %s\n", heading, r.ID)
+	heading := strings.Repeat("#", 2+it.Depth)
+	if it.Title != "" {
+		if it.IsRequirement() && it.ID != "" {
+			fmt.Fprintf(&b, "%s %s: %s\n", heading, it.ID, it.Title)
+		} else {
+			fmt.Fprintf(&b, "%s %s\n", heading, it.Title)
+		}
 	}
-	b.WriteString("```attr\n")
-	if err := writeAttr(&b, r); err != nil {
-		return "", fmt.Errorf("requirement %s: %w", r.ID, err)
-	}
-	b.WriteString("```\n")
-	if r.Body != "" {
+	if it.IsRequirement() {
+		b.WriteString("```attr\n")
+		if err := writeAttr(&b, it); err != nil {
+			return "", fmt.Errorf("requirement %s: %w", it.ID, err)
+		}
+		b.WriteString("```\n")
+		if it.Body != "" {
+			b.WriteString("\n")
+			b.WriteString(it.Body)
+			b.WriteString("\n")
+		}
 		b.WriteString("\n")
-		b.WriteString(r.Body)
-		b.WriteString("\n")
+		return b.String(), nil
 	}
-	b.WriteString("\n")
+	if it.Body != "" {
+		b.WriteString(it.Body)
+		b.WriteString("\n\n")
+	}
 	return b.String(), nil
 }
 
 // writeAttr writes the attr-block body: status first, then the remaining
 // attributes in sorted key order (deterministic output), then the trace list.
-func writeAttr(b *strings.Builder, r Req) error {
-	if r.Status != "" {
-		fmt.Fprintf(b, "status: %s\n", quoteIfNeeded(r.Status))
+func writeAttr(b *strings.Builder, it Item) error {
+	if it.Status != "" {
+		fmt.Fprintf(b, "status: %s\n", quoteIfNeeded(it.Status))
 	}
-	keys := make([]string, 0, len(r.Attrs))
-	for k := range r.Attrs {
+	keys := make([]string, 0, len(it.Fields))
+	for k := range it.Fields {
 		keys = append(keys, k)
 	}
 	sort.Strings(keys)
 	for _, k := range keys {
-		if err := writeAttrValue(b, k, r.Attrs[k]); err != nil {
+		if err := writeAttrValue(b, k, it.Fields[k]); err != nil {
 			return err
 		}
 	}
-	writeRefList(b, "trace", r.Trace)
+	writeRefList(b, "trace", it.Trace)
 	return nil
 }
 

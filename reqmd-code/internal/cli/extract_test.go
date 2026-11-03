@@ -61,16 +61,26 @@ func writeFile(t *testing.T, dir, name, content string) {
 	}
 }
 
-// docByDir returns the bundle document with the given Dir.
+// docByDir returns the bundle document that renders into the given directory.
 func docByDir(t *testing.T, b *exchange.Bundle, dir string) exchange.Document {
 	t.Helper()
 	for _, d := range b.Documents {
-		if d.Dir == dir {
+		if d.Dir() == dir {
 			return d
 		}
 	}
 	t.Fatalf("bundle has no document with dir %q (%d documents)", dir, len(b.Documents))
 	return exchange.Document{}
+}
+
+// allItems flattens a document's item tree in render order.
+func allItems(items []exchange.Item) []exchange.Item {
+	out := make([]exchange.Item, 0, len(items))
+	for _, it := range items {
+		out = append(out, it)
+		out = append(out, allItems(it.Children)...)
+	}
+	return out
 }
 
 func TestRunExtract_HappyPath(t *testing.T) {
@@ -90,36 +100,39 @@ func (Bar) Baz() {}
 	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
 
 	// Root document: umbrella schema only, no requirements.
-	root := docByDir(t, bundle, "")
-	if len(root.Requirements) != 0 {
-		t.Errorf("root document should carry no requirements, got %d", len(root.Requirements))
+	root := docByDir(t, bundle, ".")
+	if len(root.Items) != 0 {
+		t.Errorf("root document should carry no requirements, got %d", len(root.Items))
 	}
-	if root.IDPrefix != "IMP-" {
-		t.Errorf("root id-prefix = %q, want IMP-", root.IDPrefix)
+	if root.XReqmd.IDPrefix != "IMP-" {
+		t.Errorf("root id-prefix = %q, want IMP-", root.XReqmd.IDPrefix)
 	}
 
 	// Package document.
 	alpha := docByDir(t, bundle, "alpha")
-	if alpha.IDPrefix != "IMP-alpha-" {
-		t.Errorf("alpha id-prefix = %q, want IMP-alpha-", alpha.IDPrefix)
+	if alpha.XReqmd.IDPrefix != "IMP-alpha-" {
+		t.Errorf("alpha id-prefix = %q, want IMP-alpha-", alpha.XReqmd.IDPrefix)
 	}
-	if alpha.Title != "Package: alpha" || alpha.File != "package.md" {
-		t.Errorf("alpha document meta = %q/%q", alpha.Title, alpha.File)
+	if alpha.Title != "Package: alpha" || alpha.XReqmd.File != "package.md" {
+		t.Errorf("alpha document meta = %q/%q", alpha.Title, alpha.XReqmd.File)
 	}
 
-	native := map[string]exchange.Requirement{}
-	for _, r := range alpha.Requirements {
+	native := map[string]exchange.Item{}
+	for _, r := range allItems(alpha.Items) {
 		native[r.Title] = r
 	}
 	if len(native) != 3 {
 		t.Fatalf("want 3 requirements (Foo, Bar, Baz), got %d", len(native))
 	}
-	// Baz is a method on Bar, so it parents to Bar's native id.
-	if want := native["Bar"].NativeID; native["Baz"].Parent != want {
-		t.Errorf("Baz parent = %q, want %q", native["Baz"].Parent, want)
+	// Baz is a method on Bar, so it nests as Bar's child item. The renderer
+	// turns that into heading depth, so there is no parent pointer to check.
+	bar := native["Bar"]
+	if len(bar.Children) != 1 || bar.Children[0].Title != "Baz" {
+		t.Errorf("Bar children = %+v, want [Baz]", bar.Children)
 	}
-	if native["Foo"].Parent != "" {
-		t.Errorf("Foo should have no parent, got %q", native["Foo"].Parent)
+	foo := native["Foo"]
+	if len(foo.Children) != 0 {
+		t.Errorf("Foo should have no children, got %d", len(foo.Children))
 	}
 
 	// The rendered document is valid reqmd input.
@@ -192,8 +205,8 @@ func TestRunExtract_SkipsNoiseDirs(t *testing.T) {
 
 	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
 	for _, d := range bundle.Documents {
-		if d.Dir == "ignore" || d.Dir == "noise" {
-			t.Errorf("noise package %q should have been skipped", d.Dir)
+		if d.Dir() == "ignore" || d.Dir() == "noise" {
+			t.Errorf("noise package %q should have been skipped", d.Dir())
 		}
 	}
 }
@@ -277,7 +290,7 @@ fn rust_thing() {}
 
 	var titles []string
 	for _, d := range []exchange.Document{gopkg, thing} {
-		for _, r := range d.Requirements {
+		for _, r := range allItems(d.Items) {
 			titles = append(titles, r.Title)
 		}
 	}

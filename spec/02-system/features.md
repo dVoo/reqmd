@@ -356,12 +356,23 @@ trace:
   - ASP-SR-004
   - ASP-SR-022
 ```
-The toolchain shall include `reqmd-import`, a renderer that turns a `reqmd-import/v1` JSON exchange bundle into reqmd documents (`schema.yaml` plus `.md`). The exchange format shall be a versioned, documented contract that any producer can emit — the source-code extractor, a Python script, or a direct exporter from a database-backed ALM tool (DOORS, codeBeamer) — and `reqmd-import` shall be the only component that writes Markdown or YAML, so quoting, heading, and schema rules exist in exactly one place.
+The toolchain shall include `reqmd-import`, a renderer that turns an exchange-format JSON bundle into reqmd documents (`schema.yaml` plus `.md`). The exchange format shall be a versioned, documented contract that any producer can emit — the source-code extractor, a Python script, or a direct exporter from a database-backed ALM tool (DOORS, codeBeamer) — and `reqmd-import` shall be the only component that writes Markdown or YAML, so quoting, heading, and schema rules exist in exactly one place.
 
-The format shall let a producer supply the source tool's own stable IDs: a requirement's `native-id` becomes `<document id-prefix><native-id>`, `parent` nests by native ID to any depth, `trace` carries already-qualified reqmd IDs, and `native-trace` carries native IDs of sibling items that the renderer rewrites to full IDs. Attr-block properties and required fields shall be declarable per document so the generated `schema.yaml` accepts exactly the attributes the producer emits. Imported documents shall be renderable as `external: true` mirrors of content authored elsewhere, and re-imports shall never churn requirement IDs.
+The format shall be neutral: nothing reqmd-specific shall be required of a producer. A bundle declares its version as a `$schema` URL, each document carries a stable `key` and `title`, and content is a nested tree of items whose `kind` is either `requirement` (content, rendered with an attr block) or `section` (structure only, never validated, traced or counted). Nesting shall be structural rather than referential, so a cycle, an out-of-order child, or a dangling parent is unrepresentable. Requirements carry the producer's own stable `key`, which is unique per document and becomes `<x-reqmd.id-prefix><key>`; `links` name other items by key within the document or as `<document-key>/<key>` across documents and are rewritten to full requirement IDs; `refs` carry external requirement IDs verbatim and are never resolved. Every reqmd-specific decision (ID prefix, level, document-id, upstream, coverage expectation, external, output file) shall live in the document's optional `x-reqmd` block, which a producer that is not reqmd-aware omits. Attr-block properties and required fields shall be declarable per document so the generated `schema.yaml` accepts exactly the attributes the producer emits, and imported documents shall be renderable as `external: true` mirrors of content authored elsewhere.
 
 *Rationale:* The per-tool mechanics of pulling requirements out of an ALM are a script's job (credentials, pagination, field mapping), not the spec tool's. Fixing one JSON contract and one renderer keeps every importer small, keeps the file syntax rules authoritative in a single implementation, and lets a new ALM be supported by a few dozen lines of Python rather than a new Markdown writer.
 
+
+## SYS-IMP-003: Producer-facing validation and status mapping
+```attr
+status: approved
+priority: Medium
+trace:
+  - STK-GOAL-002
+```
+The renderer shall report every violation of the exchange format in a single run, addressed by item path, so a producer fixes a batch instead of one error at a time, and it shall offer a validation-only mode that reports the same violations without writing any file — the conformance path for importers written outside this repository. Because a source system's status vocabulary is its own, the renderer shall accept a status mapping from the source value onto a reqmd status: a mapped value is used and added to the document's additional status values, while an unmapped foreign value falls back to reqmd's default and is preserved on the requirement as `x-reqmd.source-status`, so no producer is required to know reqmd's status names.
+
+*Rationale:* The format's value is that a third party can implement it. One-error-at-a-time feedback and an implicit knowledge of reqmd's status vocabulary are exactly the friction that makes a contract unadoptable, while silently dropping a source status would lose the information that a reviewer needs.
 
 ## SYS-CON-001: Content tree — nothing dropped
 ```attr

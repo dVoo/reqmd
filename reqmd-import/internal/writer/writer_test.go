@@ -18,13 +18,13 @@ func firstLine(s string) string {
 }
 
 func TestRenderDocument(t *testing.T) {
-	reqs := []Req{
+	items := []Item{
 		{
 			ID:     "IMP-foo-StructA-abc1234",
 			Title:  "StructA",
 			Status: "approved",
 			Body:   "StructA description.",
-			Attrs: map[string]any{
+			Fields: map[string]any{
 				"x-reqmd.imported":    true,
 				"x-reqmd.source-file": "internal/foo/a.go",
 				"x-reqmd.source-line": 12,
@@ -38,7 +38,7 @@ func TestRenderDocument(t *testing.T) {
 			Body:   "Method1 description.",
 		},
 	}
-	out, err := RenderDocument("Package: foo", "This file is auto-generated. Do not edit by hand.", reqs)
+	out, err := RenderDocument("Package: foo", "This file is auto-generated. Do not edit by hand.", items)
 	if err != nil {
 		t.Fatalf("RenderDocument: %v", err)
 	}
@@ -69,15 +69,15 @@ func TestRenderDocument(t *testing.T) {
 	}
 }
 
-func TestRenderRequirementHeadingDepth(t *testing.T) {
-	top, err := RenderRequirement(Req{ID: "IMP-bar-Const-c0nst", Title: "Const", Status: "approved"})
+func TestRenderItemHeadingDepth(t *testing.T) {
+	top, err := RenderItem(Item{ID: "IMP-bar-Const-c0nst", Title: "Const", Status: "approved"})
 	if err != nil {
 		t.Fatal(err)
 	}
 	if !strings.HasPrefix(top, "## IMP-bar-Const-c0nst") {
 		t.Errorf("top-level requirement should use ##, got: %q", firstLine(top))
 	}
-	child, err := RenderRequirement(Req{ID: "IMP-bar-Sub-sub0", Title: "Sub", Status: "approved", Depth: 1})
+	child, err := RenderItem(Item{ID: "IMP-bar-Sub-sub0", Title: "Sub", Status: "approved", Depth: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,23 +86,23 @@ func TestRenderRequirementHeadingDepth(t *testing.T) {
 	}
 }
 
-func TestRenderRequirementAttrsDeterministic(t *testing.T) {
+func TestRenderItemFieldsDeterministic(t *testing.T) {
 	// Attrs render in sorted key order regardless of map iteration order.
-	r := Req{ID: "IMP-x-Y-0000000", Title: "Y", Status: "approved", Attrs: map[string]any{
+	r := Item{ID: "IMP-x-Y-0000000", Title: "Y", Status: "approved", Fields: map[string]any{
 		"zeta":  1,
 		"alpha": "a",
 		"mid":   []any{"p", "q"},
 	}}
-	first, err := RenderRequirement(r)
+	first, err := RenderItem(r)
 	if err != nil {
 		t.Fatal(err)
 	}
-	second, err := RenderRequirement(r)
+	second, err := RenderItem(r)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if first != second {
-		t.Error("RenderRequirement must be deterministic across calls")
+		t.Error("RenderItem must be deterministic across calls")
 	}
 	alpha, mid, zeta := strings.Index(first, "alpha:"), strings.Index(first, "mid:"), strings.Index(first, "zeta:")
 	if alpha >= mid || mid >= zeta {
@@ -116,8 +116,8 @@ func TestRenderRequirementAttrsDeterministic(t *testing.T) {
 	}
 }
 
-func TestRenderRequirementUnsupportedAttrType(t *testing.T) {
-	_, err := RenderRequirement(Req{ID: "IMP-x-Y-0000000", Attrs: map[string]any{
+func TestRenderItemUnsupportedFieldType(t *testing.T) {
+	_, err := RenderItem(Item{ID: "IMP-x-Y-0000000", Fields: map[string]any{
 		"nested": map[string]any{"a": "b"},
 	}})
 	if err == nil {
@@ -209,6 +209,31 @@ func readAll(t *testing.T, dir string) []byte {
 		out = append(out, data...)
 	}
 	return out
+}
+
+// TestRenderSection covers the two section shapes: a titled section renders a
+// heading with no attr block, and an untitled section renders as a plain prose
+// block (the document preamble and untitled sections use the same form).
+func TestRenderSection(t *testing.T) {
+	titled, err := RenderItem(Item{Kind: KindSection, Title: "Hydraulics", Body: "Prose."})
+	if err != nil {
+		t.Fatalf("RenderItem: %v", err)
+	}
+	want := "## Hydraulics\nProse.\n\n"
+	if titled != want {
+		t.Errorf("titled section = %q, want %q", titled, want)
+	}
+	if strings.Contains(titled, "```attr") {
+		t.Error("a section must never render an attr block")
+	}
+
+	untitled, err := RenderItem(Item{Kind: KindSection, Body: "Preamble."})
+	if err != nil {
+		t.Fatalf("RenderItem: %v", err)
+	}
+	if untitled != "Preamble.\n\n" {
+		t.Errorf("untitled section = %q, want plain prose", untitled)
+	}
 }
 
 func TestQuoteIfNeeded(t *testing.T) {

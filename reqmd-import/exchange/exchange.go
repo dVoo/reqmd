@@ -1,10 +1,11 @@
-// Package exchange defines the reqmd-import/v1 JSON interchange format: the
-// contract between producers (reqmd-code, third-party importer scripts) and
-// the single renderer that turns it into reqmd documents (schema.yaml + .md).
+// Package exchange defines the reqmd exchange format v1: the JSON contract
+// between producers (reqmd-code, third-party importer scripts) and the single
+// renderer that turns it into reqmd documents (schema.yaml + .md).
 //
-// Producers emit the tool's own native, stable IDs (Doors object numbers,
-// codeBeamer item IDs, code symbol hashes); this package stamps the reqmd IDs
-// and resolves refs, so no producer has to know the markdown/YAML rules.
+// The format is neutral by design. A producer supplies its own stable keys and
+// its own vocabulary; every reqmd-specific decision (ID prefixes, V-model
+// levels, upstream wiring) lives in the document's x-reqmd block, which a
+// producer that is not reqmd-aware can omit entirely.
 package exchange
 
 import (
@@ -14,64 +15,72 @@ import (
 	"io"
 )
 
-// Format is the value a bundle must declare in its "format" field.
-const Format = "github.com/dVoo/reqmd/reqmd-import/v1"
+// SchemaURL is the value a bundle must declare in its "$schema" field. It is
+// also the identity of the format: a breaking change moves to a new URL
+// instead of growing an in-place version.
+const SchemaURL = "https://reqmd.dev/exchange/v1/schema.json"
 
-// Bundle is the top-level exchange document: the list of reqmd document
-// directories to render, in output order.
+// Item kinds. A requirement renders a heading plus an attr block and takes part
+// in validation, tracing and coverage; a section renders structure only.
+const (
+	KindRequirement = "requirement"
+	KindSection     = "section"
+)
+
+// maxDepth bounds bundle nesting at decode time. The renderer separately
+// rejects anything deeper than six heading levels; this guard only keeps a
+// hostile bundle from exhausting the stack.
+const maxDepth = 32
+
+// Bundle is the top-level exchange document: the documents to render, in
+// output order.
 type Bundle struct {
-	Format    string     `json:"format"`
+	Schema    string     `json:"$schema"`
 	Documents []Document `json:"documents"`
 }
 
-// Document describes one reqmd document directory: one schema.yaml plus,
-// when it has requirements, one .md file.
-//
-// Field order below is the reading order of the format, not a memory layout:
-// this is a wire DTO decoded once per run. Reordering the fields (which is what
-// govet's fieldalignment wants) also drops every field doc comment.
+// Document describes one reqmd document directory: one schema.yaml plus, when
+// it has items, one .md file.
 type Document struct {
-	// Dir is the output directory relative to the output root. "" is the
-	// root itself. Must not escape the root.
-	Dir string `json:"dir,omitempty"`
-	// File is the .md filename inside Dir. Defaults to "requirements.md".
-	// Ignored when the document has no requirements (schema-only). Must be a
-	// plain file name: no path separator, no "..".
-	File string `json:"file,omitempty"`
-	// Title is the document title (the level-1 heading). Defaults to
-	// "Imported requirements". Must be a single line.
-	Title string `json:"title,omitempty"`
-	// Notice is an optional banner line rendered under the generated marker.
-	// Must be a single line.
-	Notice string `json:"notice,omitempty"`
+	// Key is the document's stable identity, unique across the bundle, without
+	// "/" or whitespace. It qualifies cross-document links.
+	Key string `json:"key"`
+	// Title is the document title (the level-1 heading). Required.
+	Title string `json:"title"`
+	// Body is preamble prose rendered under the title, before the first item.
+	Body string `json:"body,omitempty"`
+	// Items is the document content, in document order.
+	Items []Item `json:"items,omitempty"`
+	// Properties and Required describe the attr-block JSON Schema for
+	// requirements. Sections never carry fields, so both apply to requirements
+	// only.
+	Properties map[string]any `json:"properties,omitempty"`
+	Required   []string       `json:"required,omitempty"`
+	// XReqmd holds the renderer-specific configuration.
+	XReqmd *XReqmd `json:"x-reqmd,omitempty"`
+}
 
-	// IDPrefix is prepended to every requirement's native-id to form its reqmd
-	// ID. Required when the document has requirements.
-	IDPrefix string `json:"id-prefix"`
+// XReqmd is every reqmd-specific decision for one document. A producer that
+// only knows the neutral part of the format omits it.
+type XReqmd struct {
+	// IDPrefix is prepended to every requirement key to form the reqmd ID.
+	// Without it the ID is the bare key.
+	IDPrefix string `json:"id-prefix,omitempty"`
 	// Level is x-reqmd.level.
 	Level string `json:"level,omitempty"`
-	// DocumentID is x-reqmd.document-id.
+	// DocumentID is x-reqmd.document-id; it qualifies emitted trace refs.
 	DocumentID string `json:"document-id,omitempty"`
 	// Upstream is x-reqmd.upstream.
 	Upstream *Upstream `json:"upstream,omitempty"`
 	// RequiresTraceFrom is x-reqmd.requires-trace-from.
 	RequiresTraceFrom []string `json:"requires-trace-from,omitempty"`
-	// External sets x-reqmd.external for proxy documents authored elsewhere.
+	// External marks a mirror of content authored elsewhere.
 	External bool `json:"external,omitempty"`
-
-	// SchemaID, SchemaTitle and SchemaDescription are the JSON-Schema header
-	// fields of the generated schema.yaml.
-	SchemaID          string `json:"schema-id,omitempty"`
-	SchemaTitle       string `json:"schema-title,omitempty"`
-	SchemaDescription string `json:"schema-description,omitempty"`
-	// Properties are the attr-block JSON-Schema property definitions;
-	// Required lists the required ones. An attribute a requirement emits must
-	// appear here, or the generated schema rejects it.
-	Properties map[string]any `json:"properties,omitempty"`
-	Required   []string       `json:"required,omitempty"`
-
-	// Requirements are the document's requirements, in render order.
-	Requirements []Requirement `json:"requirements,omitempty"`
+	// Dir is the output directory relative to the output root; it defaults to
+	// the document key. It must not escape the root.
+	Dir string `json:"dir,omitempty"`
+	// File is the .md filename inside the document directory.
+	File string `json:"file,omitempty"`
 }
 
 // Upstream is a document's x-reqmd.upstream block.
@@ -80,45 +89,38 @@ type Upstream struct {
 	Sources []string `json:"sources,omitempty"`
 }
 
-// Requirement is one imported requirement, identified by the source tool's
-// own stable ID. See Document for why fieldalignment is disabled here.
-type Requirement struct {
-	// NativeID is the producer's stable key for this item. The rendered reqmd
-	// ID is <document id-prefix><native-id>. Must be unique across the bundle
-	// (native-trace refs resolve by it) and must not contain whitespace: a
-	// reqmd trace ref cannot match an ID with a space, so it would be
-	// unreachable.
-	NativeID string `json:"native-id"`
-	// Title is the human-readable heading text. Empty renders the heading
-	// without a title suffix. Must be a single line.
+// Item is one content item. Nesting replaces a parent pointer entirely: a child
+// cannot reference a missing parent, cannot be listed before it, and cannot
+// form a cycle.
+type Item struct {
+	// Kind is "requirement" or "section". Mandatory.
+	Kind string `json:"kind"`
+	// Key is the producer's stable identity, unique within the document and
+	// without whitespace. Required on requirements; sections are linked to by
+	// position, never by key.
+	Key string `json:"key,omitempty"`
+	// Title is the heading text. Omit it for a headingless prose block (the
+	// document preamble, or an untitled section).
 	Title string `json:"title,omitempty"`
-	// Body is the markdown body following the attr block. Headings in it become
-	// info items, which is intended; it must not put a fenced block whose info
-	// string is "attr" directly under a heading, because that pair would make a
-	// requirement of its own.
+	// Body is Markdown prose. It must not contain headings.
 	Body string `json:"body,omitempty"`
-	// Status is the reqmd built-in status. Defaults to "approved" so imported
-	// items count as upstream coverage providers.
+	// Fields are the remaining attr-block entries. Requirements only.
+	Fields map[string]any `json:"fields,omitempty"`
+	// Status is the source system's own status value; the renderer maps it.
 	Status string `json:"status,omitempty"`
-	// Parent is the native-id of this requirement's parent in the same
-	// document; it renders one heading level deeper.
-	Parent string `json:"parent,omitempty"`
-	// Trace holds fully-qualified reqmd IDs, passed through verbatim.
-	Trace []string `json:"trace,omitempty"`
-	// NativeTrace holds native-ids resolved against the bundle and rewritten to
-	// <that document's id-prefix><native-id>.
-	NativeTrace []string `json:"native-trace,omitempty"`
-	// Attrs are the remaining attr-block entries. Names may contain only
-	// letters, digits, '_', '-' and '.' (reqmd reads the block line by line and
-	// would silently file a name containing ':' under a different attribute).
-	// Values may be strings, numbers, booleans, or flat lists of those; a string
-	// is always rendered as a string, even when it reads like a number or null.
-	// The built-ins "status" and "trace" are reserved.
-	Attrs map[string]any `json:"attrs,omitempty"`
+	// Links names other items by key ("17" in this document, "brakes/17"
+	// across documents). Every entry must resolve to a requirement.
+	Links []string `json:"links,omitempty"`
+	// Refs are external requirement IDs passed through verbatim. They are never
+	// resolved or validated.
+	Refs []string `json:"refs,omitempty"`
+	// Children are nested items, in document order.
+	Children []Item `json:"children,omitempty"`
 }
 
 // Decode reads one exchange bundle. Unknown fields are rejected so a producer
-// typo fails loudly instead of silently dropping data.
+// typo fails loudly instead of silently dropping data, and nesting deeper than
+// maxDepth is refused before it can exhaust the stack.
 func Decode(r io.Reader) (*Bundle, error) {
 	dec := json.NewDecoder(r)
 	dec.UseNumber()
@@ -132,5 +134,23 @@ func Decode(r io.Reader) (*Bundle, error) {
 	} else if !errors.Is(err, io.EOF) {
 		return nil, fmt.Errorf("decode exchange bundle: %w", err)
 	}
+	for i := range b.Documents {
+		if err := checkNesting(b.Documents[i].Items, 1); err != nil {
+			return nil, fmt.Errorf("document %q: %w", b.Documents[i].Key, err)
+		}
+	}
 	return &b, nil
+}
+
+// checkNesting rejects a bundle nested deeper than maxDepth.
+func checkNesting(items []Item, depth int) error {
+	if depth > maxDepth {
+		return fmt.Errorf("nesting exceeds %d levels", maxDepth)
+	}
+	for i := range items {
+		if err := checkNesting(items[i].Children, depth+1); err != nil {
+			return err
+		}
+	}
+	return nil
 }

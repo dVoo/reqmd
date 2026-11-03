@@ -1,335 +1,503 @@
 package exchange
 
 import (
+	"encoding/json"
+	"errors"
 	"strings"
 	"testing"
 
-	"gopkg.in/yaml.v3"
+	"github.com/dVoo/reqmd/reqmd-import/internal/writer"
 )
 
-func decode(t *testing.T, s string) *Bundle {
-	t.Helper()
-	b, err := Decode(strings.NewReader(s))
-	if err != nil {
-		t.Fatalf("Decode: %v", err)
-	}
-	return b
+// bundle wraps documents in a valid envelope.
+func bundle(docs ...Document) *Bundle {
+	return &Bundle{Schema: SchemaURL, Documents: docs}
 }
 
-func files(t *testing.T, b *Bundle) map[string]string {
+// render builds the bundle and returns rendered files keyed by path.
+func render(t *testing.T, b *Bundle) map[string]string {
 	t.Helper()
-	out, err := b.Build()
+	files, err := b.Build()
 	if err != nil {
 		t.Fatalf("Build: %v", err)
 	}
-	m := map[string]string{}
-	for _, f := range out {
-		m[f.Path] = string(f.Data)
+	out := make(map[string]string, len(files))
+	for _, f := range files {
+		out[f.Path] = string(f.Data)
 	}
-	return m
+	return out
 }
 
-const happyBundle = `{
-  "format": "github.com/dVoo/reqmd/reqmd-import/v1",
-  "documents": [
-    {
-      "id-prefix": "IMP-",
-      "level": "imported-requirements",
-      "schema-id": "https://reqmd.dev/schemas/imported-v1.json",
-      "schema-title": "Imported",
-      "upstream": {"sources": [".."]}
-    },
-    {
-      "dir": "brakes",
-      "file": "package.md",
-      "title": "Brakes Module",
-      "notice": "Generated. Do not edit.",
-      "id-prefix": "DOORS-",
-      "level": "stakeholder-requirements",
-      "properties": {"priority": {"type": "string", "enum": ["High", "Low"]}},
-      "required": ["priority"],
-      "requirements": [
-        {
-          "native-id": "17",
-          "title": "Brake request",
-          "body": "The pedal shall request braking.",
-          "attrs": {"priority": "High", "x-reqmd.external-id": 17}
-        },
-        {
-          "native-id": "42",
-          "title": "Brake pressure",
-          "parent": "17",
-          "native-trace": ["17"],
-          "trace": ["SYS-001"],
-          "attrs": {"priority": "Low"}
-        }
-      ]
-    }
-  ]
-}`
+// renderErr builds and returns the validation error text.
+func renderErr(t *testing.T, b *Bundle) string {
+	t.Helper()
+	_, err := b.Build()
+	if err == nil {
+		t.Fatal("expected an error, got nil")
+	}
+	return err.Error()
+}
 
-func TestBuildHappyPath(t *testing.T) {
-	got := files(t, decode(t, happyBundle))
-
-	// Root document: schema only.
-	if _, ok := got["brakes/requirements.md"]; ok {
-		t.Error("File was set, expected package.md")
-	}
-	schema, ok := got["schema.yaml"]
-	if !ok {
-		t.Fatalf("missing root schema.yaml; got %v", keys(got))
-	}
-	if !strings.Contains(schema, "id-prefix: IMP-") {
-		t.Errorf("root schema missing id-prefix; got:\n%s", schema)
-	}
-	if !strings.Contains(schema, "sources:") {
-		t.Errorf("root schema missing upstream sources; got:\n%s", schema)
-	}
-
-	pkgSchema, ok := got["brakes/schema.yaml"]
-	if !ok {
-		t.Fatalf("missing brakes/schema.yaml; got %v", keys(got))
-	}
-	var parsed map[string]any
-	if err := yaml.Unmarshal([]byte(strings.TrimPrefix(pkgSchema, "<!-- reqmd: generated -->\n")), &parsed); err != nil {
-		t.Fatalf("brakes schema is not valid YAML: %v\n%s", err, pkgSchema)
-	}
-	x, _ := parsed["x-reqmd"].(map[string]any)
-	if x["id-prefix"] != "DOORS-" || x["level"] != "stakeholder-requirements" {
-		t.Errorf("x-reqmd = %v", x)
-	}
-	if _, ok := parsed["required"]; !ok {
-		t.Error("required list was dropped from the schema")
-	}
-	if _, ok := parsed["properties"]; !ok {
-		t.Error("properties were dropped from the schema")
-	}
-
-	md, ok := got["brakes/package.md"]
-	if !ok {
-		t.Fatalf("missing brakes/package.md; got %v", keys(got))
-	}
-	for _, want := range []string{
-		"# Brakes Module",
-		"<!-- reqmd: generated -->",
-		"Generated. Do not edit.",
-		"## DOORS-17: Brake request",
-		"### DOORS-42: Brake pressure",
-		"priority: High",
-		"x-reqmd.external-id: 17",
-		"trace:\n  - SYS-001\n  - DOORS-17\n",
-		"The pedal shall request braking.",
-	} {
-		if !strings.Contains(md, want) {
-			t.Errorf("package.md missing %q; got:\n%s", want, md)
+// wantProblems asserts that every fragment appears in the error report, i.e.
+// that violations are batched rather than reported one at a time.
+func wantProblems(t *testing.T, got string, fragments ...string) {
+	t.Helper()
+	for _, f := range fragments {
+		if !strings.Contains(got, f) {
+			t.Errorf("error report is missing %q:\n%s", f, got)
 		}
 	}
-	if !strings.Contains(md, "status: approved") {
-		t.Errorf("status should default to approved; got:\n%s", md)
+}
+
+func TestBuild_RendersDocument(t *testing.T) {
+	got := render(t, bundle(Document{
+		Key:   "docs",
+		Title: "Docs",
+		Body:  "Preamble prose.",
+		XReqmd: &XReqmd{
+			IDPrefix: "X-",
+			Level:    "system-requirements",
+		},
+		Properties: map[string]any{"priority": map[string]any{"type": "string"}},
+		Items: []Item{
+			{
+				Kind:   KindRequirement,
+				Key:    "1",
+				Title:  "Brakes",
+				Body:   "The vehicle shall stop.",
+				Status: "approved",
+				Fields: map[string]any{"priority": "High"},
+				Refs:   []string{"SYS-001"},
+			},
+		},
+	}))
+
+	md := got["docs/requirements.md"]
+	for _, want := range []string{
+		"# Docs",
+		writer.GeneratedMarker,
+		"Preamble prose.",
+		"## X-1: Brakes",
+		"```attr",
+		"status: approved",
+		"priority: High",
+		"trace:",
+		"  - SYS-001",
+	} {
+		if !strings.Contains(md, want) {
+			t.Errorf("rendered document is missing %q:\n%s", want, md)
+		}
 	}
-	// Explicit trace entries come before resolved native-trace ones.
-	if strings.Index(md, "- SYS-001") > strings.Index(md, "- DOORS-17") {
-		t.Error("literal trace should render before resolved native-trace")
+	schema := got["docs/schema.yaml"]
+	if !strings.Contains(schema, "x-reqmd") || !strings.Contains(schema, "id-prefix: X-") {
+		t.Errorf("schema is missing the x-reqmd block:\n%s", schema)
 	}
 }
 
-func TestBuildFormatMismatch(t *testing.T) {
-	b := decode(t, `{"format":"github.com/dVoo/reqmd/reqmd-import/v2","documents":[{"id-prefix":"X-"}]}`)
-	if _, err := b.Build(); err == nil || !strings.Contains(err.Error(), "unsupported format") {
-		t.Fatalf("want unsupported-format error, got %v", err)
+// TestBuild_NestedSectionsAndDepth covers the tree: a section renders a heading
+// with children one level deeper, and no attr block.
+func TestBuild_NestedSectionsAndDepth(t *testing.T) {
+	got := render(t, bundle(Document{
+		Key:   "d",
+		Title: "D",
+		Items: []Item{
+			{
+				Kind:  KindSection,
+				Title: "Chapter",
+				Body:  "Chapter intro.",
+				Children: []Item{{
+					Kind:   KindRequirement,
+					Key:    "R1",
+					Title:  "Req",
+					Status: "approved",
+					Children: []Item{{
+						Kind:   KindRequirement,
+						Key:    "R2",
+						Title:  "Child",
+						Status: "approved",
+					}},
+				}},
+			},
+		},
+	}))
+
+	md := got["d/requirements.md"]
+	for _, want := range []string{
+		"## Chapter",
+		"Chapter intro.",
+		"### R1: Req",
+		"#### R2: Child",
+	} {
+		if !strings.Contains(md, want) {
+			t.Errorf("missing %q in:\n%s", want, md)
+		}
+	}
+	if strings.Contains(md, "\n## R1") {
+		t.Error("R1 must be nested under Chapter, not top level")
 	}
 }
 
-func TestBuildNoDocuments(t *testing.T) {
-	b := decode(t, `{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[]}`)
-	if _, err := b.Build(); err == nil || !strings.Contains(err.Error(), "no documents") {
-		t.Fatalf("want no-documents error, got %v", err)
+// TestBuild_LinksResolve covers document-local and cross-document links: a link
+// becomes a trace ref, qualified by the target document's id when it has one.
+func TestBuild_LinksResolve(t *testing.T) {
+	got := render(t, bundle(
+		Document{
+			Key:    "up",
+			Title:  "Up",
+			XReqmd: &XReqmd{IDPrefix: "UP-", DocumentID: "upstream"},
+			Items:  []Item{{Kind: KindRequirement, Key: "1", Title: "Up", Status: "approved"}},
+		},
+		Document{
+			Key:    "down",
+			Title:  "Down",
+			XReqmd: &XReqmd{IDPrefix: "DN-"},
+			Items: []Item{{
+				Kind:   KindRequirement,
+				Key:    "2",
+				Title:  "Down",
+				Status: "approved",
+				Links:  []string{"up/1"},
+			}},
+		},
+	))
+
+	md := got["down/requirements.md"]
+	if !strings.Contains(md, "  - upstream/UP-1") {
+		t.Errorf("cross-document link should be qualified by the target document-id:\n%s", md)
 	}
 }
 
-func TestBuildRequiresNativeIDAndPrefix(t *testing.T) {
-	cases := []struct {
-		name string
-		json string
-		want string
+// TestBuild_CrossDocumentLinkFallsBackToDir covers a target document without a
+// document-id: reqmd resolves "<dir>/<id>", so the ref must use the dir.
+func TestBuild_CrossDocumentLinkFallsBackToDir(t *testing.T) {
+	got := render(t, bundle(
+		Document{
+			Key:    "up-doc",
+			Title:  "Up",
+			XReqmd: &XReqmd{IDPrefix: "UP-", Dir: "up-dir"},
+			Items:  []Item{{Kind: KindRequirement, Key: "1", Title: "Up", Status: "approved"}},
+		},
+		Document{
+			Key:    "down",
+			Title:  "Down",
+			XReqmd: &XReqmd{IDPrefix: "DN-"},
+			Items: []Item{{
+				Kind:   KindRequirement,
+				Key:    "2",
+				Title:  "Down",
+				Status: "approved",
+				Links:  []string{"up-doc/1"},
+			}},
+		},
+	))
+
+	md := got["down/requirements.md"]
+	if !strings.Contains(md, "  - up-dir/UP-1") {
+		t.Errorf("link into a document without a document-id must use its dir:\n%s", md)
+	}
+}
+
+// TestBuild_StatusMapping covers the renderer-side status map: a mapped value is
+// used and extends the document enum; an unmapped one falls back to the default
+// and keeps the original as provenance.
+func TestBuild_StatusMapping(t *testing.T) {
+	b := bundle(Document{
+		Key:   "d",
+		Title: "D",
+		Items: []Item{
+			{Kind: KindRequirement, Key: "1", Title: "Mapped", Status: "In Review"},
+			{Kind: KindRequirement, Key: "2", Title: "Unmapped", Status: "Obsolete"},
+		},
+	})
+	files, err := b.BuildWith(Options{StatusMap: map[string]string{"In Review": "review"}})
+	if err != nil {
+		t.Fatalf("BuildWith: %v", err)
+	}
+	byPath := map[string]string{}
+	for _, f := range files {
+		byPath[f.Path] = string(f.Data)
+	}
+	md := byPath["d/requirements.md"]
+	if !strings.Contains(md, "status: review") {
+		t.Errorf("mapped status missing:\n%s", md)
+	}
+	if !strings.Contains(md, "status: approved") || !strings.Contains(md, `x-reqmd.source-status: Obsolete`) {
+		t.Errorf("unmapped status should fall back and keep provenance:\n%s", md)
+	}
+	if !strings.Contains(byPath["d/schema.yaml"], "additional-status-values") {
+		t.Errorf("mapped non-builtin status must extend the schema enum:\n%s", byPath["d/schema.yaml"])
+	}
+}
+
+// TestBuild_SchemaOnlyDocument covers a document without items.
+func TestBuild_SchemaOnlyDocument(t *testing.T) {
+	got := render(t, bundle(Document{Key: "root", Title: "Root"}))
+	if _, ok := got["root/requirements.md"]; ok {
+		t.Error("a document without items must not produce a .md file")
+	}
+	if _, ok := got["root/schema.yaml"]; !ok {
+		t.Error("a document without items must still produce its schema.yaml")
+	}
+}
+
+func TestBuild_DecodeRejectsUnknownFields(t *testing.T) {
+	raw := `{"$schema":"` + SchemaURL + `","documents":[{"key":"d","title":"D","items":[{"kind":"section","parent":"x"}]}]}`
+	_, err := Decode(strings.NewReader(raw))
+	if err == nil || !strings.Contains(err.Error(), "unknown field") {
+		t.Fatalf("want unknown-field rejection, got %v", err)
+	}
+}
+
+func TestBuild_ItemTreeKeepsInputOrder(t *testing.T) {
+	got := render(t, bundle(Document{
+		Key:   "d",
+		Title: "D",
+		Items: []Item{
+			{Kind: KindSection, Title: "B", Children: []Item{{Kind: KindRequirement, Key: "b1", Title: "b1", Status: "approved"}}},
+			{Kind: KindSection, Title: "A", Children: []Item{{Kind: KindRequirement, Key: "a1", Title: "a1", Status: "approved"}}},
+		},
+	}))
+	md := got["d/requirements.md"]
+	if strings.Index(md, "## B") > strings.Index(md, "## A") {
+		t.Errorf("the renderer must not reorder items:\n%s", md)
+	}
+}
+
+// TestBuild_BatchesViolations is the core producer-facing guarantee: every
+// violation is reported in one run instead of one at a time.
+func TestBuild_BatchesViolations(t *testing.T) {
+	got := renderErr(t, bundle(Document{
+		Key:   "d",
+		Title: "D",
+		Items: []Item{
+			{Kind: "bogus", Title: "wrong kind"},
+			{Kind: KindRequirement, Title: "no key"},
+			{Kind: KindRequirement, Key: "1", Title: "ok"},
+			{Kind: KindSection, Title: "with fields", Fields: map[string]any{"a": 1}},
+			{Kind: KindRequirement, Key: "1", Title: "duplicate key"},
+			{Kind: KindRequirement, Key: "2", Title: "bad link", Links: []string{"missing"}},
+		},
+	}))
+	wantProblems(t, got,
+		`kind "bogus"`,
+		"requirement without a key",
+		"section and must not carry fields",
+		"is used by both",
+		"links to \"missing\"",
+	)
+}
+
+func TestBuild_ValidationRules(t *testing.T) {
+	tests := []struct {
+		name     string
+		bundle   *Bundle
+		contains string
 	}{
 		{
-			"missing native-id",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"title":"a"}]}]}`,
-			"no native-id",
+			name:     "wrong schema url",
+			bundle:   &Bundle{Schema: "https://example.invalid/schema.json", Documents: []Document{{Key: "d", Title: "D"}}},
+			contains: "want \"https://reqmd.dev/exchange/v1/schema.json\"",
 		},
 		{
-			"missing id-prefix",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"requirements":[{"native-id":"1"}]}]}`,
-			"id-prefix is required",
+			name:     "no documents",
+			bundle:   &Bundle{Schema: SchemaURL},
+			contains: "bundle has no documents",
 		},
 		{
-			"duplicate native-id",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1"},{"native-id":"1"}]}]}`,
-			"not unique",
+			name:     "duplicate document key",
+			bundle:   bundle(Document{Key: "d", Title: "D"}, Document{Key: "d", Title: "D2"}),
+			contains: `document key "d" is used by both`,
 		},
 		{
-			"unknown parent",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","parent":"9"}]}]}`,
-			"parent",
+			name:     "document key with slash",
+			bundle:   bundle(Document{Key: "a/b", Title: "D"}),
+			contains: "key must not contain",
 		},
 		{
-			"unknown native-trace",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","native-trace":["9"]}]}]}`,
-			"native-trace",
+			name:     "missing title",
+			bundle:   bundle(Document{Key: "d"}),
+			contains: "title is required",
 		},
 		{
-			"reserved attr",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","attrs":{"trace":["a"]}}]}]}`,
-			"reserved",
+			name:     "section with status",
+			bundle:   bundle(Document{Key: "d", Title: "D", Items: []Item{{Kind: KindSection, Title: "S", Status: "approved"}}}),
+			contains: "must not carry a status",
 		},
 		{
-			"escaping dir",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"dir":"../outside","id-prefix":"X-","requirements":[{"native-id":"1"}]}]}`,
-			"escapes the output root",
+			name: "undeclared field",
+			bundle: bundle(Document{
+				Key: "d", Title: "D",
+				Properties: map[string]any{"known": map[string]any{"type": "string"}},
+				Items:      []Item{{Kind: KindRequirement, Key: "1", Title: "R", Fields: map[string]any{"other": "x"}}},
+			}),
+			contains: `attribute "other" is not declared`,
 		},
 		{
-			"duplicate output path",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1"}]},{"id-prefix":"Y-","requirements":[{"native-id":"2"}]}]}`,
-			"claimed by both",
+			name: "unsatisfied required",
+			bundle: bundle(Document{
+				Key: "d", Title: "D",
+				Required: []string{"priority"},
+				Items:    []Item{{Kind: KindRequirement, Key: "1", Title: "R"}},
+			}),
+			contains: `missing required attribute "priority"`,
 		},
 		{
-			"self-parent cycle",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","parent":"1"}]}]}`,
-			"cycle",
+			name: "nested field value",
+			bundle: bundle(Document{
+				Key: "d", Title: "D",
+				Items: []Item{{Kind: KindRequirement, Key: "1", Title: "R", Fields: map[string]any{"a": map[string]any{"b": 1}}}},
+			}),
+			contains: "nested",
 		},
 		{
-			"two-node cycle",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","parent":"2"},{"native-id":"2","parent":"1"}]}]}`,
-			"cycle",
+			name: "bad attribute name",
+			bundle: bundle(Document{
+				Key: "d", Title: "D",
+				Items: []Item{{Kind: KindRequirement, Key: "1", Title: "R", Fields: map[string]any{"a:b": 1}}},
+			}),
+			contains: "name may only contain",
 		},
 		{
-			"file outside the document dir",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"dir":"d","file":"../../outside/x.md","id-prefix":"X-","requirements":[{"native-id":"1"}]}]}`,
-			"plain file name",
+			name: "link to a section",
+			bundle: bundle(Document{
+				Key: "d", Title: "D",
+				Items: []Item{
+					{Kind: KindSection, Key: "sec", Title: "S"},
+					{Kind: KindRequirement, Key: "1", Title: "R", Links: []string{"sec"}},
+				},
+			}),
+			contains: "links may only target requirements",
 		},
 		{
-			"absolute file",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"file":"/tmp/x.md","id-prefix":"X-","requirements":[{"native-id":"1"}]}]}`,
-			"plain file name",
+			name: "link to unknown document",
+			bundle: bundle(Document{
+				Key: "d", Title: "D",
+				Items: []Item{{Kind: KindRequirement, Key: "1", Title: "R", Links: []string{"nope/1"}}},
+			}),
+			contains: `unknown document "nope"`,
 		},
 		{
-			"document title with a line break",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","title":"Real\n## X-9: Injected","requirements":[{"native-id":"1"}]}]}`,
-			"line break",
+			name: "title with a line break",
+			bundle: bundle(Document{
+				Key: "d", Title: "D",
+				Items: []Item{{Kind: KindRequirement, Key: "1", Title: "a\nb"}},
+			}),
+			contains: "must not contain a line break",
 		},
 		{
-			"requirement title with a line break",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","title":"One\n## X-9: Injected"}]}]}`,
-			"line break",
+			name: "depth budget",
+			bundle: bundle(Document{
+				Key: "d", Title: "D",
+				Items: nestItems(6),
+			}),
+			contains: "would render heading level",
 		},
 		{
-			"id with whitespace",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"Item 42"}]}]}`,
-			"must not contain whitespace",
+			name: "escaping directory",
+			bundle: bundle(Document{
+				Key: "d", Title: "D", XReqmd: &XReqmd{Dir: "../outside"},
+				Items: []Item{{Kind: KindRequirement, Key: "1", Title: "R"}},
+			}),
+			contains: "escapes the output root",
 		},
 		{
-			"attr key with a colon",
-			`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[{"id-prefix":"X-","requirements":[{"native-id":"1","attrs":{"weird:key":"v"}}]}]}`,
-			"may only contain",
-		},
-		{
-			"body with an attr fence under a heading",
-			"{\"format\":\"github.com/dVoo/reqmd/reqmd-import/v1\",\"documents\":[{\"id-prefix\":\"X-\",\"requirements\":[{\"native-id\":\"1\",\"body\":\"text\\n## X-9: Injected\\n```attr\\nstatus: approved\\n```\"}]}]}",
-			"attr fence",
+			name: "duplicate output path",
+			bundle: bundle(
+				Document{Key: "a", Title: "A", XReqmd: &XReqmd{Dir: "same"}, Items: []Item{{Kind: KindRequirement, Key: "1", Title: "R"}}},
+				Document{Key: "b", Title: "B", XReqmd: &XReqmd{Dir: "same"}, Items: []Item{{Kind: KindRequirement, Key: "2", Title: "R"}}},
+			),
+			contains: "is claimed by both",
 		},
 	}
-	for _, c := range cases {
-		t.Run(c.name, func(t *testing.T) {
-			_, err := decode(t, c.json).Build()
-			if err == nil || !strings.Contains(err.Error(), c.want) {
-				t.Fatalf("want error containing %q, got %v", c.want, err)
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			got := renderErr(t, tc.bundle)
+			if !strings.Contains(got, tc.contains) {
+				t.Errorf("error report does not contain %q:\n%s", tc.contains, got)
 			}
 		})
 	}
 }
 
-// TestBuildAllowsAttrFenceInProse pins the body rule: only an attr fence
-// directly under a heading is rejected, because only that pair becomes a
-// requirement. A body that merely mentions a fence — a doc comment documenting
-// the attr format, say — must keep working.
-func TestBuildAllowsAttrFenceInProse(t *testing.T) {
-	got := files(t, decode(t, "{\"format\":\"github.com/dVoo/reqmd/reqmd-import/v1\",\"documents\":[{\"id-prefix\":\"X-\",\"requirements\":[{\"native-id\":\"1\",\"title\":\"T\",\"body\":\"Renders the heading plus its ```attr YAML block.\"}]}]}"))
-	if !strings.Contains(got["requirements.md"], "plus its ```attr YAML block.") {
-		t.Errorf("a body with no heading+fence pair should be kept; got:\n%s", got["requirements.md"])
+// nestItems builds a chain of sections deep enough to exceed the render budget.
+func nestItems(depth int) []Item {
+	if depth == 0 {
+		return nil
 	}
+	return []Item{{Kind: KindSection, Title: "s", Children: nestItems(depth - 1)}}
 }
 
-// TestBuildMovesChildrenAfterParents verifies that a child listed before its
-// parent still renders nested under it, so the ## / ### heading order is valid.
-func TestBuildMovesChildrenAfterParents(t *testing.T) {
-	got := files(t, decode(t, `{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[
-	  {"dir":"p","id-prefix":"P-","requirements":[
-	    {"native-id":"m1","title":"M1","parent":"a"},
-	    {"native-id":"a","title":"A"},
-	    {"native-id":"b","title":"B"}
-	  ]}
-	]}`))
-	md := got["p/requirements.md"]
-	if strings.Index(md, "## P-a: A") > strings.Index(md, "### P-m1: M1") {
-		t.Errorf("child should render after its parent; got:\n%s", md)
+func TestDecodeRejectsDeepNesting(t *testing.T) {
+	var item = map[string]any{"kind": "section"}
+	for i := 0; i < maxDepth+2; i++ {
+		item = map[string]any{"kind": "section", "children": []any{item}}
 	}
-	if strings.Index(md, "### P-m1: M1") > strings.Index(md, "## P-b: B") {
-		t.Errorf("child should render directly after its parent, before the next top-level requirement; got:\n%s", md)
+	raw, err := json.Marshal(map[string]any{
+		"$schema":   SchemaURL,
+		"documents": []any{map[string]any{"key": "d", "title": "D", "items": []any{item}}},
+	})
+	if err != nil {
+		t.Fatal(err)
 	}
-}
-
-// TestBuildSupportsMultiLevelHierarchy verifies arbitrary nesting depth: each
-// level adds one '#' to the heading.
-func TestBuildSupportsMultiLevelHierarchy(t *testing.T) {
-	got := files(t, decode(t, `{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[
-	  {"dir":"p","id-prefix":"P-","requirements":[
-	    {"native-id":"1","title":"L0"},
-	    {"native-id":"2","title":"L1","parent":"1"},
-	    {"native-id":"3","title":"L2","parent":"2"}
-	  ]}
-	]}`))
-	md := got["p/requirements.md"]
-	for _, want := range []string{"## P-1: L0", "### P-2: L1", "#### P-3: L2"} {
-		if !strings.Contains(md, want) {
-			t.Errorf("missing %q; got:\n%s", want, md)
-		}
-	}
-}
-
-// TestBuildResolvesNativeTraceAcrossDocuments verifies that a native-trace ref
-// to an item in another document resolves through that document's prefix.
-func TestBuildResolvesNativeTraceAcrossDocuments(t *testing.T) {
-	got := files(t, decode(t, `{
-	  "format": "github.com/dVoo/reqmd/reqmd-import/v1",
-	  "documents": [
-	    {"dir":"up","id-prefix":"UP-","requirements":[{"native-id":"7","title":"U"}]},
-	    {"dir":"down","id-prefix":"DN-","requirements":[{"native-id":"9","title":"D","native-trace":["7"]}]}
-	  ]
-	}`))
-	if !strings.Contains(got["down/requirements.md"], "trace:\n  - UP-7\n") {
-		t.Errorf("native-trace did not resolve to the other document's prefix; got:\n%s", got["down/requirements.md"])
-	}
-}
-
-func TestDecodeRejectsUnknownField(t *testing.T) {
-	_, err := Decode(strings.NewReader(`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[],"typo":1}`))
-	if err == nil || !strings.Contains(err.Error(), "unknown field") {
-		t.Fatalf("want unknown-field error, got %v", err)
+	_, err = Decode(strings.NewReader(string(raw)))
+	if err == nil || !strings.Contains(err.Error(), "nesting exceeds") {
+		t.Fatalf("want nesting guard, got %v", err)
 	}
 }
 
 func TestDecodeRejectsTrailingData(t *testing.T) {
-	_, err := Decode(strings.NewReader(`{"format":"github.com/dVoo/reqmd/reqmd-import/v1","documents":[]}{}`))
+	raw := `{"$schema":"` + SchemaURL + `","documents":[{"key":"d","title":"D"}]} {}`
+	_, err := Decode(strings.NewReader(raw))
 	if err == nil || !strings.Contains(err.Error(), "trailing data") {
-		t.Fatalf("want trailing-data error, got %v", err)
+		t.Fatalf("want trailing-data rejection, got %v", err)
 	}
 }
 
-func keys(m map[string]string) []string {
-	out := make([]string, 0, len(m))
-	for k := range m {
-		out = append(out, k)
+// TestBuild_IsIdempotent verifies byte-determinism: the same bundle renders the
+// same bytes, so re-running an import is a no-op.
+func TestBuild_IsIdempotent(t *testing.T) {
+	b := bundle(Document{
+		Key:        "d",
+		Title:      "D",
+		Properties: map[string]any{
+			"z": map[string]any{"type": "string"},
+			"a": map[string]any{"type": "string"},
+			"m": map[string]any{"type": "string"},
+		},
+		Items: []Item{{
+			Kind:   KindRequirement,
+			Key:    "1",
+			Title:  "R",
+			Status: "approved",
+			Fields: map[string]any{"z": "1", "a": "2", "m": "3"},
+		}},
+	})
+	first, err := b.Build()
+	if err != nil {
+		t.Fatalf("Build: %v", err)
 	}
-	return out
+	second, err := b.Build()
+	if err != nil {
+		t.Fatalf("Build: %v", err)
+	}
+	if len(first) != len(second) {
+		t.Fatalf("file count differs between runs")
+	}
+	for i := range first {
+		if first[i].Path != second[i].Path || string(first[i].Data) != string(second[i].Data) {
+			t.Errorf("output is not byte-deterministic for %s", first[i].Path)
+		}
+	}
+}
+
+// TestValidationError_ListsEveryProblem pins the report shape producers rely on.
+func TestValidationError_ListsEveryProblem(t *testing.T) {
+	_, err := bundle(Document{Key: "d"}).Build()
+	var ve *ValidationError
+	if !errors.As(err, &ve) {
+		t.Fatalf("want *ValidationError, got %T", err)
+	}
+	if len(ve.Problems) == 0 || !strings.HasPrefix(ve.Error(), "invalid exchange bundle:") {
+		t.Errorf("unexpected report: %v", err)
+	}
 }

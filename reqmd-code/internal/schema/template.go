@@ -19,9 +19,9 @@ import (
 //go:embed standard_schema.yaml
 var standardSchema string
 
-// Document returns the document metadata — schema header, attr properties,
-// level and upstream — read from standard_schema.yaml. Callers override
-// Dir, File, Title and IDPrefix per document.
+// Document returns the document metadata — title, attr properties and the
+// x-reqmd block — read from standard_schema.yaml. Callers override Key, Dir,
+// File, Title and the ID prefix per document.
 func Document() (exchange.Document, error) {
 	var raw map[string]any
 	if err := yaml.Unmarshal([]byte(standardSchema), &raw); err != nil {
@@ -29,9 +29,8 @@ func Document() (exchange.Document, error) {
 	}
 
 	d := exchange.Document{
-		SchemaID:          asString(raw["$id"]),
-		SchemaTitle:       asString(raw["title"]),
-		SchemaDescription: asString(raw["description"]),
+		Title:  asString(raw["title"]),
+		XReqmd: &exchange.XReqmd{},
 	}
 	if props, ok := raw["properties"].(map[string]any); ok {
 		d.Properties = props
@@ -44,10 +43,10 @@ func Document() (exchange.Document, error) {
 		}
 	}
 	if x, ok := raw["x-reqmd"].(map[string]any); ok {
-		d.Level = asString(x["level"])
-		d.IDPrefix = asString(x["id-prefix"])
+		d.XReqmd.Level = asString(x["level"])
+		d.XReqmd.IDPrefix = asString(x["id-prefix"])
 		if up, ok := x["upstream"].(map[string]any); ok {
-			d.Upstream = &exchange.Upstream{
+			d.XReqmd.Upstream = &exchange.Upstream{
 				Level:   asString(up["level"]),
 				Sources: asStrings(up["sources"]),
 			}
