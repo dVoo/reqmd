@@ -650,7 +650,14 @@ body.overlay-open { overflow: hidden; }
   .shell { display: block; }
   .shell__main { padding: 0; }
   .req, .item { break-inside: avoid; }
+  /* A collapsed folder must still print its contents: browsers print neither
+     the children of a closed <details> nor its summary affordance usefully. */
+  details:not([open]) > *:not(summary) { display: block !important; }
+  .item--section > details > summary { list-style: none; }
 }
+
+/* A section reached from the command palette flashes briefly. */
+.item.is-flash > .item__title, .item.is-flash > details > summary { background: var(--accent-weak, #fff4cc); transition: background 0.6s ease; }
 
 /* ── follow-up UX fixes ── */
 .shortcuts__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }

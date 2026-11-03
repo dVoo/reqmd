@@ -88,16 +88,35 @@ func buildRenderData(doc model.Document) *renderData {
 		Nodes:   doc.Nodes,
 	}
 
-	// Stable DOM anchor for every node.
-	itemSeq := 0
+	// Stable DOM anchor for every node. Requirements use their ID; sections get a
+	// title-derived slug so a bookmark to a chapter survives unrelated edits
+	// (a positional counter would renumber on every insertion and give a
+	// filtered export a different anchor than the unfiltered one). Collisions,
+	// including a clash with a requirement ID, take a deterministic numeric
+	// suffix in traversal order.
+	used := make(map[string]int, len(reqs))
+	for _, n := range reqs {
+		used[n.ID]++
+	}
 	var assign func(nodes []*model.Node)
 	assign = func(nodes []*model.Node) {
 		for _, n := range nodes {
 			if n.Kind == model.KindRequirement {
 				rd.Anchors[n] = n.ID
 			} else {
-				itemSeq++
-				rd.Anchors[n] = fmt.Sprintf("item-%d", itemSeq)
+				base := sectionSlug(n.Title)
+				anchor := base
+				if used[anchor] > 0 {
+					for i := 2; ; i++ {
+						candidate := fmt.Sprintf("%s-%d", base, i)
+						if used[candidate] == 0 {
+							anchor = candidate
+							break
+						}
+					}
+				}
+				used[anchor]++
+				rd.Anchors[n] = anchor
 			}
 			assign(n.Children)
 		}
@@ -130,6 +149,37 @@ func buildPageModel(doc model.Document, rd *renderData, an *Analysis, resolveLin
 	}
 	walk(rd.Nodes)
 	return p
+}
+
+// sectionSlug turns a section title into a stable DOM anchor: lowercase ASCII
+// letters and digits, runs of anything else collapsed to a single hyphen. An
+// untitled section (the document preamble) becomes "sec-preamble".
+func sectionSlug(title string) string {
+	title = strings.TrimSpace(title)
+	if title == "" {
+		return "sec-preamble"
+	}
+	var b strings.Builder
+	b.Grow(len(title) + 4)
+	b.WriteString("sec-")
+	dash := false
+	for _, r := range strings.ToLower(title) {
+		switch {
+		case r >= 'a' && r <= 'z', r >= '0' && r <= '9':
+			b.WriteRune(r)
+			dash = false
+		default:
+			if !dash {
+				b.WriteByte('-')
+				dash = true
+			}
+		}
+	}
+	slug := strings.TrimRight(b.String(), "-")
+	if slug == "sec-" {
+		return "sec"
+	}
+	return slug
 }
 
 // pageMeta fills the document-level model fields.

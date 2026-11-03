@@ -180,9 +180,11 @@
     var nodes = model.nodes || [];
     var byId = {};
     var reqNodes = [];
+    var sectionNodes = [];
     nodes.forEach(function (n) {
       byId[n.id] = n;
       if (!n.type) reqNodes.push(n);
+      else if (n.type === 'section' && n.title) sectionNodes.push(n);
     });
 
     var state = {
@@ -1283,6 +1285,25 @@
     // jumpTo reveals a requirement without discarding the reviewer's context.
     // keepFilters keeps search and attribute filters; the target may be hidden
     // by them, in which case the filters are cleared as a last resort.
+    // focusSection scrolls to a section anchor and opens every collapsed
+    // <details> above it. Sections are not selectable requirements, so the
+    // selection is cleared instead of set.
+    function focusSection(anchor) {
+      var target = document.getElementById(anchor);
+      if (!target) return;
+      state.selected = null;
+      computeVisible();
+      var opener = target.parentElement;
+      while (opener) {
+        if (opener.tagName === 'DETAILS') opener.open = true;
+        opener = opener.parentElement;
+      }
+      if (target.scrollIntoView) target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      target.classList.add('is-flash');
+      setTimeout(function () { target.classList.remove('is-flash'); }, 1200);
+      if (location.hash !== '#' + anchor) history.replaceState(null, '', '#' + anchor);
+    }
+
     function jumpTo(id, keepFilters) {
       state.view = 'document';
       state.selected = id;
@@ -1383,6 +1404,18 @@
         var node = hit.node;
         out.push({ key: 'req:' + node.id, glyph: '§', label: node.id, hint: node.title || '', reqId: node.id });
       });
+      // Sections are navigation targets only: they have no ID and are never
+      // counted, but a folder you cannot jump to is not navigable.
+      for (var j = 0; j < sectionNodes.length; j++) {
+        var sec = sectionNodes[j];
+        var secTitle = (sec.title || '').toLowerCase();
+        var secScore = -1;
+        if (secTitle === q || secTitle.indexOf(q) === 0) secScore = 3;
+        else if (secTitle.indexOf(q) !== -1) secScore = 4;
+        else if (fuzzy && fuzzyScore(sec.title, needle) >= 0) secScore = 5;
+        if (secScore < 0) continue;
+        out.push({ key: 'sec:' + sec.id, glyph: '#', label: sec.id, hint: sec.title || '', sectionAnchor: sec.id });
+      }
       return out.slice(0, 40);
     }
 
@@ -1583,12 +1616,17 @@
       var button = buttons[i];
       if (!button) return;
       var reqId = null;
+      var anchor = null;
+      var glyph = button.getAttribute('data-glyph');
       var label = button.getAttribute('data-label');
       var command = commands.filter(function (c) { return c.label === label; })[0];
-      if (button.getAttribute('data-glyph') === '§') reqId = label;
+      if (glyph === '§') reqId = label;
+      if (glyph === '#') anchor = label;
       closeOverlays();
       if (reqId) {
         jumpTo(reqId);
+      } else if (anchor) {
+        focusSection(anchor);
       } else if (command && typeof command.run === 'function') {
         command.run();
       }

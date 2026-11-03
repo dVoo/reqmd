@@ -319,7 +319,7 @@ func TestHTMLExportItems(t *testing.T) {
 	}
 	out := exportPage(t, &HTML{}, doc, []string{"status"})
 
-	if !strings.Contains(out, `<section class="item item--section" id="item-1"`) {
+	if !strings.Contains(out, `<section class="item item--section" id="sec-section-one"`) {
 		t.Error("section with children missing")
 	}
 	if !strings.Contains(out, "Section One") || !strings.Contains(out, "Container prose.") {
@@ -328,7 +328,7 @@ func TestHTMLExportItems(t *testing.T) {
 	if !strings.Contains(out, `<article class="req req--child" id="REQ-001"`) {
 		t.Error("child card missing")
 	}
-	if !strings.Contains(out, `<section class="item item--section" id="item-2"`) {
+	if !strings.Contains(out, `<section class="item item--section" id="sec-note"`) {
 		t.Error("leaf section missing")
 	}
 	if !strings.Contains(out, "1 requirement · 2 items") {

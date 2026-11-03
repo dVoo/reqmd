@@ -47,6 +47,55 @@ func testDoc() model.Document {
 	}
 }
 
+// TestBuildRenderData_SlugAnchors covers the section anchor rules: a slug from
+// the title, a deterministic suffix on collisions, and a fixed anchor for the
+// untitled preamble.
+func TestBuildRenderData_SlugAnchors(t *testing.T) {
+	mk := func(title string) *model.Node {
+		return &model.Node{Kind: model.KindSection, Title: title, Level: 2}
+	}
+	first := mk("General")
+	second := mk("General")
+	preamble := &model.Node{Kind: model.KindSection, Level: 0, Body: "Intro."}
+	weird := mk("  Brakes / Hydraulics (v2)  ")
+	req := &model.Node{Kind: model.KindRequirement, ID: "SYS-001", Title: "Real", Level: 2}
+
+	rd := buildRenderData(model.Document{
+		Path:  "/test/doc",
+		Nodes: []*model.Node{first, second, preamble, weird, req},
+	})
+
+	want := map[*model.Node]string{
+		first:    "sec-general",
+		second:   "sec-general-2",
+		preamble: "sec-preamble",
+		weird:    "sec-brakes-hydraulics-v2",
+		req:      "SYS-001",
+	}
+	for node, expected := range want {
+		if got := rd.Anchors[node]; got != expected {
+			t.Errorf("anchor for %q = %q, want %q", node.Title, got, expected)
+		}
+	}
+}
+
+// TestBuildRenderData_SlugNeverShadowsRequirementID guards the collision rule:
+// a requirement whose ID happens to look like a section slug keeps its own
+// anchor, and the section takes the next free suffix.
+func TestBuildRenderData_SlugNeverShadowsRequirementID(t *testing.T) {
+	req := &model.Node{Kind: model.KindRequirement, ID: "sec-general", Title: "Real", Level: 2}
+	section := &model.Node{Kind: model.KindSection, Title: "General", Level: 2}
+
+	rd := buildRenderData(model.Document{Path: "/test/doc", Nodes: []*model.Node{req, section}})
+
+	if got := rd.Anchors[req]; got != "sec-general" {
+		t.Errorf("requirement anchor = %q, want its own ID", got)
+	}
+	if got := rd.Anchors[section]; got != "sec-general-2" {
+		t.Errorf("section anchor = %q, want sec-general-2", got)
+	}
+}
+
 func TestBuildRenderData(t *testing.T) {
 	doc := testDoc()
 	rd := buildRenderData(doc)
@@ -56,8 +105,8 @@ func TestBuildRenderData(t *testing.T) {
 	}
 	// Requirements anchor on their ID; items get stable generated anchors.
 	container := doc.Nodes[0]
-	if got := rd.Anchors[container]; got != "item-1" {
-		t.Errorf("container anchor = %q, want item-1", got)
+	if got := rd.Anchors[container]; got != "sec-section" {
+		t.Errorf("section anchor = %q, want sec-section", got)
 	}
 	if got := rd.Anchors[container.Children[0]]; got != "SYS-001" {
 		t.Errorf("requirement anchor = %q, want SYS-001", got)
@@ -65,8 +114,8 @@ func TestBuildRenderData(t *testing.T) {
 	if got := rd.Anchors[container.Children[0].Children[0]]; got != "SYS-002" {
 		t.Errorf("child anchor = %q, want SYS-002", got)
 	}
-	if got := rd.Anchors[doc.Nodes[1]]; got != "item-2" {
-		t.Errorf("info anchor = %q, want item-2", got)
+	if got := rd.Anchors[doc.Nodes[1]]; got != "sec-note" {
+		t.Errorf("leaf section anchor = %q, want sec-note", got)
 	}
 
 	// Filters collect values from every requirement; status is ordered
@@ -233,7 +282,7 @@ func TestBuildPageModel(t *testing.T) {
 	}
 	// Node order is document order, depth-first: container, SYS-001,
 	// SYS-002, info.
-	wantIDs := []string{"item-1", "SYS-001", "SYS-002", "item-2"}
+	wantIDs := []string{"sec-section", "SYS-001", "SYS-002", "sec-note"}
 	for i, id := range wantIDs {
 		if m.Nodes[i].ID != id {
 			t.Errorf("node[%d].ID = %q, want %q", i, m.Nodes[i].ID, id)
@@ -241,7 +290,7 @@ func TestBuildPageModel(t *testing.T) {
 	}
 	var container *pageNode
 	for i := range m.Nodes {
-		if m.Nodes[i].ID == "item-1" {
+		if m.Nodes[i].ID == "sec-section" {
 			container = &m.Nodes[i]
 		}
 	}

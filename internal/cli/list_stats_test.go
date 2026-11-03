@@ -72,22 +72,29 @@ func TestListCmd_ShowsItems(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ls failed: %v", err)
 	}
-	if !strings.Contains(out, "container") {
-		t.Fatalf("ls should show the ## Sub System container:\n%s", out)
+	if !strings.Contains(out, "section") {
+		t.Fatalf("ls should show the ## Sub System section:\n%s", out)
 	}
 	if !strings.Contains(out, "Sub System") {
-		t.Fatalf("ls should show the container title:\n%s", out)
+		t.Fatalf("ls should show the section title:\n%s", out)
 	}
 	if !strings.Contains(out, "SW-001") {
 		t.Fatalf("ls should still list requirements:\n%s", out)
 	}
-	// Filtering scopes requirements but keeps the container visible.
+	// Filtering prunes requirements and the folders they leave empty: the
+	// "Sub System" folder held only SW-001, so it disappears with it. Sections
+	// that carry prose of their own (the document preamble) survive.
 	out, err = runCmd(t, newListCmd(), "--filter", `"Premium" in variant`, root)
 	if err != nil {
 		t.Fatalf("ls --filter failed: %v", err)
 	}
-	if !strings.Contains(out, "container") || !strings.Contains(out, "Sub System") {
-		t.Fatalf("filtered ls should keep the container:\n%s", out)
+	if strings.Contains(out, "Sub System") {
+		t.Fatalf("filtered ls should drop a folder whose requirements were all pruned:\n%s", out)
+	}
+	// The preamble is a leaf section with prose, so exactly one section row
+	// survives (ls prints titles, not bodies).
+	if got := strings.Count(out, "section"); got != 1 {
+		t.Fatalf("filtered ls should keep only the preamble section, got %d section rows:\n%s", got, out)
 	}
 	if strings.Contains(out, "SW-001") {
 		t.Fatalf("filtered ls should not list SW-001:\n%s", out)
@@ -103,8 +110,8 @@ func TestListCmd_ItemsJSON(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ls --json failed: %v", err)
 	}
-	if !strings.Contains(out, `"type": "container"`) {
-		t.Fatalf("ls --json should include the container row:\n%s", out)
+	if !strings.Contains(out, `"type": "section"`) {
+		t.Fatalf("ls --json should include the section row:\n%s", out)
 	}
 	if !strings.Contains(out, `"type": "req"`) {
 		t.Fatalf("ls --json should include requirement rows:\n%s", out)
@@ -121,9 +128,9 @@ func TestStatsCmd_ShowsItems(t *testing.T) {
 		t.Fatalf("stats failed: %v", err)
 	}
 	if !strings.Contains(out, "1 reqs, 2 items") {
-		t.Fatalf("stats should count the container and intro info items:\n%s", out)
+		t.Fatalf("stats should count the section and the intro block:\n%s", out)
 	}
-	if !strings.Contains(out, "type:") || !strings.Contains(out, "container") {
+	if !strings.Contains(out, "type:") || !strings.Contains(out, "section") {
 		t.Fatalf("stats should include a type breakdown:\n%s", out)
 	}
 }
