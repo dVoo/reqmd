@@ -177,7 +177,7 @@ Coverage state SHALL be derived from the same graph analysis `reqmd check` runs 
 
 Every view, count, aggregate, and outline SHALL use one filtered requirement set derived from the search query and attribute filters. The filter state SHALL round-trip through the URL using repeated `f=<attr>:<value>` parameters, preserving explicitly empty filter sets and arbitrary attribute values. Opening a `#REQ-ID` deep link SHALL select the Document view and reveal the target.
 
-The page SHALL provide a keyboard-driven command palette (⌘K / Ctrl+K) with focus trapping, a keyboard-shortcut help overlay, and a density toggle; view controls SHALL expose accurate pressed states and shortcuts SHALL ignore modified keystrokes while typing.
+The page SHALL provide a keyboard-driven command palette (⌘K / Ctrl+K) with focus trapping, a keyboard-shortcut help overlay; view controls SHALL expose accurate pressed states and shortcuts SHALL ignore modified keystrokes while typing.
 
 *Rationale:* The HTML export is the primary human-reviewable output for non-technical stakeholders. A fully self-contained, offline-capable page eliminates server dependencies for distribution, and one truthful analysis layer keeps the export consistent with `reqmd check`.
 

@@ -151,9 +151,9 @@ window.addEventListener('load', function () {
 
     // Modified keys must not trigger single-letter shortcuts.
     r.setView('document');
-    var before = document.body.classList.contains('density-compact');
-    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'f', ctrlKey: true, bubbles: true }));
-    out.modifiedIgnored = document.body.classList.contains('density-compact') === before;
+    var before = document.documentElement.classList.contains('dark');
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 't', ctrlKey: true, bubbles: true }));
+    out.modifiedIgnored = document.documentElement.classList.contains('dark') === before;
   } catch (e) {
     out.errors.push(String((e && e.stack) || e));
   }
@@ -181,7 +181,6 @@ window.addEventListener('load', function () {
   var out = { errors: [] };
   try {
     out.visibleCount = document.querySelector('[data-count]').textContent;
-    out.densityCompact = document.body.classList.contains('density-compact');
     out.tableVisible = !document.querySelector('[data-view-panel="table"]').hidden;
     out.tableRows = document.querySelectorAll('#req-table tbody tr.grid__row').length;
     out.url = location.search;
@@ -358,7 +357,7 @@ func TestHTMLExportBrowserRestoresURLState(t *testing.T) {
 	chrome := findChrome(t)
 	pagePath := exportBrowserFixture(t)
 
-	query := "?f=status:approved&f=note:a,b:c&view=table&density=compact"
+	query := "?f=status:approved&f=note:a,b:c&view=table"
 	result := runHeadless(t, chrome, pagePath, query, nil, restoredStateHarness)
 	assertNoJSErrors(t, result)
 	if got := result["visibleCount"]; got != "1 shown · 5 total (4 hidden by status: approved)" {
@@ -366,9 +365,6 @@ func TestHTMLExportBrowserRestoresURLState(t *testing.T) {
 	}
 	if result["tableVisible"] != true || result["tableRows"] != float64(1) {
 		t.Errorf("table state = visible:%v rows:%v, want visible:true rows:1", result["tableVisible"], result["tableRows"])
-	}
-	if result["densityCompact"] != true {
-		t.Error("density did not restore from the URL")
 	}
 	if url, _ := result["url"].(string); !strings.Contains(url, "note%3Aa%2Cb%3Ac") && !strings.Contains(url, "note:a,b:c") {
 		t.Errorf("encoded filter value was lost: %q", url)

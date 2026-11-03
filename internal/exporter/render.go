@@ -448,10 +448,7 @@ func renderToolbar(b *bufio.Writer, doc model.Document, rd *renderData) {
       <button type="button" class="viewswitch__btn" data-view="coverage" aria-pressed="false" title="Coverage view (g c)">Coverage</button>
     </div>
 `)
-	_, _ = b.WriteString(`    <div class="toolbar__tools">
-      <button type="button" class="icon-btn" data-action="density" aria-label="Toggle density" title="Toggle density (f)">⇕</button>
-    </div>
-  </div>` + "\n")
+	_, _ = b.WriteString(`  </div>` + "\n")
 	_, _ = fmt.Fprintf(b, `  <div class="toolbar__row">
     <input type="search" class="search" data-search placeholder="Search ID, title, body, attributes…" autocomplete="off" spellcheck="false" aria-label="Search requirements">
     <span class="count" data-count role="status" aria-live="polite"></span>
@@ -888,7 +885,6 @@ func renderShortcuts(b *bufio.Writer) {
         <div><dt><kbd>g</kbd><kbd>t</kbd></dt><dd>Table view</dd></div>
         <div><dt><kbd>g</kbd><kbd>r</kbd></dt><dd>Trace explorer</dd></div>
         <div><dt><kbd>g</kbd><kbd>c</kbd></dt><dd>Coverage view</dd></div>
-        <div><dt><kbd>f</kbd></dt><dd>Toggle density</dd></div>
         <div><dt><kbd>t</kbd></dt><dd>Toggle theme</dd></div>
         <div><dt><kbd>?</kbd></dt><dd>This help</dd></div>
         <div><dt><kbd>esc</kbd></dt><dd>Close overlays</dd></div>

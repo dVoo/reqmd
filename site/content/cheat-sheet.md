@@ -331,8 +331,8 @@ embedded, so there is no network access and no CDN — with a server-rendered
 
 `index.html` adds a document catalog, project-wide health, and cross-document
 search. A ⌘K command palette, keyboard shortcuts (`/` search, `g d`/`g t`/`g r`/`g c`
-views, `t` theme, `f` density, `?` help), a density toggle, and URL-synced state
-(`?q=&f=attr:value&view=&density=`) make a filtered view bookmarked or shared.
+views, `t` theme, `?` help), and URL-synced state
+(`?q=&f=attr:value&view=`) make a filtered view bookmarked or shared.
 
 The toolbar's attribute menus are built from every attribute present on a
 requirement, so attributes declared in no `schema.yaml` are filterable too (and

@@ -280,7 +280,6 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
 }
 .toolbar__row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
 .toolbar__row + .toolbar__row { margin-top: 0.45rem; }
-.toolbar__tools { margin-left: auto; display: flex; gap: 0.25rem; }
 .toolbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.45rem; }
 
 .viewswitch { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius); overflow: hidden; }
@@ -620,12 +619,6 @@ body.overlay-open { overflow: hidden; }
 .shortcuts__grid dt { min-width: 4rem; }
 .shortcuts__grid dd { margin: 0; font-size: 0.82rem; color: var(--fg-muted); }
 .shortcuts__note { font-size: 0.74rem; color: var(--fg-muted); margin: 0; }
-
-/* ── density ── */
-body.density-compact .req { padding: 0.55rem 0.8rem 0.5rem; margin-bottom: 0.45rem; }
-body.density-compact .grid th, body.density-compact .grid td { padding: 0.24rem 0.45rem; }
-body.density-compact .toc__link { padding: 0.15rem 0.35rem; }
-body.density-compact .tile { padding: 0.4rem 0.6rem; }
 
 
 /* ── responsive ── */

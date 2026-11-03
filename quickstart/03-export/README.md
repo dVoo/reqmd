@@ -31,9 +31,9 @@ document. Each page has:
   exception lists) views rendered on demand from one shared model
 - Coverage, verification (with `no verdict` in the denominator), and link health
   that agree with `reqmd check`
-- A ⌘K command palette, keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`,
-  `f`, `?`), and a density toggle
-- URL-synced state (`?q=&f=attr:value&view=&density=`) so a filtered view is shareable
+- A ⌘K command palette and keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`,
+  `?`)
+- URL-synced state (`?q=&f=attr:value&view=`) so a filtered view is shareable
 - A compact sticky app bar with the document breadcrumb, outline toggle, and light/dark theme toggle
 - No external scripts: the stylesheet and controller are embedded
 - Collapsible container sections and plain info blocks for headings

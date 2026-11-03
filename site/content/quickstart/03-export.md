@@ -31,8 +31,8 @@ document. Each page has:
 - Coverage, verification (with `no verdict` in the denominator), and link health
   that agree with `reqmd check`
 - A ⌘K command palette to jump to any requirement or switch views
-- Keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`, `f`, `?`) and a density toggle
-- URL-synced state (`?q=&f=attr:value&view=&density=`) so a filtered view is shareable
+- Keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`, `?`)
+- URL-synced state (`?q=&f=attr:value&view=`) so a filtered view is shareable
 - A compact sticky app bar with the document breadcrumb, outline toggle, and light/dark theme toggle
 - No external scripts: the stylesheet and controller are embedded
 - Collapsible container sections and plain info blocks for headings without `attr` blocks (folders, exactly as authored)

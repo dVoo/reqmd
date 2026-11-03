@@ -93,7 +93,6 @@
     if (pairs.length) pairs.forEach(function (pair) { p.append('f', pair); });
     else if (s.explicitFilters) p.set('f', '');
     if (s.view && s.view !== 'document') p.set('view', s.view);
-    if (s.density === 'compact') p.set('density', 'compact');
     if (s.view === 'trace' && s.selected) p.set('req', s.selected);
     return p.toString();
   }
@@ -105,7 +104,6 @@
       filters: {},
       explicitFilters: false,
       view: 'document',
-      density: 'comfortable',
       selected: p.get('req') || null
     };
     if (p.has('f')) {
@@ -114,7 +112,6 @@
     }
     var view = p.get('view');
     if (['document', 'table', 'trace', 'coverage'].indexOf(view) !== -1) out.view = view;
-    if (p.get('density') === 'compact') out.density = 'compact';
     return out;
   }
 
@@ -190,7 +187,6 @@
 
     var state = {
       view: 'document',
-      density: 'comfortable',
       query: '',
       filters: {},
       explicitFilters: false,
@@ -348,7 +344,6 @@
       state.filters = decoded.filters;
       state.explicitFilters = decoded.explicitFilters;
       state.view = decoded.view;
-      state.density = decoded.density;
       if (decoded.selected) state.selected = decoded.selected;
       if (searchEl) searchEl.value = state.query;
       if (!state.explicitFilters && state.defaultStatus && model.filters &&
@@ -1351,7 +1346,6 @@
       { key: 'view:table', glyph: '▦', label: 'View: Table', hint: 'dense sortable grid', run: function () { setView('table'); } },
       { key: 'view:trace', glyph: '⌘', label: 'View: Trace', hint: 'trace explorer', run: function () { setView('trace'); } },
       { key: 'view:coverage', glyph: '◔', label: 'View: Coverage', hint: 'coverage and verification', run: function () { setView('coverage'); } },
-      { key: 'toggle:density', glyph: '⇕', label: 'Toggle density', hint: 'comfortable / compact', run: function () { toggleDensity(); } },
       { key: 'filters:clear', glyph: '×', label: 'Clear search and filters', hint: 'reset the current view', run: function () {
         state.filters = {}; state.query = ''; state.explicitFilters = true; if (searchEl) searchEl.value = ''; apply();
       } },
@@ -1608,12 +1602,6 @@
       setPaletteActive((current + delta + buttons.length) % buttons.length);
     }
 
-    function toggleDensity() {
-      state.density = state.density === 'compact' ? 'comfortable' : 'compact';
-      document.body.classList.toggle('density-compact', state.density === 'compact');
-      writeState();
-    }
-
     // ── wiring ──
     function onKey(e) {
       var t = e.target;
@@ -1657,7 +1645,6 @@
       }
       if (e.key === '?') { e.preventDefault(); openOverlay('shortcuts'); return; }
       if (e.key === 't') { toggleThemeButton(); return; }
-      if (e.key === 'f') { toggleDensity(); return; }
       var now = Date.now();
       if (pendingG && now - pendingG < 900) {
         pendingG = 0;
@@ -1681,7 +1668,6 @@
       btn.addEventListener('click', function () {
         switch (action) {
           case 'palette': openOverlay('palette'); break;
-          case 'density': toggleDensity(); break;
           case 'toggle-toc': {
             var open = document.body.classList.toggle('toc-open');
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -1742,7 +1728,6 @@
 
     // ── init ──
     restoreState();
-    document.body.classList.toggle('density-compact', state.density === 'compact');
     setView(state.view);
 
     // A #REQ-ID deep link selects Document mode and reveals the target.
