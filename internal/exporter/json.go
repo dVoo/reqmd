@@ -60,7 +60,8 @@ type jsonRequirement struct {
 	DocPath           string         `json:"doc_path"`
 	DocTitle          string         `json:"doc_title"`
 	Level             string         `json:"level"`
-	Type              string         `json:"type"`
+	SectionPath       string         `json:"section_path"`
+	Ordinal           int            `json:"ordinal"`
 	Status            string         `json:"status"`
 	Disposition       string         `json:"disposition"`
 	DispositionReason string         `json:"disposition_reason"`
@@ -73,10 +74,11 @@ type jsonRequirement struct {
 	Version           any            `json:"version"`
 }
 
-// ExportRequirements writes one NDJSON row per content node (requirements,
-// containers, and info items) across all authored documents. Synthetic
-// documents (verification results and test cases) are skipped: the
-// requirement table is authored truth.
+// ExportRequirements writes one NDJSON row per requirement across all authored
+// documents. Sections are structure, not facts, so they are not rows: their
+// titles reach the fact table as the `section_path` column on the requirements
+// beneath them. Synthetic documents (verification results and test cases) are
+// skipped: the requirement table is authored truth.
 func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 	enc := json.NewEncoder(w)
 
@@ -90,14 +92,17 @@ func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 		if doc.XReqmd != nil {
 			level = doc.XReqmd.Level
 		}
-		walkJSONNodes(doc.Nodes, func(n *model.Node) {
+		ordinal := 0
+		walkJSONRequirements(doc.Nodes, nil, func(n *model.Node, sectionPath string) {
+			ordinal++
 			rows = append(rows, jsonRequirement{
 				DocPath:           doc.Path,
 				DocTitle:          doc.Title,
 				Level:             level,
 				ID:                n.ID,
 				Title:             n.Title,
-				Type:              n.Kind.String(),
+				SectionPath:       sectionPath,
+				Ordinal:           ordinal,
 				ParentID:          n.ParentID,
 				Source:            n.Source,
 				Suppressions:      n.Suppressions,
@@ -305,11 +310,24 @@ func (j *JSON) ExportFindings(w io.Writer, g *graph.Graph) error {
 	return nil
 }
 
-// walkJSONNodes visits every node in document order, depth-first.
-func walkJSONNodes(nodes []*model.Node, fn func(*model.Node)) {
+// walkJSONRequirements visits requirement nodes in document order, carrying the
+// titles of their ancestor sections. The warehouse tables carry requirements
+// only — sections are structure — so this is the tree walk they use: the
+// joined ancestor titles become the `section_path` column, which lets a
+// reporting platform group requirements by subsystem or chapter without a
+// separate dimension table or a join.
+func walkJSONRequirements(nodes []*model.Node, path []string, fn func(*model.Node, string)) {
 	for _, n := range nodes {
-		fn(n)
-		walkJSONNodes(n.Children, fn)
+		if n.Kind == model.KindRequirement {
+			fn(n, strings.Join(path, " / "))
+			walkJSONRequirements(n.Children, path, fn)
+			continue
+		}
+		if n.Title == "" {
+			walkJSONRequirements(n.Children, path, fn)
+			continue
+		}
+		walkJSONRequirements(n.Children, append(path, n.Title), fn)
 	}
 }
 

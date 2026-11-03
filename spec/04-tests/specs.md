@@ -81,7 +81,7 @@ disposition: implemented
 trace:
   - SW-EXP-003
 ```
-Unit tests shall cover the four NDJSON tables: one row per content node in document order, built-in promotion to top-level columns, the `attrs` envelope for remaining attributes, null-valued fixed columns present on every row, trace rows carrying ref/target/pin/resolution state, results rows including evidence cases and omitting the table when no results are loaded, findings rows carrying level/code/direction, and byte-identical output across repeated exports of the same tree.
+Unit tests shall cover the four NDJSON tables: the requirements table containing requirement rows only (no section rows, no `type` column) with `section_path` built from ancestor section titles and `ordinal` in document order, built-in promotion to top-level columns, the `attrs` envelope for remaining attributes, null-valued fixed columns present on every row, trace rows carrying ref/target/pin/resolution state, results rows including evidence cases and omitting the table when no results are loaded, findings rows carrying level/code/direction, and byte-identical output across repeated exports of the same tree.
 
 *Rationale:* Warehouse consumers depend on a stable column set and on deterministic output; both are properties of the writer alone, so they are pinned at the writer level rather than through a warehouse round-trip.
 

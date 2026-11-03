@@ -192,7 +192,7 @@ trace:
 ```
 `reqmd export json <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` shall write flat NDJSON tables for direct ingestion by reporting platforms (Databricks, Snowflake, BigQuery):
 
-- `requirements.ndjson` — one row per content node, with built-in attributes promoted to top-level columns and the remaining attributes kept in an `attrs` envelope. Every fixed column shall be present in every row (null when unset) so warehouse schema inference sees the full column set.
+- `requirements.ndjson` — one row per **requirement** (sections are structure, not facts, and are excluded), with built-in attributes promoted to top-level columns and the remaining attributes kept in an `attrs` envelope. Every fixed column shall be present in every row (null when unset) so warehouse schema inference sees the full column set. Sections still reach the fact table as context: each row carries `section_path` (the joined titles of its ancestor sections, empty at top level) so a reporting platform can group requirements by subsystem or chapter without a dimension table, and `ordinal` (1-based position within the document) as the only authoring-order signal. Rows are ordered by document path and requirement ID; `section_path` groups, `ordinal` orders, and the row order itself is physical layout only.
 - `traces.ndjson` — one row per declared trace reference, carrying the resolved target, the pin, and whether the reference resolved.
 - `results.ndjson` — one row per measure verdict with its evidence cases; written only when `--results` is supplied.
 - `findings.ndjson` — one row per graph check finding.

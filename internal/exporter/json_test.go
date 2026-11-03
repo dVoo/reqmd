@@ -41,21 +41,34 @@ func jsonDocs() []model.Document {
 		},
 		Nodes: []*model.Node{
 			{
-				ID:     "DN-001",
-				Title:  "Down",
-				Kind:   model.KindRequirement,
-				Source: "/spec/down/dn.md",
-				Attrs: map[string]any{
-					"status":   "approved",
-					"priority": "High",
-					"variant":  []any{"Base", "Premium"},
-					"trace":    []any{"upstream/UP-001~1", "MISSING-9"},
+				Title: "Brakes",
+				Kind:  model.KindSection,
+				Children: []*model.Node{
+					{
+						Title: "Hydraulics",
+						Kind:  model.KindSection,
+						Children: []*model.Node{
+							{
+								ID:     "DN-001",
+								Title:  "Down",
+								Kind:   model.KindRequirement,
+								Source: "/spec/down/dn.md",
+								Attrs: map[string]any{
+									"status":   "approved",
+									"priority": "High",
+									"variant":  []any{"Base", "Premium"},
+									"trace":    []any{"upstream/UP-001~1", "MISSING-9"},
+								},
+							},
+						},
+					},
 				},
 			},
 			{
 				ID:     "Group",
-				Title:  "A container",
+				Title:  "A section without requirements",
 				Kind:   model.KindSection,
+				Body:   "Prose only.",
 				Source: "/spec/down/dn.md",
 			},
 		},
@@ -107,10 +120,10 @@ func TestJSONExportRequirements(t *testing.T) {
 		return j.ExportRequirements(w, docs)
 	})
 
-	// The synthetic document must be skipped; 3 authored nodes remain
-	// (UP-001, DN-001, and the Group container).
-	if len(rows) != 3 {
-		t.Fatalf("expected 3 rows (synthetic excluded), got %d", len(rows))
+	// The synthetic document must be skipped, and the table carries
+	// requirements only: the "Group" section is structure, not a fact row.
+	if len(rows) != 2 {
+		t.Fatalf("expected 2 rows (synthetic and section excluded), got %d", len(rows))
 	}
 
 	byID := map[string]map[string]any{}
@@ -122,8 +135,16 @@ func TestJSONExportRequirements(t *testing.T) {
 	if dn == nil {
 		t.Fatal("DN-001 row missing")
 	}
-	if dn["type"] != "req" {
-		t.Errorf("DN-001 type = %v, want req", dn["type"])
+	if _, ok := dn["type"]; ok {
+		t.Error("the type column is gone: the table holds requirements only")
+	}
+	// section_path is empty for a top-level requirement; ordinal is the
+	// 1-based document order used to reproduce authoring order.
+	if dn["section_path"] != "Brakes / Hydraulics" {
+		t.Errorf("DN-001 section_path = %v, want \"Brakes / Hydraulics\"", dn["section_path"])
+	}
+	if dn["ordinal"] != float64(1) {
+		t.Errorf("DN-001 ordinal = %v, want 1", dn["ordinal"])
 	}
 	if dn["status"] != "approved" {
 		t.Errorf("DN-001 status = %v, want approved", dn["status"])
@@ -160,9 +181,9 @@ func TestJSONExportRequirements(t *testing.T) {
 		t.Errorf("UP-001 version = %#v, want 3", up["version"])
 	}
 
-	grp := byID["Group"]
-	if grp["type"] != "section" {
-		t.Errorf("Group type = %v, want container", grp["type"])
+	// Sections are not rows: the table carries requirements only.
+	if _, ok := byID["Group"]; ok {
+		t.Error("a requirement-less section must not appear in requirements.ndjson")
 	}
 }
 
@@ -308,7 +329,7 @@ func TestJSONExportStableColumns(t *testing.T) {
 		return out
 	}
 
-	// requirements: compare the sparse container row against the full one.
+	// requirements: compare the sparse requirement row against the full one.
 	reqRows := encodeRows(t, func(w *bufio.Writer) error {
 		return (&JSON{}).ExportRequirements(w, docs)
 	})
@@ -317,12 +338,12 @@ func TestJSONExportStableColumns(t *testing.T) {
 		switch r["id"] {
 		case "DN-001":
 			full = r
-		case "Group":
+		case "UP-001":
 			sparse = r
 		}
 	}
 	if full == nil || sparse == nil {
-		t.Fatal("expected both DN-001 and Group rows")
+		t.Fatal("expected both DN-001 and UP-001 rows")
 	}
 	fullKeys, sparseKeys := keysOf(full), keysOf(sparse)
 	for k := range fullKeys {
