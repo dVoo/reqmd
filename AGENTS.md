@@ -342,6 +342,14 @@ Parser tests use `t.TempDir()` for file-based test cases.
 | `golang.org/x/sync` | Parallel document loading via `errgroup` |
 | `github.com/expr-lang/expr` | Expression evaluation engine for `--filter` attribute filtering |
 
+**goldmark stays on v1 (currently v1.8.7), not v2.** v2 is a separate module
+path (`github.com/yuin/goldmark/v2`) and none of the six extensions listed above
+has a v2-compatible release, on any tag or default branch — recheck them before
+attempting the move. v2 also removes `goldmark.Markdown` (both
+`mdParser`/`bodyRenderer` build one), replaces extension instances with `New*`
+constructors, and changes AST value semantics (`Value.Bytes`/`Str` →
+`Value.Value`), which `renderBlock` and the attr scanner rely on.
+
 ## Important gotchas
 
 - Schema files are named `schema.yaml` (the spec previously referenced `doc.schema.yaml`).
