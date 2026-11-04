@@ -48,7 +48,7 @@ trace:
   - SW-PAR-001
   - SW-EXP-001
 ```
-Unit tests SHALL verify frontmatter extraction into `Document.Meta` with first-file-wins merge semantics, goldmark body rendering for inline code, emoji, math, and fenced blocks, search-and-filter client logic (debounce, AND-combined filters, card hide/show, count update, child card visibility), and the server-rendered outline: correct parent/child nesting, expand/collapse, and scroll-spy targets.
+Unit tests SHALL verify frontmatter extraction into `Document.Meta` on both the serial and the chunked path, first-file-wins merging across files, and that the block never reaches a node body, goldmark body rendering for inline code, emoji, alerts, and fenced blocks, search-and-filter client logic (debounce, AND-combined filters, card hide/show, count update, child card visibility), and the server-rendered outline: correct parent/child nesting, expand/collapse, and scroll-spy targets.
 
 *Rationale:* These features have distinct logic paths requiring dedicated coverage. Frontmatter touches the parser AST pipeline; the outline and filter are client-side behaviours verified through rendered HTML.
 

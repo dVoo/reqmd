@@ -249,7 +249,8 @@ errors.
 
 Each `.md` file may start with YAML frontmatter. `description` is rendered
 below the document header in HTML; keys from multiple files merge
-first-file-wins.
+first-file-wins. Metadata is never content — it cannot be traced, counted, or
+filtered — so document configuration stays in `schema.yaml`.
 
 ```markdown
 ---
@@ -257,8 +258,9 @@ description: "This document defines the **system requirements** for boot."
 ---
 ```
 
-Body Markdown supports GFM tables/task lists, mermaid blocks, `::: {.class}`
-fenced divs, syntax highlighting, emoji shortcodes, and KaTeX (`$x^2$`).
+Body Markdown supports GFM tables/task lists, mermaid blocks, GitHub alerts
+(`> [!NOTE]`, `[!TIP]`, `[!IMPORTANT]`, `[!WARNING]`, `[!CAUTION]`), syntax
+highlighting, and emoji shortcodes.
 
 ## Maintenance workflow
 

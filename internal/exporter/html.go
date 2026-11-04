@@ -13,13 +13,13 @@ import (
 
 	"github.com/dVoo/reqmd/internal/model"
 
-	katex "github.com/FurqanSoftware/goldmark-katex"
-	fences "github.com/stefanfritsch/goldmark-fences"
-	"github.com/yuin/goldmark"
-	emoji "github.com/yuin/goldmark-emoji"
-	highlighting "github.com/yuin/goldmark-highlighting/v2"
-	"github.com/yuin/goldmark/extension"
-	"go.abhg.dev/goldmark/mermaid"
+	alert "github.com/yuin/goldmark-alert"
+	diagram "github.com/yuin/goldmark-diagram"
+	emoji "github.com/yuin/goldmark-emoji/v2"
+	highlighting "github.com/yuin/goldmark-highlighting/v3"
+	"github.com/yuin/goldmark/v2/extension"
+	"github.com/yuin/goldmark/v2/parser"
+	ghtml "github.com/yuin/goldmark/v2/renderer/html"
 )
 
 //go:embed static
@@ -103,31 +103,45 @@ func docTitle(doc model.Document) string {
 	return schemaTitle(doc)
 }
 
-// bodyRenderer renders requirement body markdown to HTML.
-// mermaidCDN is the pinned Mermaid runtime that a page containing a diagram
+// mermaidCDN is the pinned Mermaid UMD runtime that a page containing a diagram
 // loads, and the only external request an exported page ever makes (SW-EXP-004).
-// Keep it in step with the version the documentation site pins.
+// The UMD build is used, not the ESM module: ES modules are blocked by CORS on
+// file://, and an exported tree must open offline. Keep the version in step
+// with the documentation site's pin.
 const mermaidCDN = "https://cdn.jsdelivr.net/npm/mermaid@11.17.2/dist/mermaid.min.js"
 
-var bodyRenderer = goldmark.New(
-	goldmark.WithExtensions(
-		extension.GFM,
-		// Client rendering: the block becomes a container, and the extender
-		// emits the runtime script next to it. Server rendering (RenderModeAuto
-		// with mmdc on $PATH) is deliberately never used: it needs a browser on
-		// the exporting machine and takes seconds per diagram.
-		&mermaid.Extender{RenderMode: mermaid.RenderModeClient, MermaidURL: mermaidCDN},
-		&fences.Extender{},
-		highlighting.Highlighting,
-		emoji.Emoji,
-		&katex.Extender{},
-	),
-)
+// bodyParser and bodyRenderer convert stored body Markdown to HTML. goldmark v2
+// separates parsing from rendering, so each document body is parsed once and
+// rendered with the presentation extensions: GitHub alerts, emoji shortcodes,
+// chroma highlighting, and client-side Mermaid diagrams.
+var bodyParser = parser.New(parser.WithExtensions(
+	extension.NewGFMParser(),
+	alert.NewParser(),
+	emoji.NewParser(),
+	highlighting.NewParser(),
+))
+
+var bodyRenderer = ghtml.New(ghtml.WithExtensions(
+	extension.NewGFMHTMLRenderer(),
+	alert.NewHTMLRenderer(),
+	emoji.NewHTMLRenderer(),
+	highlighting.NewHTMLRenderer(),
+	// Client-side rendering only: goldmark-diagram's mermaid renderer writes a
+	// .mermaid container and appends the runtime script to the document. The
+	// server renderer (mmdc) is never used — it needs a browser on the
+	// exporting machine and takes seconds per diagram.
+	diagram.NewHTMLRenderer(diagram.WithRenderer(
+		diagram.LanguageMermaid,
+		diagram.NewMermaidClientRenderer(diagram.WithMermaidUMDURL(mermaidCDN)),
+	)),
+))
 
 // renderMarkdown renders markdown content to safe HTML.
 func renderMarkdown(content string) string {
+	src := []byte(content)
+	doc := bodyParser.Parse(src)
 	var buf bytes.Buffer
-	if err := bodyRenderer.Convert([]byte(content), &buf); err != nil {
+	if err := bodyRenderer.Render(&buf, src, doc); err != nil {
 		return html.EscapeString(content)
 	}
 	return buf.String()

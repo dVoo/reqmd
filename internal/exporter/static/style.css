@@ -194,6 +194,20 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
 }
 .doc-head__desc { color: var(--fg-muted); margin-top: 0.8rem; }
 
+/* ── alerts (goldmark-alert) ── */
+.markdown-alert {
+  border-left: 3px solid var(--border-strong); border-radius: var(--radius);
+  padding: 0.6em 0.9em; margin: 0 0 0.8em; background: var(--surface-2);
+}
+.markdown-alert > :last-child { margin-bottom: 0; }
+.markdown-alert-title { display: flex; align-items: center; gap: 0.35rem; font-weight: 600; margin: 0 0 0.4em; }
+.markdown-alert-title .markdown-icon { flex: none; fill: currentColor; }
+.markdown-alert-note { border-left-color: #3b82f6; }
+.markdown-alert-tip { border-left-color: #10b981; }
+.markdown-alert-important { border-left-color: #8b5cf6; }
+.markdown-alert-warning { border-left-color: #f59e0b; }
+.markdown-alert-caution { border-left-color: #ef4444; }
+
 /* ── document chain ── */
 .doc-chain { margin-top: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
 .chain-summary {

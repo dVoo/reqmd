@@ -97,7 +97,7 @@ same docs stay independent). `check` remains requirement-scoped.
 | `reqmd stats <root>` | Attribute-value breakdown per document directory plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements. |
 | `reqmd export csv <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | CSV export (`<dirname>-requirements.csv`) with a `Type` column; rows emitted in document order for requirements and items. `--results` adds `Verdict` and `Verdict Source` columns from ephemeral verification results. `--filter` exports only matching requirements. |
 | `reqmd export html <root> [-o <dir>] [--results <path>...] [--filter "<expr>"] [--relaxed-filter]` | HTML export: a project home (`index.html`: document catalog, project-wide health, actionable queues, cross-document search) plus one page per document. Document view is server-rendered and readable without JS (compact app bar, sidebar outline with scroll-spy, sticky search/filter toolbar, neutral cards with status/coverage/verdict chips, collapsible attribute/rationale/evidence/trace details). Table, Trace, and Coverage views render on demand client-side from one embedded `pageModel` (no hidden analytical DOM). Coverage/verdict/link health come from graph analysis (`CoverageStates`, `VerificationStates`, `TraceRefs`), including `no verdict` in the verification denominator. CSS and client JS are embedded (no CDN). URL state uses repeated `f=attr:value` params and preserves explicitly empty filter sets; `#REQ-ID` deep links open Document mode. ⌘K palette with focus trap, `g d`/`g t`/`g r`/`g c`, density toggle. `--results` renders verdict chips + evidence. `--filter` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
-| `reqmd export json <root> [-o <dir>] [--results <path>...] [--filter "<expr>"] [--disjoint-check <attr>...]` | NDJSON export for reporting platforms (Databricks, Snowflake, BigQuery). Writes `requirements.ndjson` (one row per content node; built-ins promoted, remaining attributes in `attrs`), `traces.ndjson` (one row per declared trace ref with `pin`/`resolved`), `results.ndjson` (one row per verdict; needs `--results`), `findings.ndjson` (one row per check finding). Pure function of tree + results; repeated exports are byte-identical. Default output dir is the exported tree root. |
+| `reqmd export json <root> [-o <dir>] [--results <path>...] [--filter "<expr>"] [--disjoint-check <attr>...]` | NDJSON export for reporting platforms (Databricks, Snowflake, BigQuery). Writes `requirements.ndjson` (one row per authored requirement, sections and synthetic result nodes excluded; built-ins promoted, remaining attributes in `attrs`), `traces.ndjson` (one row per declared trace ref of an exported requirement, with `pin`/`resolved`; `to` carries no `doc-id/` qualifier), `results.ndjson` (one row per verdict; always written, empty without `--results`), `findings.ndjson` (one row per check finding). Pure function of tree + results; repeated exports are byte-identical. `ordinal` is stable under `--filter`, which narrows requirements and traces together. Default output dir is the exported tree root. |
 | `reqmd export graph <root> [-o <dir>] [--results <path>...]` | LadybugDB graph export (requires `-tags ladybug`). `--results` includes `RESULT:` nodes with `outcome`/`source` properties for graph traversal from requirements to verification results. |
 | `reqmd check --json <root>` | JSON validation report with requirements, pass/fail, trace checks |
 | `reqmd check --results <path> <root>` | Load ephemeral verification results (CTRF `.ctrf.json` or manual-results dirs with `schema.yaml`) and run outcome-gated checks (`missing-verdict`, `failing-verdict`). `--results` is repeatable; auto-detects CTRF vs manual by extension + shape. |
@@ -257,20 +257,27 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   requirement content. `project.go` renders the project home; `reqmd serve`
   serves it at `/`. Client URL-state helpers are exported for
   `static/url_state.test.js`, run by `TestClientURLState` when Node is installed.
-- **Diagrams**: ` ```mermaid ` blocks reach the exporter as body Markdown because
-  `mdParser` deliberately registers no diagram extenders — their AST
-  transformers replace the fenced block with a node that carries no fence
-  lines, and the parser's fallback would emit the diagram source as prose
-  (`internal/parser/parser.go`). The exporter's `bodyRenderer` registers
-  `&mermaid.Extender{RenderMode: RenderModeClient, MermaidURL: mermaidCDN}`, so a
-  diagram body becomes a `<pre class="mermaid">` container plus a script tag for
-  the pinned CDN runtime (`mermaidCDN` in `internal/exporter/html.go`, kept in
-  step with the site's pin). Client mode is set explicitly: the zero value is
-  `RenderModeAuto`, which silently switches to *server* rendering (needs `mmdc`
-  plus a Chromium) whenever `mmdc` is on `$PATH`, and fails the whole body if the
-  CLI breaks. This CDN load is the only documented exception to the offline
-  export guarantee — see `SW-EXP-004`. The export itself needs no browser, no
-  Node, and no vendored blob; `static/app.js` only styles the container.
+- **Diagrams**: ` ```mermaid ` blocks reach the exporter as body Markdown, and
+  the exporter renders them with `github.com/yuin/goldmark-diagram`'s mermaid
+  client renderer pointed at the pinned UMD runtime (`mermaidCDN` in
+  `internal/exporter/html.go`, kept in step with the site's pin): a diagram body
+  becomes a `<pre class="mermaid">` container, and the renderer appends the
+  `<script>` + `mermaid.initialize({startOnLoad:true})` to the converted
+  fragment. The UMD build is deliberate — ES modules are blocked by CORS on
+  `file://`. Only client-side rendering is wired up; goldmark-diagram's server
+  renderer (`mmdc`, needs a Chromium and takes seconds per diagram) is not used.
+  This CDN load is the only documented exception to the offline export guarantee
+  — see `SW-EXP-004`. The export itself needs no browser, no Node, and no
+  vendored blob; `static/app.js` only styles the container.
+- **goldmark v2 AST**: `mdParser` is a `parser.Parser` (no renderer) and the
+  exporter owns a `parser.New` + `html.New` pair, because v2 removed
+  `goldmark.Markdown`/`goldmark.New`/`Convert` and split extensions into
+  `parser.Extension` and `renderer.Extension[C]`. Consequences that bite when
+  touching the parser: fenced and indented code blocks are one node type
+  (`ast.CodeBlock`, kind via `CodeBlockKind`, info via `Language`), block content
+  moves through `text.Lines`/`text.Value` instead of `Segment`/`Lines()`, block
+  nodes expose `Source()` (only inline-parsed nodes have it), and node mutation
+  methods no longer take a `self` argument.
 - **Exchange-format import pipeline (v1)**: Every importer is split into a
   *producer* and the single *renderer*. The format is neutral: a bundle declares
   `"$schema": "https://reqmd.dev/exchange/v1/schema.json"`, each document has a
@@ -333,7 +340,12 @@ Parser tests use `t.TempDir()` for file-based test cases.
 | Package | Purpose |
 |---------|---------|
 | `github.com/spf13/cobra` | CLI framework |
-| `github.com/yuin/goldmark` | Markdown AST parsing |
+| `github.com/yuin/goldmark/v2` | Markdown AST parsing and HTML rendering (v2 module path) |
+| `github.com/yuin/goldmark-meta/v2` | YAML frontmatter → document metadata |
+| `github.com/yuin/goldmark-alert` | GitHub-style `> [!NOTE]` alerts in exported bodies |
+| `github.com/yuin/goldmark-diagram` | Client-side Mermaid rendering of ` ```mermaid ` blocks |
+| `github.com/yuin/goldmark-highlighting/v3` | chroma syntax highlighting (pulls chroma v3, needs Go 1.27) |
+| `github.com/yuin/goldmark-emoji/v2` | GitHub emoji shortcodes |
 | `gopkg.in/yaml.v3` | YAML parsing |
 | `github.com/google/jsonschema-go/jsonschema` | JSON Schema 2020-12 validation |
 | `github.com/r3labs/diff/v3` | Structured diffing for baseline comparison |
@@ -342,13 +354,14 @@ Parser tests use `t.TempDir()` for file-based test cases.
 | `golang.org/x/sync` | Parallel document loading via `errgroup` |
 | `github.com/expr-lang/expr` | Expression evaluation engine for `--filter` attribute filtering |
 
-**goldmark stays on v1 (currently v1.8.7), not v2.** v2 is a separate module
-path (`github.com/yuin/goldmark/v2`) and none of the six extensions listed above
-has a v2-compatible release, on any tag or default branch — recheck them before
-attempting the move. v2 also removes `goldmark.Markdown` (both
-`mdParser`/`bodyRenderer` build one), replaces extension instances with `New*`
-constructors, and changes AST value semantics (`Value.Bytes`/`Str` →
-`Value.Value`), which `renderBlock` and the attr scanner rely on.
+**goldmark is on v2** (`github.com/yuin/goldmark/v2`), which is a separate
+module path from v1 — every goldmark extension must import v2 or it cannot be
+linked. KaTeX (`FurqanSoftware/goldmark-katex`) and Pandoc fenced divs
+(`stefanfritsch/goldmark-fences`) were dropped because they are v1-only; the
+alert extension covers callouts instead, and `$x^2$` is now plain text. Adding a
+new extension means checking it imports `github.com/yuin/goldmark/v2`, and
+registering it as a `parser.Extension` (structural, on `mdParser`) or a
+`renderer.Extension[C]` (presentational, on the exporter's renderer).
 
 ## Important gotchas
 

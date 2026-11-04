@@ -15,17 +15,11 @@ import (
 	"github.com/dVoo/reqmd/internal/model"
 	"github.com/dVoo/reqmd/internal/schema"
 
-	"github.com/yuin/goldmark"
-	"github.com/yuin/goldmark/ast"
-	"github.com/yuin/goldmark/extension"
-	"github.com/yuin/goldmark/parser"
-	"github.com/yuin/goldmark/text"
+	"github.com/yuin/goldmark/v2/ast"
+	"github.com/yuin/goldmark/v2/extension"
+	"github.com/yuin/goldmark/v2/parser"
+	meta "github.com/yuin/goldmark-meta/v2"
 
-	katex "github.com/FurqanSoftware/goldmark-katex"
-	fences "github.com/stefanfritsch/goldmark-fences"
-	emoji "github.com/yuin/goldmark-emoji"
-	highlighting "github.com/yuin/goldmark-highlighting/v2"
-	meta "github.com/yuin/goldmark-meta"
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
 )
@@ -36,29 +30,21 @@ const attrFenceInfo = "attr"
 // so the hot paths don't allocate a []byte pattern on every call.
 var (
 	attrFenceBytes = []byte("```attr")
-	frontmatterSep = []byte("---")
 )
 
-// mdParser is the shared goldmark instance used by parseMD.
-// Constructed once at package init to avoid re-running extension Init for every .md file.
+// mdParser is the shared goldmark parser used by parseMD. It only parses: the
+// content tree is built by walking the AST, so no renderer is attached.
 //
-// Diagram extenders (mermaid, d2, …) are deliberately absent: mdParser only
-// walks the AST and never renders, and their AST transformers replace the
-// fenced code block with a node that carries only lines, so the parser would
-// emit the diagram source without its fence delimiters. They belong on the
-// exporter's renderer, which runs after the body Markdown is reassembled.
-var mdParser = goldmark.New(
-	goldmark.WithExtensions(
-		extension.Table,
-		extension.Strikethrough,
-		extension.TaskList,
-		&fences.Extender{},
-		highlighting.Highlighting,
-		emoji.Emoji,
-		meta.Meta,
-		&katex.Extender{},
-	),
-)
+// Structural extensions are the only ones registered here — tables and task
+// lists must become real block nodes or their markers would be flattened into
+// paragraph text — plus the YAML frontmatter parser, which stores the document's
+// metadata on the AST. Purely presentational extensions (emoji, syntax
+// highlighting, alerts, diagrams) live on the exporter's renderer instead: the
+// body is stored as Markdown, so they apply when that Markdown is rendered.
+var mdParser = parser.New(parser.WithExtensions(
+	extension.NewGFMParser(),
+	meta.NewParser(),
+))
 
 // Discover walks root recursively, locating schema.yaml files.
 // Every directory containing schema.yaml is a document directory.
@@ -160,8 +146,8 @@ func loadDocument(dir string) (model.Document, error) {
 
 // parseFiles parses all .md files in a document directory and returns the
 // concatenated content tree roots in mdFiles order (deterministic), the
-// document title (the first file's h1 heading, if any), merged
-// frontmatter, and any per-file errors. Files are parsed in parallel;
+// document title (the first file's h1 heading, if any), and any per-file
+// errors. Files are parsed in parallel;
 // results are collected by file index so the returned order never depends
 // on goroutine completion order.
 func parseFiles(files []string) ([]*model.Node, string, map[string]any, []error) {
@@ -188,12 +174,12 @@ func parseFiles(files []string) ([]*model.Node, string, map[string]any, []error)
 				results[i] = result{err: fmt.Errorf("reading %s: %w", f, err)}
 				return
 			}
-			nodes, title, frontmatter, err := parseMD(src, f)
+			nodes, title, fm, err := parseMD(src, f)
 			if err != nil {
 				results[i] = result{err: fmt.Errorf("parsing %s: %w", f, err)}
 				return
 			}
-			results[i] = result{nodes: nodes, title: title, meta: frontmatter}
+			results[i] = result{nodes: nodes, title: title, meta: fm}
 		})
 	}
 
@@ -213,7 +199,7 @@ func parseFiles(files []string) ([]*model.Node, string, map[string]any, []error)
 		if i == 0 && title == "" {
 			title = r.title
 		}
-		// Merge frontmatter in order (first file's value wins per key)
+		// Merge frontmatter in file order; the first file's value wins per key.
 		for k, v := range r.meta {
 			if _, exists := mergedMeta[k]; !exists {
 				mergedMeta[k] = v
@@ -226,7 +212,7 @@ func parseFiles(files []string) ([]*model.Node, string, map[string]any, []error)
 // parseParallelThreshold is the minimum file size (in bytes) for which the
 // root-split pre-scan + intra-file chunk parallelism is worth it. Below
 // this size the file is parsed serially: the pre-scan is an extra full
-// line scan plus a frontmatter YAML parse, and a small file parses in
+// line scan, and a small file parses in
 // well under a millisecond so chunking cannot help. Cross-file parallelism
 // (the worker pool in parseFiles) still applies.
 const parseParallelThreshold = 256 << 10
@@ -249,10 +235,16 @@ const parseParallelThreshold = 256 << 10
 // points is a cheap line scan that replicates the stack logic without
 // building a goldmark AST.
 func parseMD(src []byte, sourcePath string) ([]*model.Node, string, map[string]any, error) {
+	// A file that opens a frontmatter block and never closes it would have the
+	// rest of its content swallowed by the metadata extension, silently and with
+	// no diagnostic. Fail instead: this is the one shape where nothing else in
+	// the pipeline can notice the loss.
+	if _, ok := frontmatterEnd(src); !ok {
+		return nil, "", nil, fmt.Errorf("%s: frontmatter opened on the first line is never closed; add a closing --- line or remove the leading dashes", sourcePath)
+	}
+
 	// Small files: skip the root-split pre-scan entirely. The serial path
-	// produces the same tree (assembleTree on one flat stream) and gets
-	// frontmatter from goldmark's meta extension instead of a second,
-	// independent YAML parse.
+	// produces the same tree (assembleTree on one flat stream).
 	if len(src) < parseParallelThreshold {
 		nodes, title, fm, err := parseMDChunk(src, sourcePath)
 		if err != nil {
@@ -261,7 +253,7 @@ func parseMD(src []byte, sourcePath string) ([]*model.Node, string, map[string]a
 		return assembleTree(nodes), title, fm, nil
 	}
 
-	splits, frontmatter := findRootSplits(src)
+	splits := findRootSplits(src)
 
 	// No splits or a single root → parse the whole file serially.
 	nRoots := len(splits)
@@ -286,10 +278,12 @@ func parseMD(src []byte, sourcePath string) ([]*model.Node, string, map[string]a
 	// dropped.
 	type chunkResult struct {
 		err   error
+		meta  map[string]any
 		nodes []*model.Node
 	}
 	results := make([]chunkResult, nChunks)
 	var title string
+	var frontmatter map[string]any
 	var wg sync.WaitGroup
 
 	for c := range nChunks {
@@ -309,10 +303,14 @@ func parseMD(src []byte, sourcePath string) ([]*model.Node, string, map[string]a
 		chunk := src[byteStart:byteEnd]
 		idx := c
 		wg.Go(func() {
-			nodes, chunkTitle, _, err := parseMDChunk(chunk, sourcePath)
-			results[idx] = chunkResult{nodes: nodes, err: err}
-			if idx == 0 && chunkTitle != "" {
-				title = chunkTitle
+			nodes, chunkTitle, chunkMeta, err := parseMDChunk(chunk, sourcePath)
+			results[idx] = chunkResult{nodes: nodes, err: err, meta: chunkMeta}
+			// Frontmatter can only live in chunk 0: it is the file preamble.
+			if idx == 0 {
+				frontmatter = chunkMeta
+				if chunkTitle != "" {
+					title = chunkTitle
+				}
 			}
 		})
 	}
@@ -330,20 +328,20 @@ func parseMD(src []byte, sourcePath string) ([]*model.Node, string, map[string]a
 
 // parseMDChunk parses a single chunk of markdown (possibly the whole file)
 // using goldmark and returns the flat node stream in source order, the file
-// title (first h1 heading), and any YAML frontmatter. Every heading except
-// a level-1 document title becomes a node; prose and other blocks attach to
-// the most recently opened node's Body. Nodes are NOT assembled into a tree
-// here — callers must assemble the concatenated streams so nesting across
-// chunk boundaries is preserved.
+// title (first h1 heading), and any YAML frontmatter. Every heading except a
+// level-1 document title becomes a node; prose and other blocks attach to the
+// most recently opened node's Body. Nodes are NOT assembled into a tree here —
+// callers must assemble the concatenated streams so nesting across chunk
+// boundaries is preserved.
 func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[string]any, error) {
-	p := mdParser.Parser()
-	parseCtx := parser.NewContext()
-	doc := p.Parse(text.NewReader(src), parser.WithContext(parseCtx))
+	pc := parser.NewContext()
+	doc := mdParser.Parse(src, parser.WithContext(pc))
 
-	// Extract YAML frontmatter (parsed by meta.Meta, stored in context).
+	// Frontmatter is parsed by the meta extension into the document node; it is
+	// metadata, never content, so it does not open a node of its own.
 	var frontmatter map[string]any
-	if fm := meta.Get(parseCtx); fm != nil {
-		frontmatter = fm
+	if d, ok := doc.(*ast.Document); ok {
+		frontmatter = d.Metadata()
 	}
 
 	var nodes []*model.Node
@@ -415,9 +413,17 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 			nodes = append(nodes, cur)
 			waitingForAttr = hasAdjacentAttr
 
-		case *ast.FencedCodeBlock:
-			if cur != nil && waitingForAttr && fenceInfo(v, src) == attrFenceInfo {
-				attrs, err := decodeAttrs(fenceLines(v, src))
+		case *ast.CodeBlock:
+			// v2 merges fenced and indented code blocks into one node kind.
+			// An indented block is never an attr fence; store it as a fence so
+			// the body keeps its code semantics without its indentation.
+			if v.CodeBlockKind != ast.CodeBlockKindFenced {
+				ensureOpenNode()
+				appendBodyBlock(&bodyBuf, renderFence("", v, src))
+				continue
+			}
+			if cur != nil && waitingForAttr && codeInfo(v, src) == attrFenceInfo {
+				attrs, err := decodeAttrs(string(v.Value.Bytes(src)))
 				if err != nil {
 					return nil, "", frontmatter, fmt.Errorf("%s: req %s: invalid attr YAML: %w", sourcePath, cur.ID, err)
 				}
@@ -437,7 +443,7 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 			} else {
 				ensureOpenNode()
 				// Non-attr code block inside a node's body
-				bodyBuf.WriteString(renderFence(v, src))
+				appendBodyBlock(&bodyBuf, renderFence(codeInfo(v, src), v, src))
 			}
 
 		case *ast.Paragraph:
@@ -451,19 +457,18 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 				trimmed = strings.TrimLeft(trimmed, "* ")
 				cur.Rationale = strings.TrimSpace(trimmed)
 			} else {
-				if bodyBuf.Len() > 0 {
-					bodyBuf.WriteString("\n\n")
-				}
-				bodyBuf.WriteString(text)
+				appendBodyBlock(&bodyBuf, text)
 			}
+
+		case *meta.MetaBlock:
+			// YAML frontmatter is document metadata, not content: the meta
+			// extension already stored it on the AST, so it opens no node.
+			continue
 
 		case *ast.ThematicBreak:
 			// Thematic breaks are content: keep them in the open node's body.
 			ensureOpenNode()
-			if bodyBuf.Len() > 0 {
-				bodyBuf.WriteString("\n\n")
-			}
-			bodyBuf.WriteString("---")
+			appendBodyBlock(&bodyBuf, "---")
 
 		case *ast.HTMLBlock:
 			// The generated-content marker is tool metadata, not content: it
@@ -475,19 +480,13 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 				continue
 			}
 			ensureOpenNode()
-			bodyBuf.WriteString(renderBlock(src, n))
+			appendBodyBlock(&bodyBuf, renderBlock(src, n))
 
 		default:
 			// Any other block (blockquote, list, table, raw HTML) → body text if
-			// inside a node. A blank line separates it from the preceding prose,
-			// or the block glues onto the paragraph above it.
+			// inside a node.
 			ensureOpenNode()
-			if block := renderBlock(src, n); block != "" {
-				if bodyBuf.Len() > 0 {
-					bodyBuf.WriteString("\n\n")
-				}
-				bodyBuf.WriteString(block)
-			}
+			appendBodyBlock(&bodyBuf, renderBlock(src, n))
 		}
 	}
 
@@ -565,29 +564,10 @@ func popStackToLevel(stack []reqStackEntry, targetLevel int) []reqStackEntry {
 // line) and any YAML frontmatter parsed from the file header.
 //
 // If only 0 or 1 roots are found, the caller parses the whole file serially.
-func findRootSplits(src []byte) (splits []int, frontmatter map[string]any) {
-	// Parse frontmatter if present (--- delimited block at file start).
-	pos := 0 // byte offset of current line start
-
-	// Check for frontmatter delimiter on the first line.
-	if firstLine, _ := nextLine(src, 0); bytes.Equal(bytes.TrimSpace(firstLine), frontmatterSep) {
-		pos += len(firstLine) + 1 // skip the --- line
-		for pos < len(src) {
-			line, nl := nextLine(src, pos)
-			if bytes.Equal(bytes.TrimSpace(line), frontmatterSep) {
-				// Found closing ---. Parse frontmatter between markers.
-				if pos > len(firstLine)+1 {
-					fmStart := len(firstLine) + 1
-					fmEnd := pos
-					_ = yaml.Unmarshal(src[fmStart:fmEnd], &frontmatter)
-				}
-				pos += len(line) + 1 // skip closing ---
-				break
-			}
-			pos += len(line) + 1
-			_ = nl
-		}
-	}
+func findRootSplits(src []byte) (splits []int) {
+	// Skip a leading frontmatter block so its lines are never scanned for
+	// headings; an unterminated block is rejected by parseMD before we get here.
+	pos, _ := frontmatterEnd(src)
 
 	var stack []reqStackEntry
 
@@ -615,8 +595,44 @@ func findRootSplits(src []byte) (splits []int, frontmatter map[string]any) {
 		pos = lineEnd + 1 // skip \n
 	}
 
-	return splits, frontmatter
+	return splits
 }
+
+// frontmatterEnd returns the offset just past a leading YAML frontmatter block,
+// or 0 when the file does not start with one. ok is false when the block is
+// opened on the first line and never closed.
+func frontmatterEnd(src []byte) (end int, ok bool) {
+	firstLine, _ := nextLine(src, 0)
+	if !isDashLine(firstLine) {
+		return 0, true
+	}
+	for pos := len(firstLine) + 1; pos < len(src); {
+		line, _ := nextLine(src, pos)
+		if isDashLine(line) {
+			return min(pos+len(line)+1, len(src)), true
+		}
+		pos += len(line) + 1
+	}
+	return 0, false
+}
+
+// isDashLine reports whether line is a non-empty run of dashes, surrounding
+// spaces ignored. It mirrors the frontmatter extension's own separator rule so
+// the split scan and the parser agree on where a metadata block starts and ends
+// (the extension accepts "--", "----", and any longer run, not just "---").
+func isDashLine(line []byte) bool {
+	line = bytes.TrimSpace(line)
+	if len(line) == 0 {
+		return false
+	}
+	for _, c := range line {
+		if c != '-' {
+			return false
+		}
+	}
+	return true
+}
+
 
 // nextLine returns the line at byte offset pos (without the trailing \n)
 // and whether there was a newline. The returned slice references src —
@@ -672,11 +688,11 @@ func isNextAttrBlock(n ast.Node, src []byte) bool {
 	if next == nil {
 		return false
 	}
-	fence, ok := next.(*ast.FencedCodeBlock)
-	if !ok {
+	fence, ok := next.(*ast.CodeBlock)
+	if !ok || fence.CodeBlockKind != ast.CodeBlockKindFenced {
 		return false
 	}
-	return fenceInfo(fence, src) == attrFenceInfo
+	return codeInfo(fence, src) == attrFenceInfo
 }
 
 // splitHeadingID splits a heading like "REQ-001: This is a title"
@@ -698,49 +714,58 @@ func collectInlineText(n ast.Node, src []byte) string {
 			return ast.WalkContinue, nil
 		}
 		if tn, ok := n.(*ast.Text); ok {
-			b.Write(tn.Segment.Value(src))
+			b.WriteString(tn.Value.Value(src))
 		}
 		return ast.WalkContinue, nil
 	})
 	return strings.TrimSpace(b.String())
 }
 
-func fenceInfo(f *ast.FencedCodeBlock, src []byte) string {
-	if f.Info == nil {
-		return ""
-	}
-	infoSeg := f.Info
-	return strings.TrimSpace(string(infoSeg.Value(src)))
+// codeInfo returns the fenced block's full info string ("go title=\"x\""), not
+// just its language token: the body keeps its Markdown, so anything after the
+// language must survive the round-trip.
+func codeInfo(c *ast.CodeBlock, src []byte) string {
+	return strings.TrimSpace(c.Info.Value(src))
 }
 
-func fenceLines(f *ast.FencedCodeBlock, src []byte) string {
-	var b strings.Builder
-	for i := range f.Lines().Len() {
-		seg := f.Lines().At(i)
-		b.Write(seg.Value(src))
+// appendBodyBlock appends a block to the open node's body, separated from any
+// preceding prose by a blank line. Without that separator a fenced code block or
+// a thematic break glues onto the paragraph above it, and the fence stops being
+// a fence once the body Markdown is rendered again.
+func appendBodyBlock(b *strings.Builder, block string) {
+	if block == "" {
+		return
 	}
+	if b.Len() > 0 {
+		b.WriteString("\n\n")
+	}
+	b.WriteString(block)
+}
+
+// renderFence re-emits a code block as a fenced block, so the stored body keeps
+// the delimiters the exporter needs to render it again.
+func renderFence(info string, c *ast.CodeBlock, src []byte) string {
+	body := c.Value.Bytes(src)
+	var b strings.Builder
+	b.WriteString("```")
+	b.WriteString(info)
+	b.WriteString("\n")
+	b.Write(body)
+	if len(body) > 0 && body[len(body)-1] != '\n' {
+		b.WriteString("\n")
+	}
+	b.WriteString("```\n\n")
 	return b.String()
 }
 
 func paragraphText(p *ast.Paragraph, src []byte) string {
 	var b strings.Builder
-	for i := range p.Lines().Len() {
-		seg := p.Lines().At(i)
+	for _, seg := range p.Source() {
 		// Write the segment bytes directly (trimmed in place) instead of
 		// converting each line to a string first — the conversion copies.
-		_, _ = b.Write(bytes.TrimRight(seg.Value(src), "\r\n"))
+		_, _ = b.Write(bytes.TrimRight(seg.Bytes(src), "\r\n"))
 	}
 	return strings.TrimSpace(b.String())
-}
-
-func renderFence(f *ast.FencedCodeBlock, src []byte) string {
-	var b strings.Builder
-	b.WriteString("```")
-	b.WriteString(fenceInfo(f, src))
-	b.WriteString("\n")
-	b.WriteString(fenceLines(f, src))
-	b.WriteString("```\n\n")
-	return b.String()
 }
 
 // renderBlock returns the source markdown of a block that has no dedicated
@@ -754,13 +779,13 @@ func renderBlock(src []byte, n ast.Node) string {
 		if !entering {
 			return ast.WalkContinue, nil
 		}
-		// Only block nodes have Lines() — inline nodes (e.g. italic text)
-		// panic when Lines() is called.
-		if m.Type() == ast.TypeInline {
+		// Only block nodes carry source segments — inline nodes (e.g. italic
+		// text) have none.
+		bn, ok := m.(ast.BlockNode)
+		if !ok {
 			return ast.WalkContinue, nil
 		}
-		for i := range m.Lines().Len() {
-			seg := m.Lines().At(i)
+		for _, seg := range bn.Source() {
 			if start < 0 || seg.Start < start {
 				start = seg.Start
 			}
@@ -806,12 +831,7 @@ const (
 // generated-content markers. Such a block is tool metadata: keeping it would
 // open a phantom headingless content node in every generated document.
 func isGeneratedMarker(block *ast.HTMLBlock, src []byte) bool {
-	var b strings.Builder
-	for i := range block.Lines().Len() {
-		seg := block.Lines().At(i)
-		b.Write(seg.Value(src))
-	}
-	switch strings.TrimSpace(b.String()) {
+	switch strings.TrimSpace(string(block.Value.Bytes(src))) {
 	case generatedMarker, legacyGeneratedMarker:
 		return true
 	}

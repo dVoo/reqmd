@@ -480,7 +480,7 @@ requirements/
 
 ### 7. Document frontmatter (YAML)
 
-Each `.md` file MAY include YAML frontmatter delimited by `---`, parsed via
+Each `.md` file MAY start with YAML frontmatter delimited by `---`, parsed via
 [goldmark-meta](https://github.com/yuin/goldmark-meta). The `description` key
 provides document-level prose rendered in the HTML export below the document
 header:
@@ -492,8 +492,12 @@ description: "This document defines the **stakeholder goals** that drive all dow
 ```
 
 Frontmatter keys from multiple `.md` files in the same document directory are
-merged with first-file-wins semantics. The `description` field is processed
-through goldmark, supporting inline Markdown (bold, code, links, etc.).
+merged with first-file-wins semantics, and are available as document metadata
+(`Document.Meta`). `description` is processed through goldmark, so inline
+Markdown (bold, code, links) works. Metadata never becomes content: it is not a
+requirement, is not counted, traced or filtered, and does not appear in the
+document body. Document *configuration* (levels, upstream traces, id prefixes)
+stays in `schema.yaml`.
 
 ### 8. Goldmark extensions
 
@@ -502,13 +506,17 @@ in both parsing and HTML export, with these extensions enabled:
 
 | Extension | Package | What it does |
 |-----------|---------|-------------|
-| **GFM** | `github.com/yuin/goldmark/extension` | Tables, strikethrough, autolinks, task lists |
-| **AutoHeadingID** | `github.com/yuin/goldmark/parser` | Auto-generates `id` attributes for headings |
-| **Mermaid** | `go.abhg.dev/goldmark/mermaid` | Diagram rendering from `` ```mermaid `` blocks |
-| **Fenced divs** | `github.com/stefanfritsch/goldmark-fences` | Pandoc-style `::: {.class}` containers |
-| **Highlighting** | `github.com/yuin/goldmark-highlighting/v2` | Syntax-highlighted code blocks via chroma |
-| **Emoji** | `github.com/yuin/goldmark-emoji` | GitHub-style `:joy:` → 😊 emoji |
-| **KaTeX** | `github.com/FurqanSoftware/goldmark-katex` | Math rendering: inline `$x^2$` and display `$$...$$` |
+| **GFM** | `github.com/yuin/goldmark/v2/extension` | Tables, strikethrough, autolinks, task lists |
+| **Frontmatter** | `github.com/yuin/goldmark-meta/v2` | YAML metadata block (`---`) |
+| **Alerts** | `github.com/yuin/goldmark-alert` | GitHub-style `> [!NOTE]` callouts |
+| **Diagrams** | `github.com/yuin/goldmark-diagram` | Client-side Mermaid rendering from ` ```mermaid ` blocks |
+| **Highlighting** | `github.com/yuin/goldmark-highlighting/v3` | Syntax-highlighted code blocks via chroma |
+| **Emoji** | `github.com/yuin/goldmark-emoji/v2` | GitHub-style `:joy:` → 😊 emoji |
+
+`reqmd` runs goldmark **v2**. The parser walks the AST with the structural
+extensions (GFM, frontmatter); the presentational ones (alerts, diagrams,
+highlighting, emoji) live on the HTML renderer, so a body is stored as Markdown
+and rendered on export.
 
 ### 9. Attribute filtering (`--filter`)
 
@@ -565,7 +573,7 @@ in the card grid marked `· undeclared`.
 | `reqmd stats --json <root>` | JSON stats. `--filter` supported. |
 | `reqmd export csv <root> -o <dir>` | CSV export with Type, Body and Rationale columns, emitted in document order for requirements and items alike. `--results <path>` (repeatable) adds Verdict and Verdict Source columns. `--filter "<expr>"` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
 | `reqmd export html <root> -o <dir>` | Standalone HTML: a **project home** (`index.html`) plus one page per document. The **Document** view is server-rendered (compact app bar, sidebar outline with scroll-spy, one sticky search/filter toolbar, neutral requirement cards with status/coverage/verdict chips, collapsible attribute/rationale/evidence/trace details) and stays readable without JavaScript. **Table** (sortable grid with column chooser and expandable rows), **Trace** (selected-requirement explorer plus a size-bounded matrix), and **Coverage** (actionable exception lists) render on demand from one shared view model, so no hidden analytical DOM is emitted. Coverage, verification (including `no verdict` in the denominator), and link health are derived from the same graph analysis `reqmd check` runs. The export embeds its CSS and client script — no CDN, fully offline, except that a page containing a `mermaid` diagram loads a version-pinned Mermaid runtime so the diagram renders in the browser (the one documented network exception). Chrome: ⌘K command palette, keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`, `?`), and URL-synced state using repeated `f=attr:value` params (`?q=&f=&view=&req=`) so a filtered view is shareable. `--results` renders verdict chips and evidence; `--filter` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
-| `reqmd export json <root> -o <dir>` | Four flat NDJSON tables for reporting platforms (Databricks, Snowflake, BigQuery): `requirements.ndjson` (one row per content node; built-ins promoted to top-level keys, remaining attributes in an `attrs` envelope), `traces.ndjson` (one row per declared trace ref, with `pin` and `resolved`), `results.ndjson` (one row per measure verdict; requires `--results`), and `findings.ndjson` (one row per check finding). A pure function of tree + results, so repeated exports are byte-identical. `--filter "<expr>"` limits `requirements.ndjson` (`--relaxed-filter` allows undeclared attributes); `--disjoint-check` findings land in `findings.ndjson`. |
+| `reqmd export json <root> -o <dir>` | Four flat NDJSON tables for reporting platforms (Databricks, Snowflake, BigQuery): `requirements.ndjson` (one row per requirement of the authored documents — sections and synthetic result/test-case nodes are not emitted; built-ins promoted to top-level keys, remaining attributes in an `attrs` envelope), `traces.ndjson` (one row per declared trace ref of the exported requirements, with `pin` and `resolved`), `results.ndjson` (one row per measure verdict; always written, empty without `--results`), and `findings.ndjson` (one row per check finding). A pure function of tree + results, so repeated exports are byte-identical. `--filter "<expr>"` narrows `requirements.ndjson` and `traces.ndjson` (`--relaxed-filter` allows undeclared attributes); refs still resolve against the full tree and findings are filter-aware; `--disjoint-check` findings land in `findings.ndjson`. |
 | `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build). `--results <path>` (repeatable) includes `RESULT:` nodes with `outcome` and `source` properties, enabling graph traversal from requirements through measures to verification results. |
 | `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`, `--filter`, `--relaxed-filter`) |
 | `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`, `--filter "<expr>"` to scope both snapshots, `--relaxed-filter` to allow undeclared attributes) |

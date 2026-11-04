@@ -725,3 +725,24 @@ func TestHTMLExportMermaidDiagram(t *testing.T) {
 		t.Error("page without a diagram must stay free of external scripts")
 	}
 }
+
+// TestHTMLExportAlert covers the extension that replaced fenced divs: a GitHub
+// alert block in a body renders as a styled callout with its kind-specific
+// class, not as a plain blockquote.
+func TestHTMLExportAlert(t *testing.T) {
+	doc := basicDoc()
+	doc.Nodes[0].Body = "> [!WARNING]\n> Watch out.\n\n> [!TIP]\n> A tip.\n"
+
+	out := exportPage(t, &HTML{}, doc, doc.Properties)
+	for _, want := range []string{
+		`class="markdown-alert markdown-alert-warning"`,
+		`class="markdown-alert markdown-alert-tip"`,
+		`class="markdown-alert-title"`,
+		"Watch out.",
+		"A tip.",
+	} {
+		if !strings.Contains(out, want) {
+			t.Errorf("alert output missing %q", want)
+		}
+	}
+}

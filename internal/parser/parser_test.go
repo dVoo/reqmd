@@ -136,7 +136,9 @@ func TestParseMD_NonAttrCodeBlock(t *testing.T) {
 	if len(reqs) != 1 {
 		t.Fatalf("expected 1 requirement, got %d", len(reqs))
 	}
-	expected := "Some text.```json\n{\"key\": \"value\"}\n```\n\n"
+	// The blank line matters: without it the fence glues onto the paragraph and
+	// stops being a fenced block when the body is rendered again.
+	expected := "Some text.\n\n```json\n{\"key\": \"value\"}\n```\n\n"
 	if reqs[0].Body != expected {
 		t.Errorf("Body = %q, want %q", reqs[0].Body, expected)
 	}
@@ -961,5 +963,165 @@ func TestParseMD_MermaidFencePreserved(t *testing.T) {
 	want := "```mermaid\ngraph TD\n  A --> B\n```\n\n"
 	if got := reqs[0].Body; got != want {
 		t.Errorf("body =\n%q\nwant\n%q", got, want)
+	}
+}
+
+// TestParseMD_FrontmatterParsed verifies that a leading YAML frontmatter block
+// is parsed into the document's metadata and contributes no content: no node,
+// no body prose.
+func TestParseMD_FrontmatterParsed(t *testing.T) {
+	src := []byte("---\ndescription: Abstract with **markdown**\ntags: [a, b]\n---\n\n" +
+		"# Title\n\n## X-1: first\n\n```attr\nstatus: approved\n```\n\nBody.\n")
+	nodes, title, meta, err := parseMD(src, "fm.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if title != "Title" {
+		t.Errorf("title = %q, want %q", title, "Title")
+	}
+	if len(nodes) != 1 {
+		t.Fatalf("nodes = %d, want 1 (frontmatter must not open a node)", len(nodes))
+	}
+	if got, _ := meta["description"].(string); got != "Abstract with **markdown**" {
+		t.Errorf("description = %q", got)
+	}
+	reqs := model.CollectRequirements(assembleTree(nodes))
+	if len(reqs) != 1 {
+		t.Fatalf("requirements = %d, want 1", len(reqs))
+	}
+	if got := reqs[0].Body; got != "Body." {
+		t.Errorf("body = %q, want %q (metadata must not leak into the body)", got, "Body.")
+	}
+}
+
+// TestParseFiles_FrontmatterFirstFileWins pins the merge rule across the files
+// of one document directory.
+func TestParseFiles_FrontmatterFirstFileWins(t *testing.T) {
+	dir := t.TempDir()
+	write := func(name, content string) string {
+		t.Helper()
+		path := filepath.Join(dir, name)
+		if err := os.WriteFile(path, []byte(content), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		return path
+	}
+	a := write("a.md", "---\ndescription: first\nowner: alice\n---\n\n# A\n")
+	b := write("b.md", "---\ndescription: second\nowner: bob\n---\n\n# B\n")
+
+	_, _, meta, errs := parseFiles([]string{a, b})
+	if len(errs) > 0 {
+		t.Fatalf("parse errors: %v", errs)
+	}
+	if got, _ := meta["description"].(string); got != "first" {
+		t.Errorf("description = %q, want the first file's value", got)
+	}
+	if got, _ := meta["owner"].(string); got != "alice" {
+		t.Errorf("owner = %q, want the first file's value", got)
+	}
+}
+
+// TestParseMD_ChunkedFrontmatter covers the same rule on the parallel path:
+// chunk 0 carries the file preamble, so it is the chunk that yields the
+// metadata, and the block must not reach any node's body.
+func TestParseMD_ChunkedFrontmatter(t *testing.T) {
+	src := append([]byte("---\ndescription: chunked\n---\n\n"), bigDoc(t, 400)...)
+	if len(src) < parseParallelThreshold {
+		t.Fatalf("fixture is %d bytes, below the threshold", len(src))
+	}
+	nodes, title, meta, err := parseMD(src, "big.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if title != "Big Spec" {
+		t.Errorf("title = %q, want %q", title, "Big Spec")
+	}
+	if got, _ := meta["description"].(string); got != "chunked" {
+		t.Errorf("description = %q, want %q", got, "chunked")
+	}
+	for _, req := range model.CollectRequirements(assembleTree(nodes)) {
+		if strings.Contains(req.Body, "description:") {
+			t.Errorf("frontmatter leaked into %s body: %q", req.ID, req.Body)
+		}
+	}
+}
+
+// TestParseMD_FrontmatterUnterminatedIsError pins the one failure shape where
+// content would otherwise vanish without a diagnostic: a file whose first line
+// opens a metadata block that is never closed. The extension accepts any run of
+// dashes as a separator, so the guard has to as well.
+func TestParseMD_FrontmatterUnterminatedIsError(t *testing.T) {
+	body := "description: never closed\n\n## REQ-1: lost\n\n```attr\nid: REQ-1\ntitle: lost\n```\n"
+	for _, opener := range []string{"--", "---", "----"} {
+		src := []byte(opener + "\n" + body)
+		if _, _, _, err := parseMD(src, "unterminated.md"); err == nil {
+			t.Errorf("opener %q: expected an error for an unterminated frontmatter block", opener)
+		}
+	}
+
+	// A properly closed block is metadata, not an error.
+	closed := []byte("---\ndescription: fine\n---\n\n## REQ-1: found\n\n```attr\nid: REQ-1\ntitle: found\n```\n")
+	if _, _, meta, err := parseMD(closed, "closed.md"); err != nil {
+		t.Fatalf("closed frontmatter must parse: %v", err)
+	} else if meta["description"] != "fine" {
+		t.Errorf("description = %v, want %q", meta["description"], "fine")
+	}
+}
+
+// TestParseMD_IndentedCodeBlockBecomesFence verifies the v2 code-block merge:
+// an indented block is re-emitted as a fence so the body keeps code semantics
+// instead of losing its indentation markers.
+func TestParseMD_IndentedCodeBlockBecomesFence(t *testing.T) {
+	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\nProse.\n\n" +
+		"    indented one\n    indented two\n")
+	reqs := reqsOf(parseReqTree(t, src))
+	if len(reqs) != 1 {
+		t.Fatalf("requirements = %d, want 1", len(reqs))
+	}
+	want := "Prose.\n\n```\nindented one\nindented two\n```\n\n"
+	if got := reqs[0].Body; got != want {
+		t.Errorf("body =\n%q\nwant\n%q", got, want)
+	}
+}
+
+// TestParseMD_FenceInfoPreserved verifies that everything after the language in
+// a fence's info string survives the body round-trip, not just the language.
+func TestParseMD_FenceInfoPreserved(t *testing.T) {
+	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+		"```go title=\"main\"\nfunc main() {}\n```\n")
+	reqs := reqsOf(parseReqTree(t, src))
+	if len(reqs) != 1 {
+		t.Fatalf("requirements = %d, want 1", len(reqs))
+	}
+	want := "```go title=\"main\"\nfunc main() {}\n```\n\n"
+	if got := reqs[0].Body; got != want {
+		t.Errorf("body =\n%q\nwant\n%q", got, want)
+	}
+}
+
+// TestParseMD_ChunkedFrontmatterSeparatorRule keeps the split scan and the
+// extension in agreement: the extension opens a metadata block on any run of
+// dashes, so the scan must skip the same block. A heading-looking line inside
+// the block would otherwise be taken for the document title.
+func TestParseMD_ChunkedFrontmatterSeparatorRule(t *testing.T) {
+	fm := "----\ndescription: dashes\nnot-a-heading: ## impostor: title\n----\n\n"
+	src := append([]byte(fm), bigDoc(t, 400)...)
+	if len(src) < parseParallelThreshold {
+		t.Fatalf("fixture is %d bytes, below the threshold", len(src))
+	}
+	nodes, title, meta, err := parseMD(src, "dashes.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if title != "Big Spec" {
+		t.Errorf("title = %q, want %q (a heading inside the metadata block must not win)", title, "Big Spec")
+	}
+	if got, _ := meta["description"].(string); got != "dashes" {
+		t.Errorf("description = %q, want %q", got, "dashes")
+	}
+	for _, req := range model.CollectRequirements(assembleTree(nodes)) {
+		if strings.Contains(req.Body, "impostor") {
+			t.Errorf("metadata leaked into %s body", req.ID)
+		}
 	}
 }

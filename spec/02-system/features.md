@@ -61,9 +61,9 @@ priority: High
 trace:
   - STK-GOAL-002
 ```
-Documents SHOULD support YAML frontmatter (`---`-delimited) parsed via goldmark-meta. If present, the `description` key provides document-level prose rendered in the HTML export below the document header. Frontmatter parsing must not interfere with requirement `attr`-block parsing within the same file.
+A `.md` file MAY begin with a YAML frontmatter block delimited by `---`. It SHALL be parsed as document metadata and SHALL NOT contribute a content-tree node or body prose. Metadata from the files of one document directory SHALL be merged with first-file-wins semantics. The `description` key SHALL be rendered as document-level prose below the document header in the HTML export. Frontmatter parsing must not interfere with requirement `attr`-block parsing within the same file, and a `---` thematic break further down a file remains body content.
 
-*Rationale:* YAML frontmatter is a standard convention across Markdown toolchains (Jekyll, Hugo, GitHub Pages). Supporting it lets authors add document-level context — like an abstract or navigation hint — without requiring a separate file.
+*Rationale:* YAML frontmatter is the convention every Markdown toolchain uses (Jekyll, Hugo, GitHub Pages), so authors arrive expecting it to work; a document can then carry an abstract or a navigation hint without a separate file. Metadata is deliberately content-free: it never becomes a requirement, so it can never be traced, counted, or filtered. Document *configuration* stays in `schema.yaml`, the one manifest per directory that is validated at compile time (SYS-FMT-001).
 
 ### SYS-CON-001: Content tree — nothing dropped
 ```attr
