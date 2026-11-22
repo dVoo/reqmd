@@ -83,11 +83,7 @@ HTML exports).`,
 					return fmt.Errorf("compiling filter %q: %w", filterExpr, compileErr)
 				}
 				filter.WriteWarnings(os.Stderr, warnings)
-				filterSet, err = f.MatchingIDs(docs)
-				if err != nil {
-					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
-				}
-				exportDocs, err = f.FilterDocs(docs)
+				exportDocs, filterSet, err = f.FilterDocsAndIDs(docs)
 				if err != nil {
 					return fmt.Errorf("applying filter %q: %w", filterExpr, err)
 				}

@@ -50,7 +50,7 @@ func runExportHTML(root, outputDir string, resultsPaths []string, filterExpr str
 	if err != nil {
 		return err
 	}
-	analysis, err := analyzeHTMLGraph(docs, resultsPaths, matchedIDs, root, outputDir)
+	analysis, err := analyzeHTMLGraph(docs, resultsPaths, matchedIDs)
 	if err != nil {
 		return err
 	}
@@ -89,13 +89,9 @@ func discoverHTMLDocs(root, filterExpr string, relaxedFilter bool) (docs, export
 		return nil, nil, nil, fmt.Errorf("compiling filter %q: %w", filterExpr, ferr)
 	}
 	filter.WriteWarnings(os.Stderr, warnings)
-	exportDocs, err = f.FilterDocs(docs)
+	exportDocs, matchedIDs, err = f.FilterDocsAndIDs(docs)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("applying filter %q: %w", filterExpr, err)
-	}
-	matchedIDs, err = f.MatchingIDs(docs)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("collecting matching IDs: %w", err)
 	}
 	return docs, exportDocs, matchedIDs, nil
 }
@@ -103,7 +99,7 @@ func discoverHTMLDocs(root, filterExpr string, relaxedFilter bool) (docs, export
 // analyzeHTMLGraph builds the trace graph and adapts it into the presentation
 // analysis every HTML view renders from. Ephemeral verification results are
 // synthesized into pseudo-requirements before the graph is built.
-func analyzeHTMLGraph(docs []model.Document, resultsPaths []string, matchedIDs map[string]struct{}, root, outputDir string) (*exporter.Analysis, error) {
+func analyzeHTMLGraph(docs []model.Document, resultsPaths []string, matchedIDs map[string]struct{}) (*exporter.Analysis, error) {
 	graphDocs := docs
 	if len(resultsPaths) > 0 {
 		merged, _, err := verify.LoadMerged(resultsPaths)
@@ -119,20 +115,7 @@ func analyzeHTMLGraph(docs []model.Document, resultsPaths []string, matchedIDs m
 	if matchedIDs != nil {
 		g.SetFilter(matchedIDs)
 	}
-	analysis := exporter.NewAnalysis(g, exporter.BuildTitleMap(docs))
-	out := newHTMLOutput(root, docs, docs, outputDir)
-	analysis.SetHrefResolver(func(id string) string {
-		target, ok := out.reqOut[id]
-		if !ok {
-			return ""
-		}
-		rel, relErr := filepath.Rel("", target)
-		if relErr != nil {
-			return ""
-		}
-		return filepath.ToSlash(rel) + "#" + id
-	})
-	return analysis, nil
+	return exporter.NewAnalysis(g, exporter.BuildTitleMap(docs)), nil
 }
 
 // htmlOutput resolves output paths once for a document set and writes the

@@ -2,6 +2,8 @@ package filter
 
 import (
 	"fmt"
+	"maps"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -473,6 +475,76 @@ func TestFilterDocs_ReattachesChildrenOfPrunedReq(t *testing.T) {
 	nodes := filtered[0].Nodes
 	if len(nodes) != 1 || nodes[0].ID != "SW-CHILD" {
 		t.Fatalf("pruned parent's child should be re-attached: %+v", nodes)
+	}
+}
+
+// FilterDocsAndIDs must return exactly what FilterDocs and MatchingIDs return
+// separately: the same pruned tree (nested sections, a container that only
+// partly matches, a pruned requirement whose child survives) and the same ID
+// set, from a single evaluation pass.
+func TestFilterDocsAndIDs_MatchesSeparateCalls(t *testing.T) {
+	docs := testDocs()
+	child := testReq("SW-CHILD", "Child", map[string]any{"status": "approved"})
+	docs[0].Nodes = []*model.Node{
+		{Kind: model.KindSection, Title: "Chapter", Body: "Chapter intro.", Children: []*model.Node{
+			testReq("SW-001", "Parser", map[string]any{"status": "approved"}),
+			{Kind: model.KindSection, Title: "Drafts", Body: "Draft-only work.", Children: []*model.Node{
+				testReq("SW-002", "Schema", map[string]any{"status": "draft"}),
+			}},
+			{Kind: model.KindSection, Title: "Approved", Children: []*model.Node{
+				testReq("SW-003", "Common", map[string]any{"status": "approved"}),
+			}},
+		}},
+		{Kind: model.KindSection, Level: 0, Body: "Preamble prose."},
+		{Kind: model.KindRequirement, ID: "SW-PARENT", Title: "Parent", Attrs: map[string]any{"status": "draft"}, Children: []*model.Node{child}},
+	}
+	f, err := Compile(`status == "approved"`, validAttrsFor(docs))
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+
+	wantDocs, err := f.FilterDocs(docs)
+	if err != nil {
+		t.Fatalf("FilterDocs: %v", err)
+	}
+	wantIDs, err := f.MatchingIDs(docs)
+	if err != nil {
+		t.Fatalf("MatchingIDs: %v", err)
+	}
+
+	gotDocs, gotIDs, err := f.FilterDocsAndIDs(docs)
+	if err != nil {
+		t.Fatalf("FilterDocsAndIDs: %v", err)
+	}
+
+	if !reflect.DeepEqual(gotDocs, wantDocs) {
+		t.Fatalf("docs differ from FilterDocs:\n got %v\nwant %v", titles(gotDocs[0].Nodes), titles(wantDocs[0].Nodes))
+	}
+	if !maps.Equal(gotIDs, wantIDs) {
+		t.Fatalf("ID set = %v, want %v", gotIDs, wantIDs)
+	}
+
+	// Pin the expectation so the comparison cannot pass with both sides wrong:
+	// the partly matching chapter survives with its approved content, the
+	// draft-only folder is dropped, and the pruned parent's child is re-attached.
+	wantTop := []string{
+		`"Chapter"(body="Chapter intro.",children=2)`,
+		`""(body="Preamble prose.",children=0)`,
+		`"Child"(body="",children=0)`,
+	}
+	if got := titles(gotDocs[0].Nodes); !reflect.DeepEqual(got, wantTop) {
+		t.Fatalf("top-level nodes = %v, want %v", got, wantTop)
+	}
+	wantChapter := []string{
+		`"Parser"(body="",children=0)`,
+		`"Approved"(body="",children=1)`,
+	}
+	if got := titles(gotDocs[0].Nodes[0].Children); !reflect.DeepEqual(got, wantChapter) {
+		t.Fatalf("chapter children = %v, want %v", got, wantChapter)
+	}
+	wantIDs = map[string]struct{}{"SW-001": {}, "SW-003": {}, "SW-CHILD": {}, "STK-001": {}}
+	if !maps.Equal(gotIDs, wantIDs) {
+		t.Fatalf("ID set = %v, want %v", gotIDs, wantIDs)
 	}
 }
 

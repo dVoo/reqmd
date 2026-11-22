@@ -201,21 +201,31 @@ func (f *Filter) Match(node *model.Node) (bool, error) {
 // only items) so document-level structure is preserved for list/stats/
 // export output.
 func (f *Filter) FilterDocs(docs []model.Document) ([]model.Document, error) {
+	out, _, err := f.FilterDocsAndIDs(docs)
+	return out, err
+}
+
+// FilterDocsAndIDs is the single-pass form of FilterDocs + MatchingIDs: the
+// same pruned documents and the same matching-ID set from one evaluation per
+// requirement. Used by the exports and serve, which need both views of the
+// same filtered tree.
+func (f *Filter) FilterDocsAndIDs(docs []model.Document) ([]model.Document, map[string]struct{}, error) {
 	out := make([]model.Document, len(docs))
+	ids := make(map[string]struct{})
 	for i, doc := range docs {
 		filtered := doc
-		nodes, err := f.pruneNodes(doc.Nodes)
+		nodes, err := f.pruneNodes(doc.Nodes, ids)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		filtered.Nodes = nodes
 		out[i] = filtered
 	}
-	return out, nil
+	return out, ids, nil
 }
 
 // MatchingIDs returns a set of requirement IDs that match the filter.
-// Used by check/serve for filter-aware graph checks — the graph is
+// Used by check for filter-aware graph checks — the graph is
 // built from the full tree, but only matching reqs are checked/reported.
 func (f *Filter) MatchingIDs(docs []model.Document) (map[string]struct{}, error) {
 	ids := make(map[string]struct{})
@@ -248,11 +258,14 @@ func (f *Filter) MatchingIDs(docs []model.Document) (map[string]struct{}, error)
 //
 // Kept nodes are shallow copies — the input tree is never mutated, so multiple
 // filtered views of the same documents stay independent.
-func (f *Filter) pruneNodes(nodes []*model.Node) ([]*model.Node, error) {
+//
+// Every matching requirement's ID is added to ids, so one walk yields both the
+// pruned tree and the MatchingIDs set.
+func (f *Filter) pruneNodes(nodes []*model.Node, ids map[string]struct{}) ([]*model.Node, error) {
 	var out []*model.Node
 	for _, n := range nodes {
 		hadChildren := len(n.Children) > 0
-		children, err := f.pruneNodes(n.Children)
+		children, err := f.pruneNodes(n.Children, ids)
 		if err != nil {
 			return nil, err
 		}
@@ -265,6 +278,7 @@ func (f *Filter) pruneNodes(nodes []*model.Node) ([]*model.Node, error) {
 				out = append(out, children...)
 				continue
 			}
+			ids[n.ID] = struct{}{}
 		} else {
 			switch {
 			case len(children) > 0:

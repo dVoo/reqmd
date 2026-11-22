@@ -301,8 +301,8 @@ func pageLinks(links []LinkState, href func(string) string) []pageLink {
 	}
 	out := make([]pageLink, len(links))
 	for i, l := range links {
-		target := l.Href
-		if target == "" && href != nil {
+		target := ""
+		if href != nil {
 			target = href(l.ID)
 		}
 		if strings.HasPrefix(target, "#") {

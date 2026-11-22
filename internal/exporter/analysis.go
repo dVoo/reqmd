@@ -12,12 +12,9 @@ import (
 // human-readable title; Pin/Direction describe the authored version pin and
 // its health against the target's current Version.
 type LinkState struct {
-	ID    string
-	Ref   string
-	Title string
-	// Href is the cross-document target of the linked requirement, filled in
-	// by the page that links to it (empty for same-page links).
-	Href      string
+	ID        string
+	Ref       string
+	Title     string
 	Direction string
 	Pin       int
 	Version   int
@@ -47,17 +44,6 @@ type NodeState struct {
 type Analysis struct {
 	Nodes      map[string]NodeState
 	HasResults bool
-	// hrefFor resolves cross-document links for requirements that live on
-	// another page. A nil resolver leaves those links without a target, which
-	// the client then renders as plain text.
-	hrefFor func(string) string
-}
-
-// SetHrefResolver lets the analysis attach cross-document targets to links
-// whose requirement lives on another page (the client cannot build them for
-// nodes it never received).
-func (a *Analysis) SetHrefResolver(fn func(string) string) {
-	a.hrefFor = fn
 }
 
 // NewAnalysis adapts graph results into presentation state. titleMap supplies
@@ -187,9 +173,6 @@ func (a *Analysis) mirrorDownstream(real map[string]bool, titleMap map[string]st
 				Version:   link.Version,
 				Pinned:    link.Pinned,
 				Resolved:  true,
-			}
-			if a.hrefFor != nil {
-				down.Href = a.hrefFor(id)
 			}
 			target.Down = append(target.Down, down)
 			a.Nodes[link.ID] = target

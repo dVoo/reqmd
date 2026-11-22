@@ -75,3 +75,6 @@ site/.hugo_build.lock
 # Hugo build output
 site/public/
 bench-results/
+
+# graphify knowledge graph (generated)
+graphify-out/

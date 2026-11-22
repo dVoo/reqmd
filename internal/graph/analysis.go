@@ -104,18 +104,22 @@ func (g *Graph) VersionOf(id string) int {
 // VerificationStates returns the verification state of every non-synthetic
 // requirement. Eligible follows the missing-verdict gate (approved measure
 // with a `verify` attribute that is not deferred or rejected), so a
-// presentation denominator matches the check's expectation set.
+// presentation denominator matches the check's expectation set. Without
+// result nodes no verdict can exist, so the roll-up is skipped entirely.
 func (g *Graph) VerificationStates() map[string]NodeVerification {
 	out := make(map[string]NodeVerification, len(g.nodes))
+	hasResults := g.hasResultNodes()
 	for id, node := range g.nodes {
 		if node.IsResult || node.Synthetic {
 			continue
 		}
 		st := NodeVerification{Eligible: g.measureGate(node)}
-		if nv, ok := g.rollupVerdict(id); ok {
-			st.Outcome = nv.Outcome
-			st.Source = nv.Source
-			st.Evidence = nv.Evidence
+		if hasResults {
+			if nv, ok := g.rollupVerdict(id); ok {
+				st.Outcome = nv.Outcome
+				st.Source = nv.Source
+				st.Evidence = nv.Evidence
+			}
 		}
 		out[id] = st
 	}

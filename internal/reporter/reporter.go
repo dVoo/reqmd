@@ -143,7 +143,16 @@ func (r *Report) Format() string {
 		fmt.Fprintf(&b, "File   : %s  (%d requirements)\n", dh.Path, dh.ReqCount)
 		b.WriteString("=\n")
 
+		// Graph findings are bucketed per requirement ID, so a document that
+		// defines the same ID N times would print every finding N times.
+		// Render each ID once — the first occurrence keeps the full block.
+		rendered := make(map[string]struct{}, len(dh.ReqIDs))
 		for _, reqID := range dh.ReqIDs {
+			if _, done := rendered[reqID]; done {
+				continue
+			}
+			rendered[reqID] = struct{}{}
+
 			// Find matching validation error (first only)
 			var pass1Err string
 			for _, ve := range r.valErrorsByReq[reqID] {
@@ -497,7 +506,14 @@ func (r *Report) FormatJSON() string {
 			Reqs:     make([]jsonReqResult, 0, len(dh.ReqIDs)),
 		}
 
+		// Same duplicate-ID suppression as Format: one entry per unique ID.
+		rendered := make(map[string]struct{}, len(dh.ReqIDs))
 		for _, reqID := range dh.ReqIDs {
+			if _, done := rendered[reqID]; done {
+				continue
+			}
+			rendered[reqID] = struct{}{}
+
 			// Collect all checks for this req into a flat list
 			var checks []jsonChk
 

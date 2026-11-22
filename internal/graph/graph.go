@@ -119,6 +119,7 @@ type Graph struct {
 	nodes            map[string]*CachedNode
 	docByLevel       map[string][]string
 	sevCache         map[string]severity
+	evidenceCache    map[string]evidenceResult
 	cachedLeafDirs   map[string]bool
 	cachedRootDirs   map[string]bool
 	dangling         []CheckResult
@@ -139,7 +140,8 @@ type Graph struct {
 // per-req check/report loop is scoped.
 func (g *Graph) SetFilter(ids map[string]struct{}) {
 	g.filter = ids
-	g.sevCache = nil // roll-up results depend on the active filter
+	g.sevCache = nil      // roll-up results depend on the active filter
+	g.evidenceCache = nil // evidence sets are filter-scoped too
 }
 
 // SetDisjointAttrs enables the disjoint-attribute check for the named
@@ -1188,6 +1190,13 @@ func (g *Graph) evidenceCase(in *CachedNode) string {
 	return ""
 }
 
+// evidenceResult is the memoized outcome of measureEvidence.
+type evidenceResult struct {
+	self   []EvidenceItem
+	items  []EvidenceItem
+	drafts int
+}
+
 // measureEvidence gathers the evidence set of a requirement: its own
 // attached results plus the results of approved, in-filter nodes in its
 // inbound trace closure (downstream authored test cases and synthesized
@@ -1195,7 +1204,14 @@ func (g *Graph) evidenceCase(in *CachedNode) string {
 // reported in the returned draft count. self holds the results attached
 // directly to the requirement; items is the deduplicated union (by case
 // key, keeping the higher severity).
+//
+// Results are computed once per requirement and cached on the graph
+// (invalidated by SetFilter) so repeated presentation/check passes over the
+// same inbound closure stay cheap. The returned slices are read-only.
 func (g *Graph) measureEvidence(reqID string) (self, items []EvidenceItem, drafts int) {
+	if cached, ok := g.evidenceCache[reqID]; ok {
+		return cached.self, cached.items, cached.drafts
+	}
 	seen := make(map[string]bool)
 	var rec func(id string) int
 	rec = func(id string) int {
@@ -1250,6 +1266,10 @@ func (g *Graph) measureEvidence(reqID string) (self, items []EvidenceItem, draft
 		}
 		sort.Slice(items, func(i, j int) bool { return items[i].Case < items[j].Case })
 	}
+	if g.evidenceCache == nil {
+		g.evidenceCache = make(map[string]evidenceResult)
+	}
+	g.evidenceCache[reqID] = evidenceResult{self: self, items: items, drafts: drafts}
 	return self, items, drafts
 }
 

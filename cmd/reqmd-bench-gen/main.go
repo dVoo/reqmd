@@ -12,7 +12,7 @@
 // When -reqsperdoc is set, each .md file in each copy is appended with
 // (K / source_per_doc) copies of the file's own requirement blocks, each
 // renamed to keep IDs unique. This produces a corpus with a target doc
-// count (6 × copies) AND a target per-doc req count, separately.
+// count (source doc dirs × copies) AND a target per-doc req count, separately.
 package main
 
 import (
@@ -29,7 +29,7 @@ import (
 )
 
 var (
-	headingIDRe  = regexp.MustCompile(`(?m)^##\s+([A-Z][A-Z0-9-]+)(\b|:)`)
+	headingIDRe  = regexp.MustCompile(`(?m)^#{2,6}[ \t]+([A-Z][A-Z0-9-]+)(\b|:)`)
 	idPrefixRe   = regexp.MustCompile(`(?m)^(\s*id-prefix:\s*)([A-Z][A-Z0-9-]+)\s*$`)
 	qualifiedRe  = regexp.MustCompile(`\b([A-Za-z][A-Za-z0-9_-]+)/([A-Z][A-Z0-9-]+)(~\d+)?\b`)
 	plainIDRe    = regexp.MustCompile(`\b([A-Z][A-Z0-9-]+)(~\d+)?\b`)
@@ -72,12 +72,17 @@ func main() {
 	srcFS := srcRoot.FS()
 
 	ids := map[string]bool{}
+	// Every directory holding a schema.yaml is a document dir (parser.Discover).
+	srcDocDirs := 0
 	if err := fs.WalkDir(srcFS, ".", func(p string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
 			return walkErr
 		}
 		if d.IsDir() || (!strings.HasSuffix(p, ".md") && d.Name() != "schema.yaml") {
 			return nil
+		}
+		if d.Name() == "schema.yaml" {
+			srcDocDirs++
 		}
 		body, readErr := fs.ReadFile(srcFS, p)
 		if readErr != nil {
@@ -97,24 +102,7 @@ func main() {
 	}
 	sort.Slice(idList, func(i, j int) bool { return len(idList[i]) > len(idList[j]) })
 
-	// Count top-level doc dirs (those with a schema.yaml in the original).
 	totalSrcReqs := len(ids)
-	srcDocDirs := 0
-	_ = fs.WalkDir(srcFS, ".", func(p string, d fs.DirEntry, walkErr error) error {
-		if walkErr != nil {
-			return fs.SkipDir
-		}
-		if !d.IsDir() || p == "." {
-			return nil
-		}
-		if path.Dir(p) != "." {
-			return nil
-		}
-		if _, statErr := fs.Stat(srcFS, path.Join(p, "schema.yaml")); statErr == nil {
-			srcDocDirs++
-		}
-		return nil
-	})
 	srcReqsPerDoc := 0
 	if srcDocDirs > 0 {
 		srcReqsPerDoc = totalSrcReqs / srcDocDirs
@@ -321,10 +309,9 @@ func rewriteBlockForCopy(block string, copyIdx int) string {
 		if loc == nil {
 			return s
 		}
-		id := s[loc[2]:loc[3]]
-		rest := s[loc[4]:]
 		ph := makePh()
-		placeholders[ph] = "## " + id + suffix + rest
+		// s[:loc[3]] is the original "### ID" prefix: keep the heading level.
+		placeholders[ph] = s[:loc[3]] + suffix + s[loc[3]:]
 		return ph
 	})
 
@@ -398,11 +385,9 @@ func applyRewrite(body, filename string, rename map[string]string, tag string) s
 			if loc == nil {
 				return s
 			}
-			id := s[loc[2]:loc[3]]
-			rest := s[loc[4]:]
-			if newID, ok := rename[id]; ok {
+			if newID, ok := rename[s[loc[2]:loc[3]]]; ok {
 				ph := makePlaceholder()
-				placeholders[ph] = "## " + newID + rest
+				placeholders[ph] = s[:loc[2]] + newID + s[loc[3]:]
 				return ph
 			}
 			return s

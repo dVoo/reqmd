@@ -261,32 +261,15 @@ func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string
 			return nil, nil, nil, fmt.Errorf("compiling filter %q: %w", filterExpr, err)
 		}
 		filter.WriteWarnings(os.Stderr, warnings)
-		filterSet, err := f.MatchingIDs(docs)
-		if err != nil {
-			return nil, nil, nil, fmt.Errorf("collecting matching IDs: %w", err)
-		}
-		g.SetFilter(filterSet)
-		docs, err = f.FilterDocs(docs)
+		filtered, filterSet, err := f.FilterDocsAndIDs(docs)
 		if err != nil {
 			return nil, nil, nil, fmt.Errorf("applying filter %q: %w", filterExpr, err)
 		}
+		g.SetFilter(filterSet)
+		docs = filtered
 	}
 
-	titleMap := exporter.BuildTitleMap(docs)
-	analysis := exporter.NewAnalysis(g, titleMap)
-	// Every page is served at the HTTP root, so a cross-document link is just
-	// the target page's basename.
-	analysis.SetHrefResolver(func(id string) string {
-		for _, doc := range docs {
-			for _, req := range doc.Requirements() {
-				if req.ID == id {
-					return filepath.Base(doc.Path) + "-requirements.html#" + id
-				}
-			}
-		}
-		return ""
-	})
-	return docs, analysis, g, nil
+	return docs, exporter.NewAnalysis(g, exporter.BuildTitleMap(docs)), g, nil
 }
 
 // exportServePages renders every document to HTML and counts graph checks.

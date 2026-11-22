@@ -182,6 +182,56 @@ func TestFormat_WithNewFormat(t *testing.T) {
 	}
 }
 
+// --- Duplicate requirement IDs ---
+
+// A document holding the same requirement ID three times lists that ID three
+// times in ReqIDs; every finding bucketed to the ID must still print once.
+func TestFormat_DuplicateReqIDPrintsFindingsOnce(t *testing.T) {
+	r := Report{
+		TotalReqs: 3,
+		DocHeaders: []DocHeader{
+			{Path: "spec/dup", Title: "dup-srs", ReqCount: 3, ReqIDs: []string{"DUP-001", "DUP-001", "DUP-001"}},
+		},
+		GraphChecks: []graph.CheckResult{
+			{Level: graph.LevelError, ReqID: "DUP-001", File: "spec/dup/a.md", Message: "duplicate requirement ID: already defined in a.md"},
+			{Level: graph.LevelWarning, ReqID: "DUP-001", File: "spec/dup/a.md", Message: "reference SYS-001 not found"},
+		},
+	}
+	r.NewIndex()
+	got := r.Format()
+
+	for _, msg := range []string{"duplicate requirement ID", "reference SYS-001 not found"} {
+		if n := strings.Count(got, msg); n != 1 {
+			t.Errorf("finding %q printed %d times, want 1\ngot:\n%s", msg, n, got)
+		}
+	}
+	if n := strings.Count(got, "DUP-001  attributes valid"); n != 1 {
+		t.Errorf("requirement line printed %d times, want 1\ngot:\n%s", n, got)
+	}
+}
+
+func TestFormatJSON_DuplicateReqIDRendersOnce(t *testing.T) {
+	r := Report{
+		TotalReqs: 3,
+		DocHeaders: []DocHeader{
+			{Path: "spec/dup", Title: "dup-srs", ReqCount: 3, ReqIDs: []string{"DUP-001", "DUP-001", "DUP-001"}},
+		},
+		GraphChecks: []graph.CheckResult{
+			{Level: graph.LevelError, ReqID: "DUP-001", File: "spec/dup/a.md", Message: "duplicate requirement ID: already defined in a.md"},
+		},
+	}
+	r.NewIndex()
+	m := mustUnmarshal(t, r.FormatJSON())
+
+	reqs := m["documents"].([]any)[0].(map[string]any)["requirements"].([]any)
+	if len(reqs) != 1 {
+		t.Fatalf("requirements len = %d, want 1", len(reqs))
+	}
+	if checks := reqs[0].(map[string]any)["checks"].([]any); len(checks) != 1 {
+		t.Fatalf("checks len = %d, want 1", len(checks))
+	}
+}
+
 // --- Format (empty with DocHeaders) ---
 
 func TestFormat_EmptyWithDocHeaders(t *testing.T) {
