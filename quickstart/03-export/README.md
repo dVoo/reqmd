@@ -73,22 +73,23 @@ reqmd export json 02-trace-your-spec/ -o json-out/
 
 | File | One row per |
 |------|--------------|
-| `requirements.ndjson` | content node — built-in attributes promoted to top-level keys, user attributes in the `attrs` envelope |
-| `traces.ndjson` | declared trace reference (with `resolved` and the `~N` pin if present) |
-| `results.ndjson` | measure verdict — only with `--results`, otherwise empty |
+| `requirements.ndjson` | authored requirement — built-in attributes promoted to top-level keys, user attributes in the `attrs` envelope (sections and synthetic result/test-case nodes are not emitted) |
+| `traces.ndjson` | declared trace reference of the exported requirements (with `resolved`, `ref`, `doc_id`, and the `~N` pin if present) |
+| `results.ndjson` | measure verdict — always written, empty without `--results` |
 | `findings.ndjson` | check finding (level, message, file) |
 
 ```json
-{"attrs":{"priority":"High"},"id":"STK-GOAL-001","title":"Fast Boot","doc_path":"quickstart/02-trace-your-spec/stakeholder","level":"stakeholder-needs","type":"req",...}
+{"ordinal":1,"attrs":{"priority":"High"},"id":"STK-GOAL-001","title":"Fast Boot","doc_path":"quickstart/02-trace-your-spec/stakeholder","level":"stakeholder-needs",...}
 {"from":"SYS-001","to":"STK-GOAL-001","doc_id":"stakeholder","ref":"stakeholder/STK-GOAL-001","resolved":true}
 {"level":"WARNING","req_id":"SYS-001","message":"no upstream trace: no approved requirement from \"software\" traces to this item (2 draft downstreams ignored)"}
 ```
 
 The output is a pure function of the tree (plus any `--results`), so repeated
 exports of the same tree are byte-identical — safe to load into a warehouse
-on every CI run. `--filter` limits `requirements.ndjson` to matching
-requirements; traces and findings are still computed over the full graph,
-the same semantics as the CSV and HTML exports.
+on every CI run. `--filter` narrows `requirements.ndjson` and
+`traces.ndjson` to matching requirements, while trace refs still resolve
+against the full tree and findings are filter-aware — the same semantics as
+the CSV and HTML exports.
 
 ## Export with verification results
 

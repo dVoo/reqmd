@@ -244,19 +244,19 @@ reqmd export json requirements/ -o json-out/ --results ci-artifacts/
 
 | File | One row per | Joins on |
 |---|---|---|
-| `requirements.ndjson` | content node (`req` / `container` / `info`) | `id` |
-| `traces.ndjson` | declared `trace:` reference | `from`, `to` |
-| `results.ndjson` | measure verdict (needs `--results`) | `measure_id` |
+| `requirements.ndjson` | authored requirement (sections are never rows) | `id` |
+| `traces.ndjson` | declared `trace:` reference of the exported requirements | `from`, `to` |
+| `results.ndjson` | measure verdict (file always written; empty without `--results`) | `measure_id` |
 | `findings.ndjson` | `check` finding (ERROR and WARNING) | `req_id` |
 
-Built-in attributes (`trace`, `requires-trace-from`, `status`, `disposition`, `version`, `verify`) are promoted to top-level columns, and the attributes your own `schema.yaml` declares stay in an `attrs` envelope with their native JSON types — arrays stay arrays. So a traceability dashboard is ordinary SQL:
+Built-in attributes (`trace`, `requires-trace-from`, `status`, `disposition`, `version`, `verify`) are promoted to top-level columns, and the attributes your own `schema.yaml` declares stay in an `attrs` envelope with their native JSON types — arrays stay arrays. A `traces.ndjson` row's `to` is the bare target ID (the `doc-id/` qualifier lives in `doc_id`) and `ref` keeps the raw source form, so joining on `id` needs no string surgery. Unset plain strings are `""`, unset promoted attributes are `null` (hence the `IS NOT NULL` below). So a traceability dashboard is ordinary SQL:
 
 ```sql
 -- coverage holes: requirements nothing downstream traces to
 SELECT r.id, r.title
 FROM   requirements r
 LEFT   JOIN traces t ON t.to = r.id
-WHERE  r.type = 'req' AND r.requires_trace_from IS NOT NULL AND t.from IS NULL;
+WHERE  r.requires_trace_from IS NOT NULL AND t.from IS NULL;
 
 -- current verdict per measure, latest run
 SELECT measure_id, outcome, source FROM results;

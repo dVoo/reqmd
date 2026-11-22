@@ -38,17 +38,21 @@ func newJSONCmd() *cobra.Command {
 
 Four files are written, one JSON object per line:
 
-  requirements.ndjson  one row per content node (req/container/info)
-  traces.ndjson        one row per declared trace reference
-  results.ndjson       one row per measure verdict (only with --results)
+  requirements.ndjson  one row per authored requirement (sections and
+                       synthetic verification-result nodes are not emitted)
+  traces.ndjson        one row per declared trace reference of an exported
+                       requirement
+  results.ndjson       one row per measure verdict; always written, empty
+                       without --results
   findings.ndjson      one row per check finding
 
 The output is a pure function of the tree plus any --results, so repeated
 exports of the same tree are byte-identical.
 
-With --filter, requirements.ndjson is limited to matching requirements while
-traces.ndjson and findings.ndjson are still computed over the full graph (the
-same semantics as the CSV and HTML exports).`,
+With --filter, requirements.ndjson and traces.ndjson are both limited to the
+matching requirements. Trace refs still resolve against the full tree, and
+findings.ndjson reports filter-aware results (same semantics as the CSV and
+HTML exports).`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			root := args[0]
@@ -56,6 +60,15 @@ same semantics as the CSV and HTML exports).`,
 			docs, err := parser.Discover(root)
 			if err != nil {
 				return fmt.Errorf("discovering documents: %w", err)
+			}
+
+			// ordinals is keyed off the unfiltered docs so a --filtered export
+			// keeps the authored numbering instead of compressing it.
+			ordinals := make(map[string]int)
+			for i := range docs {
+				for pos, req := range docs[i].Requirements() {
+					ordinals[req.ID] = pos + 1
+				}
 			}
 
 			// exportDocs holds the requirement rows to write. When --filter
@@ -130,7 +143,7 @@ same semantics as the CSV and HTML exports).`,
 				name  string
 			}{
 				{name: tableRequirements, write: func(w *bufio.Writer) error {
-					return exp.ExportRequirements(w, exportDocs)
+					return exp.ExportRequirements(w, exportDocs, ordinals)
 				}},
 				{name: tableTraces, write: func(w *bufio.Writer) error {
 					return exp.ExportTraces(w, exportDocs, g)

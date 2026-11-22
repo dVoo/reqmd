@@ -48,11 +48,10 @@ var promotedAttrs = map[string]string{
 // are promoted to top-level keys; the remaining declared attributes stay
 // in Attrs so nothing is lost.
 //
-// Every fixed key is present in every row (null when unset) so warehouse
-// schema inference — DuckDB, Spark, Snowflake's infer_schema — sees the
-// full column set regardless of which row it samples. Attrs is the one
-// intentional exception: it is the per-document attribute envelope and is
-// null on nodes that declare no extra attributes.
+// Every fixed key is present in every row so warehouse schema inference —
+// DuckDB, Spark, Snowflake's infer_schema — sees the full column set
+// regardless of which row it samples. String fields are "" when unset;
+// collections, pin, version, and Attrs are null when unset.
 type jsonRequirement struct {
 	Attrs             map[string]any `json:"attrs"`
 	ID                string         `json:"id"`
@@ -71,7 +70,7 @@ type jsonRequirement struct {
 	Trace             []any          `json:"trace"`
 	RequiresTraceFrom []any          `json:"requires_trace_from"`
 	Suppressions      []string       `json:"suppressions"`
-	Version           any            `json:"version"`
+	Version           *string        `json:"version"`
 }
 
 // reqmd:trace SW-EXP-003
@@ -80,7 +79,11 @@ type jsonRequirement struct {
 // titles reach the fact table as the `section_path` column on the requirements
 // beneath them. Synthetic documents (verification results and test cases) are
 // skipped: the requirement table is authored truth.
-func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
+//
+// ordinals maps every requirement ID to its 1-based position in the
+// unfiltered document order, so a --filtered export keeps the authored
+// numbering instead of renumbering the surviving rows.
+func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document, ordinals map[string]int) error {
 	enc := json.NewEncoder(w)
 
 	var rows []jsonRequirement
@@ -94,7 +97,7 @@ func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 			level = doc.XReqmd.Level
 		}
 		sectionPaths := model.CollectSectionPaths(doc.Nodes)
-		for i, n := range doc.Requirements() {
+		for _, n := range doc.Requirements() {
 			rows = append(rows, jsonRequirement{
 				DocPath:           doc.Path,
 				DocTitle:          doc.Title,
@@ -102,7 +105,7 @@ func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 				ID:                n.ID,
 				Title:             n.Title,
 				SectionPath:       sectionPaths[n.ID],
-				Ordinal:           i + 1,
+				Ordinal:           ordinals[n.ID],
 				ParentID:          n.ParentID,
 				Source:            n.Source,
 				Suppressions:      n.Suppressions,
@@ -112,7 +115,7 @@ func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 				Verify:            model.AttrString(n.Attrs, model.AttrVerify),
 				Trace:             model.AttrList(n.Attrs, model.AttrTrace),
 				RequiresTraceFrom: model.AttrList(n.Attrs, model.AttrRequiresTraceFrom),
-				Version:           n.Attrs["version"],
+				Version:           jsonVersion(n.Attrs),
 				Attrs:             remainingAttrs(n.Attrs),
 			})
 		}
@@ -134,11 +137,10 @@ func (j *JSON) ExportRequirements(w io.Writer, docs []model.Document) error {
 }
 
 // jsonTrace is one row of traces.ndjson: one declared trace reference.
-// To is the resolved bare requirement ID when resolved, otherwise the raw
-// declared target. Ref always holds the raw form as written, and DocID
-// holds the `doc-id` qualifier when the ref uses one. Resolved is false
-// for a dangling reference; such a ref also appears in findings.ndjson, so
-// consumers can count or filter it themselves.
+// To is the target requirement ID and never carries a `doc-id/` qualifier:
+// DocID holds the qualifier on its own, and Ref always holds the raw form
+// as written. Resolved is false for a dangling reference; such a ref also
+// appears in findings.ndjson, so consumers can count or filter it themselves.
 type jsonTrace struct {
 	From     string `json:"from"`
 	To       string `json:"to"`
@@ -169,21 +171,21 @@ func (j *JSON) ExportTraces(w io.Writer, docs []model.Document, g *graph.Graph) 
 					continue
 				}
 				bare, pin, pinned := model.StripPin(raw)
-				resolvedID, resolved := g.ResolveTraceRef(raw)
 				to := bare
-				if resolved {
+				row := jsonTrace{
+					From: req.ID,
+					Ref:  raw,
+					File: req.Source,
+				}
+				if docID, id, found := strings.Cut(bare, "/"); found {
+					row.DocID = docID
+					to = id
+				}
+				if resolvedID, resolved := g.ResolveTraceRef(raw); resolved {
+					row.Resolved = true
 					to = resolvedID
 				}
-				row := jsonTrace{
-					From:     req.ID,
-					To:       to,
-					Ref:      raw,
-					File:     req.Source,
-					Resolved: resolved,
-				}
-				if docID, _, found := strings.Cut(bare, "/"); found {
-					row.DocID = docID
-				}
+				row.To = to
 				if pinned {
 					p := pin
 					row.Pin = &p
@@ -242,13 +244,21 @@ func (j *JSON) ExportResults(w io.Writer, g *graph.Graph) error {
 	}
 	sort.Strings(ids)
 
+	verifyByID := make(map[string]string)
+	docs := g.Documents()
+	for i := range docs {
+		for _, req := range docs[i].Requirements() {
+			verifyByID[req.ID] = model.AttrString(req.Attrs, model.AttrVerify)
+		}
+	}
+
 	for _, id := range ids {
 		v := j.verdicts[id]
 		row := jsonResult{
 			MeasureID: id,
 			Outcome:   v.Outcome,
 			Source:    v.Source,
-			Verify:    measureVerify(g.Documents(), id),
+			Verify:    verifyByID[id],
 		}
 		for _, it := range v.Evidence {
 			row.Cases = append(row.Cases, jsonCase(it))
@@ -329,15 +339,12 @@ func remainingAttrs(attrs map[string]any) map[string]any {
 	return out
 }
 
-// measureVerify returns the `verify` attribute of an authored measure, or
-// "" when the ID is unknown or the attribute is absent.
-func measureVerify(docs []model.Document, id string) string {
-	for i := range docs {
-		for _, req := range docs[i].Requirements() {
-			if req.ID == id {
-				return model.AttrString(req.Attrs, model.AttrVerify)
-			}
-		}
+// jsonVersion renders the `version` attribute as a decimal string so the
+// column has one type regardless of the YAML scalar, or null when absent.
+func jsonVersion(attrs map[string]any) *string {
+	if v, ok := attrs[model.AttrVersion]; ok {
+		s := fmt.Sprintf("%v", v)
+		return &s
 	}
-	return ""
+	return nil
 }

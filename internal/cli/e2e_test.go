@@ -289,6 +289,192 @@ func TestE2E_CSVImporterToCheckChain(t *testing.T) {
 	}
 }
 
+// TestE2E_ExportJSONTables pins what a plain `export json` guarantees at the
+// CLI boundary: the four tables always exist, results stay empty without
+// --results, authored text survives the JSON encoding, and a second export is
+// byte-identical.
+func TestE2E_ExportJSONTables(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "sys/schema.yaml", variantSchema+"\nx-reqmd:\n  document-id: sys\n")
+	writeFile(t, root, "sys/sys.md", "# System\n\n"+
+		mdReq("SYS-001", "Flow & pressure", "status: approved\nvariant: [Base]\n"))
+
+	outDir := filepath.Join(t.TempDir(), "ndjson")
+	if _, err := runCmd(t, NewRootCmd(""), "export", "json", root, "-o", outDir); err != nil {
+		t.Fatalf("export json: %v", err)
+	}
+
+	tables := []string{"requirements.ndjson", "traces.ndjson", "results.ndjson", "findings.ndjson"}
+	for _, name := range tables {
+		if _, err := os.Stat(filepath.Join(outDir, name)); err != nil {
+			t.Errorf("%s missing after a plain export: %v", name, err)
+		}
+	}
+	if rows := ndjsonRows(t, filepath.Join(outDir, "results.ndjson")); len(rows) != 0 {
+		t.Errorf("results rows without --results = %d, want 0: %v", len(rows), rows)
+	}
+	rows := ndjsonRows(t, filepath.Join(outDir, "requirements.ndjson"))
+	if len(rows) != 1 {
+		t.Fatalf("requirement rows = %d, want 1: %v", len(rows), rows)
+	}
+	// The encoder escapes &, <, > in the bytes while decoding restores the
+	// authored text: the table is JSON, not hand-built text.
+	raw, err := os.ReadFile(filepath.Join(outDir, "requirements.ndjson"))
+	if err != nil {
+		t.Fatalf("read requirements.ndjson: %v", err)
+	}
+	if !strings.Contains(string(raw), `\u0026`) {
+		t.Errorf("title should be HTML-escaped in the raw bytes:\n%s", raw)
+	}
+	if rows[0]["title"] != "Flow & pressure" {
+		t.Errorf("title = %v, want the authored text", rows[0]["title"])
+	}
+
+	// A pure function of the tree: re-exporting changes no byte.
+	snapshot := func() map[string]string {
+		t.Helper()
+		files := make(map[string]string, len(tables))
+		for _, name := range tables {
+			data, err := os.ReadFile(filepath.Join(outDir, name))
+			if err != nil {
+				t.Fatalf("read %s: %v", name, err)
+			}
+			files[name] = string(data)
+		}
+		return files
+	}
+	first := snapshot()
+	if _, err := runCmd(t, NewRootCmd(""), "export", "json", root, "-o", outDir); err != nil {
+		t.Fatalf("second export json: %v", err)
+	}
+	second := snapshot()
+	for _, name := range tables {
+		if second[name] != first[name] {
+			t.Errorf("%s changed between two exports:\nfirst:\n%s\nsecond:\n%s", name, first[name], second[name])
+		}
+	}
+}
+
+// TestE2E_ExportJSONFilter covers --filter at the CLI boundary: it scopes the
+// requirements table and, because the command hands the filtered docs to the
+// trace writer, traces.ndjson follows it too. Findings still cover the whole
+// graph, so that table is written regardless.
+func TestE2E_ExportJSONFilter(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "sys/schema.yaml", variantSchema+"\nx-reqmd:\n  document-id: sys\n")
+	writeFile(t, root, "sys/sys.md", "# System\n\n"+
+		mdReq("SYS-001", "Platform", "status: approved\nvariant: [Premium]\n")+
+		mdReq("SYS-002", "Telemetry", "status: approved\nvariant: [Premium]\n"))
+	writeFile(t, root, "sw/schema.yaml", variantSchema+"\nx-reqmd:\n  document-id: sw\n")
+	writeFile(t, root, "sw/sw.md", "# Software\n\n"+
+		mdReq("SW-001", "Base client", "status: approved\nvariant: [Base]\ntrace: [sys/SYS-001]\n")+
+		mdReq("SW-002", "Premium client", "status: approved\nvariant: [Premium]\ntrace: [sys/SYS-002]\n"))
+
+	// Baseline: unfiltered, both trace refs become rows.
+	allDir := filepath.Join(t.TempDir(), "all")
+	if _, err := runCmd(t, NewRootCmd(""), "export", "json", root, "-o", allDir); err != nil {
+		t.Fatalf("export json: %v", err)
+	}
+	if rows := ndjsonRows(t, filepath.Join(allDir, "traces.ndjson")); len(rows) != 2 {
+		t.Fatalf("unfiltered trace rows = %d, want 2: %v", len(rows), rows)
+	}
+
+	filteredDir := filepath.Join(t.TempDir(), "filtered")
+	if _, err := runCmd(t, NewRootCmd(""), "export", "json", root, "-o", filteredDir,
+		"--filter", `"Premium" in variant`); err != nil {
+		t.Fatalf("export json --filter: %v", err)
+	}
+	ids := map[string]bool{}
+	for _, row := range ndjsonRows(t, filepath.Join(filteredDir, "requirements.ndjson")) {
+		ids[row["id"].(string)] = true
+	}
+	for _, want := range []string{"SYS-001", "SYS-002", "SW-002"} {
+		if !ids[want] {
+			t.Errorf("matching requirement %s missing from requirements.ndjson: %v", want, keysOf(ids))
+		}
+	}
+	if ids["SW-001"] {
+		t.Errorf("filtered-out requirement SW-001 is still exported: %v", keysOf(ids))
+	}
+
+	traces := ndjsonRows(t, filepath.Join(filteredDir, "traces.ndjson"))
+	if len(traces) != 1 || traces[0]["from"] != "SW-002" {
+		t.Fatalf("filtered trace rows = %v, want only SW-002's", traces)
+	}
+	if _, err := os.Stat(filepath.Join(filteredDir, "findings.ndjson")); err != nil {
+		t.Errorf("findings.ndjson missing on a filtered export: %v", err)
+	}
+}
+
+// TestE2E_ExportJSONResults covers --results: a manual result bound to an
+// authored measure becomes a verdict row while the requirement and trace
+// tables keep the authored tree only.
+func TestE2E_ExportJSONResults(t *testing.T) {
+	root := t.TempDir()
+	writeFile(t, root, "sys/schema.yaml", variantSchema+"\nx-reqmd:\n  document-id: sys\n")
+	writeFile(t, root, "sys/sys.md", "# System\n\n"+
+		mdReq("SYS-001", "Platform", "status: approved\nvariant: [Base]\n"))
+	writeFile(t, root, "sw/schema.yaml", verifySchema+"\nx-reqmd:\n  document-id: sw\n")
+	writeFile(t, root, "sw/sw.md", "# Software\n\n"+
+		mdReq("SW-001", "Base measure", "status: approved\nvariant: [Base]\nverify: Test\ntrace: [sys/SYS-001]\n"))
+	results := writeManualResult(t, "SW-001", "pass")
+
+	outDir := filepath.Join(t.TempDir(), "ndjson")
+	if _, err := runCmd(t, NewRootCmd(""), "export", "json", root, "-o", outDir, "--results", results); err != nil {
+		t.Fatalf("export json --results: %v", err)
+	}
+
+	// Rows are keyed by requirement: a measure gets its own evidence, and an
+	// upstream requirement rolls the same evidence up.
+	byMeasure := map[string]map[string]any{}
+	for _, row := range ndjsonRows(t, filepath.Join(outDir, "results.ndjson")) {
+		byMeasure[row["measure_id"].(string)] = row
+	}
+	measure := byMeasure["SW-001"]
+	if measure == nil {
+		t.Fatalf("no verdict row for SW-001: %v", keysOf(byMeasure))
+	}
+	if measure["outcome"] != "pass" || measure["verify"] != "Test" {
+		t.Errorf("SW-001 verdict = %v, want pass with verify Test", measure)
+	}
+	if up := byMeasure["SYS-001"]; up == nil || up["outcome"] != "pass" {
+		t.Errorf("SYS-001 verdict = %v, want the downstream pass rolled up", up)
+	}
+	traces := ndjsonRows(t, filepath.Join(outDir, "traces.ndjson"))
+	if len(traces) != 1 || traces[0]["from"] != "SW-001" {
+		t.Errorf("authored trace rows = %v, want only SW-001's", traces)
+	}
+}
+
+// TestE2E_ExportJSONDisjointFinding covers --disjoint-check: a trace pair with
+// no overlapping attribute value surfaces as an ERROR in findings.ndjson.
+func TestE2E_ExportJSONDisjointFinding(t *testing.T) {
+	root := writeDisjointSpec(t)
+
+	outDir := filepath.Join(t.TempDir(), "ndjson")
+	if _, err := runCmd(t, NewRootCmd(""), "export", "json", root, "-o", outDir, "--disjoint-check", "variant"); err != nil {
+		t.Fatalf("export json --disjoint-check: %v", err)
+	}
+
+	var found bool
+	for _, row := range ndjsonRows(t, filepath.Join(outDir, "findings.ndjson")) {
+		if row["code"] != "disjoint-attribute" {
+			continue
+		}
+		found = true
+		if row["level"] != "ERROR" {
+			t.Errorf("disjoint finding level = %v, want ERROR", row["level"])
+		}
+		if row["req_id"] != "SW-001" {
+			t.Errorf("disjoint finding req_id = %v, want SW-001", row["req_id"])
+		}
+	}
+	if !found {
+		t.Fatalf("no disjoint-attribute finding in findings.ndjson:\n%v",
+			ndjsonRows(t, filepath.Join(outDir, "findings.ndjson")))
+	}
+}
+
 // ndjsonRows reads a JSON-lines table.
 func ndjsonRows(t *testing.T, path string) []map[string]any {
 	t.Helper()

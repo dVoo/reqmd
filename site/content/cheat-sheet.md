@@ -358,14 +358,14 @@ reqmd export json spec/ -o json-out/ --filter '"Premium" in variant'
 
 | File | Row grain |
 |---|---|
-| `requirements.ndjson` | one row per content node (`req` / `container` / `info`) |
-| `traces.ndjson` | one row per declared `trace:` reference |
-| `results.ndjson` | one row per measure verdict (only with `--results`) |
+| `requirements.ndjson` | one authored requirement (sections are never rows — `section_path` names their headings; synthetic result/test-case nodes are skipped) |
+| `traces.ndjson` | one declared `trace:` reference of the exported requirements |
+| `results.ndjson` | one measure verdict (the file is always written; empty without `--results`) |
 | `findings.ndjson` | one row per `check` finding (ERROR and WARNING) |
 
 {{< details summary="Example rows" >}}
 ```json
-{"doc_path":"spec/02-system","doc_title":"System Features","level":"system-requirements","id":"SYS-001","title":"Boot Sequence","type":"req","status":"approved","trace":["stakeholder/STK-GOAL-001"],"attrs":{"priority":"High"}}
+{"doc_path":"spec/02-system","doc_title":"System Features","level":"system-requirements","id":"SYS-001","title":"Boot Sequence","ordinal":1,"status":"approved","version":null,"trace":["stakeholder/STK-GOAL-001"],"attrs":{"priority":"High"}}
 {"from":"SYS-001","to":"STK-GOAL-001","doc_id":"stakeholder","ref":"stakeholder/STK-GOAL-001","file":"spec/02-system/features.md","pin":null,"resolved":true}
 {"measure_id":"TEST-002","outcome":"pass","source":"reviews/VR-001.md","verify":"Review"}
 {"level":"WARNING","req_id":"SYS-001","code":"missing-verdict","file":"spec/02-system/features.md","message":"missing verdict: ..."}
@@ -375,9 +375,14 @@ reqmd export json spec/ -o json-out/ --filter '"Premium" in variant'
 Built-in attributes (`trace`, `requires-trace-from`, `status`, `disposition`,
 `version`, `verify`) are promoted to top-level keys for direct SQL; the
 remaining declared attributes stay in the `attrs` envelope with their native
-JSON types (arrays stay arrays). Every fixed key is present in every row
-(`null` when unset), so warehouse schema inference sees the full column set
-regardless of which row it samples. A dangling trace ref is written to
+JSON types (arrays stay arrays). Every fixed key is present in every row:
+plain strings are `""` when unset (never `null`), while `attrs`, `trace`,
+`requires_trace_from`, `suppressions`, `pin`, and `version` are `null` —
+`attrs` whenever a requirement has no non-promoted attributes.
+`version` is a JSON string, and `ordinal` is the requirement's 1-based position
+within its document, unaffected by `--filter`. In `traces.ndjson`, `to` is the
+bare target ID (a `doc-id/` qualifier lives in `doc_id`) while `ref` keeps the
+raw source form. A dangling trace ref is written to
 `traces.ndjson` with `"resolved":false` **and** to `findings.ndjson`, so a
 warehouse can count or filter it on its own terms.
 
@@ -385,7 +390,7 @@ warehouse can count or filter it on its own terms.
 |------|-------------|
 | `-o, --output <dir>` | Output directory (default: the exported tree root) |
 | `--results <path>` | Load verification results for `results.ndjson` (repeatable) |
-| `--filter <expr>` | Limit `requirements.ndjson` to matching requirements |
+| `--filter <expr>` | Limit `requirements.ndjson` and `traces.ndjson` to matching requirements |
 | `--disjoint-check <attr>` | Also reported in `findings.ndjson` (repeatable) |
 
 ### `reqmd export graph` — export to LadybugDB graph
