@@ -51,9 +51,12 @@ external_docs/
 *deprecated*
 
 # Build
-reqmd
-reqmd-bench-gen
-reqmd-bench-run
+# Anchored: an unanchored name also matches the same-named source directory
+# (cmd/reqmd-bench-gen/), which silently keeps that directory's files out of
+# version control.
+/reqmd
+/reqmd-bench-gen
+/reqmd-bench-run
 
 # prebuilt extraction-tool binary
 reqmd-code/reqmd-code

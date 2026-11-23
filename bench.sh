@@ -12,7 +12,7 @@
 #   ./bench.sh                      # full benchmark, default 5 runs
 #   ./bench.sh --runs 3             # fewer runs (faster, less stable)
 #   ./bench.sh --baseline-only      # just the real spec, no scaling
-#   ./bench.sh --scales 2000,5000   # custom scales (reqs/doc targets)
+#   ./bench.sh --scales 71000,360000   # custom scales (total requirement targets)
 #   ./bench.sh --out results.json   # custom output path
 #
 # Output: bench-results-YYYYMMDD-HHMMSS.json in the project root (or --out).
@@ -22,7 +22,7 @@ cd "$(dirname "$0")"
 
 # --- defaults ---
 RUNS=5
-SCALES="2000,5000,10000,20000"
+SCALES="71000,180000,360000,720000"
 OUT=""
 EXTRA_ARGS=""
 RESULTS_DIR="bench-results"

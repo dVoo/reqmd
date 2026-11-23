@@ -29,12 +29,15 @@ import (
 )
 
 var (
-	headingIDRe  = regexp.MustCompile(`(?m)^#{2,6}[ \t]+([A-Z][A-Z0-9-]+)(\b|:)`)
-	idPrefixRe   = regexp.MustCompile(`(?m)^(\s*id-prefix:\s*)([A-Z][A-Z0-9-]+)\s*$`)
-	qualifiedRe  = regexp.MustCompile(`\b([A-Za-z][A-Za-z0-9_-]+)/([A-Z][A-Z0-9-]+)(~\d+)?\b`)
-	plainIDRe    = regexp.MustCompile(`\b([A-Z][A-Z0-9-]+)(~\d+)?\b`)
+	headingIDRe  = regexp.MustCompile(`(?m)^#{2,6}[ \t]+([A-Z][A-Za-z0-9_]*-[A-Za-z0-9_-]*)(\b|:)`)
+	idPrefixRe   = regexp.MustCompile(`(?m)^(\s*id-prefix:\s*)([A-Za-z][A-Za-z0-9_-]*)\s*$`)
+	qualifiedRe  = regexp.MustCompile(`\b([A-Za-z][A-Za-z0-9_-]+)/([A-Z][A-Za-z0-9_]*-[A-Za-z0-9_-]*)(~\d+)?\b`)
+	plainIDRe    = regexp.MustCompile(`\b([A-Z][A-Za-z0-9_]*-[A-Za-z0-9_-]*)(~\d+)?\b`)
 	traceFieldRe = regexp.MustCompile(`^(\s*-?\s*(?:trace|requires-trace-from):\s*\[?\s*)(.*?)(\s*\]?\s*)$`)
 )
+
+// attrFence marks a requirement heading in the generated Markdown.
+const attrFence = "```attr"
 
 const placeholderFmt = "ZZ_BENCH_PH_%d_ZZ"
 
@@ -83,13 +86,20 @@ func main() {
 		}
 		if d.Name() == "schema.yaml" {
 			srcDocDirs++
+			return nil
 		}
 		body, readErr := fs.ReadFile(srcFS, p)
 		if readErr != nil {
 			return fmt.Errorf("reading %s: %w", p, readErr)
 		}
-		for _, m := range headingIDRe.FindAllSubmatch(body, -1) {
-			ids[string(m[1])] = true
+		// Only headings that introduce an attr block are requirements; a plain
+		// prose heading that happens to contain a dash must not be renamed.
+		lines := strings.Split(string(body), "\n")
+		for _, loc := range headingIDRe.FindAllStringSubmatchIndex(string(body), -1) {
+			if !hasAttrBlock(lines, strings.Count(string(body)[:loc[0]], "\n")) {
+				continue
+			}
+			ids[string(body[loc[2]:loc[3]])] = true
 		}
 		return nil
 	}); err != nil {
@@ -126,7 +136,13 @@ func main() {
 		if *reqsPerDoc > 0 && srcReqsPerDoc > 0 {
 			multiplier := max(1, (*reqsPerDoc)/srcReqsPerDoc)
 			if multiplier > 1 {
-				if repErr := replicatePerDoc(copyDir, multiplier); repErr != nil {
+				// Replication suffixes the IDs already written into this copy,
+				// which carry the copy tag, not the source IDs.
+				copyIDs := make(map[string]bool, len(rename))
+				for _, newID := range rename {
+					copyIDs[newID] = true
+				}
+				if repErr := replicatePerDoc(copyDir, multiplier, copyIDs); repErr != nil {
 					fmt.Fprintf(os.Stderr, "replicatePerDoc: %v\n", repErr)
 					os.Exit(1)
 				}
@@ -139,6 +155,19 @@ func main() {
 		}
 		fmt.Println(")")
 	}
+}
+
+// hasAttrBlock reports whether the heading on line i is followed by an
+// `attr` fence, which is what makes it a requirement heading.
+func hasAttrBlock(lines []string, i int) bool {
+	for j := i + 1; j < len(lines) && j <= i+3; j++ {
+		line := strings.TrimSpace(lines[j])
+		if line == "" {
+			continue
+		}
+		return line == attrFence
+	}
+	return false
 }
 
 func rewriteTree(src, dst, tag string, rename map[string]string) {
@@ -188,7 +217,7 @@ func rewriteTree(src, dst, tag string, rename map[string]string) {
 // .md file, repeats the requirement blocks `multiplier - 1` more times.
 // Each repeated block has its IDs and trace references rewritten to keep
 // the trace graph connected.
-func replicatePerDoc(root string, multiplier int) error {
+func replicatePerDoc(root string, multiplier int, reqIDs map[string]bool) error {
 	rootDir, err := os.OpenRoot(root)
 	if err != nil {
 		return fmt.Errorf("opening %s: %w", root, err)
@@ -224,7 +253,7 @@ func replicatePerDoc(root string, multiplier int) error {
 				fmt.Fprintf(os.Stderr, "warning: replicatePerDoc: reading %s: %v\n", mdPath, readErr)
 				continue
 			}
-			expanded := expandContent(string(b), multiplier)
+			expanded := expandContent(string(b), multiplier, reqIDs)
 			if writeErr := rootDir.WriteFile(mdPath, []byte(expanded), outputFilePerm); writeErr != nil {
 				fmt.Fprintf(os.Stderr, "warning: replicatePerDoc: writing %s: %v\n", mdPath, writeErr)
 				continue
@@ -242,7 +271,7 @@ func replicatePerDoc(root string, multiplier int) error {
 // blocks from `body`, then concatenates `multiplier` copies of the heading
 // blocks. The first copy uses the original IDs; subsequent copies have
 // their IDs and references rewritten.
-func expandContent(body string, multiplier int) string {
+func expandContent(body string, multiplier int, reqIDs map[string]bool) string {
 	frontmatter := ""
 	rest := body
 	if strings.HasPrefix(body, "---\n") {
@@ -264,7 +293,7 @@ func expandContent(body string, multiplier int) string {
 	b.WriteString(strings.Join(headingBlocks, ""))
 	for n := 1; n < multiplier; n++ {
 		for _, blk := range headingBlocks {
-			b.WriteString(rewriteBlockForCopy(blk, n))
+			b.WriteString(rewriteBlockForCopy(blk, n, reqIDs))
 		}
 	}
 	return b.String()
@@ -295,7 +324,7 @@ func splitOnH2(body string) []string {
 // `requires-trace-from:` lines rewritten to point at the renamed IDs.
 // Other fields are left untouched (we don't want to corrupt enum values
 // like `process: SYS` or `status: approved`).
-func rewriteBlockForCopy(block string, copyIdx int) string {
+func rewriteBlockForCopy(block string, copyIdx int, reqIDs map[string]bool) string {
 	suffix := fmt.Sprintf("_c%d", copyIdx)
 	placeholders := map[string]string{}
 	pcount := 0
@@ -307,6 +336,9 @@ func rewriteBlockForCopy(block string, copyIdx int) string {
 	body := headingIDRe.ReplaceAllStringFunc(block, func(s string) string {
 		loc := headingIDRe.FindStringSubmatchIndex(s)
 		if loc == nil {
+			return s
+		}
+		if !reqIDs[s[loc[2]:loc[3]]] {
 			return s
 		}
 		ph := makePh()
@@ -372,6 +404,19 @@ func rewriteIDListInPlace(list, suffix string, placeholders map[string]string, m
 // in spirit but operates on the whole file body and uses the per-copy
 // rename map (e.g. "SYS-001" -> "T00-SYS-001").
 func applyRewrite(body, filename string, rename map[string]string, tag string) string {
+	// schema.yaml carries the id-prefix the requirement IDs must match, so it
+	// gets the copy tag exactly once - and nothing else. Running the ID passes
+	// over it first would tag the prefix twice (T00-T00-SYS-).
+	if filename == "schema.yaml" {
+		return idPrefixRe.ReplaceAllStringFunc(body, func(s string) string {
+			loc := idPrefixRe.FindStringSubmatchIndex(s)
+			if loc == nil {
+				return s
+			}
+			return s[:loc[4]] + tag + "-" + s[loc[4]:]
+		})
+	}
+
 	placeholders := map[string]string{}
 	pcount := 0
 	makePlaceholder := func() string {
@@ -429,17 +474,6 @@ func applyRewrite(body, filename string, rename map[string]string, tag string) s
 	sort.Slice(phs, func(i, j int) bool { return len(phs[i]) > len(phs[j]) })
 	for _, ph := range phs {
 		body = strings.ReplaceAll(body, ph, placeholders[ph])
-	}
-
-	if filename == "schema.yaml" {
-		body = idPrefixRe.ReplaceAllStringFunc(body, func(s string) string {
-			loc := idPrefixRe.FindStringSubmatchIndex(s)
-			if loc == nil {
-				return s
-			}
-			prefix := s[loc[4]:loc[5]]
-			return s[:loc[4]] + tag + "-" + prefix + s[loc[5]:]
-		})
 	}
 	return body
 }
