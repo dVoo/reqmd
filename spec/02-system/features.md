@@ -143,6 +143,21 @@ The disposition workflow is defined as:
 
 Defining a reserved built-in attribute in `schema.yaml` produces a compile-time error.
 
+The following diagram shows the pass order and where graph construction overlaps Pass 1:
+
+```mermaid
+flowchart TD
+    DISC["Recursive walk: every dir with schema.yaml"]
+    DISC --> PARSE["Parse *.md in a worker pool of runtime.NumCPU()"]
+    PARSE --> TREE["Content tree, files merged in file order"]
+    TREE --> P1["Pass 1: schema compile and validate (worker pool)"]
+    TREE --> GN["graph.New (concurrent with Pass 1)"]
+    P1 --> P2["graph check pass: CheckResults (sequential)"]
+    GN -.->|joined after Pass 1| P2
+    P2 --> REP["reporter: text or JSON report"]
+    REP --> EXIT["exit code: 0 valid, 1 error, 2 parse error"]
+```
+
 *Rationale:* The pass order ensures each stage has complete information. Parse must finish before validation; the graph must be built before trace checks; all results are collected before reporting. Because graph construction only reads the parsed tree, it may overlap Pass 1 validation without changing what either stage sees; its result is consumed afterwards, which preserves report order and error precedence (parse and schema errors first). Three sub-passes within graph construction guarantee deterministic node initialization before edges are wired.
 
 ### SYS-VAL-002: Verification result ingestion and outcome-gated checks

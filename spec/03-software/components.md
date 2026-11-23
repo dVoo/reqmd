@@ -332,6 +332,41 @@ trace:
 ```
 The `internal/cli` package shall use cobra to dispatch subcommands (the `export` subcommands live in `internal/cli/export`) and coordinate the full pipeline: parse documents, compile schemas, validate attributes, build the graph, load verification results, run graph checks, and format the report to stdout with the appropriate exit code. Shared flag handling — `--filter`/`--relaxed-filter` compilation plus warning output, and `--results` loading — shall live in one helper used by every command that accepts those flags, so filter and results semantics cannot drift between `check`, `ls`, `stats`, `serve`, and the exporters.
 
+The following diagram shows the component data flow the dispatcher coordinates, from discovery through the graph checks to each consumer, including the two entry points that bypass the check pass (`repin`, `baseline diff`):
+
+```mermaid
+flowchart LR
+    P["parser.Discover: parallel worker pool"]
+    M["model: content tree"]
+    S["schema.Compile and Validate: Pass 1"]
+    G["graph.New: adjacency and trace edges"]
+    K["graph.CheckResults: sequential check pass"]
+    R["reporter: text or JSON report, exit code"]
+    E["exporter: csv, html, ndjson, ladybug"]
+    V["verify: CTRF and manual results"]
+    F["filter: expr-lang pruning"]
+    RP["repin: version-pin rewrite"]
+    BD["baseline diff: two git tags"]
+    D["diff: semantic comparison"]
+
+    P --> M
+    M --> S
+    M --> G
+    M --> E
+    S --> R
+    V --> G
+    G --> K
+    G --> E
+    K --> R
+    K -->|"export json findings"| E
+    F -->|"SetFilter"| G
+    F -->|"filtered docs"| E
+    P --> RP
+    G --> RP
+    BD -->|"DiscoverAtTagWithSchemas"| D
+    D -->|"FormatDiff"| R
+```
+
 *Rationale:* Cobra provides standard CLI conventions (help text, flags, subcommands). A single coordinator function ensures consistent pipeline execution across all commands.
 
 ### SW-SRV-001: Live-reload serve subcommand

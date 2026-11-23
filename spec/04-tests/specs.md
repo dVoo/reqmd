@@ -251,6 +251,26 @@ trace:
 ```
 Integration tests shall run the full pipeline end-to-end: parse a multi-level requirement tree (including sub-requirements and items), validate all attributes, build the graph (including the parent-child pass), run the complete graph check catalog, and produce correct CSV/HTML output with hierarchical display. The repository's own `spec/` tree shall be the primary fixture: it must validate with zero invalid requirements and must exercise level-typed coverage, document-level coverage defaults, verification results, and imported proxy documents.
 
+That fixture shall be read as a V-model rather than as a pile of directories: every level declares its upstream level in `x-reqmd.upstream` (`00-aspice` and `01-stakeholder` are boundaries, and `02-system` draws on both `01-stakeholder` and `01a-aspice-stakeholder`), work descends to `04-tests`, and the test specifications at the bottom carry verification back up: `TST-*` requirements trace to the `SW-*` requirements above them (and the integration test traces to `SYS-*`), while `--results` binds `RESULT:` and `TC:` verdicts to the `TST-*` measures.
+
+```mermaid
+flowchart TD
+    A["00-aspice: external base practices"]
+    B["01-stakeholder: goals, top boundary"]
+    C["01a-aspice-stakeholder: ASP-SR layer"]
+    D["02-system: SYS features"]
+    E["03-software: SW components and imported proxies"]
+    F["04-tests: TST verification measures"]
+    A -->|"feeds"| C
+    B -->|"feeds"| D
+    C -->|"feeds"| D
+    D -->|"feeds"| E
+    E -->|"feeds"| F
+    F -.->|"TST-* trace SW-*"| E
+    F -.->|"TST-INT-002 traces SYS-*"| D
+    V["--results: RESULT: and TC: nodes"] -.->|"verdicts"| F
+```
+
 *Rationale:* Integration tests catch cross-package contract violations that unit tests miss. Using the project's own specification as the fixture keeps that specification executable and current.
 
 ### TST-INT-002: Import pipeline end-to-end
