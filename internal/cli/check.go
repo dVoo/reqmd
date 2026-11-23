@@ -164,6 +164,28 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 		})
 	}
 
+	// Pass 2: the trace graph only reads docs, so it is built concurrently
+	// with Pass 1 below — its cost hides behind schema validation. The result
+	// is consumed after Pass 1 so report entries keep their order (compile
+	// errors before graph errors). root is non-empty only for dir mode;
+	// single-file mode has no graph.
+	type graphResult struct {
+		g   *graph.Graph
+		err error
+	}
+	var graphCh chan graphResult
+	if root != "" {
+		graphDocs := docs
+		if len(resultsPaths) > 0 {
+			graphDocs = append(graphDocs, resultDoc)
+		}
+		graphCh = make(chan graphResult, 1)
+		go func() {
+			g, err := graph.New(graphDocs)
+			graphCh <- graphResult{g: g, err: err}
+		}()
+	}
+
 	// Pass 1: JSON Schema validation (spec docs only; result doc has no schema)
 	// Schema compilation and per-requirement validation are both parallelized.
 	// Compile is per-doc-dir (independent schemas), validate is per-requirement
@@ -269,21 +291,17 @@ func runValidationPipeline(docs []model.Document, root string, jsonOutput, relax
 		}
 	}
 
-	// Pass 2: Graph build + trace validation (root is non-empty only for dir mode).
-	// When results were loaded, the synthesized result doc is appended so
-	// outcome-gated checks run.
+	// Pass 2: collect the graph built concurrently above and run trace
+	// validation on it (root is non-empty only for dir mode).
 	if root != "" {
-		graphDocs := docs
-		if len(resultsPaths) > 0 {
-			graphDocs = append(graphDocs, resultDoc)
-		}
-		g, err := graph.New(graphDocs)
-		if err != nil {
+		res := <-graphCh
+		if res.err != nil {
 			report.ParseErrors = append(report.ParseErrors, reporter.ParseError{
 				File:    root,
-				Message: fmt.Sprintf("building trace graph: %v", err),
+				Message: fmt.Sprintf("building trace graph: %v", res.err),
 			})
 		} else {
+			g := res.g
 			// Collect disjoint-check attrs from CLI flags + schema declarations.
 			allDisjointAttrs := graph.CollectDisjointAttrs(docs, disjointChecks)
 			if len(allDisjointAttrs) > 0 {

@@ -5,6 +5,8 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"runtime"
+	"sync"
 
 	"github.com/dVoo/reqmd/internal/exporter"
 	"github.com/dVoo/reqmd/internal/filter"
@@ -174,22 +176,66 @@ func (o *htmlOutput) resolveFor(current string) func(string) string {
 	}
 }
 
-// writeDocumentPages renders every exported document page.
+// writeDocumentPages renders every exported document page, one worker per CPU
+// when there is more than one document. All of the expensive work (render data,
+// page model, body Markdown, the embedded view model JSON) is per document,
+// while the analysis, render context, boundaries and output maps are read-only
+// after construction, so they are shared. Each worker keeps its own
+// exporter.HTML, which carries the per-page state (boundary, document chain,
+// link resolver).
 func (o *htmlOutput) writeDocumentPages(analysis *exporter.Analysis, rctx *exporter.RenderContext) error {
 	boundaries := exporter.ComputeDocBoundaries(o.docs)
-	var exp exporter.HTML
-	exp.SetAnalysis(analysis)
-	for _, doc := range o.exportDocs {
-		if err := o.writeDocumentPage(&exp, doc, boundaries[doc.Path], rctx); err != nil {
-			return err
+	n := len(o.exportDocs)
+	paths := make([]string, n)
+	errs := make([]error, n)
+
+	render := func(from, step int) {
+		var exp exporter.HTML
+		exp.SetAnalysis(analysis)
+		for i := from; i < n; i += step {
+			doc := o.exportDocs[i]
+			paths[i], errs[i] = o.writeDocumentPage(&exp, doc, boundaries[doc.Path], rctx)
 		}
 	}
-	return nil
+
+	workers := 1
+	if n > 1 {
+		workers = min(runtime.NumCPU(), n)
+	}
+	if workers == 1 {
+		render(0, 1)
+	} else {
+		var wg sync.WaitGroup
+		wg.Add(workers)
+		for w := range workers {
+			go func(worker int) {
+				defer wg.Done()
+				render(worker, workers)
+			}(w)
+		}
+		wg.Wait()
+	}
+
+	// Errors and "Wrote" lines stay in document order regardless of the order
+	// the workers finished in. A failed page is reported last, so every page
+	// that did get written is still accounted for.
+	var firstErr error
+	for i := range n {
+		if errs[i] != nil {
+			if firstErr == nil {
+				firstErr = errs[i]
+			}
+			continue
+		}
+		fmt.Fprintf(os.Stderr, "Wrote %s\n", paths[i])
+	}
+	return firstErr
 }
 
 // writeDocumentPage renders one document page, wiring its boundary badge,
-// document chain, and per-page trace link resolver.
-func (o *htmlOutput) writeDocumentPage(exp *exporter.HTML, doc model.Document, boundary exporter.DocBoundary, rctx *exporter.RenderContext) error {
+// document chain, and per-page trace link resolver. It returns the output path
+// so the caller can report it in document order.
+func (o *htmlOutput) writeDocumentPage(exp *exporter.HTML, doc model.Document, boundary exporter.DocBoundary, rctx *exporter.RenderContext) (string, error) {
 	outPath := o.outPathFor(doc.Path)
 
 	exp.SetBoundary(boundary)
@@ -204,11 +250,7 @@ func (o *htmlOutput) writeDocumentPage(exp *exporter.HTML, doc model.Document, b
 	err := writeHTMLFile(outPath, func(w io.Writer) error {
 		return exp.Export(w, doc, doc.Properties)
 	})
-	if err != nil {
-		return err
-	}
-	fmt.Fprintf(os.Stderr, "Wrote %s\n", outPath)
-	return nil
+	return outPath, err
 }
 
 // writeProjectIndex writes the project home page.

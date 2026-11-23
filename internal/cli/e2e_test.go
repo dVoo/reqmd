@@ -504,3 +504,68 @@ func keysOf[V any](m map[string]V) []string {
 	}
 	return out
 }
+
+// TestE2E_ExportHTMLConcurrentPagesDeterministic pins the concurrent page
+// render: a multi-document export runs on a worker pool, so the bytes must not
+// depend on which worker finished first.
+func TestE2E_ExportHTMLConcurrentPagesDeterministic(t *testing.T) {
+	root := t.TempDir()
+	schema := variantSchema + "\nx-reqmd:\n  document-id: sys\n"
+	for _, doc := range []string{"a", "b", "c", "d"} {
+		writeFile(t, root, doc+"/schema.yaml", schema)
+		body := "# " + strings.ToUpper(doc) + "\n\n" +
+			mdReq(strings.ToUpper(doc)+"-001", "First "+doc, "status: approved\n") +
+			"```go\nfunc " + doc + "() {}\n```\n\n" +
+			mdReq(strings.ToUpper(doc)+"-002", "Second "+doc, "status: approved\n") +
+			"```mermaid\ngraph TD; " + doc + "-->x\n```\n"
+		writeFile(t, root, doc+"/"+doc+".md", body)
+	}
+
+	snapshot := func(dir string) map[string]string {
+		t.Helper()
+		files := map[string]string{}
+		err := filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
+			if err != nil || info.IsDir() {
+				return err
+			}
+			b, readErr := os.ReadFile(p)
+			if readErr != nil {
+				return readErr
+			}
+			rel, relErr := filepath.Rel(dir, p)
+			if relErr != nil {
+				return relErr
+			}
+			files[rel] = string(b)
+			return nil
+		})
+		if err != nil {
+			t.Fatalf("walking %s: %v", dir, err)
+		}
+		return files
+	}
+
+	first := filepath.Join(t.TempDir(), "html1")
+	if _, err := runCmd(t, NewRootCmd(""), "export", "html", root, "-o", first); err != nil {
+		t.Fatalf("first export html: %v", err)
+	}
+	second := filepath.Join(t.TempDir(), "html2")
+	if _, err := runCmd(t, NewRootCmd(""), "export", "html", root, "-o", second); err != nil {
+		t.Fatalf("second export html: %v", err)
+	}
+
+	a, b := snapshot(first), snapshot(second)
+	if len(a) != len(b) {
+		t.Fatalf("file counts differ: %d vs %d", len(a), len(b))
+	}
+	if len(a) < 5 {
+		t.Fatalf("expected the project home plus one page per document, got %d files", len(a))
+	}
+	for name, want := range a {
+		if got, ok := b[name]; !ok {
+			t.Errorf("%s missing from the second export", name)
+		} else if got != want {
+			t.Errorf("%s differs between two exports of the same tree", name)
+		}
+	}
+}
