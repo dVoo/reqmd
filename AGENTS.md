@@ -17,7 +17,7 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 - `discussions/` — design RFCs and review notes (not rendered documentation)
 - `internal/` — Go packages (model, parser, schema, exporter, reporter, graph, diff, cli, filter)
 - `cmd/reqmd/main.go` — entry point for the `reqmd` binary (cobra subcommands live in `internal/cli/`)
-- `go.mod` / `go.sum` — Go module `github.com/dVoo/reqmd` (1.26)
+- `go.mod` / `go.sum` — Go module `github.com/dVoo/reqmd` (1.27)
 - `go.work` / `go.work.sum` — Go workspace linking `reqmd` (root), `reqmd-code`, and `reqmd-import`, so all three modules resolve each other from the repo root (`go build ./... ./reqmd-code/... ./reqmd-import/...`, `go test ./... ./reqmd-code/... ./reqmd-import/...`). Each keeps an independent `go.mod` and dependency set. Note: `./...` alone stops at the module boundary and does not descend into the nested modules.
 - `reqmd-code/` — Go module for the source-code extraction tool: it parses C, C++, Go, Python, and Rust with tree-sitter and emits an **exchange-format v1 bundle** (JSON) on stdout. Invoked as `reqmd-code <source-dir>` (extraction is the tool's only job, so there is no subcommand). It writes no Markdown — `reqmd-import` renders the bundle. Language plugins live in `reqmd-code/internal/lang/` (currently C, C++, Go, Python, Rust), each self-registering via `lang.Register` in `init()` and blank-imported from `cmd/reqmd-code/main.go`. The canonical attr property set lives in `reqmd-code/internal/schema/standard_schema.yaml` and is projected into the bundle by `internal/schema`.
 - `reqmd-import/` — Go module for the exchange-format renderer. It owns the **only** Markdown/YAML writer (`internal/writer`): schema.yaml generation, attr-block quoting, heading depth, the `<!-- reqmd: generated -->` marker, and idempotent write-if-changed. `reqmd-import <bundle.json|-> -o <dir> [--check]`. Its public `exchange` package defines the exchange format v1 (`Bundle`/`Document`/`Item`, nested items, batched validation, `--validate-only`, `--status-map`) and is imported by `reqmd-code` (producer) — this is the shared contract, so the format cannot drift between producer and renderer.
@@ -70,33 +70,35 @@ error):
 - `KindRequirement` — heading (h2+) followed by an `attr` block (the zero
   value). Only these participate in validation, trace checks, coverage,
   filtering.
-- `KindContainer` — heading without an `attr` block that has children
-  (folder-like grouping; promoted from KindInfo during tree assembly).
-- `KindInfo` — heading without an `attr` block and no children, or
-  headingless leading prose (Level 0).
+- `KindSection` — every other node: a heading without an `attr` block, or
+  the headingless prose that precedes the first heading (Level 0). Whether
+  it behaves like a folder (children) or a leaf prose block is derived from
+  `children`, never stored, so adding a subsection cannot change the kind.
 
 `model.Document.Nodes` holds the ordered tree roots; `doc.Requirements()`
 walks it depth-first to return requirement nodes (pointers into the tree,
 so in-place mutation updates the document). Prose attaches to the nearest
 open heading's body; `*Rationale:` extracts into the node. Thematic breaks
 are kept in the body. `ParentID` is the nearest ancestor *requirement* —
-containers are never requirement parents.
+sections are never requirement parents.
 
-Items appear in `ls`/`stats` (Type column / counts + type breakdown), CSV
-(Type column, document order), HTML (collapsible sections / plain blocks,
-sidebar TOC folders), and survive `--filter` (which prunes only
-requirements; filtered views shallow-copy nodes so multiple views of the
-same docs stay independent). `check` remains requirement-scoped.
+Requirements and sections appear in `ls`/`stats` (Type column `req`/`section`,
+counts + type breakdown), CSV (Type column, document order), HTML (collapsible
+sections / plain blocks, sidebar TOC folders). `--filter` prunes requirements
+and drops sections left empty: a folder section keeps its place while at least
+one matching requirement is beneath it, and a prose-only leaf section survives.
+Filtered views shallow-copy nodes so multiple views of the same docs stay
+independent. `check` remains requirement-scoped.
 
 ## Commands (implemented)
 
 | Command | Description |
 |---------|-------------|
 | `reqmd check <root>` | Recursive walk for `schema.yaml`, check all `.md` |
-| `reqmd ls <root>` | Table of all content in document order: leading `Type` column (`req`/`container`/`info`), requirements with all schema attributes, items with heading text. `--filter "<expr>"` scopes to matching requirements (items always shown). |
+| `reqmd ls <root>` | Table of all content in document order: leading `Type` column (`req`/`section`), requirements with all schema attributes, sections with heading text. `--filter "<expr>"` scopes to matching requirements and drops sections left empty. |
 | `reqmd stats <root>` | Attribute-value breakdown per document directory plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements. |
-| `reqmd export csv <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | CSV export (`<dirname>-requirements.csv`) with a `Type` column; rows emitted in document order for requirements and items. `--results` adds `Verdict` and `Verdict Source` columns from ephemeral verification results. `--filter` exports only matching requirements. |
-| `reqmd export html <root> [-o <dir>] [--results <path>...] [--filter "<expr>"] [--relaxed-filter]` | HTML export: a project home (`index.html`: document catalog, project-wide health, actionable queues, cross-document search) plus one page per document. Document view is server-rendered and readable without JS (compact app bar, sidebar outline with scroll-spy, sticky search/filter toolbar, neutral cards with status/coverage/verdict chips, collapsible attribute/rationale/evidence/trace details). Table, Trace, and Coverage views render on demand client-side from one embedded `pageModel` (no hidden analytical DOM). Coverage/verdict/link health come from graph analysis (`CoverageStates`, `VerificationStates`, `TraceRefs`), including `no verdict` in the verification denominator. CSS and client JS are embedded (no CDN). URL state uses repeated `f=attr:value` params and preserves explicitly empty filter sets; `#REQ-ID` deep links open Document mode. ⌘K palette with focus trap, `g d`/`g t`/`g r`/`g c`, density toggle. `--results` renders verdict chips + evidence. `--filter` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
+| `reqmd export csv <root> [-o <dir>] [--results <path>...] [--filter "<expr>"]` | CSV export (`<dirname>-requirements.csv`) with a `Type` column; rows emitted in document order for requirements and sections. `--results` adds `Verdict`, `Verdict Source`, and `Verdict Cases` columns from ephemeral verification results. `--filter` exports only matching requirements. |
+| `reqmd export html <root> [-o <dir>] [--results <path>...] [--filter "<expr>"] [--relaxed-filter]` | HTML export: a project home (`index.html`: document catalog, project-wide health, actionable queues, cross-document search) plus one page per document. Document view is server-rendered and readable without JS (compact app bar, sidebar outline with scroll-spy, sticky search/filter toolbar, neutral cards with status/coverage/verdict chips, collapsible attribute/rationale/evidence/trace details). Table, Trace, and Coverage views render on demand client-side from one embedded `pageModel` (no hidden analytical DOM). Coverage/verdict/link health come from graph analysis (`CoverageStates`, `VerificationStates`, `TraceRefs`), including `no verdict` in the verification denominator. CSS and client JS are embedded and exports work offline, except a page containing a ` ```mermaid ` diagram, which loads the version-pinned Mermaid runtime from a CDN (`SW-EXP-004`). URL state uses repeated `f=attr:value` params and preserves explicitly empty filter sets; `#REQ-ID` deep links open Document mode. ⌘K palette with focus trap, `g d`/`g t`/`g r`/`g c`. `--results` renders verdict chips + evidence. `--filter` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
 | `reqmd export json <root> [-o <dir>] [--results <path>...] [--filter "<expr>"] [--disjoint-check <attr>...]` | NDJSON export for reporting platforms (Databricks, Snowflake, BigQuery). Writes `requirements.ndjson` (one row per authored requirement, sections and synthetic result nodes excluded; built-ins promoted, remaining attributes in `attrs`), `traces.ndjson` (one row per declared trace ref of an exported requirement, with `pin`/`resolved`; `to` carries no `doc-id/` qualifier), `results.ndjson` (one row per verdict; always written, empty without `--results`), `findings.ndjson` (one row per check finding). Pure function of tree + results; repeated exports are byte-identical. `ordinal` is stable under `--filter`, which narrows requirements and traces together. Default output dir is the exported tree root. |
 | `reqmd export graph <root> [-o <dir>] [--results <path>...]` | LadybugDB graph export (requires `-tags ladybug`). `--results` includes `RESULT:` nodes with `outcome`/`source` properties for graph traversal from requirements to verification results. |
 | `reqmd check --json <root>` | JSON validation report with requirements, pass/fail, trace checks |

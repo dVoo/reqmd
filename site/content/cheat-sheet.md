@@ -114,13 +114,13 @@ Summary: 5 total, 5 valid, 0 invalid, 0 parse errors, 1 warnings
 ### `reqmd ls` — list all content
 
 Prints a table of every node in document order, with a leading `Type`
-column (`req` / `container` / `info`). Requirements show all schema
-attributes; containers and info items show their heading text.
+column (`req` / `section`). Requirements show all schema attributes;
+sections show their heading text.
 
 ```sh
 reqmd ls spec/                # table output
 reqmd ls spec/ --json         # JSON output (rows array with a type field)
-reqmd ls spec/ --filter '"Premium" in variant'   # only matching requirements (items always shown)
+reqmd ls spec/ --filter '"Premium" in variant'   # matching requirements plus sections still holding one
 ```
 
 {{< details summary="Example output" >}}
@@ -144,6 +144,8 @@ reqmd stats spec/             # table output
 reqmd stats spec/ --json      # JSON output
 reqmd stats spec/ --filter 'priority == "Critical"'   # scope to matching requirements
 ```
+
+`--relaxed-filter` downgrades a filter that names an undeclared attribute to a warning (also on `check`, `export`, `serve`, and `baseline diff`).
 
 {{< details summary="Example output" >}}
 ```text
@@ -270,7 +272,7 @@ reqmd export csv spec/ -o csv-out/ --results ci-out/
 reqmd export csv spec/ -o csv-out/ --filter '"Premium" in variant'
 ```
 
-With `--results`, adds `Verdict` and `Verdict Source` columns.
+With `--results`, adds `Verdict`, `Verdict Source`, and `Verdict Cases` columns.
 
 {{< details summary="Example output" >}}
 ```text
@@ -287,8 +289,8 @@ including the generated code-proxy documents)
 ```
 
 Each CSV has columns: `Type, ID, Title, <schema attributes>, Body, Rationale`.
-Rows are emitted in document order for every node — requirements and
-containers/info items alike.
+Rows are emitted in document order for every kept node — requirements and
+sections alike (a `section` row carries its heading text and no attributes).
 {{< /details >}}
 
 ### `reqmd export html` — export to HTML
@@ -315,12 +317,15 @@ exporting spec/ → html-out/
 ```
 
 Every page is fully standalone — the stylesheet and client controller are
-embedded, so there is no network access and no CDN — with a server-rendered
-**Document** view that stays readable without JavaScript:
+embedded, so a page needs no network access — with a server-rendered
+**Document** view that stays readable without JavaScript. The one exception is a
+page containing a `mermaid` code block: that block loads a version-pinned
+Mermaid runtime from a CDN, the documented deviation from the offline
+guarantee (requirement `SW-EXP-004`).
 
 - **Document** — requirement cards with status/coverage/verdict chips, a
   collapsible detail block (attributes, rationale, evidence, traces),
-  collapsible container sections and info blocks, and the document chain.
+  collapsible parent sections, and the document chain.
 - **Table** — a dense sortable grid with a column chooser, type-aware sorting,
   and expandable rows that reuse the server-rendered card content.
 - **Trace** — a selected-requirement explorer with upstream and downstream
@@ -373,7 +378,8 @@ reqmd export json spec/ -o json-out/ --filter '"Premium" in variant'
 {{< /details >}}
 
 Built-in attributes (`trace`, `requires-trace-from`, `status`, `disposition`,
-`version`, `verify`) are promoted to top-level keys for direct SQL; the
+`disposition-reason` as `disposition_reason`, `version`) plus the ordinary
+property `verify` are promoted to top-level keys for direct SQL; the
 remaining declared attributes stay in the `attrs` envelope with their native
 JSON types (arrays stay arrays). Every fixed key is present in every row:
 plain strings are `""` when unset (never `null`), while `attrs`, `trace`,
@@ -395,11 +401,12 @@ warehouse can count or filter it on its own terms.
 
 ### `reqmd export graph` — export to LadybugDB graph
 
-Creates a graph database with one node per requirement and `TracesTo` edges. Requires the `ladybug` build tag.
+Creates a graph database with one node per requirement and `TracesTo` edges. Requires the `ladybug` build tag. With `--results`, also adds `RESULT:` nodes carrying `outcome`/`source` properties, so the graph can be traversed from a requirement to its verification results.
 
 ```sh
 go build -tags ladybug -o reqmd ./cmd/reqmd
 reqmd export graph spec/ -o graph-out/
+reqmd export graph spec/ -o graph-out/ --results ci-out/   # include verdict nodes
 ```
 
 {{< details summary="Example output" >}}
@@ -490,10 +497,9 @@ no version-pin changes needed
 
 | Flag | Description |
 |------|-------------|
-| `--yes`, `-y` | Apply changes without prompting |
+| `--yes`, `-y` | Apply changes without prompting (omit it for the default dry-run) |
 | `--json` | Output as JSON |
 | `--promote-unpinned` | Also pin trace refs that have no `~N` against a versioned upstream |
-| `--dry-run` | Print the change list without applying (default; implicit when `--yes` is absent) |
 
 ## Filter expressions
 
@@ -527,16 +533,16 @@ no version-pin changes needed
 
 | Command | What it does | Key flags |
 |---------|-------------|-----------|
-| `check <dir>` | Validate + trace checks | `--json`, `--results`, `--relaxed-versions`, `--filter`, `--disjoint-check`, `--ignore-unbound-results`, `-s` |
-| `ls <dir>` | List all requirements | `--json`, `--filter` |
-| `stats <dir>` | Stats per document | `--json`, `--filter` |
+| `check <dir>` | Validate + trace checks | `--json`, `--results`, `--relaxed-versions`, `--filter`, `--relaxed-filter`, `--disjoint-check`, `--ignore-unbound-results`, `-s` |
+| `ls <dir>` | List all requirements | `--json`, `--filter`, `--relaxed-filter` |
+| `stats <dir>` | Stats per document | `--json`, `--filter`, `--relaxed-filter` |
 | `init <dir>` | Scaffold a new project | `--preset`, `--id-prefix`, `--force` |
-| `serve <dir>` | Live HTML preview | `--addr`, `--results`, `--headless`, `--filter` |
-| `export csv <dir>` | CSV export | `-o`, `--results`, `--filter` |
-| `export html <dir>` | HTML export | `-o`, `--results`, `--filter` |
-| `export json <dir>` | NDJSON tables for reporting platforms | `-o`, `--results`, `--filter`, `--disjoint-check` |
-| `export graph <dir>` | Graph export (ladybug tag) | `-o` |
-| `baseline diff <t1> <t2>` | Compare two git tags | `--json`, `--filter`, `--filter-a`, `--filter-b` |
+| `serve <dir>` | Live HTML preview | `--addr`, `--results`, `--headless`, `--filter`, `--relaxed-filter` |
+| `export csv <dir>` | CSV export | `-o`, `--results`, `--filter`, `--relaxed-filter` |
+| `export html <dir>` | HTML export | `-o`, `--results`, `--filter`, `--relaxed-filter` |
+| `export json <dir>` | NDJSON tables for reporting platforms | `-o`, `--results`, `--filter`, `--relaxed-filter`, `--disjoint-check` |
+| `export graph <dir>` | Graph export (ladybug tag) | `-o`, `--results` |
+| `baseline diff <t1> <t2>` | Compare two git tags | `--json`, `--filter`, `--filter-a`, `--filter-b`, `--relaxed-filter` |
 | `repin <dir>` | Update version pins to upstream's current version | `--yes`, `--json`, `--promote-unpinned` |
 
 ## The `schema.yaml` file
@@ -560,15 +566,6 @@ properties:
   verify:
     type: string
     enum: [Test, Review, Inspection, Analysis, Demonstration]
-  status:
-    type: string
-    enum: [draft, approved]
-  trace:
-    type: array
-    items:
-      type: string
-  version:
-    type: integer
 additionalProperties: false
 
 x-reqmd:
@@ -631,32 +628,57 @@ The `enum` gives free validation (a typo like `variant: [Premuim]` fails `reqmd 
 
 ### Built-in attributes
 
-reqmd recognizes these attribute names automatically (they don't need to be in your `properties`, but they can be):
+reqmd injects exactly these six attribute names into every schema, so they are
+valid on any requirement and must **not** be declared in a `schema.yaml`
+`properties` block (doing so is a schema compile error):
 
 | Attribute | Description |
 |-----------|-------------|
 | `trace` | Array of upstream IDs this requirement traces to. Supports `~N` version pins (e.g. `SYS-001~3`). |
-| `requires-trace-from` | Declares that this requirement expects downstream coverage. Used for coverage checks. Omitted on a requirement → inherits the document's `x-reqmd.requires-trace-from` default when one is set; `[]` opts out. |
-| `status` | `draft` or `approved`. Only `approved` counts as coverage. |
 | `disposition` | `implemented`, `deferred`, or `rejected`. Required when `mandatory-disposition: true`. |
+| `disposition-reason` | Free text required when `disposition` is `deferred` or `rejected`. |
+| `requires-trace-from` | Declares that this requirement expects downstream coverage. Used for coverage checks. Omitted on a requirement → inherits the document's `x-reqmd.requires-trace-from` default when one is set; `[]` opts out. |
 | `version` | Integer version of the requirement. Used by version-pin staleness checks. |
-| `verify` | Verification method: `Test`, `Review`, `Inspection`, `Analysis`, or `Demonstration`. |
-| `reqmd-suppress` | Array of check names to suppress (e.g. `[version-pin, missing-verdict]`). |
-| `external` | If `true`, this is an external reference requirement (imported, not authored in this tree). |
+| `status` | `draft` or `approved`. Only `approved` counts as coverage. |
+
+Everything else is an ordinary property you declare yourself — including
+`verify` (verification method: `Test`, `Review`, `Inspection`, `Analysis`, or
+`Demonstration`). `external` is not an attribute at all: it is the document-level
+`x-reqmd.external` setting.
+
+### Suppressing checks
+
+An `attr` block may carry `reqmd-suppress: [code, ...]`. The parser strips it
+before schema validation (it is not a schema property) and the named checks
+report nothing for that requirement. The complete list of codes:
+
+`broken-ref`, `circular`, `untraced`, `no-downstream`, `disposition-reason`,
+`mandatory-disposition`, `id-prefix`, `version-pin`,
+`requires-trace-from-coverage`, `missing-verdict`, `failing-verdict`,
+`disjoint-attribute`.
+
+`unbound-result` is not in that list — silence it with
+`--ignore-unbound-results` instead.
 
 ### Content model — nothing is dropped
 
-Every heading in a document is a node in a content tree:
+Every heading in a document is a node in a content tree, and there are exactly
+two kinds:
 
 | Type | Definition | Shown in |
 |------|-----------|----------|
 | `req` | heading followed by an `attr` block | cards, `ls`/CSV rows, all checks |
-| `container` | heading without an `attr` block that has children | collapsible folder sections in HTML, `container` rows in `ls`/CSV, TOC folders |
-| `info` | heading without an `attr` block and no children, or prose before the first heading | plain blocks in HTML, `info` rows in `ls`/CSV |
+| `section` | every other node: a heading without an `attr` block, or the headingless prose before the first heading | plain blocks in HTML, `section` rows in `ls`/CSV, TOC folders |
 
-Containers and info items carry no attributes and skip validation, trace
-checks, coverage, and `--filter` pruning — they exist so exported
-documents stay faithful to the source. `check` is requirement-scoped.
+The `section` kind covers both a folder (it has children) and a leaf prose
+block; which one it renders as is derived from its children and never stored,
+so adding a subsection cannot change a node's kind.
+
+Sections carry no attributes and skip validation, trace checks, and coverage —
+they exist so exported documents stay faithful to the source. `--filter` keeps a
+section only while at least one matching requirement is beneath it (a
+prose-only leaf section survives on its own); a folder whose content was all
+filtered out is dropped. `check` is requirement-scoped.
 
 ## The requirement format
 

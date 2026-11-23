@@ -40,7 +40,7 @@ UI-based ALM tools — Jama, Polarion, Siemens Teamcenter, IBM DOORS, codeBeamer
 2. **The trace graph is opaque.** "Where does SYS-007 trace to?" requires either a UI session or a paginated REST call that returns IDs but not context. The agent has to follow references by hand, across multiple round-trips, to recover what reqmd makes a single 16 ms read.
 3. **Review is impossible.** When the agent writes a new requirement through the API, the change shows up in the UI but the diff is unreadable. A reviewer looking at the agent's PR sees a JSON blob in the audit log, not a Markdown paragraph they can mark up in GitHub.
 
-reqmd's model is the opposite. A requirement is a heading, a YAML `attr` block, and free-form prose; headings without an `attr` block are containers and info items — structure that is rendered and listed but never validated. The agent edits text. The diff is text. The review is text. The check is a binary that returns text. The whole pipeline is in text.
+reqmd's model is the opposite. A requirement is a heading, a YAML `attr` block, and free-form prose; headings without an `attr` block are sections — structure that is rendered and listed but never validated. The agent edits text. The diff is text. The review is text. The check is a binary that returns text. The whole pipeline is in text.
 
 ## The format is the API
 
@@ -105,27 +105,41 @@ x-reqmd:
   ignore-status: false           # all reqs count as coverage regardless of status
 ```
 
-### Built-in attributes (recognized automatically)
+### Built-in attributes (injected, never declared)
+
+reqmd injects these six attribute names into every schema, so they are valid on
+any requirement and must not appear in a `schema.yaml` `properties` block:
 
 | Attribute | Description |
 |-----------|-------------|
 | `trace` | Array of upstream IDs. Supports `~N` version pins (e.g. `SYS-001~3`). |
-| `requires-trace-from` | Declares expected downstream coverage. |
-| `status` | `draft` or `approved`. Only `approved` counts as coverage. |
 | `disposition` | `implemented`, `deferred`, or `rejected`. Required when `mandatory-disposition: true`. |
+| `disposition-reason` | Free text required when `disposition` is `deferred` or `rejected`. |
+| `requires-trace-from` | Declares expected downstream coverage. |
 | `version` | Integer version. Used by version-pin staleness checks. |
-| `verify` | Verification method: `Test`, `Review`, `Inspection`, `Analysis`, `Demonstration`. |
-| `reqmd-suppress` | Array of check names to suppress (e.g. `[version-pin, missing-verdict]`). |
-| `external` | If `true`, this is an external reference requirement. |
+| `status` | `draft` or `approved`. Only `approved` counts as coverage. |
+
+`verify` (verification method) is an ordinary property you declare yourself;
+`external` is not an attribute at all but the document-level `x-reqmd.external`
+setting.
+
+`reqmd-suppress: [code, ...]` in an `attr` block is stripped by the parser before
+schema validation (it is not a schema property) and silences the named checks.
+The complete code list: `broken-ref`, `circular`, `untraced`, `no-downstream`,
+`disposition-reason`, `mandatory-disposition`, `id-prefix`, `version-pin`,
+`requires-trace-from-coverage`, `missing-verdict`, `failing-verdict`,
+`disjoint-attribute`.
 
 ### Content model — nothing is dropped
 
-Every heading is a content-tree node. `req` = heading + `attr` block
-(validated, traced, filtered). `container` = heading without `attr` block
-that has children (folder-like; collapsible in HTML, `container` rows in
-`ls`/CSV, TOC folders). `info` = heading without `attr` block and no
-children, or leading prose. Items carry no attributes and are never
-validated, traced, or filter-pruned — `check` is requirement-scoped.
+Every heading is a content-tree node, and there are exactly two kinds: `req`
+(heading + `attr` block — validated, traced, filtered) and `section` (every
+other node: a heading without an `attr` block, or the headingless prose before
+the first heading). A section renders as a folder or a prose block depending on
+whether it has children — that is derived, never stored. Sections carry no
+attributes and are never validated, traced, or counted. Under `--filter` a
+section survives only while at least one matching requirement is beneath it (a
+prose-only leaf section survives on its own). `check` is requirement-scoped.
 
 See the [cheat sheet](/cheat-sheet/) for the full schema reference and every `x-reqmd` option.
 
@@ -146,9 +160,10 @@ JSON Schema (YAML) with bidirectional trace checks. Exit codes: 0 (clean),
 for a machine-readable index of the docs.
 
 Every heading is a node: a requirement (heading + `attr` block) validates,
-traces, and filters; headings without an `attr` block are containers and
-info items — structure that renders in `ls`/CSV/HTML but is never
-validated, traced, or filter-pruned. Level-1 headings are the document
+traces, and filters; a heading without an `attr` block is a section —
+structure that renders in `ls`/CSV/HTML but is never validated, traced, or
+counted (it survives `--filter` only while a matching requirement is
+beneath it). Level-1 headings are the document
 title, not content: they never become requirements (only h2+ can), and
 they render as the page title rather than a folder. Nothing is dropped;
 don't delete non-requirement headings to "clean up" — they are content.
@@ -210,8 +225,9 @@ Each document dir has a `schema.yaml`. Key `x-reqmd` fields:
 - `mandatory-disposition: true` — every requirement needs a disposition
 - `external: true` — imported reference requirements, not authored
 
-Built-in attributes: `trace`, `requires-trace-from`, `status`, `disposition`,
-`version`, `verify`, `reqmd-suppress`, `external`.
+Built-in attributes (injected, never declared in `properties`): `trace`,
+`requires-trace-from`, `status`, `disposition`, `disposition-reason`,
+`version`. `verify` is an ordinary property you declare yourself.
 
 ## Status & disposition
 

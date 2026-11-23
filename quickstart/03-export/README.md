@@ -12,8 +12,8 @@ reqmd export csv 02-trace-your-spec/ -o csv-out/
 Produces one CSV per document directory (`stakeholder-requirements.csv`,
 `system-requirements.csv`, etc.) with a leading `Type` column followed by
 ID, Title, all schema attributes, Body, Rationale. Rows are emitted in
-document order for every node — requirements **and** containers/info
-items (headings without `attr` blocks) — so the CSV mirrors the source
+document order for every node — requirements **and** sections
+(headings without `attr` blocks) — so the CSV mirrors the source
 document, not just its requirement subset.
 
 ## HTML export
@@ -35,9 +35,11 @@ document. Each page has:
   `?`)
 - URL-synced state (`?q=&f=attr:value&view=`) so a filtered view is shareable
 - A compact sticky app bar with the document breadcrumb, outline toggle, and light/dark theme toggle
-- No external scripts: the stylesheet and controller are embedded
-- Collapsible container sections and plain info blocks for headings
-  without `attr` blocks (folders, exactly as authored)
+- No external scripts except one: a ` ```mermaid ``` diagram loads a
+  version-pinned Mermaid runtime from a CDN (`SW-EXP-004`); the stylesheet and
+  controller are embedded
+- Collapsible folder sections and plain prose blocks for headings
+  without `attr` blocks (exactly as authored)
 - Sidebar TOC with the same folder nesting
 - Upstream/downstream trace links between files
 - Document chain section (V-model navigation)
@@ -102,8 +104,9 @@ reqmd export html 02-trace-your-spec/ \
   -o html-out/
 ```
 
-HTML gets color-coded verdict badges on measure cards; CSV gets `Verdict` and
-`Verdict Source` columns; Graph gets `RESULT:` nodes with `outcome` properties.
+HTML gets color-coded verdict badges on measure cards; CSV gets `Verdict`,
+`Verdict Source`, and `Verdict Cases` columns; Graph gets `RESULT:` nodes with
+`outcome` properties.
 
 ## What's next
 

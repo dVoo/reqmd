@@ -113,17 +113,16 @@ reqmd merges results latest-wins per (measure, case), synthesizes pseudo-require
 {{< details summary="Is there a web UI?" card="true" >}}
 There is no separate web UI; the HTML export *is* the web UI. Run `reqmd serve spec/` for a live-reloading preview, or `reqmd export html spec/ -o docs/` and host the resulting `docs/` directory as a static site.
 
-The HTML export includes requirement cards, collapsible container sections and info blocks for headings without `attr` blocks, a sidebar TOC with folder nesting, upstream/downstream trace links, a document chain tab strip for V-model navigation, status filters, theme toggle, and (with `--results`) color-coded verdict badges on measure cards.
+The HTML export includes requirement cards, collapsible parent sections, a sidebar TOC with folder nesting, upstream/downstream trace links, a document chain tab strip for V-model navigation, status filters, theme toggle, and (with `--results`) color-coded verdict badges on measure cards.
 {{< /details >}}
 
 {{< details summary="What happens to headings without an `attr` block?" card="true" >}}
 They are never dropped. Every heading becomes a node in the document's content tree:
 
 - **Requirements** — headings followed by an `attr` block. The only nodes that validate, trace, filter, and count toward coverage.
-- **Containers** — headings without an `attr` block that wrap nested content (folder-like groupings, e.g. a `# System Overview` heading above a set of `## SYS-xxx` requirements).
-- **Info items** — headings without an `attr` block and no children, plus prose before the first heading of a file.
+- **Sections** — every other node: a heading without an `attr` block (plus prose before the first heading of a file). Whether a section behaves like a folder (it has children) or a leaf prose block is derived from its children and never stored.
 
-Containers and info items carry no attributes and take no part in validation, trace checks, coverage, or `--filter` — `reqmd check` is requirement-scoped. They exist so `ls`, `stats`, CSV, and the HTML export (including the sidebar TOC) stay faithful to the document as authored. In `ls` and CSV they appear with a leading `Type` column; in HTML they render as collapsible folder sections and plain blocks.
+Sections carry no attributes and take no part in validation, trace checks, or coverage — `reqmd check` is requirement-scoped. `--filter` prunes requirements and then drops sections left empty: a folder section keeps its place while at least one matching requirement is beneath it, and a prose-only leaf section survives. Sections exist so `ls`, `stats`, CSV, and the HTML export (including the sidebar TOC) stay faithful to the document as authored. In `ls` and CSV they appear with a leading `Type` column set to `section`; in HTML they render as collapsible folder sections and plain blocks.
 {{< /details >}}
 
 {{< details summary="Does reqmd work without Git?" card="true" >}}

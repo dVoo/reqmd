@@ -12,7 +12,7 @@ Download a release from [GitHub Releases](https://github.com/dVoo/reqmd/releases
 
 ## Option 2 — Build from source
 
-Requires Go 1.26 or newer.
+Requires Go 1.27 or newer.
 
 ```sh
 git clone https://github.com/dVoo/reqmd
@@ -33,7 +33,7 @@ go install github.com/dVoo/reqmd/cmd/reqmd@latest
 
 ## Prerequisites
 
-- **Go 1.26 or newer** — required for the source build.
+- **Go 1.27 or newer** — required for the source build.
 - **Cgo toolchain** (gcc or clang) — only if you build the optional `export graph` subcommand with the `ladybug` build tag.
 
 ## With graph export (optional)

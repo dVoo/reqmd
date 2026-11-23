@@ -16,7 +16,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
                 schemaFile = component "schema.yaml"   "JSON Schema 2020-12 in YAML + x-reqmd upstream" "YAML"
             }
 
-            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/NDJSON/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json and --filter output" "Go 1.26" "CLI" {
+            reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/NDJSON/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json and --filter output" "Go 1.27" "CLI" {
                 parser       = component "Markdown Parser"  "Discovers schema.yaml per dir and parses .md via goldmark AST with GFM and parallel worker pool; assembles the full content tree (every heading is a node except the level-1 document title: requirement, or section when it has no attr block; h1 is the title and only h2+ can be requirements) with nothing dropped and deterministic file-order merging" "Go / goldmark"
                 validator    = component "Schema Validator" "Injects built-in attrs (including the status lifecycle and additional-status-values), rejects reserved-name redefinition, validates attr maps against JSON Schema 2020-12, and accepts reqmd-suppress per requirement" "Go / google/jsonschema-go"
                 graphBuilder = component "Graph Builder"    "Builds in-memory adjacency from parsed requirements, resolves doc-id-qualified traces, indexes x-reqmd.level for level-typed requires-trace-from coverage, and resolves each requirement's effective requires-trace-from (own attribute or inherited x-reqmd.requires-trace-from document default)" "Go"
@@ -53,10 +53,10 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
         // reqmd-import: the single renderer for the exchange format
         importTool = softwareSystem "Import Tool" "Renders a reqmd-import/v1 exchange bundle into reqmd documents (schema.yaml + .md). The only component that writes Markdown or YAML, so every importer shares one set of quoting, heading, and schema rules" {
 
-            exchangeFormat = container "Exchange Format" "reqmd-import/v1 JSON contract: documents carrying id-prefix, level, document-id, upstream and attr-schema properties, plus native-id-keyed requirements (parent, trace, native-trace, attrs). Building a bundle rejects unsupported formats, empty document lists, duplicate native IDs, unknown parent/native-trace refs, reserved attrs, escaping paths, parent cycles, and duplicate output paths" "JSON"
+            exchangeFormat = container "Exchange Format" "reqmd-import/v1 JSON contract: a $schema URL, documents carrying a stable key, title, per-document properties/required and an optional x-reqmd block (id-prefix, level, document-id, upstream, requires-trace-from, external, dir, file), plus a nested item tree whose kind is requirement (key, title, status, fields) or section. Building a bundle rejects a wrong $schema, empty document lists, duplicate or malformed document and item keys, a missing title or kind, fields on a section, undeclared or nested attr values, unresolved links, links to sections, escaping directories, nesting deeper than six heading levels, and duplicate output paths" "JSON"
 
-            renderer = container "Document Renderer" "Resolves native IDs to reqmd IDs, orders children under their parents, renders attr blocks with correct YAML quoting, emits each document's schema.yaml, and writes files idempotently behind a generated marker" "Go" "CLI" {
-                idResolver   = component "ID & Reference Resolver"   "Stamps <id-prefix><native-id>, rewrites native-trace refs against a bundle-wide index, and rejects duplicate IDs, unknown refs, reserved attrs, escaping paths, and parent cycles" "Go"
+            renderer = container "Document Renderer" "Resolves item keys to reqmd IDs, renders the nested item tree in the order given with heading depth from nesting level, renders attr blocks with correct YAML quoting, emits each document's schema.yaml, and writes files idempotently behind a generated marker" "Go" "CLI" {
+                idResolver   = component "ID & Reference Resolver"   "Stamps <id-prefix><key>, rewrites links to the referenced requirement's full ID (qualifying a cross-document link with its document), passes refs through verbatim, and rejects duplicate keys, unresolved links, links to sections, reserved attrs, and escaping paths" "Go"
                 schemaWriter = component "Schema Writer"             "Emits a document's schema.yaml from its properties/required plus the x-reqmd block (level, document-id, id-prefix, upstream, external)" "Go / yaml.v3"
             }
         }
@@ -114,7 +114,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
         // --- Extraction tool internal flow ---
         extractionTool.extractCli -> extractionTool.languages   "Asks for the plugin owning each file extension"
         extractionTool.extractCli -> extractionTool.traceEngine "Sends bound doc comments for requirement-ID extraction"
-        extractionTool.extractCli -> extractionTool.symbolModel "Builds native IDs from"
+        extractionTool.extractCli -> extractionTool.symbolModel "Builds stable item keys from"
         extractionTool.extractCli -> extractionTool.attrSchema  "Projects each document's property set from"
 
         // --- Extraction tool component internals ---

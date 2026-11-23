@@ -25,8 +25,8 @@ scaffold generated:
 ````markdown
 # Requirements
 
-This is a sample requirements document. The `status`, `id`, `title`, and `trace`
-attributes are built-in; `owner` is declared in the schema.
+This is a sample requirements document. The `status` and `trace` attributes
+are built-in; `owner` is declared in the schema.
 
 ## REQ-001
 ```attr
@@ -70,20 +70,22 @@ document tree — with one exception: `#` (level 1) is the **document
 title**, not content.
 
 - **`# Requirements`** is the document title. It renders as the page
-  title in exports and is never a requirement, container, or info node.
+  title in exports and is never a requirement or section node.
 - **`## REQ-001`** and **`## REQ-002`** have `attr` blocks — **requirements**,
   the only nodes that participate in validation, trace checks, coverage,
   and `--filter`. Only level-2+ headings can be requirements.
-- A heading such as **`## Notes`** (no `attr` block) with nested nodes is a
-  **container**, a folder-like grouping; without children it's an **info**
-  item.
+- Any other heading — such as **`## Notes`** (no `attr` block) — is a
+  **section**: a folder-like grouping when it has children, a plain prose
+  block when it hasn't. Folder-versus-leaf is derived from the children and
+  never stored.
 - Prose attaches to the nearest heading's body; prose before the first
-  heading becomes a headingless **info** item.
+  heading becomes a headingless **section**.
 
-Containers and info items carry no attributes and take no part in
-validation, trace checks, coverage, or `--filter` — they exist so exported
-documents stay faithful to the source. `reqmd check` remains
-requirement-scoped.
+Sections carry no attributes and take no part in validation, trace checks,
+or coverage. `--filter` keeps them only while they still lead somewhere: a
+folder section survives while a matching requirement is beneath it, a folder
+whose requirements were all filtered out is dropped, and a prose-only
+section survives regardless. `reqmd check` remains requirement-scoped.
 
 Heading levels are flexible from level 2 up: any level works, and a deeper
 heading after a requirement nests under it as a sub-requirement:
@@ -91,7 +93,7 @@ heading after a requirement nests under it as a sub-requirement:
 ```markdown
 ## SYS-001                        ← requirement
 ### SYS-001.1                     ← sub-requirement (parent = SYS-001)
-### Notes                         ← info item (no attr block)
+### Notes                         ← section (no attr block)
 ```
 
 ## Validate
@@ -114,21 +116,21 @@ Summary: 2 total, 2 valid, 0 invalid, 0 parse errors
 ```
 
 `reqmd ls` shows every node in the document — including the leading prose
-info item and both requirements:
+section and both requirements:
 
 ```text
 === my-project ===
 Type       | ID                       | owner        | trace        | disposition  | disposition-reason | requires-trace-from | version      | status       |
 -------------------------------------------------------------------------------------------------------------------------------------------------
-info       |                          |              |              |              |              |              |              |              |
+section    |                          |              |              |              |              |              |              |              |
 req        | REQ-001                  | Team Alpha   |              |              |              |              |              | draft        |
 req        | REQ-002                  | Team Beta    | ["REQ-001"]  |              |              |              |              | draft        |
 ```
 
-The leading `Type` column marks every node: `req` for requirements,
-`container` and `info` for headings without attribute blocks. The level-1
+The leading `Type` column marks every node: `req` for requirements and
+`section` for headings without attribute blocks. The level-1
 `# Requirements` heading is the document title, so it never appears as a node
-— the `info` row here is the prose paragraph before `REQ-001`.
+— the `section` row here is the prose paragraph before `REQ-001`.
 
 ## Try the other presets
 

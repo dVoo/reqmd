@@ -80,7 +80,7 @@ sha256sum -c SHA256SUMS.txt --ignore-missing
 
 ### Build from source
 
-Requires Go 1.26 or newer.
+Requires Go 1.27 or newer.
 
 ```sh
 git clone https://github.com/dVoo/reqmd
@@ -229,33 +229,34 @@ becomes a node in a document tree:
 | Node kind | When | Rendered as |
 |-----------|------|-------------|
 | **requirement** | heading followed by an `attr` block | card (HTML/CSV/ls row) |
-| **container** | heading without an `attr` block that contains nested headings | collapsible folder section in HTML, `container` rows in `ls`/CSV |
-| **info** | heading without an `attr` block and no children, or prose before the first heading | plain block in HTML, `info` rows in `ls`/CSV |
+| **section** | any heading without an `attr` block, plus the leading headingless prose | collapsible folder section in HTML when it has children, plain block otherwise; `section` rows in `ls`/CSV |
 
 Prose and other blocks attach to the nearest open heading's body. Leading
-prose before any heading is captured as a headingless info item — content
-is never dropped. Headings nest folder-like:
+prose before any heading is captured as a headingless section — content
+is never dropped. Headings nest folder-like, and whether a section renders as
+a folder or a leaf is derived from its children — never stored:
 
 ```markdown
-# System Overview                      ← container (no attr block)
+# System Overview                      ← section (folder)
 
-Intro prose.                           ← info item (headingless)
+Intro prose.                           ← section (headingless leaf)
 
 ## SYS-001: Platform                   ← requirement
 ```attr
 status: approved
 ```
 
-### Functional Overview                ← info item under SYS-001
+### Functional Overview                ← section under SYS-001
 
 ## SYS-002: Safety                     ← requirement
 ```
 
-Containers and info items have no attributes and participate in no
-validation or trace checks (`check` stays requirement-scoped); they exist
-to preserve and display document structure in `ls`, `stats`, CSV, and HTML
-exports (including the sidebar TOC). `--filter` prunes requirements but
-never removes containers or info items.
+Sections have no attributes and participate in no validation or trace checks
+(`check` stays requirement-scoped); they exist to preserve and display
+document structure in `ls`, `stats`, CSV, and HTML exports (including the
+sidebar TOC). `--filter` prunes requirements and then drops sections left
+empty: a folder section keeps its place while at least one matching
+requirement is beneath it, and a prose-only leaf section always survives.
 
 ### 2. Schema files (`schema.yaml`)
 
@@ -567,11 +568,11 @@ in the card grid marked `· undeclared`.
 | `reqmd check --filter "<expr>" <root>` | Scope validation to requirements matching an [expr-lang](https://expr-lang.org) expression (e.g. `"Premium" in variant`). Coverage checking becomes filter-aware: filtered-out requirements cannot cause false coverage failures. `--json` adds a `"filter"` field to the summary. `--relaxed-filter` turns a reference to an attribute declared in no `schema.yaml` into a warning, and also allows attributes that are present on requirements but undeclared. |
 | `reqmd check --disjoint-check <attr> <root>` | Check that trace-linked requirements have overlapping values for the named array-typed attribute (e.g. `variant`). Zero intersection → ERROR; empty/absent = "applies to all" (exempt). Repeatable. Also settable via `x-reqmd.disjoint-check` in `schema.yaml`. |
 | `reqmd init <dir>` | Scaffold a new requirements directory with schema.yaml and example file. Presets: `generic` (default), `aspice`, `results` (manual verification results), or a custom preset directory path. Flags: `--preset`, `--id-prefix`, `--id`, `--title`, `--level`, `--force` |
-| `reqmd ls <root>` | Table of all content in document order with a leading `Type` column (`req` / `container` / `info`). Requirements show their attributes; items show their heading text. `--filter "<expr>"` scopes to matching requirements (items are always shown); `--relaxed-filter` allows undeclared attributes. |
+| `reqmd ls <root>` | Table of all content in document order with a leading `Type` column (`req` / `section`). Requirements show their attributes; sections show their heading text. `--filter "<expr>"` scopes to matching requirements and drops sections left empty (a prose-only leaf section survives); `--relaxed-filter` allows undeclared attributes. |
 | `reqmd ls --json <root>` | JSON list — every node in the `rows` array with a `type` discriminator. `--filter` supported. |
 | `reqmd stats <root>` | Attribute-value breakdown per document, plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements; `--relaxed-filter` allows undeclared attributes. |
 | `reqmd stats --json <root>` | JSON stats. `--filter` supported. |
-| `reqmd export csv <root> -o <dir>` | CSV export with Type, Body and Rationale columns, emitted in document order for requirements and items alike. `--results <path>` (repeatable) adds Verdict and Verdict Source columns. `--filter "<expr>"` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
+| `reqmd export csv <root> -o <dir>` | CSV export with Type, Body and Rationale columns, emitted in document order for requirements and items alike. `--results <path>` (repeatable) adds Verdict, Verdict Source and Verdict Cases columns. `--filter "<expr>"` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
 | `reqmd export html <root> -o <dir>` | Standalone HTML: a **project home** (`index.html`) plus one page per document. The **Document** view is server-rendered (compact app bar, sidebar outline with scroll-spy, one sticky search/filter toolbar, neutral requirement cards with status/coverage/verdict chips, collapsible attribute/rationale/evidence/trace details) and stays readable without JavaScript. **Table** (sortable grid with column chooser and expandable rows), **Trace** (selected-requirement explorer plus a size-bounded matrix), and **Coverage** (actionable exception lists) render on demand from one shared view model, so no hidden analytical DOM is emitted. Coverage, verification (including `no verdict` in the denominator), and link health are derived from the same graph analysis `reqmd check` runs. The export embeds its CSS and client script — no CDN, fully offline, except that a page containing a `mermaid` diagram loads a version-pinned Mermaid runtime so the diagram renders in the browser (the one documented network exception). Chrome: ⌘K command palette, keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`, `?`), and URL-synced state using repeated `f=attr:value` params (`?q=&f=&view=&req=`) so a filtered view is shareable. `--results` renders verdict chips and evidence; `--filter` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
 | `reqmd export json <root> -o <dir>` | Four flat NDJSON tables for reporting platforms (Databricks, Snowflake, BigQuery): `requirements.ndjson` (one row per requirement of the authored documents — sections and synthetic result/test-case nodes are not emitted; built-ins promoted to top-level keys, remaining attributes in an `attrs` envelope), `traces.ndjson` (one row per declared trace ref of the exported requirements, with `pin` and `resolved`), `results.ndjson` (one row per measure verdict; always written, empty without `--results`), and `findings.ndjson` (one row per check finding). A pure function of tree + results, so repeated exports are byte-identical. `--filter "<expr>"` narrows `requirements.ndjson` and `traces.ndjson` (`--relaxed-filter` allows undeclared attributes); refs still resolve against the full tree and findings are filter-aware; `--disjoint-check` findings land in `findings.ndjson`. |
 | `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build). `--results <path>` (repeatable) includes `RESULT:` nodes with `outcome` and `source` properties, enabling graph traversal from requirements through measures to verification results. |
@@ -608,14 +609,14 @@ Summary: 2 total, 2 valid, 0 invalid, 0 parse errors
 === demo ===
 Type       | ID                       | owner        | trace        | disposition  | disposition-reason | requires-trace-from | version      | status       |
 -------------------------------------------------------------------------------------------------------------------------------------------------
-info       |                          |              |              |              |              |              |              |              |
+section    |                          |              |              |              |              |              |              |              |
 req        | REQ-001                  | Team Alpha   |              |              |              |              |              | draft        |
 req        | REQ-002                  | Team Beta    | ["REQ-001"]  |              |              |              |              | draft        |
 ```
 
 Every node appears in document order with a leading `Type` column —
-`req` for requirements, `container`/`info` for headings without `attr`
-blocks (headings that group content, shown with their heading text).
+`req` for requirements, `section` for headings without `attr` blocks
+(folders and leaves alike, shown with their heading text).
 User-defined attributes first, then built-in attributes. Empty cells mean the
 requirement didn't set that attribute. Non-string values (arrays, integers,
 booleans) are formatted automatically.
@@ -628,8 +629,8 @@ Documents:    1
 
 === demo (2 reqs, 1 item) ===
   type:
-    info                 1
     req                  2
+    section              1
   owner:
     Team Alpha           1
     Team Beta            1
@@ -764,7 +765,7 @@ Findings:
 | `pin == upstream.version` | Current | — | — |
 | No pin | No version check applies | — | — |
 | Upstream `version: 0` / unset | No ground truth to compare | — | — |
-| Upstream `external: true` | Out of scope | — | — |
+| Upstream `x-reqmd.external: true` | Out of scope | — | — |
 
 Suppression per-requirement: `reqmd-suppress: [version-pin]`.
 
@@ -816,7 +817,8 @@ any other directory's `upstream.sources` are **bottom-boundary**
 — to specify exactly which document-ids or levels must trace to it; use
 `requires-trace-from: []` to explicitly opt out of generic boundary coverage.
 
-Per-requirement check suppression is available via the `reqmd-suppress` attr:
+Per-requirement check suppression uses the `reqmd-suppress` attr, which the
+parser strips before validation — it never needs a `schema.yaml` declaration:
 ```yaml
 reqmd-suppress:
   - untraced
@@ -1080,7 +1082,7 @@ All export formats support `--results`:
 
 | Format | What `--results` adds |
 |--------|----------------------|
-| **CSV** | Two extra columns: `Verdict` (rolled-up pass/fail/skipped/inconclusive) and `Verdict Source` (result file) |
+| **CSV** | Three extra columns: `Verdict` (rolled-up pass/fail/skipped/inconclusive), `Verdict Source` (result file) and `Verdict Cases` (the case keys that contributed, `; `-joined) |
 | **HTML** | Color-coded verdict chips on measure cards — green (pass), red (fail), orange (inconclusive), gray (skipped), plus an explicit **no verdict** chip for eligible measures without a result. The rolled-up evidence list shows the contributing case, outcome, and source file. |
 | **JSON** | `results.ndjson` — one row per measure verdict (rolled-up outcome, contributing cases, source). Only with `--results`; otherwise the file is written empty. |
 | **Graph** | `RESULT:` pseudo-nodes with `outcome` and `source` properties, connected via `TracesTo` edges to their measures. Enables Cypher traversal from requirements through measures to verification results. |
@@ -1213,7 +1215,7 @@ ReqMD dogfoods its own format. The `spec/` directory contains a complete
 | Tests | `spec/04-tests/` | 20 | Test specifications (mandatory-disposition) |
 
 All 293 hand-authored requirements validate cleanly (each document also
-carries one container item — its `# Title` heading). The tree also contains
+carries its `## ` headings as section items). The tree also contains
 the generated `spec/03-software/imported/` proxy documents, which
 `reqmd-code` regenerates from the tool's own source — 1337 requirements across
 22 documents in total:
