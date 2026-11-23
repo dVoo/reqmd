@@ -2,15 +2,15 @@
 # bench.sh — reproduce the reqmd benchmark from the Hugo /benchmarks/ page.
 #
 # Builds reqmd, reqmd-bench-gen, and reqmd-bench-run, then measures:
-#   1. Baseline: the real bundled spec/ tree (1337 requirements, 22 doc dirs).
+#   1. Baseline: the real bundled spec/ tree (1,693 requirements, 32 doc dirs).
 #   2. Scaling:  synthetic corpora at 71k, 180k, 360k, 720k requirements.
 #
-# Each command at each scale runs 5 times; the median wall time is reported.
+# Each command at each scale runs 3 times; the median wall time is reported.
 # Results (with CPU/OS/Go metadata) are saved to a timestamped JSON file.
 #
 # Usage:
-#   ./bench.sh                      # full benchmark, default 5 runs
-#   ./bench.sh --runs 3             # fewer runs (faster, less stable)
+#   ./bench.sh                      # full benchmark, default 3 runs
+#   ./bench.sh --runs 5             # more runs (slower, more stable)
 #   ./bench.sh --baseline-only      # just the real spec, no scaling
 #   ./bench.sh --scales 71000,360000   # custom scales (total requirement targets)
 #   ./bench.sh --out results.json   # custom output path
@@ -21,7 +21,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 # --- defaults ---
-RUNS=5
+RUNS=3
 SCALES="71000,180000,360000,720000"
 OUT=""
 EXTRA_ARGS=""

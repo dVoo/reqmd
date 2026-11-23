@@ -106,7 +106,7 @@ trace:
   - ASP-SR-008
   - ASP-SR-011
 ```
-The validation pipeline shall execute four sequential passes: Parse (goldmark AST), Pass 1 (JSON Schema validation with built-in injection), Graph build (pure Go in-memory adjacency with three sub-passes: node creation, trace-edge building, parent-child edge building), and the graph check pass, which reports this catalog (check code, severity, condition):
+The validation pipeline shall execute four passes in this order: Parse (goldmark AST), Pass 1 (JSON Schema validation with built-in injection), Graph build (pure Go in-memory adjacency with three sub-passes: node creation, trace-edge building, parent-child edge building), and the graph check pass, which reports this catalog (check code, severity, condition):
 
 - `broken-ref` (WARNING) — a trace target does not resolve; a broken parent reference from the parent-child sub-pass is an ERROR.
 - `duplicate-id` (ERROR) — two requirements claim the same ID; the first definition wins.
@@ -125,6 +125,8 @@ The validation pipeline shall execute four sequential passes: Parse (goldmark AS
 - `unbound-result` (WARNING) — a loaded verification entry declares `x-reqmd` but binds to no requirement; suppressed by `--ignore-unbound-results`.
 - `verdict` (INFO) — the rolled-up outcome of a measure that has evidence; never affects the exit code.
 
+Graph construction shall run concurrently with Pass 1 validation — it only reads the parsed tree — and its result shall be consumed after Pass 1 completes, so graph checks still run after validation.
+
 ERROR-level results produce exit code 1; WARNING and INFO results do not.
 
 Document discovery follows a recursive tree walk: every directory containing a `schema.yaml` is a document directory; all `*.md` files in that directory (non-recursive) are parsed against that directory's schema.
@@ -141,7 +143,7 @@ The disposition workflow is defined as:
 
 Defining a reserved built-in attribute in `schema.yaml` produces a compile-time error.
 
-*Rationale:* Sequential passes ensure each stage has complete information. Parse must finish before validation; graph must be built before trace checks; all results are collected before reporting. Three sub-passes within graph construction guarantee deterministic node initialization before edges are wired.
+*Rationale:* The pass order ensures each stage has complete information. Parse must finish before validation; the graph must be built before trace checks; all results are collected before reporting. Because graph construction only reads the parsed tree, it may overlap Pass 1 validation without changing what either stage sees; its result is consumed afterwards, which preserves report order and error precedence (parse and schema errors first). Three sub-passes within graph construction guarantee deterministic node initialization before edges are wired.
 
 ### SYS-VAL-002: Verification result ingestion and outcome-gated checks
 ```attr

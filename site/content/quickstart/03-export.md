@@ -35,6 +35,7 @@ document. Each page has:
 - URL-synced state (`?q=&f=attr:value&view=`) so a filtered view is shareable
 - A compact sticky app bar with the document breadcrumb, outline toggle, and light/dark theme toggle
 - No external scripts for the app itself: the stylesheet and controller are embedded, so pages work offline (exception: a page containing a ` ```mermaid ` diagram loads a version-pinned Mermaid runtime from a CDN — `SW-EXP-004`)
+- Fenced `mermaid` blocks in a body or rationale render as diagrams **only in the HTML export** — `csv`, `json`, and `ls` keep the raw Markdown — and a page containing one needs network access for that pinned runtime
 - Collapsible folder sections and plain prose blocks for headings without `attr` blocks (exactly as authored)
 - Sidebar TOC with the same folder nesting
 - Upstream/downstream trace links between files

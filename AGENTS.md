@@ -9,7 +9,7 @@ Markdown files with embedded `attr` blocks (YAML) validated against JSON Schema 
 
 - `SPEC.md` — authoritative design spec (if absent, the spec tree under `spec/` is the source of truth)
 - `spec/workspace.dsl` — C4 model (Structurizr DSL) for architecture visualization
-- `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 hand-authored doc dirs (293 reqs; 1337 including the generated `03-software/imported/` proxies), V-model dogfood fixture
+- `spec/00-aspice/`, `spec/01-stakeholder/`, `spec/01a-aspice-stakeholder/`, `spec/02-system/`, `spec/03-software/`, `spec/04-tests/` — 6 hand-authored doc dirs (297 reqs; 1693 including the generated `03-software/imported/` proxies), V-model dogfood fixture
 - `QUICKSTART.md` — top-level 5-minute quick start (points into `quickstart/`)
 - `quickstart/` — step-by-step tutorial (01-get-started, 02-trace-your-spec, 03-export, 04-live-preview, 05-status-disposition, 06-ci-integration, 07-version-pins, 08-repin, 09-baseline-diff, 10-submodule-configuration, 11-verification-results-ctrf, 12-review-documentation, 13-custom-templates, 14-variant-management, 15-custom-importers)
 - `site/` — Hugo source for <https://reqmd.dev> (site mirror of the quickstart lives in `site/content/quickstart/`)
@@ -140,7 +140,9 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
 - **Trace ref checking**: Pass 2 graph-based trace checks (`graph.CheckResults()`) run after
   Pass 1 validation. Every value in the `trace` attribute is checked against all requirement IDs
   across all documents. Missing refs appear as WARNING-level results, cycles appear as ERROR-level.
-  WARNING/INFO do not affect exit code; ERROR does.
+  WARNING/INFO do not affect exit code; ERROR does. `graph.New` is started before Pass 1 and joined
+  after it, so graph construction hides behind validation with unchanged report order (hence error
+  precedence); the checks themselves stay sequential.
 - **requires-trace-from document default**: A document may declare
   `x-reqmd.requires-trace-from` in `schema.yaml` as its default downstream
   coverage expectation. At graph build (Pass 1) each requirement's effective
@@ -259,6 +261,8 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   requirement content. `project.go` renders the project home; `reqmd serve`
   serves it at `/`. Client URL-state helpers are exported for
   `static/url_state.test.js`, run by `TestClientURLState` when Node is installed.
+  Document pages render on a worker pool of `min(NumCPU, docs)`; the project home
+  is written once afterwards (`internal/cli/export/html.go`).
 - **Diagrams**: ` ```mermaid ` blocks reach the exporter as body Markdown, and
   the exporter renders them with `github.com/yuin/goldmark-diagram`'s mermaid
   client renderer pointed at the pinned UMD runtime (`mermaidCDN` in
@@ -270,7 +274,8 @@ cmd/reqmd/main.go → internal/cli (cobra commands)
   renderer (`mmdc`, needs a Chromium and takes seconds per diagram) is not used.
   This CDN load is the only documented exception to the offline export guarantee
   — see `SW-EXP-004`. The export itself needs no browser, no Node, and no
-  vendored blob; `static/app.js` only styles the container.
+  vendored blob; `static/style.css` (`.prose pre.mermaid`) only styles the
+  container.
 - **goldmark v2 AST**: `mdParser` is a `parser.Parser` (no renderer) and the
   exporter owns a `parser.New` + `html.New` pair, because v2 removed
   `goldmark.Markdown`/`goldmark.New`/`Convert` and split extensions into

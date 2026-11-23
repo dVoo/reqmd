@@ -102,7 +102,7 @@ To reproduce:
 go build -o reqmd-bench-gen ./cmd/reqmd-bench-gen
 go build -o reqmd-bench-run ./cmd/reqmd-bench-run
 
-# Run the full benchmark (baseline + 4 scales, 5 runs each)
+# Run the full benchmark (baseline + 4 scales, 3 runs each)
 ./bench.sh
 
 # Or invoke the runner directly
@@ -128,7 +128,7 @@ These are edge cases. Most teams will never hit them.
 
 ## See also
 
-- [Quickstart](/quickstart/) — try `reqmd check` on the bundled 281-requirement spec.
+- [Quickstart](/quickstart/) — try `reqmd check` on the bundled 1,693-requirement spec.
 - [Use cases](/use-cases/) — including CI integration patterns.
 - [`reqmd-bench-gen` source](https://github.com/dVoo/reqmd/tree/main/cmd/reqmd-bench-gen) — the synthetic corpus generator.
 - [`reqmd-bench-run` source](https://github.com/dVoo/reqmd/tree/main/cmd/reqmd-bench-run) — the benchmark runner that produced these numbers.

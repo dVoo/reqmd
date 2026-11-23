@@ -517,7 +517,10 @@ in both parsing and HTML export, with these extensions enabled:
 `reqmd` runs goldmark **v2**. The parser walks the AST with the structural
 extensions (GFM, frontmatter); the presentational ones (alerts, diagrams,
 highlighting, emoji) live on the HTML renderer, so a body is stored as Markdown
-and rendered on export.
+and rendered on export. A fenced `mermaid` block in a body or rationale therefore
+renders as a diagram **only in the HTML export** — `csv`, `json`, and `ls` keep
+the raw Markdown — and that one page then fetches the version-pinned Mermaid
+runtime from a CDN (`SW-EXP-004`).
 
 ### 9. Attribute filtering (`--filter`)
 
@@ -1210,19 +1213,19 @@ ReqMD dogfoods its own format. The `spec/` directory contains a complete
 | External | `spec/00-aspice/` | 191 | Automotive SPICE v4.0 base practices (`external: true`) |
 | Stakeholder | `spec/01-stakeholder/` | 7 | Stakeholder goals (top boundary, no upstream) |
 | ASPICE SR | `spec/01a-aspice-stakeholder/` | 19 | ASPICE stakeholder requirements mapped to base practices |
-| System | `spec/02-system/` | 23 | Feature specifications |
-| Software | `spec/03-software/` | 33 | Component-level design |
-| Tests | `spec/04-tests/` | 20 | Test specifications (mandatory-disposition) |
+| System | `spec/02-system/` | 24 | Feature specifications |
+| Software | `spec/03-software/` | 35 | Component-level design |
+| Tests | `spec/04-tests/` | 21 | Test specifications (mandatory-disposition) |
 
-All 293 hand-authored requirements validate cleanly (each document also
+All 297 hand-authored requirements validate cleanly (each document also
 carries its `## ` headings as section items). The tree also contains
 the generated `spec/03-software/imported/` proxy documents, which
-`reqmd-code` regenerates from the tool's own source — 1337 requirements across
-22 documents in total:
+`reqmd-code` regenerates from the tool's own source — 1693 requirements across
+32 documents in total:
 
 ```sh
 $ reqmd check spec/
-# ... 1337 total, 1337 valid, 0 invalid, 0 parse errors, 944 warnings
+# ... 1693 total, 1693 valid, 0 invalid, 0 parse errors
 
 $ reqmd serve spec/          # live-reloading HTML preview
 $ reqmd export html spec/ -o /tmp/out/
@@ -1232,7 +1235,7 @@ Wrote /tmp/out/01a-aspice-stakeholder-requirements.html
 Wrote /tmp/out/02-system-requirements.html
 Wrote /tmp/out/03-software-requirements.html
 Wrote /tmp/out/04-tests-requirements.html
-... plus one page per imported component directory (22 pages total)
+... plus one page per imported component directory (32 pages total)
 Wrote /tmp/out/index.html
 ```
 
@@ -1240,11 +1243,6 @@ Wrote /tmp/out/index.html
 verification summaries, actionable queues (missing coverage, missing verdicts,
 failing verification, broken/stale traces), and cross-document requirement
 search.
-
-The 23 warnings are expected — external base practices (`00-aspice`) and
-stakeholder goals (`01-stakeholder`) have no upstream traces (untraced warnings
-suppressed by boundary inference and `external: true`). The ASPICE proxy layer
-(`01a-aspice-stakeholder`) is the first fully-traced tier.
 
 ### Documentation website
 
