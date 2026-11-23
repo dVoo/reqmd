@@ -117,6 +117,9 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
   overflow-x: auto; text-align: center; font-family: inherit;
 }
 .prose pre.mermaid svg { max-width: 100%; height: auto; }
+/* Only wired diagrams (client-side click-to-enlarge) advertise the zoom. */
+.prose pre.mermaid[data-lightbox] { cursor: zoom-in; }
+.prose pre.mermaid[data-lightbox]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
 /* ── app bar ── */
 .app-bar {
@@ -609,6 +612,20 @@ body.overlay-open { overflow: hidden; }
   overflow: hidden;
 }
 .overlay__panel--narrow { width: min(34rem, 100%); }
+/* Enlarged diagram: near-full viewport, scrollable, and the cloned svg keeps
+   Mermaid's inline max-width from clamping it back to the column width. */
+.overlay__panel--lightbox {
+  width: 96vw; max-width: none; max-height: 84vh;
+  padding: 0.6rem; overflow: auto; background: var(--surface);
+}
+.overlay__panel--lightbox > .icon-btn {
+  position: absolute; top: 0.35rem; right: 0.35rem; background: var(--surface);
+}
+/* The svg keeps Mermaid's inline max-width, so the enlargement has to win with
+   !important — the clone is not clamped back to the prose column width. */
+.overlay__panel--lightbox svg {
+  max-width: none !important; width: 100% !important; height: auto !important; display: block;
+}
 
 .palette__input {
   width: 100%; border: 0; border-bottom: 1px solid var(--border);

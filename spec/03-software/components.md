@@ -478,6 +478,28 @@ trace:
 ```
 The `reqmd-import/exchange` package shall define the exchange bundle types (`Bundle`, `Document`, `Item`, `XReqmd`) and be the shared contract between producers and the renderer, so the format cannot drift between them. Decoding shall reject unknown fields and trailing data (a producer typo fails loudly), preserve numeric values exactly, and refuse nesting deeper than 32 levels. Building a bundle shall validate every rule in one pass and report the violations together (at most 20, addressed by item path) instead of stopping at the first: `$schema` not the v1 URL, an empty document list, a duplicate document key, a document key containing `/` or whitespace, a missing document title, an unknown or missing `kind`, a requirement without `key`, a duplicate key within a document, `fields` or `status` on a section, a `fields` name that is malformed, undeclared in `properties`, or carries a nested value, a `required` attribute missing from a requirement, a `link` that does not resolve or resolves to a section, a title containing a line break, a directory escaping the output root, nesting deeper than six heading levels, and two documents claiming the same output path.
 
+The following diagram shows the bundle as the pipeline's only shared contract: both producers emit that bundle and neither writes Markdown or YAML, so the renderer is the single writer of the rendered reqmd tree.
+
+```mermaid
+flowchart LR
+    SRC["source tree to scan"]
+    PLUG["lang plugins: tree-sitter parse per file"]
+    CODE["reqmd-code: symbols into package documents"]
+    PY["reqmd_io: Python dataclasses for other producers"]
+    BND["exchange/v1 Bundle: documents, nested items, links, refs"]
+    VAL["exchange.Build: one-pass validation of the whole bundle"]
+    WRT["writer: schema.yaml plus markdown, write if changed"]
+    OUT["rendered reqmd tree"]
+
+    SRC --> PLUG
+    PLUG --> CODE
+    CODE -->|"JSON on stdout"| BND
+    PY -->|"JSON on stdout"| BND
+    BND --> VAL
+    VAL -->|"file set"| WRT
+    WRT --> OUT
+```
+
 *Rationale:* Every producer (a Go binary, a Python script, a future ReqIF reader) is untrusted input from the renderer's point of view. Failing at the contract boundary gives a precise message about the bundle instead of a malformed requirement file, and a shared types package makes producer/renderer drift a compile error rather than a runtime surprise.
 
 ### SW-IMP-005: Document renderer

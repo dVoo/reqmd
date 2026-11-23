@@ -705,19 +705,42 @@ func TestProjectIndex(t *testing.T) {
 
 // TestHTMLExportMermaidDiagram covers diagram rendering: the fence becomes a
 // client-rendered container carrying the pinned runtime, and a page without a
-// diagram stays free of that external request.
+// diagram stays free of that external request. It also pins the theme handoff:
+// goldmark-diagram's hard-coded light-only initialise call must be rewritten to
+// pick the palette from the `dark` class, and app.js re-renders on toggle. The
+// client bundle carries the click-to-enlarge wiring, which clones the rendered
+// svg into an overlay instead of re-rendering or moving it.
 func TestHTMLExportMermaidDiagram(t *testing.T) {
 	doc := basicDoc()
-	doc.Nodes[0].Body = "```mermaid\ngraph TD\n  A --> B\n```\n"
+	// Two diagrams on one page: the pinned runtime must still be loaded once.
+	doc.Nodes[0].Body = "```mermaid\ngraph TD\n  A --> B\n```\n\n" +
+		"```mermaid\ngraph LR\n  C --> D\n```\n"
 
 	out := exportPage(t, &HTML{}, doc, doc.Properties)
 	for _, want := range []string{
 		`<pre class="mermaid">`,
 		`<script src="` + mermaidCDN + `"></script>`,
+		`theme: document.documentElement.classList.contains`,
+		`mermaid.run`,
+		`cloneNode(true)`,
+		`Enlarge diagram`,
+		`overlay__panel--lightbox`,
+		`cursor: zoom-in`,
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("diagram page missing %q", want)
 		}
+	}
+	if n := strings.Count(out, mermaidCDN); n != 1 {
+		t.Errorf("page with two diagrams references the runtime %d times, want 1", n)
+	}
+	// app.js bundles its own re-initialise call for theme toggles, so count
+	// only the inline page init (startOnLoad: true).
+	if n := strings.Count(out, `mermaid.initialize({ startOnLoad: true`); n != 1 {
+		t.Errorf("page with two diagrams initialises Mermaid inline %d times, want 1", n)
+	}
+	if strings.Contains(out, mermaidInitUpstream) {
+		t.Errorf("diagram page still carries the upstream light-only %q", mermaidInitUpstream)
 	}
 
 	plain := exportPage(t, &HTML{}, basicDoc(), basicDoc().Properties)

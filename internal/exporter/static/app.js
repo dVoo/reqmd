@@ -19,7 +19,7 @@
   function readJSON(id) {
     var el = document.getElementById(id);
     if (!el) return null;
-    try { return JSON.parse(el.textContent); } catch (e) { return null; }
+    try { return JSON.parse(el.textContent); } catch { return null; }
   }
 
   function el(tag, props, children) {
@@ -140,6 +140,105 @@
   }
 
   // ── theme ──
+  // Mermaid replaces each <pre class="mermaid"> with an <svg>, so the diagram
+  // source has to be stashed before that happens. The Mermaid script is
+  // emitted before this one in document order, so its DOMContentLoaded
+  // listener runs first — the stash must be here, at top level.
+  Array.prototype.forEach.call(document.querySelectorAll('pre.mermaid'), function (p) {
+    p.setAttribute('data-src', p.textContent);
+  });
+
+  // ── diagram enlargement ──
+  // Mermaid swaps the stashed source for an <svg> asynchronously after load,
+  // and again on every theme change. A child-list observer is the hook: no
+  // timer, and the affordance appears only once a diagram has rendered.
+  var LIGHTBOX_SUFFIX = '-lb';
+  // Set by the document page, which owns the overlay stack.
+  var openDiagramLightbox = null;
+
+  function reEscape(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  // A clone keeps every id, and Mermaid ids are page-global: an unsuffixed
+  // second copy would steal url(#id) references from the original. Ids get a
+  // suffix and references to them are rewritten by walking the DOM — a regex
+  // over outerHTML would also rewrite diagram label text that looks like a ref.
+  function cloneDiagram(svg) {
+    var clone = svg.cloneNode(true);
+    var ids = {};
+    [clone].concat(Array.prototype.slice.call(clone.querySelectorAll('[id]'))).forEach(function (node) {
+      var id = node.getAttribute('id');
+      ids[id] = true;
+      node.setAttribute('id', id + LIGHTBOX_SUFFIX);
+    });
+    var names = Object.keys(ids).sort(function (a, b) { return b.length - a.length; });
+    if (!names.length) return clone;
+    // Longest id first so `a` cannot match inside `a1`.
+    var idsPattern = names.map(reEscape).join('|');
+    var inRef = new RegExp('#(' + idsPattern + ')', 'g');
+    // Bare ids in attribute lists such as aria-labelledby.
+    var bareRef = new RegExp('(^|\\s)(' + idsPattern + ')(?=\\s|$)', 'g');
+    // Mermaid's own stylesheet addresses nodes by class (`.nodeId`) as well as
+    // by id, so class selectors inside the clone need the same suffix.
+    var classRef = new RegExp('\\.(' + idsPattern + ')(?![\\w-])', 'g');
+    function rewrite(value) {
+      return value.replace(inRef, '#$1' + LIGHTBOX_SUFFIX).replace(bareRef, '$1$2' + LIGHTBOX_SUFFIX);
+    }
+    [clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*'))).forEach(function (node) {
+      Array.prototype.forEach.call(node.attributes, function (a) {
+        node.setAttribute(a.name, rewrite(a.value));
+      });
+      if (node.tagName.toLowerCase() === 'style') {
+        node.textContent = rewrite(node.textContent).replace(classRef, '.$1' + LIGHTBOX_SUFFIX);
+      }
+    });
+    return clone;
+  }
+
+  function wireDiagram(p) {
+    if (p.hasAttribute('data-lightbox') || !p.querySelector('svg')) return;
+    p.setAttribute('data-lightbox', '');
+    p.setAttribute('role', 'button');
+    p.setAttribute('tabindex', '0');
+    p.setAttribute('aria-label', 'Enlarge diagram');
+    function open(e) {
+      var svg = p.querySelector('svg');
+      if (!openDiagramLightbox || !svg) return;
+      e.preventDefault();
+      openDiagramLightbox(svg);
+    }
+    p.addEventListener('click', open);
+    p.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') open(e);
+    });
+  }
+
+  function setupDiagrams() {
+    var containers = document.querySelectorAll('pre.mermaid');
+    if (!containers.length) return;
+    var watch = new MutationObserver(function () {
+      Array.prototype.forEach.call(document.querySelectorAll('pre.mermaid'), wireDiagram);
+    });
+    Array.prototype.forEach.call(containers, function (p) {
+      watch.observe(p, { childList: true });
+      wireDiagram(p);
+    });
+  }
+
+  // Re-render the diagrams in the new palette. Restoring the source text and
+  // clearing data-processed before mermaid.run() makes a light→dark→light
+  // round trip replace the SVG instead of nesting a second one.
+  function renderDiagrams(dark) {
+    if (!window.mermaid) return;
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('pre.mermaid[data-src]'));
+    if (!nodes.length) return;
+    mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+    nodes.forEach(function (p) {
+      p.removeAttribute('data-processed');
+      p.textContent = p.getAttribute('data-src');
+    });
+    mermaid.run({ nodes: nodes });
+  }
+
   function setupTheme() {
     var buttons = document.querySelectorAll('[data-action="theme"]');
     function apply() {
@@ -153,8 +252,9 @@
       b.addEventListener('click', function () {
         var dark = !document.documentElement.classList.contains('dark');
         document.documentElement.classList.toggle('dark', dark);
-        try { localStorage.setItem('reqmd-theme', dark ? 'dark' : 'light'); } catch (e) { /* private mode */ }
+        try { localStorage.setItem('reqmd-theme', dark ? 'dark' : 'light'); } catch { /* private mode */ }
         apply();
+        renderDiagrams(dark);
       });
     });
     apply();
@@ -218,15 +318,44 @@
     var searchEl = document.querySelector('[data-search]');
     var chipsEl = document.querySelector('[data-active-filters]');
     var filtersEl = document.querySelector('[data-filters]');
+    // The lightbox only ever hosts a clone of a rendered Mermaid <svg>, so it is
+    // built here instead of being server-rendered like the other overlays.
+    var lightboxWell = el('div', { className: 'lightbox__well' });
+    function buildLightbox() {
+      var overlay = el('div', {
+        className: 'overlay', id: 'lightbox', role: 'dialog',
+        'aria-modal': 'true', 'aria-label': 'Diagram', hidden: true
+      }, [
+        el('div', { className: 'overlay__backdrop', 'data-action': 'close-overlays' }),
+        el('div', { className: 'overlay__panel overlay__panel--lightbox' }, [
+          el('button', {
+            type: 'button', className: 'icon-btn', 'data-action': 'close-overlays',
+            'aria-label': 'Close diagram', text: '\u00d7'
+          }),
+          lightboxWell
+        ])
+      ]);
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
     var overlays = {
       palette: document.getElementById('palette'),
-      shortcuts: document.getElementById('shortcuts')
+      shortcuts: document.getElementById('shortcuts'),
+      lightbox: buildLightbox()
     };
     var paletteInput = document.querySelector('[data-palette-input]');
     var paletteList = document.querySelector('[data-palette-list]');
     var paletteEmpty = document.querySelector('[data-palette-empty]');
     var paletteIndex = 0;
     var lastFocus = null;
+
+    // Diagrams are wired in setupDiagrams; the original stays in the page.
+    openDiagramLightbox = function (svg) {
+      clear(lightboxWell);
+      lightboxWell.appendChild(cloneDiagram(svg));
+      openOverlay('lightbox');
+    };
 
     if (filtersEl && filtersEl.getAttribute('data-default-status')) {
       state.defaultStatus = filtersEl.getAttribute('data-default-status');
@@ -1377,6 +1506,7 @@
       Object.keys(overlays).forEach(function (k) {
         if (overlays[k]) overlays[k].hidden = true;
       });
+      clear(lightboxWell);
       overlayOpen = null;
       document.body.classList.remove('overlay-open');
       if (lastFocus && lastFocus.focus) lastFocus.focus();
@@ -1674,7 +1804,7 @@
           trapFocus(overlays.palette.querySelector('.overlay__panel'), e);
           return;
         }
-        trapFocus(overlays.shortcuts.querySelector('.overlay__panel'), e);
+        trapFocus(overlays[overlayOpen].querySelector('.overlay__panel'), e);
         return;
       }
 
@@ -1895,6 +2025,7 @@
     document.addEventListener('DOMContentLoaded', function () {
       setupTheme();
       setupModHints();
+      setupDiagrams();
       if (document.body.getAttribute('data-page') === 'project') initProjectPage();
       else initDocumentPage();
     });

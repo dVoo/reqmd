@@ -136,6 +136,24 @@ var bodyRenderer = ghtml.New(ghtml.WithExtensions(
 	)),
 ))
 
+// goldmark-diagram emits a fixed mermaid.initialize call with no theme, so a
+// diagram would always render in Mermaid's light palette. It also appends the
+// runtime script to every rendered body that holds a diagram, so a page with
+// several diagrams would load the pinned runtime once per diagram.
+//
+// renderMarkdown therefore strips the emitted runtime block and the page
+// emits it once, themed, when the document contains a diagram. The coupling to
+// the upstream strings is deliberate: if they stop matching, every diagram
+// loads its own runtime again in the light palette, which is what
+// TestHTMLExportMermaidDiagram guards against.
+const (
+	mermaidInitUpstream = "mermaid.initialize({ startOnLoad: true });"
+	mermaidInitThemed   = "if (window.mermaid) mermaid.initialize({ startOnLoad: true, theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default' });"
+
+	mermaidRuntimeUpstream = `<script src="` + mermaidCDN + `"></script>` + "\n\n<script>\n  " + mermaidInitUpstream + "\n</script>"
+	mermaidRuntimeOnce     = `<script src="` + mermaidCDN + `"></script>` + "\n<script>\n  " + mermaidInitThemed + "\n</script>\n"
+)
+
 // renderMarkdown renders markdown content to safe HTML.
 func renderMarkdown(content string) string {
 	src := []byte(content)
@@ -144,7 +162,34 @@ func renderMarkdown(content string) string {
 	if err := bodyRenderer.Render(&buf, src, doc); err != nil {
 		return html.EscapeString(content)
 	}
-	return buf.String()
+	// The page emits the runtime once; any surviving initialise call (upstream
+	// shape changed) is still made theme-aware rather than left light-only.
+	out := strings.ReplaceAll(buf.String(), mermaidRuntimeUpstream, "")
+	return strings.ReplaceAll(out, mermaidInitUpstream, mermaidInitThemed)
+}
+
+// hasDiagram reports whether a document body carries a mermaid fence, which is
+// what makes the page load the pinned runtime.
+func hasDiagram(doc model.Document) bool {
+	if desc, ok := doc.Meta["description"].(string); ok {
+		if strings.Contains(desc, "```mermaid") || strings.Contains(desc, "~~~mermaid") {
+			return true
+		}
+	}
+	return nodesHaveDiagram(doc.Nodes)
+}
+
+func nodesHaveDiagram(nodes []*model.Node) bool {
+	for _, n := range nodes {
+		if strings.Contains(n.Body, "```mermaid") || strings.Contains(n.Body, "~~~mermaid") ||
+			strings.Contains(n.Rationale, "```mermaid") || strings.Contains(n.Rationale, "~~~mermaid") {
+			return true
+		}
+		if nodesHaveDiagram(n.Children) {
+			return true
+		}
+	}
+	return false
 }
 
 // SetDocChainGraph configures the tiered document graph used by the
@@ -195,6 +240,9 @@ func (h *HTML) Export(w io.Writer, doc model.Document, propOrder []string) error
 	renderShortcuts(b)
 
 	renderModelJSON(b, pageData)
+	if hasDiagram(doc) {
+		_, _ = b.WriteString(mermaidRuntimeOnce)
+	}
 	renderScript(b)
 	renderBodyClose(b)
 
