@@ -145,7 +145,7 @@ reqmd stats spec/ --json      # JSON output
 reqmd stats spec/ --filter 'priority == "Critical"'   # scope to matching requirements
 ```
 
-`--relaxed-filter` downgrades a filter that names an undeclared attribute to a warning (also on `check`, `export`, `serve`, and `baseline diff`).
+`--relaxed-filter` downgrades a filter that names an undeclared attribute to a warning (also on `check`, `export`, and `baseline diff`).
 
 {{< details summary="Example output" >}}
 ```text
@@ -237,8 +237,11 @@ reqmd serve spec/ --addr :9090              # custom port
 reqmd serve spec/ --no-open                 # don't auto-open browser
 reqmd serve spec/ --headless                # terminal-only, no HTTP server
 reqmd serve spec/ --results tests/ --results reviews/
-reqmd serve spec/ --filter '"Sport" in variant'   # preview one configuration
 ```
+
+`reqmd serve` always serves the whole tree — narrowing to one configuration
+happens in the HTML itself, where the toolbar's attribute menus write
+`f=attr:value` into the page URL.
 
 {{< details summary="Example output" >}}
 ```text
@@ -260,7 +263,6 @@ reqmd serve spec/
 | `--no-open` | Don't open a browser on start |
 | `--headless` | Terminal-only mode (no HTTP server) |
 | `--debounce <dur>` | Debounce window for file events (default: 500ms) |
-| `--filter <expr>` | Serve only requirements matching an expr-lang expression |
 
 ### `reqmd export csv` — export to CSV
 
@@ -434,27 +436,46 @@ reqmd baseline diff --filter-a 'variant == nil or "Base" in variant' \
 
 With `--filter`, both snapshots are scoped to matching requirements before diffing. With `--filter-a`/`--filter-b` (used together, mutually exclusive with `--filter`), a single snapshot at the given ref (default `HEAD`) is compared two ways — the "what does Premium add over Base" report from one commit. `--filter-a` and `--filter-b` are required together.
 
-Reports added, removed, and modified requirements (with attribute-level detail), schema changes, and submodule pin changes. Always exits 0.
+Reports added, removed, and modified requirements (with attribute-level detail), schema changes, and submodule pin changes. A requirement that moved to a different section is reported as a `parent:` change. Unchanged requirements are not listed. The diff itself is informational — a big or empty diff never changes the exit code — but a missing git repo, an unreadable tag, a parse error, or an invalid filter exits non-zero.
 
-{{< details summary="Example output" >}}
+{{< details summary="Example output (illustrative — the shapes are the ones the command prints)" >}}
 ```text
-Requirements
-  + IVI-FUN-004  added in v2.0
-  - IVI-FUN-002  removed in v2.0
-  ~ IVI-FUN-001
-      priority: medium -> high
-      trace: ["SYS-001"] -> ["SYS-001","SAFE-003"]
+=== Baseline Diff: v1.0.0 → v1.1.0 ===
 
-Schemas
-  ~ ivi-requirements
-      + property: owner
-      - property: priority
-      required: ["priority","maturity","status","verify"] -> ["maturity","status","verify","owner"]
+--- 02-system/ ---
+  + SYS-FMT-004  (added)
+  ~ SYS-FMT-001  (modified)
+      priority: "High" → "Critical"
+      trace: [STK-GOAL-001] → [STK-GOAL-001, SAFE-003]
+  ~ SYS-FMT-002  (modified)
+      parent: "Traceability" → "Format"
+
+--- 04-tests/ ---
+  - TEST-003  (removed)
+
+--- Schema Changes ---
+02-system/
+  ~ required: [priority, status] → [priority, risk, status]
 
 --- Submodule Changes ---
-  vendor/spec-a: a1b2c3d -> e4f5g6h (updated)
+  vendor/spec-a:  a1b2c3d  →  e4f5g6h  (updated)
+
+Summary: 1 added, 1 removed, 2 modified, 1 unchanged
 ```
+
+One `--- <dir>/ ---` block per document, one line per changed requirement, then
+indented attribute deltas (`key: old → new`, or `key: value (new)` /
+`key: value (removed)`). The `--- Schema Changes ---` and
+`--- Submodule Changes ---` sections appear only when there is something to say.
 {{< /details >}}
+
+| Flag | Description |
+|------|-------------|
+| `--json` | Output the structured diff as JSON |
+| `--filter <expr>` | Scope both snapshots to matching requirements before diffing |
+| `--filter-a <expr>` | First view for a same-commit comparison (requires `--filter-b`) |
+| `--filter-b <expr>` | Second view for a same-commit comparison (requires `--filter-a`) |
+| `--relaxed-filter` | Downgrade an undeclared-attribute filter error to a warning |
 
 ### `reqmd repin` — update version pins
 
@@ -503,7 +524,7 @@ no version-pin changes needed
 
 ## Filter expressions
 
-`--filter "<expr>"` is available on `check`, `ls`, `stats`, `export csv`, `export html`, `export json`, `serve`, and `baseline diff`. The expression is evaluated against each requirement's attributes (plus the built-ins `id`, `title`, `status`, `disposition`, `trace`, `version`), and the command runs only on matching requirements. It's the generic primitive behind variant management — the same flag slices by variant, platform, region, priority, or any other attribute.
+`--filter "<expr>"` is available on `check`, `ls`, `stats`, `export csv`, `export html`, `export json`, and `baseline diff`. The expression is evaluated against each requirement's attributes (plus the built-ins `id`, `title`, `status`, `disposition`, `trace`, `version`), and the command runs only on matching requirements. It's the generic primitive behind variant management — the same flag slices by variant, platform, region, priority, or any other attribute.
 
 | Expression | Matches |
 |---|---|
@@ -537,7 +558,7 @@ no version-pin changes needed
 | `ls <dir>` | List all requirements | `--json`, `--filter`, `--relaxed-filter` |
 | `stats <dir>` | Stats per document | `--json`, `--filter`, `--relaxed-filter` |
 | `init <dir>` | Scaffold a new project | `--preset`, `--id-prefix`, `--force` |
-| `serve <dir>` | Live HTML preview | `--addr`, `--results`, `--headless`, `--filter`, `--relaxed-filter` |
+| `serve <dir>` | Live HTML preview | `--addr`, `--results`, `--headless` |
 | `export csv <dir>` | CSV export | `-o`, `--results`, `--filter`, `--relaxed-filter` |
 | `export html <dir>` | HTML export | `-o`, `--results`, `--filter`, `--relaxed-filter` |
 | `export json <dir>` | NDJSON tables for reporting platforms | `-o`, `--results`, `--filter`, `--relaxed-filter`, `--disjoint-check` |

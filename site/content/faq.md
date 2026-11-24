@@ -276,7 +276,7 @@ If you'd rather query the trace graph directly than join flat tables, `reqmd exp
 
 
 {{< details summary="Can I manage multiple product variants in one spec tree?" card="true" >}}
-Yes. reqmd deliberately has no built-in "variants" feature — you declare a `variant` array attribute in `schema.yaml` like any other custom attribute, tag each requirement, and scope every command with `--filter "<expr>"`. One spec tree serves any number of configurations (Base, Premium, Sport — or platforms, regions, owners) with no extra files, branches, or vocabulary.
+Yes. reqmd deliberately has no built-in "variants" feature — you declare a `variant` array attribute in `schema.yaml` like any other custom attribute, tag each requirement, and scope every reporting command with `--filter "<expr>"` (the live preview filters in the browser instead of at the server). One spec tree serves any number of configurations (Base, Premium, Sport — or platforms, regions, owners) with no extra files, branches, or vocabulary.
 {{< /details >}}
 
 {{< details summary="How do I include requirements that apply to all variants?" card="true" >}}

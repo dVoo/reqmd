@@ -137,6 +137,50 @@ func TestResultFromReq_HappyPath(t *testing.T) {
 	}
 }
 
+func TestResultFromReq_VerifiedAtFormats(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want time.Time
+	}{
+		{
+			name: "rfc3339",
+			in:   "2024-01-15T13:45:07Z",
+			want: time.Date(2024, 1, 15, 13, 45, 7, 0, time.UTC),
+		},
+		{
+			name: "rfc3339 with offset",
+			in:   "2024-01-15T13:45:07+02:00",
+			want: time.Date(2024, 1, 15, 11, 45, 7, 0, time.UTC),
+		},
+		{
+			name: "bare date is midnight UTC",
+			in:   "2024-01-15",
+			want: time.Date(2024, 1, 15, 0, 0, 0, 0, time.UTC),
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			req := &model.Node{
+				Kind:   model.KindRequirement,
+				ID:     "RES-001",
+				Source: "/results/r.md",
+				Attrs: map[string]any{
+					model.AttrResultOutcome:    "pass",
+					model.AttrResultVerifiedAt: tt.in,
+				},
+			}
+			r, ok := resultFromReq(req)
+			if !ok {
+				t.Fatal("ok = false, want true")
+			}
+			if !r.VerifiedAt.Equal(tt.want) {
+				t.Errorf("VerifiedAt = %v, want %v", r.VerifiedAt.UTC(), tt.want)
+			}
+		})
+	}
+}
+
 func TestResultFromReq_NoOutcomeNotAResult(t *testing.T) {
 	req := &model.Node{
 		Kind:   model.KindRequirement,

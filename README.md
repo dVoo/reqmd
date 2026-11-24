@@ -525,10 +525,11 @@ runtime from a CDN (`SW-EXP-004`).
 ### 9. Attribute filtering (`--filter`)
 
 Every command that reports on requirements (`check`, `ls`, `stats`,
-`export csv|html|json`, `serve`, `baseline diff`) accepts
+`export csv|html|json`, `baseline diff`) accepts
 `--filter "<expr>"` — an [expr-lang](https://expr-lang.org) expression
-evaluated against a requirement's attributes plus the built-in `id` and
-`title` variables. A missing attribute evaluates to `nil`, so
+evaluated against a requirement's attributes plus six built-in variables
+that are always accepted: `id`, `title`, `status`, `disposition`, `trace`,
+`version`. A missing attribute evaluates to `nil`, so
 `variant == nil` selects requirements that do not declare it.
 
 By default a referenced name must be declared in some `schema.yaml` in the
@@ -556,6 +557,14 @@ applies the same rule to its toolbar: the filter menus are built from every
 attribute actually present on a requirement, and undeclared ones are shown
 in the card grid marked `· undeclared`.
 
+> [!NOTE]
+> **The HTML export opens filtered to `status: approved`.** On first load the
+> viewer shows only approved requirements unless the document sets
+> `x-reqmd.ignore-status: true`. This is deliberate: the first screen is what
+> is approved for review. To see drafts, clear the status chip in the toolbar,
+> or share an explicitly empty filter set with `?f=` — a URL that carries no
+> `f=` at all gets the default back.
+
 ---
 
 ## Commands
@@ -576,10 +585,10 @@ in the card grid marked `· undeclared`.
 | `reqmd stats <root>` | Attribute-value breakdown per document, plus requirement/item counts and a type breakdown. `--filter "<expr>"` scopes to matching requirements; `--relaxed-filter` allows undeclared attributes. |
 | `reqmd stats --json <root>` | JSON stats. `--filter` supported. |
 | `reqmd export csv <root> -o <dir>` | CSV export with Type, Body and Rationale columns, emitted in document order for requirements and items alike. `--results <path>` (repeatable) adds Verdict, Verdict Source and Verdict Cases columns. `--filter "<expr>"` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
-| `reqmd export html <root> -o <dir>` | Standalone HTML: a **project home** (`index.html`) plus one page per document. The **Document** view is server-rendered (compact app bar, sidebar outline with scroll-spy, one sticky search/filter toolbar, neutral requirement cards with status/coverage/verdict chips, collapsible attribute/rationale/evidence/trace details) and stays readable without JavaScript. **Table** (sortable grid with column chooser and expandable rows), **Trace** (selected-requirement explorer plus a size-bounded matrix), and **Coverage** (actionable exception lists) render on demand from one shared view model, so no hidden analytical DOM is emitted. Coverage, verification (including `no verdict` in the denominator), and link health are derived from the same graph analysis `reqmd check` runs. The export embeds its CSS and client script — no CDN, fully offline, except that a page containing a `mermaid` diagram loads a version-pinned Mermaid runtime so the diagram renders in the browser (the one documented network exception). Chrome: ⌘K command palette, keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`, `?`), and URL-synced state using repeated `f=attr:value` params (`?q=&f=&view=&req=`) so a filtered view is shareable. `--results` renders verdict chips and evidence; `--filter` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
+| `reqmd export html <root> -o <dir>` | Standalone HTML: a **project home** (`index.html`) plus one page per document. The **Document** view is server-rendered (compact app bar, sidebar outline with scroll-spy, one sticky search/filter toolbar, neutral requirement cards with status/coverage/verdict chips, collapsible attribute/rationale/evidence/trace details) and stays readable without JavaScript. **Table** (sortable grid with column chooser and expandable rows), **Trace** (selected-requirement explorer plus a size-bounded matrix), and **Coverage** (actionable exception lists) render on demand from one shared view model, so no hidden analytical DOM is emitted. Coverage, verification (including `no verdict` in the denominator), and link health are derived from the same graph analysis `reqmd check` runs. The export embeds its CSS and client script — no CDN, fully offline, except that a page containing a `mermaid` diagram loads a version-pinned Mermaid runtime so the diagram renders in the browser (the one documented network exception). Chrome: ⌘K command palette, keyboard shortcuts (`/`, `g d`/`g t`/`g r`/`g c`, `t`, `?`), and URL-synced state using repeated `f=attr:value` params (`?q=&f=&view=&req=`) so a filtered view is shareable. The first load shows only `status: approved` requirements unless the document opts out with `x-reqmd.ignore-status: true` (see [Attribute filtering](#9-attribute-filtering---filter)). `--results` renders verdict chips and evidence; `--filter` exports only matching requirements; `--relaxed-filter` allows undeclared attributes. |
 | `reqmd export json <root> -o <dir>` | Four flat NDJSON tables for reporting platforms (Databricks, Snowflake, BigQuery): `requirements.ndjson` (one row per requirement of the authored documents — sections and synthetic result/test-case nodes are not emitted; built-ins promoted to top-level keys, remaining attributes in an `attrs` envelope), `traces.ndjson` (one row per declared trace ref of the exported requirements, with `pin` and `resolved`), `results.ndjson` (one row per measure verdict; always written, empty without `--results`), and `findings.ndjson` (one row per check finding). A pure function of tree + results, so repeated exports are byte-identical. `--filter "<expr>"` narrows `requirements.ndjson` and `traces.ndjson` (`--relaxed-filter` allows undeclared attributes); refs still resolve against the full tree and findings are filter-aware; `--disjoint-check` findings land in `findings.ndjson`. |
 | `reqmd export graph <root> -o <dir>` | Exports trace graph to ladybugdb for Cypher querying (requires `-tags ladybug` build). `--results <path>` (repeatable) includes `RESULT:` nodes with `outcome` and `source` properties, enabling graph traversal from requirements through measures to verification results. |
-| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`, `--filter`, `--relaxed-filter`) |
+| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML preview with SSE auto-reload (flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`). It always serves the whole tree; the viewer's toolbar and URL state do the filtering. |
 | `reqmd baseline diff <tag1> <tag2>` | Compare requirements and submodule pins between two git tags (flags: `--json`, `--filter "<expr>"` to scope both snapshots, `--relaxed-filter` to allow undeclared attributes) |
 | `reqmd baseline diff --filter-a "<expr>" --filter-b "<expr>" [<ref>]` | Compare two filtered views of the same commit (default `HEAD`). Useful for "what does Premium add over Base" reports from a single commit. |
 | `reqmd repin <root> [-y/--yes] [--json] [--promote-unpinned]` | Propose or apply `~N` version-pin updates so trace refs match the upstream's current `version`. Dry-run by default; `--yes` applies. `--promote-unpinned` also pins refs that have no `~N` against a versioned upstream. Predated findings (pin > upstream) are surfaced but never auto-fixed. |
@@ -641,6 +650,29 @@ Documents:    1
     draft                2
 ```
 
+### Example: `ls --json` and `stats --json`
+
+Both emit one object with a `documents` array. `ls --json` keeps every node in
+document order in `rows`, discriminated by `type` (`req` or `section`): `attrs`
+is present on requirements only, and `id`/`title` are omitted when empty.
+
+```json
+{ "documents": [ { "path": "02-system", "properties": ["owner", "status", "trace"],
+  "rows": [ { "type": "section" },
+    { "type": "req", "id": "SYS-001", "attrs": { "owner": "Team Alpha", "status": "draft" } } ] } ] }
+```
+
+`stats --json` swaps `rows` for per-document counts plus an `attribute_stats`
+breakdown of the document's declared attributes. The buckets are **string**
+values: an array- or number-valued attribute still counts in `req_count`, but
+it is not bucketed here.
+
+```json
+{ "documents": [ { "path": "02-system", "req_count": 2, "item_count": 1,
+    "attribute_stats": { "owner": { "Team Alpha": 1, "Team Beta": 1 }, "status": { "draft": 2 } } } ],
+  "total_requirements": 2, "total_documents": 1 }
+```
+
 ### Example: `check --json`
 
 ```json
@@ -690,25 +722,33 @@ produces a semantic diff:
   fields.
 
 Use `--json` for a structured report suitable for CI or release-note generation.
-The command always exits `0` — the diff is informational, not validation.
+Errors exit non-zero — a missing tag, a failed `git archive`, a parse error or
+an invalid `--filter` — but a *successful* diff exits `0`: the changes
+it reports are informational, not validation failures.
 
 ```sh
 reqmd baseline diff v1.0.0 v1.1.0
 ```
 
-```text
-Requirements
-  + IVI-FUN-004  added in v1.1.0
-  - IVI-FUN-002  removed in v1.1.0
-  ~ IVI-FUN-001
-      asil: QM -> B
-      trace: ["SYS-001"] -> ["SYS-001","SAFE-003"]
+Example output (illustrative):
 
-Schemas
-  ~ ivi-requirements
-      + property: owner
-      - property: safety_relevant
-      required: ["asil","maturity","status","verify"] -> ["asil","maturity","status","verify","owner"]
+```text
+=== Baseline Diff: v1.0.0 → v1.1.0 ===
+
+--- ivi-requirements/ ---
+  + IVI-FUN-004  (added)
+  - IVI-FUN-002  (removed)
+  ~ IVI-FUN-001  (modified)
+      asil: "QM" → "B"
+      trace: [SYS-001] → [SYS-001, SAFE-003]
+
+--- Schema Changes ---
+ivi-requirements/
+  + owner (new top-level key)
+  - safety_relevant (removed top-level key)
+  ~ required: [asil, maturity, status, verify] → [asil, maturity, status, verify, owner]
+
+Summary: 1 added, 1 removed, 1 modified, 3 unchanged
 ```
 
 The extraction uses `git archive` so no working-tree checkout or extra worktree
@@ -992,7 +1032,7 @@ binds the run to the spec. All fields are optional:
 |---|---|
 | `id` | Binds the result directly to a measure requirement ID (optional `~N` pin). The requirement itself is the verification measure. |
 | `case` | A stable test-case identity for this run. With `id`, it keys the result (several cases may attach to one measure); without `id` it names a synthesized test case. |
-| `verifies` | Upstream requirement IDs the test exercises (optional `~N` pins). With `case` it synthesizes a test case that traces to these requirements. |
+| `verifies` | Upstream requirement IDs the test exercises (optional `~N` pins). Without `id` it synthesizes a test case `TC:<case>` that traces to these requirements, where `<case>` is the explicit `case` when given, otherwise the normalized `suite/name` (the bare test name when the report has no suite). |
 | `description` | Markdown body for a synthesized test case (used only when the result binds to a case, never to an authored node). |
 
 A test with neither `id` nor `verifies` is uninstrumented and skipped
@@ -1030,7 +1070,7 @@ properties:
   x-reqmd.outcome: { enum: [pass, fail, skipped, inconclusive] }
   x-reqmd.verifier: { type: string }
   x-reqmd.evidence: { type: string, description: "URI/path to minutes, record, or CTRF file" }
-  x-reqmd.verified-at: { type: string, format: date }
+  x-reqmd.verified-at: { type: string, format: date-time }
 additionalProperties: false
 x-reqmd:
   level: verify-results
@@ -1041,11 +1081,26 @@ x-reqmd:
 ```attr
 x-reqmd.outcome: pass
 x-reqmd.verifier: "D. Author"
-x-reqmd.verified-at: 2026-07-15
+x-reqmd.verified-at: 2026-07-15T09:30:00Z
 trace: [TST-FIX-001]
 ```
 Parser review passed.
 ```
+
+`x-reqmd.verified-at` takes an RFC 3339 date-time (as above) or a bare
+`YYYY-MM-DD` date, which means midnight UTC. It is the ordering timestamp:
+the latest result per (measure, case) wins, using the same latest-wins rule
+as CTRF `tests[].stop`.
+
+Two things to watch when authoring a result:
+
+- A manual result with **no** `trace` binds to its own ID. That is a
+  self-edge: it satisfies no measure and raises no warning, so a result that
+  silently verifies nothing looks like a passing record. Always state the
+  measure.
+- `trace` may also target a synthesized test case, `trace: [TC:<case>]`,
+  using the same case key a CTRF entry produced (`suite/name`, or the bare
+  test name when the report has no suite).
 
 ### Outcome-gated checks
 
@@ -1076,7 +1131,8 @@ just the existing one on a new edge type.
 Result history is not stored in-file. Each run loads the latest CTRF /
 manual results; the previous run's results are discarded. Across all
 `--results` inputs, the latest result per (measure, case) wins by CTRF
-`tests[].stop` (ms-epoch) or manual `x-reqmd.verified-at`. Run-to-run history lives
+`tests[].stop` (ms-epoch) or manual `x-reqmd.verified-at` (RFC 3339
+date-time, or a bare date read as midnight UTC). Run-to-run history lives
 in CI artifacts, not in reqmd.
 
 ### Exporting results

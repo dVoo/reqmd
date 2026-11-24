@@ -368,9 +368,20 @@ func resultFromReq(req *model.Node) (Result, bool) {
 		r.Verifier = v
 	}
 	if va, ok := req.Attrs[model.AttrResultVerifiedAt].(string); ok {
-		if t, err := time.Parse("2006-01-02", va); err == nil {
-			r.VerifiedAt = t
-		}
+		r.VerifiedAt = parseVerifiedAt(va)
 	}
 	return r, true
+}
+
+// parseVerifiedAt accepts an RFC 3339 date-time (like CTRF's `stop`) or a
+// bare `YYYY-MM-DD` date, which means midnight UTC. Unparsable values yield
+// the zero time.
+func parseVerifiedAt(v string) time.Time {
+	if t, err := time.Parse(time.RFC3339, v); err == nil {
+		return t
+	}
+	if t, err := time.Parse("2006-01-02", v); err == nil {
+		return t
+	}
+	return time.Time{}
 }

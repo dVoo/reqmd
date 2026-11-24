@@ -15,6 +15,11 @@ Table, Trace, and Coverage views as `reqmd export html`; every time you save a
 `.md` or `schema.yaml` file, the browser auto-refreshes via SSE (Server-Sent
 Events).
 
+Every file event goes through the `--debounce` window (default `500ms`) before a
+rebuild runs. A rebuild re-parses the tree and re-runs the graph checks, but it
+does **not** re-run JSON Schema validation — run `reqmd check` to validate
+attribute values.
+
 ## Flags
 
 | Flag | Default | What it does |
@@ -25,14 +30,18 @@ Events).
 | `--debounce` | `500ms` | Debounce window for file-change events |
 | `--results` | _(none)_ | Load verification results (CTRF `.ctrf.json` or manual-results dirs). Repeatable. Result file changes also trigger rebuild. |
 
+`serve` always serves the whole tree: there is no `--filter`/`--relaxed-filter`
+flag. Filtering happens in the served HTML — the toolbar writes `f=attr:value`
+URL state that narrows the views.
+
 ## Usage
 
 ```sh
 # Default — opens browser
 reqmd serve 02-trace-your-spec/
 
-# Terminal-only (remote server, CI)
-reqmd serve 02-trace-your-spec/ --headless --addr 0.0.0.0:8080
+# Terminal-only re-check loop (no HTTP server)
+reqmd serve 02-trace-your-spec/ --headless
 
 # With verification results — verdict badges on measure cards
 reqmd serve 02-trace-your-spec/ --results 11-verification-results-ctrf/
@@ -44,7 +53,8 @@ reqmd serve 02-trace-your-spec/ --results 12-review-documentation/
 Pass `--results` (repeatable) to load CTRF or manual verification results.
 Verdict badges appear on measure cards (pass / fail / skipped / inconclusive).
 Result files are watched alongside spec files — editing a CTRF JSON or
-manual-results markdown triggers an immediate rebuild and browser refresh.
+manual-results markdown triggers a rebuild after the debounce window and a
+browser refresh.
 
 ```sh
 reqmd serve 02-trace-your-spec/ --results 11-verification-results-ctrf/

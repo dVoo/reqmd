@@ -180,7 +180,11 @@ The output is a real diff report (added / removed / modified with attribute-leve
 ## Preview a configuration while editing
 
 ```sh
-reqmd serve 14-variant-management/ --filter '"Sport" in variant or variant == nil'
+# Serve the whole tree, then scope the viewer with URL state
+reqmd serve 14-variant-management/
+#   -> open with ?f=variant:Sport  (or use the toolbar's attribute filter)
+# Or export a filtered static site:
+reqmd export html 14-variant-management/ -o /tmp/sport --filter '"Sport" in variant or variant == nil'
 ```
 
 Reviewers preview exactly the Sport configuration locally — trace links, status, and verdicts all scoped to that view — before approving.
@@ -188,7 +192,7 @@ Reviewers preview exactly the Sport configuration locally — trace links, statu
 ## Where to look things up
 
 - The filter expression language and built-ins: [Filter expressions in the cheat sheet](/cheat-sheet/#filter-expressions)
-- `--filter` on every command: [`reqmd check`](/cheat-sheet/#reqmd-check--validate-requirements-and-trace-links), [`reqmd ls`](/cheat-sheet/#reqmd-ls--list-all-requirements), [`reqmd stats`](/cheat-sheet/#reqmd-stats--attribute-value-breakdown-per-document), [`reqmd export html`](/cheat-sheet/#reqmd-export-html--export-to-html)
+- `--filter` on every reporting command: [`reqmd check`](/cheat-sheet/#reqmd-check--validate-requirements-and-trace-links), [`reqmd ls`](/cheat-sheet/#reqmd-ls--list-all-requirements), [`reqmd stats`](/cheat-sheet/#reqmd-stats--attribute-value-breakdown-per-document), [`reqmd export html`](/cheat-sheet/#reqmd-export-html--export-to-html)
 
 ## What's next
 

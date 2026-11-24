@@ -50,9 +50,14 @@ trace: [TEST-002]
 ```
 ````
 
-The `trace` attribute links the result to the measure it verifies. It may
-also target a synthesized test case (`TC:<case>`) from a CTRF report loaded
-in the same run, so a manual review result joins that case's evidence.
+The `x-reqmd.verified-at` timestamp accepts an RFC 3339 date-time (matching CTRF's `stop`, e.g. `2026-07-15T09:30:00Z`) or a bare `YYYY-MM-DD` date, which means midnight UTC. It is what orders the latest-wins merge when several results cover the same measure and case.
+
+The `trace` attribute links the result to the measure it verifies. A result
+with no `trace:` binds to its own requirement ID — a self-edge that satisfies
+no coverage and warns about nothing, so always declare `trace:`. It may also
+target a synthesized test case (`trace: [TC:<case>]`) from a CTRF report loaded
+in the same run (see [Step 11](/quickstart/11-verification-results-ctrf/)), so
+a manual review result joins that case's evidence.
 
 ## Scaffold a results directory
 

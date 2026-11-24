@@ -27,8 +27,8 @@ fields optional):
 | Field | What it does |
 |---|---|
 | `id` | Binds the result directly to a measure (requirement with a `verify:` attr). |
-| `case` | A stable test-case identity. With `id`, it keys the result so several cases can attach to one measure; without `id`, it names a synthesized test case. |
-| `verifies` | Upstream requirement IDs the test exercises. With `case` it synthesizes a test case that traces to them (tests-as-code). |
+| `case` | A stable test-case identity. With `id`, it keys the result so several cases can attach to one measure; without `id`, it names a synthesized test case (overriding the derived `suite/name` key). |
+| `verifies` | Upstream requirement IDs the test exercises. Without `id`, `verifies` alone synthesizes a test case that traces to them (tests-as-code) — keyed by `case` when given, otherwise by the normalized `suite/name` (bare `name` when the report has no suite). |
 | `description` | Markdown body of a synthesized test case. |
 
 A test with neither `id` nor `verifies` is skipped silently (adopt

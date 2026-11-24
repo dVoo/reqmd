@@ -42,7 +42,7 @@ You write requirements the way you already write documentation: in a text editor
 </article>
 <article class="usecase">
 <h3>Product-line requirements with variants</h3>
-<p>One spec tree, many configurations. Tag requirements with a <code>variant</code> attribute and scope every command — <code>check</code>, <code>ls</code>, <code>stats</code>, <code>export</code>, <code>baseline diff</code>, <code>serve</code> — with <code>--filter</code>. Coverage is evaluated within the view, cross-configuration trace mistakes fail via <code>--disjoint-check</code>, and a CI matrix validates every configuration on every pull request.</p>
+<p>One spec tree, many configurations. Tag requirements with a <code>variant</code> attribute and scope every reporting command — <code>check</code>, <code>ls</code>, <code>stats</code>, <code>export</code>, <code>baseline diff</code> — with <code>--filter</code>. Coverage is evaluated within the view, cross-configuration trace mistakes fail via <code>--disjoint-check</code>, and a CI matrix validates every configuration on every pull request.</p>
 <a href="/quickstart/14-variant-management/">Step 14 — Variant management →</a>
 </article>
 <article class="usecase">

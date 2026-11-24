@@ -9,11 +9,18 @@ Compare requirement baselines between two git tags — no checkout needed.
 produces a semantic diff:
 
 - **Requirements**: added (`+`), removed (`-`), modified (`~`) with
-  attribute-level detail
-- **Schemas**: new/removed properties, changed required fields
-- **Submodules**: added/removed/updated submodule pins
+  attribute-level detail. A requirement that moved to another section is a
+  modification as well: it is reported as a `parent:` delta, because the
+  section it sits under is part of what the requirement says. Unchanged
+  requirements are not listed.
+- **Schemas**: new/removed top-level keys, changed values such as `required`
+- **Submodules**: added/removed/updated submodule pins, when the tree has
+  submodules (read with `git ls-tree` at each tag)
 
-The command always exits `0` — the diff is informational, not validation.
+The diff result itself is informational, not validation: an empty diff, a huge
+one, or newly added requirements never changes the exit code. Real failures do
+exit non-zero — a missing git repository, an unreadable tag, a parse error, or
+an invalid `--filter` expression.
 
 ## Try it
 
@@ -25,22 +32,35 @@ it. But for a Git-backed spec repo:
 reqmd baseline diff v1.0.0 v1.1.0
 ```
 
-Example output:
+Example output (illustrative — there is no tag pair with a usable diff in this
+repo; the shapes are the ones the command prints):
 
 ```text
-Requirements
-  + IVI-FUN-004  added in v1.1.0
-  - IVI-FUN-002  removed in v1.1.0
-  ~ IVI-FUN-001
-      asil: QM -> B
-      trace: ["SYS-001"] -> ["SYS-001","SAFE-003"]
+=== Baseline Diff: v1.0.0 → v1.1.0 ===
 
-Schemas
-  ~ ivi-requirements
-      + property: owner
-      - property: safety_relevant
-      required: ["asil","maturity","status","verify"] -> ["asil","maturity","status","verify","owner"]
+--- 02-system/ ---
+  + SYS-FMT-004  (added)
+  ~ SYS-FMT-001  (modified)
+      priority: "High" → "Critical"
+      trace: [STK-GOAL-001] → [STK-GOAL-001, SAFE-003]
+  ~ SYS-FMT-002  (modified)
+      parent: "Traceability" → "Format"
+
+--- 04-tests/ ---
+  - TEST-003  (removed)
+
+--- Schema Changes ---
+02-system/
+  ~ required: [priority, status] → [priority, risk, status]
+
+Summary: 1 added, 1 removed, 2 modified, 1 unchanged
 ```
+
+One block per document directory (`--- <dir>/ ---`), one line per changed
+requirement, then indented lines for each attribute delta: `key: old → new`, or
+`key: value (new)` / `key: value (removed)` when the attribute appeared or
+vanished. A `parent:` delta means the requirement now lives under a different
+section even though its attributes did not change.
 
 ## JSON output for CI
 
@@ -62,7 +82,8 @@ When the repo has git submodules, the diff also reports submodule pin changes:
   vendor/spec-c:  (added)   →  j0k1l2m
 ```
 
-This section is hidden when no submodules exist.
+Short hashes are 7 characters. This section is hidden when no submodules exist,
+and it appears before the `Summary:` line.
 
 ## What's next
 

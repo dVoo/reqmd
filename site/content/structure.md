@@ -115,7 +115,7 @@ The one-line rule: **if your branch will never merge and never die, it isn't a b
 
 ## Variant attributes
 
-**Use when** coexisting configurations ship together from one commit: Base/Premium/Sport, platforms, regions, owners. You declare a `variant` array attribute in `schema.yaml` like any other custom attribute, tag each requirement, and scope every command with `--filter "<expr>"`. One tree serves any number of configurations with no extra files, branches, or vocabulary.
+**Use when** coexisting configurations ship together from one commit: Base/Premium/Sport, platforms, regions, owners. You declare a `variant` array attribute in `schema.yaml` like any other custom attribute, tag each requirement, and scope every reporting command with `--filter "<expr>"` (the live preview always serves the whole tree and filters in the browser). One tree serves any number of configurations with no extra files, branches, or vocabulary.
 
 **Every day:**
 

@@ -29,8 +29,9 @@ properties:
     description: "Person or tool that produced this result"
   x-reqmd.evidence:
     type: string
-    description: "URI/path to review minutes, inspection record, or analysis report"
+    description: "URI/path to the review, inspection, or analysis record"
   x-reqmd.verified-at:
     type: string
-    description: "Date the verification was performed (YYYY-MM-DD)"
+    format: date-time
+    description: "RFC 3339 date-time; a bare YYYY-MM-DD means midnight UTC"
 additionalProperties: false

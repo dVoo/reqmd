@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/dVoo/reqmd/internal/exporter"
-	"github.com/dVoo/reqmd/internal/filter"
 	"github.com/dVoo/reqmd/internal/graph"
 	"github.com/dVoo/reqmd/internal/model"
 	"github.com/dVoo/reqmd/internal/parser"
@@ -31,13 +30,11 @@ const pollInterval = 2 * time.Second
 
 func newServeCmd() *cobra.Command {
 	var (
-		addr          string
-		debounce      time.Duration
-		headless      bool
-		noOpen        bool
-		resultsPaths  []string
-		filterExpr    string
-		relaxedFilter bool
+		addr         string
+		debounce     time.Duration
+		headless     bool
+		noOpen       bool
+		resultsPaths []string
 	)
 
 	cmd := &cobra.Command{
@@ -51,6 +48,10 @@ trace graph, re-checks graph-level invariants, and re-exports all documents.
 The root URL serves the project home (catalog, project-wide health, exception
 queues, and cross-document search); each document has Document, Table, Trace,
 and Coverage views. The browser auto-reloads via Server-Sent Events (SSE).
+
+The served preview always contains the whole tree: serve takes no attribute
+scoping flags. Narrowing happens in the viewer, whose toolbar and URL state
+scope the rendered tables, trace, and coverage views client-side.
 
 With --results, verification results (CTRF or manual) are loaded and
 rendered as verdict badges on measure cards. Result file changes also
@@ -66,7 +67,7 @@ Use --headless for terminal-only re-check output without the HTTP server.`,
   reqmd serve spec/ --results tests/ --results ci/ctrf.json`,
 		Args: cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
-			return runServe(args[0], addr, debounce, headless, noOpen, resultsPaths, filterExpr, relaxedFilter)
+			return runServe(args[0], addr, debounce, headless, noOpen, resultsPaths)
 		},
 	}
 
@@ -75,12 +76,10 @@ Use --headless for terminal-only re-check output without the HTTP server.`,
 	cmd.Flags().BoolVar(&headless, "headless", false, "Terminal-only mode (no HTTP server)")
 	cmd.Flags().StringArrayVar(&resultsPaths, "results", nil, "Load ephemeral verification results (CTRF .ctrf.json or manual-results dirs) and render verdict badges. Repeatable. Results paths are also watched for changes.")
 	cmd.Flags().BoolVar(&noOpen, "no-open", false, "Do not open a browser on start")
-	cmd.Flags().StringVar(&filterExpr, "filter", "", "Filter requirements using an expr-lang expression. Only matching requirements are served.")
-	addRelaxedFilterFlag(cmd, &relaxedFilter)
 	return cmd
 }
 
-func runServe(root string, addr string, debounce time.Duration, headless bool, noOpen bool, resultsPaths []string, filterExpr string, relaxedFilter bool) error {
+func runServe(root string, addr string, debounce time.Duration, headless bool, noOpen bool, resultsPaths []string) error {
 	root, err := filepath.Abs(root)
 	if err != nil {
 		return fmt.Errorf("resolving root: %w", err)
@@ -109,13 +108,11 @@ func runServe(root string, addr string, debounce time.Duration, headless bool, n
 	defer cancel()
 
 	srv := &serveData{
-		root:          root,
-		addr:          addr,
-		debounce:      debounce,
-		headless:      headless,
-		resultsPaths:  absResults,
-		filterExpr:    filterExpr,
-		relaxedFilter: relaxedFilter,
+		root:         root,
+		addr:         addr,
+		debounce:     debounce,
+		headless:     headless,
+		resultsPaths: absResults,
 	}
 
 	if err := srv.rebuild(); err != nil {
@@ -168,21 +165,19 @@ func runServe(root string, addr string, debounce time.Duration, headless bool, n
 
 // serveData holds shared state for the serve command.
 type serveData struct {
-	pages         map[string][]byte
-	sseClients    map[chan struct{}]struct{}
-	root          string
-	addr          string
-	filterExpr    string
-	resultsPaths  []string
-	debounce      time.Duration
-	mu            sync.RWMutex
-	sseMu         sync.Mutex
-	headless      bool
-	relaxedFilter bool
+	pages        map[string][]byte
+	sseClients   map[chan struct{}]struct{}
+	root         string
+	addr         string
+	resultsPaths []string
+	debounce     time.Duration
+	mu           sync.RWMutex
+	sseMu        sync.Mutex
+	headless     bool
 }
 
 func (s *serveData) rebuild() error {
-	docs, analysis, g, err := discoverAndBuildGraph(s.root, s.resultsPaths, s.filterExpr, s.relaxedFilter)
+	docs, analysis, g, err := discoverAndBuildGraph(s.root, s.resultsPaths)
 	if err != nil {
 		return err
 	}
@@ -234,7 +229,7 @@ func (s *serveData) rebuild() error {
 // and builds the requirement graph from the combined document set.
 // Returns the original docs (without synthesized results), the verdicts
 // map for badge rendering, and the graph.
-func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string, relaxedFilter bool) ([]model.Document, *exporter.Analysis, *graph.Graph, error) {
+func discoverAndBuildGraph(root string, resultsPaths []string) ([]model.Document, *exporter.Analysis, *graph.Graph, error) {
 	docs, err := parser.Discover(root)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("discovering documents: %w", err)
@@ -252,21 +247,6 @@ func discoverAndBuildGraph(root string, resultsPaths []string, filterExpr string
 	g, err := graph.New(graphDocs)
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("building graph: %w", err)
-	}
-
-	// Apply filter to the graph (filter-aware checks) and to the exported docs.
-	if filterExpr != "" {
-		f, warnings, err := filter.CompileForDocs(docs, filterExpr, relaxedFilter)
-		if err != nil {
-			return nil, nil, nil, fmt.Errorf("compiling filter %q: %w", filterExpr, err)
-		}
-		filter.WriteWarnings(os.Stderr, warnings)
-		filtered, filterSet, err := f.FilterDocsAndIDs(docs)
-		if err != nil {
-			return nil, nil, nil, fmt.Errorf("applying filter %q: %w", filterExpr, err)
-		}
-		g.SetFilter(filterSet)
-		docs = filtered
 	}
 
 	return docs, exporter.NewAnalysis(g, exporter.BuildTitleMap(docs)), g, nil

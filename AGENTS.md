@@ -110,7 +110,7 @@ independent. `check` remains requirement-scoped.
 | `reqmd stats --json <root>` | JSON attribute-value breakdown per document |
 | `reqmd baseline diff <tag1> <tag2>` | Compare requirements between two git tags; also reports added/removed/updated submodules (flags: `--json`, `--filter "<expr>"` to scope both snapshots) |
 | `reqmd baseline diff --filter-a "<expr>" --filter-b "<expr>" [<ref>]` | Compare two filtered views of the same commit (default `HEAD`). "What does Premium add over Base" from a single commit. |
-| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML. Flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`, `--filter` |
+| `reqmd serve <root>` | Watch for changes and serve live-reloading HTML. Flags: `--addr`, `--headless`, `--no-open`, `--debounce`, `--results`. Always serves the whole tree; the viewer filters. |
 | `reqmd init <dir>` | Scaffold a new requirements directory. Presets: `generic` (default), `aspice`, `results` (manual verification results), or a custom preset directory path. Flags: `--preset`, `--id-prefix`, `--id`, `--title`, `--level`, `--force` |
 
 Exit codes: 0 (all valid), 1 (validation errors), 2 (parse error).
