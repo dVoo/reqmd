@@ -36,6 +36,9 @@ the downstream as needing re-verification.
 | `pin == upstream.version` | Current | — | — |
 | No pin | No version check applies | — | — |
 
+> [!WARNING]
+> **A predated pin is a data-integrity error, not drift.** `repin` never rewrites a pin that sits ahead of its upstream and `--relaxed-versions` demotes only `outdated`, so a `pin > upstream.version` keeps failing `check` until you edit the ref by hand.
+
 ## Try it
 
 The spec tree in [Step 2](../02-trace-your-spec/) doesn't use version pins, so

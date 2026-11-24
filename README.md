@@ -375,6 +375,9 @@ The `(N draft downstreams ignored)` parenthetical appears only when at least
 one inbound candidate was filtered by the status gate. When no inbound exists
 at all, the message is silent on draft counts.
 
+> [!IMPORTANT]
+> **A missing `status` counts as `approved`, so it does satisfy coverage.** A `draft` requirement may be traced to but never counts as a `requires-trace-from` provider — that is the only behavioural difference between the two.
+
 ### 4a. Extending the status enum
 
 When the built-in enum is too narrow, declare extensions in `x-reqmd`:
@@ -447,6 +450,9 @@ x-reqmd:
 | `disjoint-check` | Names an array-typed attribute (e.g. `variant`) that trace-linked requirements must share at least one value of. Repeatable as an array. Also settable via `--disjoint-check` on `check` and `export json`. Suppression: `reqmd-suppress: [disjoint-attribute]`. |
 | `additional-status-values` | Lowercase extensions to the built-in `status` enum (e.g. `[review]`). See [Status lifecycle](#4-status-lifecycle). |
 | `ignore-status` | When `true`, the document opts out of the status lifecycle (see [Opting out](#4b-opting-out-of-the-lifecycle)) |
+
+> [!WARNING]
+> **Unknown `x-reqmd` keys are silently ignored.** A misspelled key such as `id_prefix` changes nothing and reports nothing, so compare the spelling against the table above before wondering why a setting has no effect.
 
 **Simple rule:**
 - No `external` field or `external: false` → normal authored requirement directory
@@ -550,6 +556,9 @@ filterable as-is). The warning names the attribute and the run continues:
 reqmd check spec/ --filter 'owner == "alice"' --relaxed-filter
 # reqmd: warning: filter references attribute "owner" not declared in any schema.yaml
 ```
+
+> [!TIP]
+> **`--relaxed-filter` does two things:** it downgrades an undeclared attribute from a hard error to a warning, *and* it accepts an attribute present on a requirement even when no schema declares it. Good for one-off exploration; keep it off CI, where a mistyped attribute should fail rather than warn.
 
 Use it when a team keeps informal attributes in the attr blocks, or while
 introducing a new attribute ahead of its schema change. The HTML export
@@ -816,6 +825,9 @@ Bulk-fix all outdated pins in a tree with `reqmd repin <root> --yes`
 (prints a dry-run change list by default; safe to re-run after
 applying).
 
+> [!WARNING]
+> **A `predated` pin (pin ahead of the upstream `version`) is always an ERROR and `repin` never rewrites it** — it signals that the upstream needs attention, not the downstream. `--relaxed-versions` softens only `outdated`.
+
 When multiple documents share the same ID prefix (e.g., two teams both use `STK-`), use a stable `document-id` to qualify references:
 
 ```yaml
@@ -942,6 +954,9 @@ DOORS / codeBeamer / CSV ─▶ your script ─▶ exchange JSON ─▶ reqmd-im
 source code (tree-sitter) ─▶ reqmd-code ─▶ exchange JSON ──┘
 ```
 
+> [!IMPORTANT]
+> **Producers only emit the bundle — `reqmd-import` is the only writer of Markdown/YAML**, so no importer formats a heading or an attr block itself. Every `body` must contain no headings, and the renderer does not check that, so a producer that copies headings into a body breaks the rendered tree.
+
 **Source code.** `reqmd-code` extracts functions, types, and methods from C, C++,
 Go, Python, and Rust via tree-sitter and emits an exchange bundle; `reqmd-import`
 renders it as generated proxy documents, so traces from authored requirements
@@ -1055,6 +1070,9 @@ verification measure data" every ASPICE record BP requires; it is linked
 from the result's `x-reqmd.evidence` field.
 
 ### Manual results (review / inspection / analysis)
+
+> [!WARNING]
+> **A result markdown with no `trace:` binds to its own requirement ID** — a self-edge that satisfies no measure and raises no warning, so it reads like a passing record while verifying nothing. `x-reqmd.verified-at` takes an RFC 3339 date-time or a bare `YYYY-MM-DD` date (midnight UTC).
 
 For non-test methods, author results as markdown with a user-supplied
 `schema.yaml` in a directory outside the spec root:

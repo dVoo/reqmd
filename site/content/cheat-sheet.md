@@ -619,6 +619,10 @@ x-reqmd:
 | `requires-trace-from` | array | Document-wide default coverage expectation (same `document-id`/`level` tokens as the built-in attribute). Requirements that don't declare their own `requires-trace-from` inherit it; an explicit `requires-trace-from: []` on a requirement overrides it; an empty default opts every requirement in the document out. |
 | `disjoint-check` | string \| array | Enables the disjoint-attribute check for the named array-typed attribute(s) (e.g. `variant`) on every `reqmd check`. Same effect as the `--disjoint-check <attr>` CLI flag. |
 
+{{< callout type="warning" >}}
+**Unknown `x-reqmd` keys are ignored silently.** A misspelled option neither errors nor warns — it just never takes effect, so confirm a new key by the check output it changes.
+{{< /callout >}}
+
 ### Standard JSON Schema fields
 
 These are the JSON Schema 2020-12 fields you'll use most:

@@ -37,6 +37,10 @@ When the upstream `version` is bumped, the pin becomes stale and reqmd flags the
 | `pin == upstream.version` | Current | — | — |
 | No pin | No version check applies | — | — |
 
+{{< callout type="warning" >}}
+**A predated pin is a data-integrity error, not drift.** `repin` never rewrites a pin that sits ahead of its upstream and `--relaxed-versions` demotes only `outdated`, so a `pin > upstream.version` keeps failing `check` until you edit the ref by hand.
+{{< /callout >}}
+
 ## Try it
 
 The spec tree in [Step 2](/quickstart/02-trace-your-spec/) doesn't use version pins, so no version-pin findings fire. To see it in action, add `version: 1` to an upstream requirement and `~1` to a downstream trace, then bump the upstream to `version: 2`:
