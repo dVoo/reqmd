@@ -1,6 +1,7 @@
 // Package extractor holds language-agnostic logic that operates on the
-// output of language plugins. M2's only responsibility is trace extraction:
-// pulling requirement IDs out of source-code comments and docstrings.
+// output of language plugins. Its only responsibility is trace extraction:
+// pulling explicit `reqmd:trace` targets and bare requirement IDs out of
+// source-code comments and docstrings.
 package extractor
 
 import (
@@ -8,32 +9,28 @@ import (
 	"strings"
 )
 
-// validIDRe is a permissive pre-filter for candidate requirement IDs
-// extracted from source code. It is intentionally looser than the
-// canonical reqmd ID pattern (which requires a digit segment at the end).
+// idShapeRe separates requirement IDs from symbol references. It is
+// deliberately looser than the schema's trace pattern, because an
+// ID-shaped token must reach `reqmd check` as a ref (where the canonical
+// pattern is enforced) instead of being mistaken for a missing symbol:
 //
-// This filter is the coarse-grained gate that runs at extraction time;
-// the strict, canonical shape check happens later in `reqmd check`,
-// where a malformed ID becomes a WARNING-level broken-ref rather than a
-// hard error. By accepting any plausible ID shape here, we honor what
-// the user wrote in their `reqmd:trace` marker (even if it would later
-// fail strict validation) instead of silently dropping it.
+//   - authored IDs: an uppercase first segment, at least one hyphen, and
+//     uppercase/digit segments (SW-PAR-001, REQ-MATH-ADD, REQ-1,
+//     system/REQ-1~2). The numeric-tail check lives in the schema, not here.
+//   - generated source-proxy IDs: prefix, package, symbol, and a lowercase
+//     7-hex hash (IMP-clang-Parse-479c6b0). At least two middle segments are
+//     required so a typo such as SW-imp-0000001 does not pass as generated.
 //
-// The pattern accepts:
-//   - Unqualified: REQ-XYZ, REQ-ARITH-001, SYS-AUTH-001, REQ-MATH-ADD
-//   - Qualified:   doc-id/REQ-X (e.g. system/REQ-FEAT-007)
-//   - Version pin: REQ-XYZ~3
-//
-// It rejects obviously-wrong shapes like `REQ-foo-bar` (lowercase
-// letters) or bare `foo` (no leading uppercase run).
-//
-// See the reqmd schema package (internal/schema/builtin.go) for the
-// canonical definition that `reqmd check` enforces.
-var validIDRe = regexp.MustCompile(`^([a-z0-9_-]+/)?[A-Z][A-Z0-9-]+(~[0-9]+)?$`)
+// A token matching either branch is passed through as an Item.Ref and
+// validated by `reqmd check`; everything else is a symbol reference resolved
+// by reqmd-code.
+var idShapeRe = regexp.MustCompile(`^([a-z0-9_-]+/)?([A-Z][A-Z0-9]*(-[A-Z0-9]+)+|[A-Z][A-Z0-9]*(-[A-Za-z0-9_]+){2,}-[0-9a-f]{7})(~[0-9]+)?$`)
 
-// traceRe matches an explicit `reqmd:trace` directive line. One ID per
-// line is canonical; a comma-separated list on one line is also accepted
-// as a tolerated fallback.
+// traceRe matches an explicit `reqmd:trace` directive line. One target per
+// line is canonical; a comma-separated list on one line is also accepted.
+//
+// At most one leading space is tolerated: doc-comment code examples are
+// indented by a tab or four spaces, and must not become real traces.
 var traceRe = regexp.MustCompile(`(?m)^ ?reqmd:trace[ \t]+(.+?)\r?$`)
 
 // heuristicRe matches bare requirement IDs in free-form text. Used only
@@ -47,50 +44,82 @@ var traceRe = regexp.MustCompile(`(?m)^ ?reqmd:trace[ \t]+(.+?)\r?$`)
 // short-numbered prose tokens like UTF-8 or HTTP-2.
 var heuristicRe = regexp.MustCompile(`\b([A-Z][A-Z0-9]*(?:-[A-Z0-9]+)*-\d{3,}(?:~\d+)?)\b`)
 
-// ExtractTraces pulls explicit and (optionally) heuristic trace IDs out
-// of the given source text. The text is expected to be the BindDoc-cleaned
-// comment/docstring of a symbol, but the function is language-agnostic.
+// TraceRefs is the classified result of scanning one item's doc text.
+type TraceRefs struct {
+	// ReqIDs are tokens shaped like requirement IDs. They pass through as
+	// exchange Item.Refs and are validated by `reqmd check`.
+	ReqIDs []string
+	// SymbolRefs are explicit `reqmd:trace <symbol>` targets. reqmd-code
+	// resolves them exactly (no prefix matching) and reports an error when
+	// one is unknown or ambiguous.
+	SymbolRefs []string
+	// Malformed are directive targets that cannot be a symbol or an ID
+	// (for example a raw sentence with spaces). They are always an error.
+	Malformed []string
+	// Heuristic are bare requirement IDs found by the opt-in scan. They are
+	// untrusted and never satisfy coverage.
+	Heuristic []string
+	// OptOut records an explicit `reqmd:trace none`, which disables
+	// convention-based test linking for this item.
+	OptOut bool
+}
+
+// ExtractTraces classifies the `reqmd:trace` directives in the given source
+// text. The text is expected to be the BindDoc-cleaned comment/docstring of
+// a symbol, but the function is language-agnostic.
 //
 // Returned slices are stable, deduplicated, and preserve first-seen order.
-// Explicit traces take precedence: an ID found both as explicit and as a
-// heuristic match appears in explicit only, never in heuristic.
+// A token found as a requirement ID never appears in SymbolRefs, and a
+// heuristic match never repeats an explicit requirement ID.
 //
-// useHeuristic enables the broader bare-ID scan. It is intended to be
-// driven by a CLI flag (e.g. `reqmd-code --heuristic-traces`).
-func ExtractTraces(text string, useHeuristic bool) (explicit, heuristic []string) {
-	seen := make(map[string]bool)
+// useHeuristic enables the broader bare-ID scan (driven by the CLI flag
+// `--heuristic-traces`).
+func ExtractTraces(text string, useHeuristic bool) TraceRefs {
+	var out TraceRefs
+	seenID := make(map[string]bool)
+	seenSym := make(map[string]bool)
+	seenBad := make(map[string]bool)
 
-	// 1. Explicit `reqmd:trace` lines.
 	for _, m := range traceRe.FindAllStringSubmatch(text, -1) {
-		// m[1] may be a single ID or a comma-separated list.
 		for raw := range strings.SplitSeq(m[1], ",") {
-			id := strings.TrimSpace(raw)
-			if id == "" {
+			tok := strings.TrimSpace(raw)
+			if tok == "" {
 				continue
 			}
-			if !validIDRe.MatchString(id) {
-				// Silently skip invalid IDs (e.g., typos like "REQ-foo"
-				// or bare "foo"). The regex is the contract; we don't
-				// error on a malformed marker because prose often
-				// contains things that look like IDs but aren't.
-				continue
-			}
-			if !seen[id] {
-				seen[id] = true
-				explicit = append(explicit, id)
+			switch {
+			case strings.ContainsAny(tok, " \t"):
+				// A target with whitespace cannot be a symbol or an ID; it
+				// is almost always a prose sentence left on the directive.
+				if !seenBad[tok] {
+					seenBad[tok] = true
+					out.Malformed = append(out.Malformed, tok)
+				}
+			case tok == "none":
+				out.OptOut = true
+			case idShapeRe.MatchString(tok):
+				if !seenID[tok] {
+					seenID[tok] = true
+					out.ReqIDs = append(out.ReqIDs, tok)
+				}
+			default:
+				if !seenSym[tok] {
+					seenSym[tok] = true
+					out.SymbolRefs = append(out.SymbolRefs, tok)
+				}
 			}
 		}
 	}
 
-	// 2. Heuristic bare-ID scan (opt-in only).
 	if useHeuristic {
 		for _, m := range heuristicRe.FindAllStringSubmatch(text, -1) {
-			if !seen[m[1]] {
-				seen[m[1]] = true
-				heuristic = append(heuristic, m[1])
+			id := m[1]
+			if seenID[id] {
+				continue
 			}
+			seenID[id] = true
+			out.Heuristic = append(out.Heuristic, id)
 		}
 	}
 
-	return explicit, heuristic
+	return out
 }

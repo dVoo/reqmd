@@ -56,7 +56,11 @@ func renderTo(t *testing.T, bundle *exchange.Bundle) map[string]string {
 
 func writeFile(t *testing.T, dir, name, content string) {
 	t.Helper()
-	if err := os.WriteFile(filepath.Join(dir, name), []byte(content), 0o644); err != nil {
+	path := filepath.Join(dir, name)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(path, []byte(content), 0o644); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -456,5 +460,372 @@ func TestDocSections_GodocSeparator(t *testing.T) {
 	}
 	if !strings.Contains(body, "x-reqmd.requires-trace-from document default") {
 		t.Errorf("the separator's caption should survive as prose: %q", body)
+	}
+}
+
+// runTestExtractErr runs an extraction that is expected to fail.
+func runTestExtractErr(t *testing.T, args []string, f *extractFlags) (string, string, error) {
+	t.Helper()
+	var outBuf, errBuf bytes.Buffer
+	cmd := &cobra.Command{}
+	cmd.SetOut(&outBuf)
+	cmd.SetErr(&errBuf)
+	err := runExtract(cmd, args, f)
+	return outBuf.String(), errBuf.String(), err
+}
+
+// itemByTitle finds one item in a document tree by its title.
+func itemByTitle(t *testing.T, items []exchange.Item, title string) exchange.Item {
+	t.Helper()
+	for _, it := range allItems(items) {
+		if it.Title == title {
+			return it
+		}
+	}
+	t.Fatalf("item %q not found", title)
+	return exchange.Item{}
+}
+
+// TestRunExtract_ExplicitSymbolLink covers the explicit marker path: a test
+// traces to a same-package function by name, and the link survives rendering.
+func TestRunExtract_ExplicitSymbolLink(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+// Parse parses.
+func Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+// reqmd:trace Parse
+func TestParse() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	alpha := docByDir(t, bundle, "alpha")
+	parse := itemByTitle(t, alpha.Items, "Parse")
+	testParse := itemByTitle(t, alpha.Items, "TestParse")
+	if !slices.Equal(testParse.Links, []string{parse.Key}) {
+		t.Errorf("TestParse links = %v, want [%s]", testParse.Links, parse.Key)
+	}
+	files := renderTo(t, bundle)
+	md := files["alpha/package.md"]
+	if !strings.Contains(md, "trace:\n") || !strings.Contains(md, "IMP-alpha-"+parse.Key) {
+		t.Errorf("rendered trace missing %q:\n%s", "IMP-alpha-"+parse.Key, md)
+	}
+}
+
+// TestRunExtract_MethodScopes covers receiver-qualified references and the
+// C++ `::` spelling.
+func TestRunExtract_MethodScopes(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+type Parser struct{}
+
+// Parse parses.
+func (p *Parser) Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+// reqmd:trace Parser.Parse
+func TestDotted() {}
+
+// reqmd:trace Parser::Parse
+func TestScoped() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	alpha := docByDir(t, bundle, "alpha")
+	method := itemByTitle(t, alpha.Items, "Parse")
+	for _, name := range []string{"TestDotted", "TestScoped"} {
+		it := itemByTitle(t, alpha.Items, name)
+		if !slices.Equal(it.Links, []string{method.Key}) {
+			t.Errorf("%s links = %v, want [%s]", name, it.Links, method.Key)
+		}
+	}
+}
+
+// TestRunExtract_BasePackageResolution covers external test packages, where
+// the test lives in a different document from the symbol it tests.
+func TestRunExtract_BasePackageResolution(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+// Parse parses.
+func Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha_test
+
+// reqmd:trace Parse
+func TestParse() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	alpha := docByDir(t, bundle, "alpha")
+	parse := itemByTitle(t, alpha.Items, "Parse")
+	ext := docByDir(t, bundle, "alpha_test")
+	testParse := itemByTitle(t, ext.Items, "TestParse")
+	want := "alpha/" + parse.Key
+	if !slices.Equal(testParse.Links, []string{want}) {
+		t.Errorf("links = %v, want [%s]", testParse.Links, want)
+	}
+}
+
+// TestRunExtract_UnresolvedSymbolIsFatal pins the hard-error contract: no
+// bundle, no stdout, and an existing -o file is left untouched.
+func TestRunExtract_UnresolvedSymbolIsFatal(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a_test.go", `package alpha
+
+// reqmd:trace dummy
+func TestDummy() {}
+`)
+	out, errOut, err := runTestExtractErr(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	if err == nil {
+		t.Fatal("expected an error for an unresolved symbol")
+	}
+	if !strings.Contains(err.Error(), `unresolved symbol trace "dummy"`) {
+		t.Errorf("error = %v, want unresolved symbol message", err)
+	}
+	if out != "" {
+		t.Errorf("stdout = %q, want empty", out)
+	}
+	if errOut != "" {
+		t.Errorf("stderr = %q, want empty for a data error", errOut)
+	}
+
+	// -o must not be created or truncated on failure.
+	dst := filepath.Join(t.TempDir(), "bundle.json")
+	if err := os.WriteFile(dst, []byte("sentinel"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := runTestExtractErr(t, []string{src}, &extractFlags{idPrefix: "IMP-", output: dst}); err == nil {
+		t.Fatal("expected an error when writing to -o")
+	}
+	got, err := os.ReadFile(dst)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(got) != "sentinel" {
+		t.Errorf("-o file = %q, want it untouched", got)
+	}
+}
+
+// TestRunExtract_AmbiguousSymbolIsFatal covers a reference that matches the
+// same name in two packages.
+func TestRunExtract_AmbiguousSymbolIsFatal(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "alpha/a.go", `package alpha
+
+func Parse() {}
+`)
+	writeFile(t, src, "beta/b.go", `package beta
+
+func Parse() {}
+`)
+	writeFile(t, src, "gamma/c.go", `package gamma
+
+// reqmd:trace Parse
+func TestParse() {}
+`)
+	_, _, err := runTestExtractErr(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	if err == nil {
+		t.Fatal("expected an ambiguity error")
+	}
+	for _, want := range []string{"ambiguous symbol trace", "alpha/Parse", "beta/Parse"} {
+		if !strings.Contains(err.Error(), want) {
+			t.Errorf("error = %v, want %q", err, want)
+		}
+	}
+}
+
+// TestRunExtract_MalformedMarkerIsFatal covers prose left on the directive.
+func TestRunExtract_MalformedMarkerIsFatal(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+// reqmd:trace see the parser
+func Foo() {}
+`)
+	_, _, err := runTestExtractErr(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	if err == nil {
+		t.Fatal("expected a malformed marker error")
+	}
+	if !strings.Contains(err.Error(), "invalid reqmd:trace marker") {
+		t.Errorf("error = %v, want malformed marker message", err)
+	}
+}
+
+// TestRunExtract_QualifiedAndOptOut covers an explicit package qualifier and
+// the `none` opt-out, which must not create a link or an error.
+func TestRunExtract_QualifiedAndOptOut(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "alpha/a.go", `package alpha
+
+func Parse() {}
+`)
+	writeFile(t, src, "gamma/c.go", `package gamma
+
+// reqmd:trace alpha/Parse
+func TestQualified() {}
+
+// reqmd:trace none
+func TestOptOut() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	alpha := docByDir(t, bundle, "alpha")
+	parse := itemByTitle(t, alpha.Items, "Parse")
+	gamma := docByDir(t, bundle, "gamma")
+	qualified := itemByTitle(t, gamma.Items, "TestQualified")
+	if !slices.Equal(qualified.Links, []string{"alpha/" + parse.Key}) {
+		t.Errorf("qualified links = %v, want [alpha/%s]", qualified.Links, parse.Key)
+	}
+	optOut := itemByTitle(t, gamma.Items, "TestOptOut")
+	if len(optOut.Links) != 0 {
+		t.Errorf("opt-out item links = %v, want none", optOut.Links)
+	}
+}
+
+// TestRunExtract_PythonTestLinksToModule covers a test file in its own
+// document reaching back to the module it tests.
+func TestRunExtract_PythonTestLinksToModule(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "parse.py", `def parse():
+    pass
+`)
+	writeFile(t, src, "test_parse.py", `#reqmd:trace parse
+def test_parse():
+    pass
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	parse := docByDir(t, bundle, "parse")
+	fn := itemByTitle(t, parse.Items, "parse")
+	tests := docByDir(t, bundle, "test_parse")
+	testFn := itemByTitle(t, tests.Items, "test_parse")
+	want := "parse/" + fn.Key
+	if !slices.Equal(testFn.Links, []string{want}) {
+		t.Errorf("test_parse links = %v, want [%s]", testFn.Links, want)
+	}
+}
+
+// TestRunExtract_RequirementIDRefsPassThrough keeps the ID path intact: an
+// ID-shaped marker becomes a ref, not a symbol lookup, and renders into trace.
+func TestRunExtract_RequirementIDRefsPassThrough(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+// reqmd:trace SW-EXP-001
+func Parse() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	alpha := docByDir(t, bundle, "alpha")
+	parse := itemByTitle(t, alpha.Items, "Parse")
+	if !slices.Equal(parse.Refs, []string{"SW-EXP-001"}) {
+		t.Errorf("Refs = %v, want [SW-EXP-001]", parse.Refs)
+	}
+	if len(parse.Links) != 0 {
+		t.Errorf("Links = %v, want none for an ID ref", parse.Links)
+	}
+	if md := renderTo(t, bundle)["alpha/package.md"]; !strings.Contains(md, "SW-EXP-001") {
+		t.Errorf("rendered trace missing the ref:\n%s", md)
+	}
+}
+
+// TestRunExtract_CaseMismatchIsFatal pins that explicit matching is
+// case-sensitive: a near-miss is an error, not a silent skip.
+func TestRunExtract_CaseMismatchIsFatal(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+func Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+// reqmd:trace parse
+func TestParse() {}
+`)
+	_, _, err := runTestExtractErr(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	if err == nil || !strings.Contains(err.Error(), `unresolved symbol trace "parse"`) {
+		t.Fatalf("err = %v, want an unresolved symbol error", err)
+	}
+}
+
+// TestRunExtract_BuildTagDuplicateNotAmbiguous pins that build-tag twins are
+// deduplicated before indexing, so a reference to them resolves once.
+func TestRunExtract_BuildTagDuplicateNotAmbiguous(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "graph.go", `package export
+
+func New() {}
+`)
+	writeFile(t, src, "graph_stub.go", `package export
+
+func New() {}
+`)
+	writeFile(t, src, "graph_test.go", `package export_test
+
+// reqmd:trace New
+func TestNew() {}
+`)
+	bundle, _, errOut := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	export := docByDir(t, bundle, "export")
+	target := itemByTitle(t, export.Items, "New")
+	ext := docByDir(t, bundle, "export_test")
+	testNew := itemByTitle(t, ext.Items, "TestNew")
+	if !slices.Equal(testNew.Links, []string{"export/" + target.Key}) {
+		t.Errorf("links = %v, want [export/%s]", testNew.Links, target.Key)
+	}
+	if !strings.Contains(errOut, "skipping duplicate symbol New") {
+		t.Errorf("stderr = %q, want the duplicate-symbol warning", errOut)
+	}
+}
+
+// TestRunExtract_DuplicateLinksDeduped pins that two spellings of the same
+// target produce one link.
+func TestRunExtract_DuplicateLinksDeduped(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+func Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+// reqmd:trace Parse, alpha/Parse
+func TestParse() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	alpha := docByDir(t, bundle, "alpha")
+	parse := itemByTitle(t, alpha.Items, "Parse")
+	testParse := itemByTitle(t, alpha.Items, "TestParse")
+	if !slices.Equal(testParse.Links, []string{parse.Key}) {
+		t.Errorf("links = %v, want one [%s]", testParse.Links, parse.Key)
+	}
+}
+
+// TestFormatTraceRefErrors pins deterministic sort order and the cap.
+func TestFormatTraceRefErrors(t *testing.T) {
+	var errs []traceRefError
+	for i := 0; i < 22; i++ {
+		errs = append(errs, traceRefError{
+			file:    "z.go",
+			line:    100 - i,
+			symbol:  "TestX",
+			message: "unresolved symbol trace \"X\"",
+		})
+	}
+	err := formatTraceRefErrors(errs)
+	if err == nil {
+		t.Fatal("want an error")
+	}
+	msg := err.Error()
+	if !strings.HasPrefix(msg, "invalid reqmd:trace references:") {
+		t.Errorf("message = %q", msg)
+	}
+	if !strings.Contains(msg, "z.go:79 (TestX)") || !strings.Contains(msg, "z.go:98 (TestX)") {
+		t.Errorf("entries are not ascending by line:\n%s", msg)
+	}
+	if strings.Contains(msg, "z.go:99 (TestX)") {
+		t.Errorf("cap not applied; 21st entry was printed:\n%s", msg)
+	}
+	if !strings.Contains(msg, "... and 2 more") {
+		t.Errorf("missing cap notice:\n%s", msg)
 	}
 }

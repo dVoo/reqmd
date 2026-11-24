@@ -42,6 +42,10 @@ func NewRootCmd(version string) *cobra.Command {
 		Use:     "reqmd-code <source-dir>",
 		Short:   "Extract source-code symbols into a reqmd-import/v1 exchange bundle",
 		Version: version,
+		// runExtract prints one batched diagnostic; Cobra must not repeat it
+		// or dump usage for a data error.
+		SilenceErrors: true,
+		SilenceUsage:  true,
 		Long: `Walks <source-dir> for files matching any registered language plugin, parses
 each file via tree-sitter, groups symbols by package, and emits a
 reqmd-import/v1 JSON bundle on stdout (or to -o <file>).
@@ -245,47 +249,41 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 	}
 	sort.Strings(pkgNames)
 
+	// First pass: sort and deduplicate each package's symbols, keeping the
+	// stable native ID of every survivor. Build-tag alternatives
+	// (graph.go / graph_stub.go) declare the same symbol twice; the first in
+	// source order wins. Resolution runs over this deduplicated set so a
+	// legitimate build-tag duplicate can never look like an ambiguity.
+	pkgSymbols := make(map[string][]packagedSymbol, len(pkgBuckets))
+	nativeIDs := make(map[string]map[string]string, len(pkgBuckets))
 	for _, pkgName := range pkgNames {
 		syms := pkgBuckets[pkgName]
-
-		// Stable, line-free native ID: hash over (package, name) for
-		// top-level symbols, and (package, receiver.name) for methods. The
-		// receiver-aware key prevents a method named `multiply` in class
-		// `Calculator` and a top-level function named `multiply` from
-		// collapsing to the same ID in the same package.
-		//
-		// Two symbols with the exact same (package, name, receiver) —
-		// which a well-formed source shouldn't produce — would still
-		// collide; we don't try to disambiguate, the deterministic sort is
-		// the only stable guarantee at that point.
-		nativeFor := make(map[string]string, len(syms))
-		for _, s := range syms {
-			key := nativeKey(s)
-			nativeFor[key] = s.Name + "-" + model.ShortHash(pkgName, key)
-		}
-
-		// Sort symbols by (file, start line, name) so the per-package output is
-		// deterministic (workers finish out of order) and methods follow their
-		// types in source order. It also makes the duplicate-symbol dedup below
-		// deterministic.
-		sort.SliceStable(syms, func(i, j int) bool {
-			if syms[i].File != syms[j].File {
-				return syms[i].File < syms[j].File
-			}
-			if syms[i].StartLine != syms[j].StartLine {
-				return syms[i].StartLine < syms[j].StartLine
-			}
-			return syms[i].Name < syms[j].Name
-		})
-
-		// Build-tag alternatives (e.g. graph.go guarded by `ladybug` and
-		// graph_stub.go guarded by `!ladybug`) declare the same symbol twice;
-		// tree-sitter sees both files. They are one logical requirement, so
-		// the first in source order wins and the duplicate is skipped.
+		sortSymbols(syms)
+		byKey := nativeIDMap(pkgName, syms)
+		nativeIDs[pkgName] = byKey
 		emitted := make(map[string]struct{}, len(syms))
+		kept := make([]packagedSymbol, 0, len(syms))
+		for _, s := range syms {
+			id := byKey[nativeKey(s)]
+			if _, dup := emitted[id]; dup {
+				fmt.Fprintf(cmd.ErrOrStderr(), "warn: skipping duplicate symbol %s (%s) in package %s\n", s.Name, s.File, pkgName)
+				continue
+			}
+			emitted[id] = struct{}{}
+			kept = append(kept, packagedSymbol{sym: s, nativeID: id})
+		}
+		pkgSymbols[pkgName] = kept
+	}
+	index := newSymbolIndex(pkgSymbols)
+
+	var refErrs []traceRefError
+
+	for _, pkgName := range pkgNames {
+		kept := pkgSymbols[pkgName]
+
 		// childOf collects methods per type key so they can be nested once the
 		// parent's position in source order is known.
-		childOf := make(map[string][]exchange.Item, len(syms))
+		childOf := make(map[string][]exchange.Item, len(kept))
 		// Symbols are emitted into one section per source file, in source
 		// order: the file list is contiguous because syms is sorted by file.
 		var sections []exchange.Item
@@ -301,23 +299,15 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 				Children: nestMethods(fileItems, childOf),
 			})
 			fileItems = nil
-			childOf = make(map[string][]exchange.Item, len(syms))
+			childOf = make(map[string][]exchange.Item, len(kept))
 		}
-		for _, s := range syms {
+		for _, ps := range kept {
+			s := ps.sym
 			if s.File != curFile {
 				flushFile()
 				curFile = s.File
 			}
-			explicit, heuristic := extractor.ExtractTraces(s.Doc, f.heuristicTraces)
-			// Methods are stored under "Receiver.Name" in nativeFor to
-			// disambiguate from a same-named top-level function; top-level
-			// symbols (functions, types, consts) are keyed by their bare name.
-			nativeID := nativeFor[nativeKey(s)]
-			if _, dup := emitted[nativeID]; dup {
-				fmt.Fprintf(cmd.ErrOrStderr(), "warn: skipping duplicate symbol %s (%s) in package %s\n", s.Name, s.File, pkgName)
-				continue
-			}
-			emitted[nativeID] = struct{}{}
+			traces := extractor.ExtractTraces(s.Doc, f.heuristicTraces)
 			attrs := map[string]any{
 				"x-reqmd.imported":    true,
 				"x-reqmd.source-file": s.File,
@@ -326,16 +316,44 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 			if s.StartLine > 0 {
 				attrs["x-reqmd.source-line"] = s.StartLine
 			}
-			if len(heuristic) > 0 {
-				attrs["x-reqmd.heuristic-trace"] = heuristic
+			if len(traces.Heuristic) > 0 {
+				attrs["x-reqmd.heuristic-trace"] = traces.Heuristic
 			}
 			item := exchange.Item{
 				Kind:   exchange.KindRequirement,
-				Key:    nativeID,
+				Key:    ps.nativeID,
 				Title:  s.Name,
 				Status: "approved",
 				Fields: attrs,
-				Refs:   explicit,
+				Refs:   traces.ReqIDs,
+			}
+			for _, bad := range traces.Malformed {
+				refErrs = append(refErrs, traceRefError{
+					file: relPath(srcDir, s.File), line: s.StartLine, symbol: s.Name,
+					message: fmt.Sprintf("invalid reqmd:trace marker %q (expected a symbol or a requirement ID)", bad),
+				})
+			}
+			seenLinks := make(map[string]bool, len(traces.SymbolRefs))
+			for _, ref := range traces.SymbolRefs {
+				target, candidates, ok := index.resolve(pkgName, ref)
+				if !ok {
+					msg := fmt.Sprintf("unresolved symbol trace %q", ref)
+					if len(candidates) > 0 {
+						msg = fmt.Sprintf("ambiguous symbol trace %q (matches: %s)", ref, strings.Join(candidates, ", "))
+					}
+					refErrs = append(refErrs, traceRefError{
+						file: relPath(srcDir, s.File), line: s.StartLine, symbol: s.Name, message: msg,
+					})
+					continue
+				}
+				link := target.nativeID
+				if target.pkg != pkgName {
+					link = target.pkg + "/" + target.nativeID
+				}
+				if !seenLinks[link] {
+					seenLinks[link] = true
+					item.Links = append(item.Links, link)
+				}
 			}
 			// The doc comment becomes content nodes under the symbol rather
 			// than its body: a section body may not contain headings, and a
@@ -344,11 +362,10 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 			// Methods nest under their type as a child item, which is how the
 			// renderer expresses heading depth now that items are a tree.
 			if s.Kind == model.SymbolMethod && s.Receiver != "" {
-				// The parent (a type/struct/class) is a top-level symbol,
-				// so its key in nativeFor is just its name. Methods
-				// themselves are keyed by "Receiver.Name" above; look up
-				// the parent by its bare name.
-				if pid, ok := nativeFor[model.StripReceiverName(s.Receiver)]; ok {
+				// The parent (a type/struct/class) is a top-level symbol, so its
+				// key in nativeIDs is its bare name. Methods themselves are keyed
+				// by "Receiver.Name".
+				if pid, ok := nativeIDs[pkgName][model.StripReceiverName(s.Receiver)]; ok {
 					childOf[pid] = append(childOf[pid], item)
 					continue
 				}
@@ -371,6 +388,13 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 		doc.XReqmd.IDPrefix = f.idPrefix + pkgName + "-"
 		doc.Items = items
 		docs = append(docs, doc)
+	}
+
+	// Explicit symbol references are a hard contract: report every bad one
+	// before anything is marshaled or written, so stdout stays empty and an
+	// `-o` file is never created or truncated on failure.
+	if len(refErrs) > 0 {
+		return formatTraceRefErrors(refErrs)
 	}
 
 	bundle := exchange.Bundle{Schema: exchange.SchemaURL, Documents: docs}
@@ -416,6 +440,176 @@ func extSet(exts []string) map[string]bool {
 		out[e] = true
 	}
 	return out
+}
+
+// packagedSymbol is a symbol that survived per-package deduplication, with
+// its stable native ID.
+type packagedSymbol struct {
+	sym      model.Symbol
+	nativeID string
+}
+
+// traceRefError is one explicit `reqmd:trace` failure, addressed to the
+// declaring symbol.
+type traceRefError struct {
+	file    string
+	line    int
+	symbol  string
+	message string
+}
+
+// formatTraceRefErrors renders the batched failures deterministically.
+func formatTraceRefErrors(errs []traceRefError) error {
+	sort.Slice(errs, func(i, j int) bool {
+		if errs[i].file != errs[j].file {
+			return errs[i].file < errs[j].file
+		}
+		if errs[i].line != errs[j].line {
+			return errs[i].line < errs[j].line
+		}
+		return errs[i].message < errs[j].message
+	})
+	const limit = 20
+	var b strings.Builder
+	b.WriteString("invalid reqmd:trace references:")
+	for i, e := range errs {
+		if i == limit {
+			fmt.Fprintf(&b, "\n  ... and %d more", len(errs)-limit)
+			break
+		}
+		fmt.Fprintf(&b, "\n  - %s:%d (%s): %s", e.file, e.line, e.symbol, e.message)
+	}
+	return errors.New(b.String())
+}
+
+// sortSymbols orders a package's symbols deterministically: by file, then
+// start line, then name. Methods therefore follow their parent type.
+func sortSymbols(syms []model.Symbol) {
+	sort.SliceStable(syms, func(i, j int) bool {
+		if syms[i].File != syms[j].File {
+			return syms[i].File < syms[j].File
+		}
+		if syms[i].StartLine != syms[j].StartLine {
+			return syms[i].StartLine < syms[j].StartLine
+		}
+		return syms[i].Name < syms[j].Name
+	})
+}
+
+// nativeIDMap maps every symbol's native key to its stable item key. The key
+// is `<Name>-<hash(pkg, nameOrReceiver.Name)>`: line-free, so edits above the
+// symbol do not churn IDs.
+func nativeIDMap(pkg string, syms []model.Symbol) map[string]string {
+	out := make(map[string]string, len(syms))
+	for _, s := range syms {
+		key := nativeKey(s)
+		out[key] = s.Name + "-" + model.ShortHash(pkg, key)
+	}
+	return out
+}
+
+// symbolTarget is a resolved explicit reference.
+type symbolTarget struct {
+	pkg      string
+	nativeID string
+}
+
+// symbolIndex indexes deduplicated symbols by package and by the exact name
+// a `reqmd:trace` target can use: the bare name for non-methods, and
+// "Type.Name" for methods.
+type symbolIndex struct {
+	byPkg map[string]map[string][]symbolTarget
+}
+
+func newSymbolIndex(pkgs map[string][]packagedSymbol) *symbolIndex {
+	ix := &symbolIndex{byPkg: make(map[string]map[string][]symbolTarget, len(pkgs))}
+	for pkg, kept := range pkgs {
+		entries := make(map[string][]symbolTarget, len(kept))
+		for _, ps := range kept {
+			key := ps.sym.Name
+			if ps.sym.Receiver != "" {
+				key = model.StripReceiverName(ps.sym.Receiver) + "." + ps.sym.Name
+			}
+			entries[key] = append(entries[key], symbolTarget{pkg: pkg, nativeID: ps.nativeID})
+		}
+		ix.byPkg[pkg] = entries
+	}
+	return ix
+}
+
+// resolve matches an explicit symbol trace exactly: case-sensitive, no prefix
+// matching. `pkg/Name` and `pkg/Type.Name` search only that package; an
+// unqualified reference tries the same package, the base package of a test
+// package (`foo_test` -> `foo`, `test_foo` -> `foo`), then a globally unique
+// match. On ambiguity it returns the candidate names.
+func (ix *symbolIndex) resolve(fromPkg, ref string) (target symbolTarget, candidates []string, ok bool) {
+	ref = strings.ReplaceAll(ref, "::", ".")
+	qualPkg, key := "", ref
+	if i := strings.IndexByte(ref, '/'); i >= 0 {
+		qualPkg, key = ref[:i], ref[i+1:]
+		if qualPkg == "" || key == "" {
+			return symbolTarget{}, nil, false
+		}
+	}
+	if strings.Count(key, ".") > 1 {
+		return symbolTarget{}, nil, false
+	}
+
+	lookup := func(pkg string) []symbolTarget {
+		if entries := ix.byPkg[pkg]; entries != nil {
+			return entries[key]
+		}
+		return nil
+	}
+	decide := func(matches []symbolTarget) (symbolTarget, []string, bool) {
+		switch len(matches) {
+		case 0:
+			return symbolTarget{}, nil, false
+		case 1:
+			return matches[0], nil, true
+		default:
+			names := make([]string, len(matches))
+			for i, m := range matches {
+				names[i] = m.pkg + "/" + key
+			}
+			sort.Strings(names)
+			return symbolTarget{}, names, false
+		}
+	}
+
+	if qualPkg != "" {
+		return decide(lookup(qualPkg))
+	}
+	if matches := lookup(fromPkg); len(matches) > 0 {
+		return decide(matches)
+	}
+	searched := map[string]bool{fromPkg: true}
+	if base := basePackage(fromPkg); base != "" {
+		searched[base] = true
+		if matches := lookup(base); len(matches) > 0 {
+			return decide(matches)
+		}
+	}
+	var all []symbolTarget
+	for pkg := range ix.byPkg {
+		if searched[pkg] {
+			continue
+		}
+		all = append(all, ix.byPkg[pkg][key]...)
+	}
+	return decide(all)
+}
+
+// basePackage returns the non-test package a test package belongs to, or ""
+// when the name is not a test package.
+func basePackage(pkg string) string {
+	if before, ok := strings.CutSuffix(pkg, "_test"); ok {
+		return before
+	}
+	if after, ok := strings.CutPrefix(pkg, "test_"); ok {
+		return after
+	}
+	return ""
 }
 
 // nativeKey is a symbol's disambiguation key inside its package. Methods are
