@@ -909,6 +909,25 @@ func TestParseMD_ChunkedKeepsPreambleAndBoundaries(t *testing.T) {
 	}
 }
 
+// TestParseMD_WrappedParagraphKeepsLineBreaks pins that a source-wrapped
+// paragraph keeps its line breaks in the stored body. Dropping them glued the
+// last word of one line onto the first word of the next in the HTML export.
+func TestParseMD_WrappedParagraphKeepsLineBreaks(t *testing.T) {
+	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+		"A flat list\nof top-level symbols.\n")
+	nodes, _, _, err := parseMD(src, "wrap.md")
+	if err != nil {
+		t.Fatal(err)
+	}
+	reqs := model.CollectRequirements(assembleTree(nodes))
+	if len(reqs) != 1 {
+		t.Fatalf("requirements = %d, want 1", len(reqs))
+	}
+	if got, want := reqs[0].Body, "A flat list\nof top-level symbols."; got != want {
+		t.Errorf("body = %q, want %q", got, want)
+	}
+}
+
 // TestParseMD_ListBodyPreserved pins the body-capture contract for blocks that
 // have no dedicated case: a list in a requirement body must keep its markers and
 // its line breaks, and must be separated from the prose above it. Concatenating

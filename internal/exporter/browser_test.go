@@ -387,6 +387,56 @@ func TestHTMLExportBrowserExplicitEmptyFilters(t *testing.T) {
 	}
 }
 
+// TestHTMLExportBrowserOutlineResize verifies the outline width handle: arrow
+// keys change the one width variable the grid consumes, and double-click
+// restores the default.
+func TestHTMLExportBrowserOutlineResize(t *testing.T) {
+	chrome := findChrome(t)
+	pagePath := exportBrowserFixture(t)
+
+	const harness = `<script>
+window.addEventListener('load', function () {
+  var out = { errors: [] };
+  try {
+    var handle = document.querySelector('[data-action="resize-toc"]');
+    out.present = !!handle;
+    var width = function () {
+      return Math.round(document.querySelector('.toc').getBoundingClientRect().width);
+    };
+    out.initial = width();
+    handle.focus();
+    handle.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    handle.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
+    out.wide = width();
+    out.aria = handle.getAttribute('aria-valuenow');
+    handle.dispatchEvent(new MouseEvent('dblclick', { bubbles: true }));
+    out.reset = width();
+  } catch (e) { out.errors.push(String((e && e.stack) || e)); }
+  document.title = 'RESULT:' + JSON.stringify(out);
+});
+</script>`
+	result := runHeadless(t, chrome, pagePath, "", []string{"--window-size=1200,900"}, harness)
+	assertNoJSErrors(t, result)
+	if result["present"] != true {
+		t.Fatal("outline resize handle missing")
+	}
+	initial, _ := result["initial"].(float64)
+	wide, _ := result["wide"].(float64)
+	reset, _ := result["reset"].(float64)
+	if initial < 240 || initial > 320 {
+		t.Errorf("default outline width = %v, want about 25%% of the 1200px window", initial)
+	}
+	if wide != initial+32 {
+		t.Errorf("two arrow steps = %v, want %v", wide, initial+32)
+	}
+	if reset < initial-1 || reset > initial+1 {
+		t.Errorf("double-click restored %v, want the default %v", reset, initial)
+	}
+	if result["aria"] != fmt.Sprintf("%d", int(wide)) {
+		t.Errorf("aria-valuenow = %v, want %v", result["aria"], int(wide))
+	}
+}
+
 // TestHTMLExportBrowserMobileOutline verifies the outline becomes a drawer at
 // mobile width and the toolbar stops sticking when vertical space is tight.
 func TestHTMLExportBrowserMobileOutline(t *testing.T) {
@@ -411,6 +461,116 @@ window.addEventListener('load', function () {
 	result := runHeadless(t, chrome, pagePath, "", []string{"--window-size=420,900"}, harness)
 	assertNoJSErrors(t, result)
 	for _, k := range []string{"toggleVisible", "drawerOpen", "drawerClosed"} {
+		if result[k] != true {
+			t.Errorf("%s = %v, want true", k, result[k])
+		}
+	}
+}
+
+// exportNestedFilterFixture exports a section containing a draft parent
+// requirement with an approved child, so the default status filter hides the
+// parent but not the child.
+func exportNestedFilterFixture(t *testing.T) string {
+	t.Helper()
+	doc := model.Document{
+		Path:   "/test/tree",
+		Schema: schemaWithTitle("Tree"),
+		XReqmd: &model.XReqmd{DocumentID: "tree", Level: "system"},
+		Nodes: []*model.Node{
+			{Kind: model.KindSection, Title: "Group", Level: 2, Children: []*model.Node{
+				{Kind: model.KindRequirement, ID: "PARENT-001", Level: 3,
+					Attrs: map[string]any{"status": "draft"},
+					Children: []*model.Node{
+						{Kind: model.KindRequirement, ID: "CHILD-001", Level: 4,
+							Attrs: map[string]any{"status": "approved"}},
+					}},
+			}},
+		},
+	}
+	h := &HTML{}
+	h.SetAnalysis(analysisFor(t, doc))
+	path := filepath.Join(t.TempDir(), "tree-requirements.html")
+	f, err := os.Create(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := h.Export(f, doc, doc.Properties); err != nil {
+		t.Fatalf("export: %v", err)
+	}
+	if err := f.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return path
+}
+
+// TestHTMLExportBrowserFilteredParentKeepsVisibleChild verifies that hiding a
+// parent card does not hide its visible children in the outline, and that a
+// jump reopens a collapsed section folder.
+func TestHTMLExportBrowserFilteredParentKeepsVisibleChild(t *testing.T) {
+	chrome := findChrome(t)
+	pagePath := exportNestedFilterFixture(t)
+
+	const harness = `<script>
+window.addEventListener('load', function () {
+  var out = { errors: [] };
+  try {
+    var childLi = document.querySelector('[data-toc-for="CHILD-001"]');
+    var parentLi = document.querySelector('[data-toc-for="PARENT-001"]');
+    out.childTocVisible = !childLi.classList.contains('is-filtered-out');
+    out.parentTocVisible = !parentLi.classList.contains('is-filtered-out');
+    out.childCardVisible = getComputedStyle(document.getElementById('CHILD-001')).display !== 'none';
+    out.count = document.querySelector('[data-count]').textContent;
+
+    var section = document.querySelector('.item--section > details');
+    section.open = false;
+    window.reqmd.jumpTo('CHILD-001');
+    out.sectionReopened = section.open;
+  } catch (e) { out.errors.push(String((e && e.stack) || e)); }
+  document.title = 'RESULT:' + JSON.stringify(out);
+});
+</script>`
+	result := runHeadless(t, chrome, pagePath, "", nil, harness)
+	assertNoJSErrors(t, result)
+	for _, k := range []string{"childTocVisible", "parentTocVisible", "childCardVisible", "sectionReopened"} {
+		if result[k] != true {
+			t.Errorf("%s = %v, want true", k, result[k])
+		}
+	}
+	if got, want := result["count"], "1 shown · 2 total (1 hidden by status: approved)"; got != want {
+		t.Errorf("count = %v, want %q", got, want)
+	}
+}
+
+// TestHTMLExportBrowserPopoverAndDetail covers the two interaction fixes that
+// only exist in the client: filter menus close like popovers (outside click,
+// Escape), and an expanded table row shows its detail block already open.
+func TestHTMLExportBrowserPopoverAndDetail(t *testing.T) {
+	chrome := findChrome(t)
+	pagePath := exportBrowserFixture(t)
+
+	const harness = `<script>
+window.addEventListener('load', function () {
+  var out = { errors: [] };
+  try {
+    var group = document.querySelector('details.filter[data-filter-group="status"]');
+    group.open = true;
+    document.querySelector('[data-view-panel="document"]').click();
+    out.closedOnOutside = !group.open;
+    group.open = true;
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    out.closedOnEscape = !group.open;
+
+    window.reqmd.setView('table');
+    document.querySelector('#req-table .row-toggle').click();
+    var detail = document.querySelector('.grid__detail .req__detail');
+    out.detailOpen = !!detail && detail.open === true;
+  } catch (e) { out.errors.push(String((e && e.stack) || e)); }
+  document.title = 'RESULT:' + JSON.stringify(out);
+});
+</script>`
+	result := runHeadless(t, chrome, pagePath, "", nil, harness)
+	assertNoJSErrors(t, result)
+	for _, k := range []string{"closedOnOutside", "closedOnEscape", "detailOpen"} {
 		if result[k] != true {
 			t.Errorf("%s = %v, want true", k, result[k])
 		}

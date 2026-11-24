@@ -72,8 +72,9 @@ func (p *ProjectIndex) Export(w io.Writer) error {
 
 	renderDocHead(b, "Requirements project")
 	_, _ = b.WriteString("<body data-page=\"project\">\n")
+	_, _ = b.WriteString(`<a class="skip-link" href="#main">Skip to content</a>` + "\n")
 	_, _ = b.WriteString(`<header class="app-bar">
-  <a class="app-bar__brand" href="index.html"><span class="app-bar__logo" aria-hidden="true"></span>reqmd</a>
+  <a class="app-bar__brand" href="index.html">` + brandMark + `reqmd</a>
   <span class="app-bar__sep" aria-hidden="true">/</span>
   <span class="app-bar__title">Project</span>
   <div class="app-bar__tools">
@@ -81,17 +82,19 @@ func (p *ProjectIndex) Export(w io.Writer) error {
   </div>
 </header>
 <div class="shell shell--project">
-<div class="project">
+<main class="project" id="main">
 `)
 	_, _ = b.WriteString("<header class=\"doc-head\"><h1>Requirements</h1>\n")
 	_, _ = b.WriteString(`<p class="doc-head__facts">Document catalog, project-wide health, and every requirement that needs attention.</p></header>` + "\n")
 
-	p.renderTiles(b)
+	// Discovery first: the catalog is how a reader gets into a document, so it
+	// sits above the (potentially long) exception queues.
 	p.renderSearch(b)
-	p.renderQueues(b)
+	p.renderTiles(b)
 	p.renderCatalog(b)
+	p.renderQueues(b)
 
-	_, _ = b.WriteString("</div>\n</div>\n")
+	_, _ = b.WriteString("</main>\n</div>\n")
 	renderProjectJSON(b, p)
 	renderScript(b)
 	renderBodyClose(b)
@@ -128,30 +131,37 @@ func (p *ProjectIndex) renderTiles(b *bufio.Writer) {
 	}
 
 	_, _ = b.WriteString("<section class=\"tiles\" aria-label=\"Project health\">\n")
-	tile := func(label, value, detail, state string) {
+	tile := func(label, value, detail, state string, ratio float64) {
 		cls := "tile"
 		if state != "" {
 			cls += " tile--" + state
 		}
-		_, _ = fmt.Fprintf(b, `<div class="%s"><span class="tile__label">%s</span><span class="tile__value">%s</span><span class="tile__detail">%s</span></div>`+"\n",
-			cls, html.EscapeString(label), html.EscapeString(value), html.EscapeString(detail))
+		_, _ = fmt.Fprintf(b, `<div class="%s"><span class="tile__label">%s</span><span class="tile__value">%s</span>`, cls, html.EscapeString(label), html.EscapeString(value))
+		if ratio >= 0 {
+			_, _ = fmt.Fprintf(b, `<span class="tile__bar" aria-hidden="true"><span class="tile__bar-fill" style="width:%.1f%%"></span></span>`, min(ratio, 1)*100)
+		}
+		_, _ = fmt.Fprintf(b, `<span class="tile__detail">%s</span></div>`+"\n", html.EscapeString(detail))
 	}
-	tile("Requirements", fmt.Sprintf("%d", reqs), fmt.Sprintf("%d documents", len(p.docs)), "")
+	tile("Requirements", fmt.Sprintf("%d", reqs), fmt.Sprintf("%d documents", len(p.docs)), "", -1)
 
 	coverageValue := "not required"
+	coverageRatio := -1.0
 	if cov.Expected > 0 {
 		coverageValue = fmt.Sprintf("%d of %d", cov.Covered, cov.Expected)
+		coverageRatio = float64(cov.Covered) / float64(cov.Expected)
 	}
 	state := ""
 	if cov.Missing > 0 || cov.Unresolved > 0 {
 		state = "attention"
 	}
 	tile("Coverage", coverageValue,
-		fmt.Sprintf("%d missing · %d unresolved · %d draft downstreams ignored", cov.Missing, cov.Unresolved, cov.Drafts), state)
+		fmt.Sprintf("%d missing · %d unresolved · %d draft downstreams ignored", cov.Missing, cov.Unresolved, cov.Drafts), state, coverageRatio)
 
 	verValue := "no results"
+	verRatio := -1.0
 	if ver.Eligible > 0 {
 		verValue = fmt.Sprintf("%d of %d pass", ver.Pass, ver.Eligible)
+		verRatio = float64(ver.Pass) / float64(ver.Eligible)
 	}
 	// An approval waiting on a recorded verdict is attention, not failure;
 	// only an actual failing verdict is a hard problem.
@@ -162,14 +172,14 @@ func (p *ProjectIndex) renderTiles(b *bufio.Writer) {
 		state = "pending"
 	}
 	tile("Verification", verValue,
-		fmt.Sprintf("%d fail · %d no verdict · %d inconclusive · %d skipped", ver.Fail, ver.NoVerdict, ver.Inconclusive, ver.Skipped), state)
+		fmt.Sprintf("%d fail · %d no verdict · %d inconclusive · %d skipped", ver.Fail, ver.NoVerdict, ver.Inconclusive, ver.Skipped), state, verRatio)
 
 	linkDetail := fmt.Sprintf("%d links · %d unresolved · %d stale", links.Links, links.Unresolved, links.Outdated+links.Predated)
 	state = ""
 	if links.Unresolved > 0 || links.Outdated+links.Predated > 0 {
 		state = "attention"
 	}
-	tile("Trace links", fmt.Sprintf("%d", links.Links), linkDetail, state)
+	tile("Trace links", fmt.Sprintf("%d", links.Links), linkDetail, state, -1)
 	_, _ = b.WriteString("</section>\n")
 }
 
@@ -382,8 +392,15 @@ func (p *ProjectIndex) renderCatalog(b *bufio.Writer) {
 `)
 	for _, d := range p.docs {
 		covered := "—"
+		bar := ""
 		if d.Coverage.Expected > 0 {
 			covered = fmt.Sprintf("%d/%d", d.Coverage.Covered, d.Coverage.Expected)
+			tone := ""
+			if d.Coverage.Missing+d.Coverage.Unresolved > 0 {
+				tone = " cell-bar__fill--attention"
+			}
+			bar = fmt.Sprintf(`<span class="cell-bar" aria-hidden="true"><span class="cell-bar__fill%s" style="width:%.1f%%"></span></span>`,
+				tone, float64(d.Coverage.Covered)/float64(d.Coverage.Expected)*100)
 		}
 		verified := "—"
 		if d.Verdicts.Eligible > 0 {
@@ -392,11 +409,15 @@ func (p *ProjectIndex) renderCatalog(b *bufio.Writer) {
 				verified += fmt.Sprintf(" · %d fail", d.Verdicts.Fail)
 			}
 		}
-		_, _ = fmt.Fprintf(b, `<tr data-href="%s"><td class="cell-title"><a href="%s">%s</a><span class="cell-sub">%s</span></td><td>%s</td><td class="num">%d</td><td class="num%s">%s</td><td class="num%s">%s</td><td class="num%s">%d</td></tr>`+"\n",
+		level := "—"
+		if d.Level != "" {
+			level = `<span class="catalog__level">` + html.EscapeString(d.Level) + `</span>`
+		}
+		_, _ = fmt.Fprintf(b, `<tr data-href="%s"><td class="cell-title"><a href="%s">%s</a><span class="cell-sub">%s</span></td><td>%s</td><td class="num">%d</td><td class="num%s">%s%s</td><td class="num%s">%s</td><td class="num%s">%d</td></tr>`+"\n",
 			html.EscapeString(d.Href),
 			html.EscapeString(d.Href), html.EscapeString(d.Title), html.EscapeString(filepathBase(d.Path)),
-			html.EscapeString(d.Level), d.Requirements,
-			attentionClass(d.Coverage.Missing+d.Coverage.Unresolved > 0), covered,
+			level, d.Requirements,
+			attentionClass(d.Coverage.Missing+d.Coverage.Unresolved > 0), covered, bar,
 			attentionClass(d.Verdicts.Fail > 0), verified,
 			attentionClass(d.Links.Unresolved > 0), d.Links.Unresolved)
 	}

@@ -141,6 +141,12 @@ func TestCoverageStates_GenericFallback(t *testing.T) {
 	if got := states["SYS-001"].State; got != graph.CoverageCovered {
 		t.Errorf("traced SYS-001 = %q, want covered", got)
 	}
+	// A leaf document is the bottom of the V: nothing traces to its
+	// requirements, so they are not missing coverage (the check's untraced
+	// rule skips leaf documents for the same reason).
+	if got := states["SW-001"].State; got != graph.CoverageNotRequired {
+		t.Errorf("leaf SW-001 = %q, want not-required", got)
+	}
 	if got := states["SYS-ORPHAN"].State; got != graph.CoverageMissing {
 		t.Errorf("SYS-ORPHAN = %q, want missing-coverage", got)
 	}

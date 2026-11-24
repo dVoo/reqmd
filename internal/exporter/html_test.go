@@ -105,12 +105,21 @@ func TestHTMLExport(t *testing.T) {
 		t.Error("doc header exposes the internal parent/child vocabulary")
 	}
 
-	// Progressive disclosure: attributes live in a collapsed detail block.
+	// Progressive disclosure: attributes live in a collapsed detail block, and
+	// its summary says what opening it reveals.
 	if !strings.Contains(out, `<details class="req__detail">`) {
 		t.Error("missing progressive-disclosure detail block")
 	}
+	if !strings.Contains(out, `class="req__detail-meta">4 attributes<`) {
+		t.Error("missing detail summary counts")
+	}
 	if !strings.Contains(out, "<dt>Status</dt>") || !strings.Contains(out, "<dd>approved</dd>") {
 		t.Error("missing attribute grid entries")
+	}
+
+	// The header shows the status mix as one proportional bar plus a legend.
+	if !strings.Contains(out, `class="statusbar"`) || !strings.Contains(out, `class="statusbar__seg"`) {
+		t.Error("missing status distribution bar")
 	}
 
 	// Server-rendered outline (works without JavaScript).
@@ -144,6 +153,89 @@ func TestHTMLExport(t *testing.T) {
 	}
 }
 
+// TestHTMLExportSectionFolderWrapsChildren pins the folder contract: a section
+// with children is a collapsible details block that actually contains them, so
+// clicking the summary folds the content.
+func TestHTMLExportSectionFolderWrapsChildren(t *testing.T) {
+	doc := model.Document{
+		Path:   "/test/doc",
+		Schema: schemaWithTitle("Folders"),
+		Nodes: []*model.Node{
+			{
+				Kind:  model.KindSection,
+				Title: "Group",
+				Level: 2,
+				Children: []*model.Node{
+					{Kind: model.KindRequirement, ID: "REQ-001", Attrs: map[string]any{"status": "approved"}},
+				},
+			},
+		},
+	}
+	out := exportPage(t, &HTML{}, doc, nil)
+
+	summary := strings.Index(out, `<summary class="item__head">`)
+	child := strings.Index(out, `id="REQ-001"`)
+	closeTag := strings.Index(out[summary:], "</details>")
+	if summary < 0 || child < 0 || closeTag < 0 {
+		t.Fatalf("missing folder markup (summary=%d child=%d details=%d)", summary, child, closeTag)
+	}
+	if child < summary || summary+closeTag < child {
+		t.Error("child requirement is not inside the section's details element")
+	}
+}
+
+// TestHTMLExportRequirementChildrenGrouped pins that a requirement's children
+// (methods, sub-requirements, doc sections) sit in one container after it, so
+// the content frame shows the same hierarchy as the outline.
+func TestHTMLExportRequirementChildrenGrouped(t *testing.T) {
+	doc := model.Document{
+		Path:   "/test/tree",
+		Schema: schemaWithTitle("Tree"),
+		Nodes: []*model.Node{
+			{
+				Kind: model.KindRequirement, ID: "REQ-P", Level: 2,
+				Attrs: map[string]any{"status": "approved"},
+				Children: []*model.Node{
+					{Kind: model.KindRequirement, ID: "REQ-C", Level: 3, Attrs: map[string]any{"status": "approved"}},
+					{Kind: model.KindSection, Title: "Doc part", Level: 4},
+				},
+			},
+		},
+	}
+	out := exportPage(t, &HTML{}, doc, nil)
+
+	parentClose := strings.Index(out, "</article>")
+	group := strings.Index(out, `<div class="req__children">`)
+	child := strings.Index(out, `id="REQ-C"`)
+	section := strings.Index(out, `id="sec-doc-part"`)
+	mainClose := strings.Index(out, "</main>")
+	if parentClose < 0 || group < 0 || child < 0 || section < 0 {
+		t.Fatalf("missing nesting markup (article=%d group=%d child=%d section=%d)", parentClose, group, child, section)
+	}
+	if !(parentClose < group && group < child && child < section && section < mainClose) {
+		t.Error("children are not grouped after their parent requirement")
+	}
+	// Native heading depth: the nested requirement is h3, its doc section h4.
+	if !strings.Contains(out, `<h3 class="req__title"><code class="req__id">REQ-C</code>`) {
+		t.Error("nested requirement loses its native heading level")
+	}
+	if !strings.Contains(out, `<h4 class="item__title">Doc part</h4>`) {
+		t.Error("doc section loses its native heading level")
+	}
+}
+
+// TestHTMLExportHeaderEyebrow pins the document identity line above the title.
+func TestHTMLExportHeaderEyebrow(t *testing.T) {
+	doc := basicDoc()
+	doc.XReqmd = &model.XReqmd{DocumentID: "doc", Level: "software"}
+	out := exportPage(t, &HTML{}, doc, doc.Properties)
+
+	want := `class="doc-head__eyebrow"><span>software</span><span aria-hidden="true">·</span><code>doc</code></p>`
+	if !strings.Contains(out, want) {
+		t.Errorf("missing document eyebrow %q", want)
+	}
+}
+
 // TestHTMLExportOfflineContent is the Phase 0/1 regression guard: primary
 // content is visible by default, and nothing loads from a CDN.
 func TestHTMLExportOfflineContent(t *testing.T) {
@@ -162,6 +254,10 @@ func TestHTMLExportOfflineContent(t *testing.T) {
 	// The card markup contains no hidden/suppression hooks.
 	if strings.Contains(out, `hidden id="REQ-001"`) {
 		t.Error("requirement cards must not be hidden by default")
+	}
+	// The favicon is inlined too: a data URI, not a file or a network request.
+	if !strings.Contains(out, `<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,`) {
+		t.Error("missing inline data-URI favicon")
 	}
 	// The stylesheet and controller are inlined.
 	if !strings.Contains(out, "reqmd HTML export") {
@@ -693,6 +789,7 @@ func TestProjectIndex(t *testing.T) {
 		`data-page="project"`, "Documents", "System", "Software",
 		"Missing coverage", "Missing verdicts", "Unverified measure",
 		"page-system.html#SYS-002", `id="project-reqs"`,
+		`class="tile__bar"`, `class="catalog__level">system<`, `class="cell-bar"`,
 	} {
 		if !strings.Contains(out, want) {
 			t.Errorf("project page missing %q", want)

@@ -666,15 +666,18 @@ func (g *Graph) inboundFrom(node *CachedNode, dirs []string) (covered bool, draf
 }
 
 // genericCoverage applies the boundary-aware untraced rule for requirements
-// without a requires-trace-from expectation: an inbound link, the root
-// boundary, or a nested sub-requirement needs no coverage.
+// without a requires-trace-from expectation: an inbound link, the root or leaf
+// boundary, or a nested sub-requirement needs no coverage. The boundary halves
+// mirror checkRequiresTraceFromCoverage exactly — a leaf document sits at the
+// bottom of the V, so nothing can trace *to* it and its requirements are not
+// missing coverage.
 func (g *Graph) genericCoverage(node *CachedNode) NodeCoverage {
 	if g.hasFilteredInbound(node) {
 		return NodeCoverage{State: CoverageCovered}
 	}
 	dir := g.docOfReqFile[node.File]
 	g.ensureBoundaries()
-	if g.cachedRootDirs[dir] || node.IsChild || node.isSuppressed("untraced") {
+	if g.cachedRootDirs[dir] || g.cachedLeafDirs[dir] || node.IsChild || node.isSuppressed("untraced") {
 		return NodeCoverage{State: CoverageNotRequired}
 	}
 	return NodeCoverage{State: CoverageMissing}

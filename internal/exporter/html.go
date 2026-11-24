@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"embed"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"html"
@@ -102,6 +103,14 @@ func docTitle(doc model.Document) string {
 	}
 	return schemaTitle(doc)
 }
+
+// faviconSVG is the site's brand mark inlined as a data URI, so an exported
+// page carries an icon without a second file or a network request. The CSS
+// media query keeps it legible on dark tab bars.
+const faviconSVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><style>@media (prefers-color-scheme:dark){path{stroke:#60a5fa}}</style><path d="M4 4h6v6H4z"/><path d="M14 4h6v6h-6z"/><path d="M4 14h6v6H4z"/><path d="M14 14h6v6h-6z"/><path d="M10 7h4"/><path d="M7 10v4"/><path d="M14 17h4"/><path d="M17 14v4"/></svg>`
+
+// favicon is the data URI written into every exported page's <head>.
+var favicon = "data:image/svg+xml;base64," + base64.StdEncoding.EncodeToString([]byte(faviconSVG))
 
 // mermaidCDN is the pinned Mermaid UMD runtime that a page containing a diagram
 // loads, and the only external request an exported page ever makes (SW-EXP-004).
@@ -227,7 +236,7 @@ func (h *HTML) Export(w io.Writer, doc model.Document, propOrder []string) error
 	_, _ = b.WriteString(`<div class="shell__main">` + "\n")
 	renderDocHeader(b, doc, title, h.boundary.IsRoot, h.boundary.IsLeaf, rd)
 	renderToolbar(b, doc, rd)
-	_, _ = b.WriteString("<main class=\"views\">\n")
+	_, _ = b.WriteString("<main class=\"views\" id=\"main\">\n")
 	renderDocumentView(b, doc, rd, propOrder, h.analysis, h.resolveLink, h.docChainGraph)
 	// Analytical views are empty shells filled on demand by the client.
 	_, _ = b.WriteString(`<section class="view" data-view-panel="table" hidden></section>` + "\n")

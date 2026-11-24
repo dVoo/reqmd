@@ -578,18 +578,20 @@
       var items = document.querySelectorAll('[data-toc-for]');
       function visibleFor(item) {
         var id = item.getAttribute('data-toc-for');
-        if (byId[id] && !byId[id].type) return visibleSet.has(id);
         var nested = item.querySelectorAll('[data-toc-for]');
         var hasRequirements = false;
+        var descendantVisible = false;
         for (var i = 0; i < nested.length; i++) {
           var nid = nested[i].getAttribute('data-toc-for');
           if (byId[nid] && !byId[nid].type) {
             hasRequirements = true;
-            if (visibleSet.has(nid)) return true;
+            if (visibleSet.has(nid)) { descendantVisible = true; break; }
           }
         }
-        // Leaf items (prose blocks) are structural: always visible.
-        return !hasRequirements;
+        if (byId[id] && !byId[id].type) return visibleSet.has(id) || descendantVisible;
+        // Section/prose items follow their requirements; leaf prose blocks are
+        // structural and always visible.
+        return descendantVisible || !hasRequirements;
       }
       Array.prototype.forEach.call(items, function (item) {
         item.classList.toggle('is-filtered-out', !visibleFor(item));
@@ -848,7 +850,12 @@
     function stateBadge(kind, value) {
       if (!value) return el('span', { className: 'muted', text: '—' });
       var label = kind === 'coverage' ? (COVERAGE_LABELS[value] || value) : value;
-      return el('span', { className: 'chip chip--' + value, text: label });
+      // Keep the server-rendered chip vocabulary: coverage problems use the
+      // chip--coverage-missing spelling so one CSS rule styles both views.
+      var cls = 'chip chip--' + value;
+      if (kind === 'status') cls = 'chip chip--status';
+      if (kind === 'coverage' && value === 'missing-coverage') cls += ' chip--coverage-missing';
+      return el('span', { className: cls, text: label });
     }
 
     function compareRows(a, b, sort) {
@@ -893,7 +900,13 @@
         var body = card.querySelector('.req__body');
         if (body) td.appendChild(body.cloneNode(true));
         var detail = card.querySelector('.req__detail');
-        if (detail) td.appendChild(detail.cloneNode(true));
+        if (detail) {
+          var clone = detail.cloneNode(true);
+          // The row is already expanded: a nested collapsed disclosure would
+          // force a second click to see the attributes the reader asked for.
+          clone.open = true;
+          td.appendChild(clone);
+        }
         var flags = card.querySelector('.req__flags');
         if (flags) td.appendChild(flags.cloneNode(true));
       } else {
@@ -1064,7 +1077,7 @@
         var filteredOut = inDocument && !visibleSet.has(link.id);
         var tag = inDocument ? 'button' : 'a';
         var attrs = {
-          className: 'trace__node trace__node--external' + (filteredOut ? ' is-muted' : ''),
+          className: 'trace__node' + (inDocument ? '' : ' trace__node--external') + (filteredOut ? ' is-muted' : ''),
           'data-link-id': link.id,
           title: (dir === 'up' ? node.id + ' → ' + link.id : link.id + ' → ' + node.id)
         };
@@ -1107,8 +1120,11 @@
     }
 
     function traceBadges(node) {
+      var cov = node.coverage || '';
+      var covClass = 'chip chip--' + (cov || 'none');
+      if (cov === 'missing-coverage') covClass += ' chip--coverage-missing';
       var badges = [
-        el('span', { className: 'chip chip--' + (node.coverage || 'none'), text: COVERAGE_LABELS[node.coverage] || 'no coverage data' })
+        el('span', { className: covClass, text: COVERAGE_LABELS[cov] || 'no coverage data' })
       ];
       if (node.verdict) {
         badges.push(el('span', { className: 'chip chip--' + node.verdict, text: node.verdict }));
@@ -1396,6 +1412,7 @@
       if (!id) return;
       var target = document.getElementById(id);
       if (!target) return;
+      openAncestorDetails(target);
 
       var html = document.documentElement;
       var smooth = html.style.scrollBehavior;
@@ -1437,16 +1454,20 @@
     // focusSection scrolls to a section anchor and opens every collapsed
     // <details> above it. Sections are not selectable requirements, so the
     // selection is cleared instead of set.
+    function openAncestorDetails(el) {
+      var opener = el.parentElement;
+      while (opener) {
+        if (opener.tagName === 'DETAILS') opener.open = true;
+        opener = opener.parentElement;
+      }
+    }
+
     function focusSection(anchor) {
       var target = document.getElementById(anchor);
       if (!target) return;
       state.selected = null;
       computeVisible();
-      var opener = target.parentElement;
-      while (opener) {
-        if (opener.tagName === 'DETAILS') opener.open = true;
-        opener = opener.parentElement;
-      }
+      openAncestorDetails(target);
       if (target.scrollIntoView) target.scrollIntoView({ block: 'start', behavior: 'smooth' });
       target.classList.add('is-flash');
       setTimeout(function () { target.classList.remove('is-flash'); }, 1200);
@@ -1473,6 +1494,7 @@
       setView('document');
       var target = document.getElementById(id);
       if (target) {
+        openAncestorDetails(target);
         window.scrollTo(0, Math.max(0, target.getBoundingClientRect().top + window.scrollY - stickyChromeHeight() - 8));
         target.classList.add('is-flash');
         setTimeout(function () { target.classList.remove('is-flash'); }, 1400);
@@ -1816,7 +1838,10 @@
       // Ignore modified keys for single-letter shortcuts.
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (typing) {
-        if (e.key === 'Escape' && t.blur) t.blur();
+        if (e.key === 'Escape') {
+          if (t.blur) t.blur();
+          closeMenus();
+        }
         return;
       }
 
@@ -1824,6 +1849,7 @@
         if (document.body.classList.contains('toc-open')) {
           document.body.classList.remove('toc-open');
         }
+        closeMenus();
         return;
       }
       if (e.key === '/') {
@@ -1907,6 +1933,73 @@
       });
     });
 
+    // Filter and column menus are native <details>; a popover should also close
+    // when the reader clicks elsewhere or presses Escape.
+    function closeMenus() {
+      Array.prototype.forEach.call(document.querySelectorAll('details.filter[open], details.columns[open]'), function (d) {
+        d.removeAttribute('open');
+      });
+    }
+    document.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('details.filter, details.columns')) return;
+      closeMenus();
+    });
+
+    // ── outline width ──
+    // The outline defaults to 25% of the viewport and is one CSS variable.
+    // Drag the handle (or use the arrow keys) to set a fixed width; the value
+    // is remembered per export origin. Double-click clears it back to 25%.
+    var TOC_MIN = 200, TOC_MAX = 520;
+    function tocWidth() {
+      var el = document.querySelector('.toc');
+      return el ? Math.round(el.getBoundingClientRect().width) : 0;
+    }
+    function syncTocHandle(width) {
+      var handle = document.querySelector('[data-action="resize-toc"]');
+      if (handle) handle.setAttribute('aria-valuenow', String(width));
+    }
+    function setTocWidth(px) {
+      var w = Math.max(TOC_MIN, Math.min(TOC_MAX, Math.round(px)));
+      document.documentElement.style.setProperty('--toc-w', w + 'px');
+      syncTocHandle(w);
+      try { localStorage.setItem('reqmd-toc-w', String(w)); } catch { /* private mode */ }
+    }
+    function resetTocWidth() {
+      document.documentElement.style.removeProperty('--toc-w');
+      syncTocHandle(tocWidth());
+      try { localStorage.removeItem('reqmd-toc-w'); } catch { /* private mode */ }
+    }
+
+    function setupTocResizer() {
+      var handle = document.querySelector('[data-action="resize-toc"]');
+      if (!handle) return;
+      try {
+        var saved = parseInt(localStorage.getItem('reqmd-toc-w'), 10);
+        if (saved) setTocWidth(saved);
+        else syncTocHandle(tocWidth());
+      } catch { /* private mode */ }
+
+      handle.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        handle.setPointerCapture(e.pointerId);
+        document.body.classList.add('toc-resizing');
+        function move(ev) { setTocWidth(ev.clientX); }
+        function stop() {
+          document.body.classList.remove('toc-resizing');
+          handle.removeEventListener('pointermove', move);
+          handle.removeEventListener('pointerup', stop);
+        }
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', stop);
+      });
+      handle.addEventListener('dblclick', resetTocWidth);
+      handle.addEventListener('keydown', function (e) {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        e.preventDefault();
+        setTocWidth(tocWidth() + (e.key === 'ArrowRight' ? 16 : -16));
+      });
+    }
+
     if (paletteInput) {
       paletteInput.addEventListener('input', function () {
         paletteIndex = 0;
@@ -1926,6 +2019,7 @@
       }
     }
 
+    setupTocResizer();
     setupOutlineClicks();
     setupScrollSpy();
     apply();

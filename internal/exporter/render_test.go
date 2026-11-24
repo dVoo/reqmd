@@ -233,6 +233,9 @@ func TestItemHeadingTagNativeLevels(t *testing.T) {
 		{3, true, "h3"},
 		{4, true, "h4"},
 		{7, true, "h6"},
+		// A nested node with no recorded level still renders below the title.
+		{0, true, "h3"},
+		{1, true, "h3"},
 	}
 	for _, tt := range tests {
 		if got := itemHeadingTag(tt.level, tt.isChild); got != tt.want {

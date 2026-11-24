@@ -112,7 +112,7 @@ The validation pipeline shall execute four passes in this order: Parse (goldmark
 - `duplicate-id` (ERROR) — two requirements claim the same ID; the first definition wins.
 - `ambiguous-ref` (ERROR) — an unqualified reference matches an ID that exists in several documents; the qualified form is required.
 - `circular` (ERROR) — the trace graph contains a cycle.
-- `untraced` (WARNING) — no inbound reference, and the requirement is neither at a root boundary nor a sub-requirement.
+- `untraced` (WARNING) — no inbound reference, and the requirement is neither at a root or leaf boundary nor a sub-requirement.
 - `no-downstream` (WARNING) — no outbound reference, and the document is not at a leaf boundary.
 - `requires-trace-from-coverage` (WARNING) — a declared or inherited coverage expectation is unmet; an expectation naming neither a document-id nor a level also warns.
 - `disposition-reason` (WARNING) — a non-`implemented` disposition carries no reason.
@@ -256,7 +256,7 @@ trace:
   - ASP-SR-017
   - ASP-SR-020
 ```
-The trace model shall be upstream-only: each requirement declares its parent(s) via the `trace` attribute. Downstream links are derived automatically when the graph is built across all documents. The tool shall also support trace pinning via a `version` integer attribute and an optional `~N` suffix on trace values (e.g., `SYS-042~3` means "fulfills SYS-042 version 3"). Additionally, sub-requirements receive an automatic parent-child edge from the heading hierarchy during graph construction — no manual `trace` attribute is needed for the parent link. V-model boundaries are inferred from document topology: directories with no upstream traces suppress untraced warnings; directories not referenced as upstream suppress no-downstream warnings.
+The trace model shall be upstream-only: each requirement declares its parent(s) via the `trace` attribute. Downstream links are derived automatically when the graph is built across all documents. The tool shall also support trace pinning via a `version` integer attribute and an optional `~N` suffix on trace values (e.g., `SYS-042~3` means "fulfills SYS-042 version 3"). Additionally, sub-requirements receive an automatic parent-child edge from the heading hierarchy during graph construction — no manual `trace` attribute is needed for the parent link. V-model boundaries are inferred from document topology: directories with no upstream traces suppress untraced warnings; directories not referenced as upstream (the bottom of the V) suppress both no-downstream and generic untraced warnings.
 
 When multiple documents share the same ID prefix (e.g., two teams both use `STK-`), path-qualified trace references disambiguate: `stakeholder-a/STK-001` resolves to STK-001 in the `stakeholder-a/` directory. Unqualified references (`STK-001`) work when the ID is globally unique. An unqualified reference that matches IDs in multiple documents produces an ERROR suggesting the qualified form.
 
@@ -290,7 +290,7 @@ trace:
 ```
 The HTML exporter SHALL produce a standalone page per document directory plus a project home page (`index.html`), with all requirement attributes, rendered prose, trace navigation, hierarchical document structure, and theme customization. The export SHALL require no network access at any point: the stylesheet and client controller are embedded, and no CDN script is loaded — with one deliberate exception, a page that contains a `mermaid` diagram loads the pinned Mermaid runtime so the diagram can be rendered in the browser (see SW-EXP-004). Every other page SHALL be complete without network access.
 
-The page chrome SHALL consist of a compact sticky app bar (brand, document breadcrumb, outline toggle, theme toggle), a collapsible sidebar outline with scroll-spy highlighting, and a single sticky search-and-filter toolbar. Attributes present on a requirement but declared in no `schema.yaml` SHALL still be rendered, marked as undeclared.
+The page chrome SHALL consist of a compact sticky app bar (brand, document breadcrumb, view switcher, outline toggle, theme toggle), a collapsible, user-resizable sidebar outline with scroll-spy highlighting, and a single sticky search-and-filter toolbar. Attributes present on a requirement but declared in no `schema.yaml` SHALL still be rendered, marked as undeclared.
 
 Each document page SHALL server-render a **Document** view (requirement cards with body and progressive disclosure for rationale, attributes, evidence, and traces) that remains fully readable without JavaScript. It SHALL additionally offer a **Table** view (dense sortable grid with a column chooser, type-aware sorting, and expandable rows), a **Trace** view (selected-requirement explorer with upstream/downstream neighbourhoods and a size-bounded full matrix), and a **Coverage** view (actionable exception lists for missing coverage, missing verdicts, failing verification, unresolved references, and stale version pins). The analytical views SHALL render on demand from one shared view model; the page SHALL NOT emit hidden Table, Matrix, or Dashboard DOM that the reader cannot see.
 

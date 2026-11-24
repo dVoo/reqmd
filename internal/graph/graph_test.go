@@ -297,6 +297,37 @@ func TestNew_OrphanDetection(t *testing.T) {
 // 7. Orphan suppression via directory boundary (no upstream sources)
 // ---------------------------------------------------------------------------
 
+// TestNew_LeafBoundarySuppressesUntraced closes the gap left when the leaf rule
+// was added to the check: a requirement at the bottom of the V has no possible
+// downstream tracer, so generic untraced must stay silent there.
+func TestNew_LeafBoundarySuppressesUntraced(t *testing.T) {
+	root := docWithXReqmd("/docs/root", &model.XReqmd{Level: "root"},
+		req("ROOT", "/docs/root/root.md", map[string]any{"trace": []any{"MID"}}),
+	)
+	mid := docWithXReqmd("/docs/mid", &model.XReqmd{
+		Level:    "mid",
+		Upstream: &model.TraceUpstream{Level: "root", Sources: []string{"/docs/root"}},
+	},
+		req("MID", "/docs/mid/mid.md", map[string]any{"trace": []any{"LEAF"}}),
+	)
+	leaf := docWithXReqmd("/docs/leaf", &model.XReqmd{
+		Level:    "leaf",
+		Upstream: &model.TraceUpstream{Level: "mid", Sources: []string{"/docs/mid"}},
+	},
+		req("LEAF", "/docs/leaf/leaf.md", map[string]any{}),
+	)
+
+	g, err := graph.New([]model.Document{root, mid, leaf})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	for _, r := range g.CheckResults() {
+		if r.Message == "untraced: no downstream reference" {
+			t.Errorf("leaf-boundary requirement warned as untraced: %v", r)
+		}
+	}
+}
+
 func TestNew_RootBoundarySuppressesOrphan(t *testing.T) {
 	// Two docs: root doc (no upstream) and child doc (traces to root).
 	// Root doc's requirements should not get orphan warnings.

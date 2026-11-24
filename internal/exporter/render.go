@@ -252,6 +252,11 @@ func itemHeadingTag(level int, isChild bool) string {
 	floor := minHeadingLevel
 	if isChild {
 		floor = level
+		// A nested node whose level was not recorded still renders below the
+		// document title, never as h1.
+		if level < minHeadingLevel {
+			floor = minHeadingLevel + 1
+		}
 	}
 	return "h" + strconv.Itoa(min(max(level, floor), maxHeadingLevel))
 }
@@ -283,6 +288,7 @@ func renderDocHead(b *bufio.Writer, title string) {
 	_, _ = b.WriteString("<meta charset=\"UTF-8\">\n")
 	_, _ = b.WriteString("<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n")
 	_, _ = fmt.Fprintf(b, "<title>%s</title>\n", html.EscapeString(title))
+	_, _ = fmt.Fprintf(b, "<link rel=\"icon\" type=\"image/svg+xml\" href=\"%s\">\n", favicon)
 	_, _ = b.WriteString(`<script>(function(){try{var t=localStorage.getItem('reqmd-theme');var d=t?t==='dark':window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();</script>` + "\n")
 	_, _ = b.WriteString("<style>\n")
 	_, _ = b.WriteString(css)
@@ -290,22 +296,37 @@ func renderDocHead(b *bufio.Writer, title string) {
 	_, _ = b.WriteString("</head>\n")
 }
 
+// brandMark is the same inline mark the documentation site uses: four blocks
+// joined by traces. currentColor lets it inherit the export accent in both
+// themes, so no second brand colour is introduced.
+const brandMark = `<svg class="app-bar__mark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6H4z"/><path d="M14 4h6v6h-6z"/><path d="M4 14h6v6H4z"/><path d="M14 14h6v6h-6z"/><path d="M10 7h4"/><path d="M7 10v4"/><path d="M14 17h4"/><path d="M17 14v4"/></svg>`
+
 // renderBodyOpen writes the <body>, the app bar, the shell open, and the
-// server-rendered outline.
+// server-rendered outline. The view switcher lives in the app bar so the
+// sticky toolbar is exactly one search-and-filter row.
 func renderBodyOpen(b *bufio.Writer, pageTitle string) {
 	_, _ = b.WriteString("<body data-page=\"document\">\n")
+	_, _ = b.WriteString(`<a class="skip-link" href="#main">Skip to content</a>` + "\n")
 	_, _ = fmt.Fprintf(b, `<header class="app-bar">
   <button type="button" class="icon-btn toc-toggle" data-action="toggle-toc" aria-label="Toggle outline" aria-controls="toc" aria-expanded="false">&#9776;</button>
-  <a class="app-bar__brand" href="index.html"><span class="app-bar__logo" aria-hidden="true"></span>reqmd</a>
+  <a class="app-bar__brand" href="index.html">%sreqmd</a>
   <span class="app-bar__sep" aria-hidden="true">/</span>
   <span class="app-bar__title">%s</span>
+  <div class="app-bar__views">
+    <div class="viewswitch" role="group" aria-label="View">
+      <button type="button" class="viewswitch__btn is-active" data-view="document" aria-pressed="true" title="Document view (g d)">Document</button>
+      <button type="button" class="viewswitch__btn" data-view="table" aria-pressed="false" title="Table view (g t)">Table</button>
+      <button type="button" class="viewswitch__btn" data-view="trace" aria-pressed="false" title="Trace explorer (g r)">Trace</button>
+      <button type="button" class="viewswitch__btn" data-view="coverage" aria-pressed="false" title="Coverage view (g c)">Coverage</button>
+    </div>
+  </div>
   <div class="app-bar__tools">
     <button type="button" class="icon-btn" data-action="palette" aria-label="Command palette" title="Command palette (Ctrl+K)" data-mod-hint="palette">Ctrl K</button>
     <button type="button" class="icon-btn" data-action="theme" aria-label="Toggle theme" title="Toggle light/dark">◐</button>
   </div>
 </header>
 <div class="shell">
-`, html.EscapeString(pageTitle))
+`, brandMark, html.EscapeString(pageTitle))
 }
 
 // renderTOC writes the server-rendered outline. It works without JavaScript;
@@ -313,6 +334,7 @@ func renderBodyOpen(b *bufio.Writer, pageTitle string) {
 func renderTOC(b *bufio.Writer, doc model.Document, rd *renderData) {
 	_, _ = b.WriteString(`<nav class="toc" id="toc" aria-label="Outline">
   <div class="toc__head"><span>Outline</span><span class="toc__count" data-toc-count></span></div>
+  <div class="toc__scroll">
   <ul class="toc__list">
 `)
 	var walk func(nodes []*model.Node, child bool)
@@ -324,7 +346,11 @@ func renderTOC(b *bufio.Writer, doc model.Document, rd *renderData) {
 				class += " toc__item--child"
 			}
 			_, _ = fmt.Fprintf(b, `<li class="%s" data-toc-for="%s">`, class, anchor)
-			_, _ = fmt.Fprintf(b, `<a class="toc__link" href="#%s">`, anchor)
+			linkClass := "toc__link"
+			if n.Kind != model.KindRequirement {
+				linkClass += " toc__link--section"
+			}
+			_, _ = fmt.Fprintf(b, `<a class="%s" href="#%s">`, linkClass, anchor)
 			if n.Kind == model.KindRequirement {
 				_, _ = fmt.Fprintf(b, `<code>%s</code>`, html.EscapeString(n.ID))
 				if n.Title != "" {
@@ -343,14 +369,19 @@ func renderTOC(b *bufio.Writer, doc model.Document, rd *renderData) {
 		}
 	}
 	walk(doc.Nodes, false)
-	_, _ = b.WriteString("  </ul>\n</nav>\n")
+	_, _ = b.WriteString("  </ul>\n  </div>\n")
+	_, _ = b.WriteString(`  <div class="toc__resizer" data-action="resize-toc" role="separator" aria-orientation="vertical" aria-label="Resize outline" aria-valuemin="200" aria-valuemax="520" aria-valuenow="300" tabindex="0" title="Drag to resize · double-click to reset"></div>` + "\n")
+	_, _ = b.WriteString("</nav>\n")
 }
 
-// renderDocHeader writes the document title, count line, status breakdown,
-// boundary badges, and the frontmatter description. The trace chain lives at
-// the end of the Document view so it can never push a reader past the toolbar.
+// renderDocHeader writes the document eyebrow, title, count line, status
+// distribution, boundary badges, and the frontmatter description. The trace
+// chain lives at the top of the reading view, below the toolbar.
 func renderDocHeader(b *bufio.Writer, doc model.Document, title string, isRoot, isLeaf bool, rd *renderData) {
 	_, _ = b.WriteString("<header class=\"doc-head\">\n")
+	if eyebrow := docEyebrow(doc); eyebrow != "" {
+		_, _ = fmt.Fprintf(b, "<p class=\"doc-head__eyebrow\">%s</p>\n", eyebrow)
+	}
 	_, _ = fmt.Fprintf(b, "<h1>%s</h1>\n", html.EscapeString(title))
 
 	reqs := doc.Requirements()
@@ -371,14 +402,8 @@ func renderDocHeader(b *bufio.Writer, doc model.Document, title string, isRoot, 
 	if items := countItems(doc.Nodes); items > 0 {
 		label += fmt.Sprintf(" · %d items", items)
 	}
-	if len(rd.StatusBreakdown) > 0 {
-		_, _ = b.WriteString(`<span class="doc-head__status">`)
-		for _, item := range rd.StatusBreakdown {
-			_, _ = fmt.Fprintf(b, `<span class="doc-head__status-item"><span class="dot" style="background:%s" aria-hidden="true"></span>%s %d</span>`,
-				html.EscapeString(statusColor(item.Value)), html.EscapeString(item.Value), item.Count)
-		}
-		_, _ = b.WriteString(`</span>`)
-	}
+
+	_, _ = fmt.Fprintf(b, "<p class=\"doc-head__facts\">%s", label)
 	if isRoot || isLeaf {
 		_, _ = b.WriteString(`<span class="doc-head__badges">`)
 		if isRoot {
@@ -389,7 +414,11 @@ func renderDocHeader(b *bufio.Writer, doc model.Document, title string, isRoot, 
 		}
 		_, _ = b.WriteString(`</span>`)
 	}
-	_, _ = fmt.Fprintf(b, "<p class=\"doc-head__facts\">%s</p>\n", label)
+	_, _ = b.WriteString("</p>\n")
+
+	if len(rd.StatusBreakdown) > 0 {
+		renderStatusBar(b, rd.StatusBreakdown)
+	}
 
 	if desc, ok := doc.Meta["description"]; ok {
 		if s, ok := desc.(string); ok && s != "" {
@@ -397,6 +426,43 @@ func renderDocHeader(b *bufio.Writer, doc model.Document, title string, isRoot, 
 		}
 	}
 	_, _ = b.WriteString("</header>\n")
+}
+
+// renderStatusBar writes the proportional status distribution and its legend,
+// so the mix is readable at a glance without a chart library.
+func renderStatusBar(b *bufio.Writer, breakdown []statusBreakdownItem) {
+	total := 0
+	for _, item := range breakdown {
+		total += item.Count
+	}
+	_, _ = b.WriteString(`<div class="doc-head__status">`)
+	_, _ = fmt.Fprintf(b, `<div class="statusbar" role="img" aria-label="Status distribution across %d requirements">`, total)
+	for _, item := range breakdown {
+		_, _ = fmt.Fprintf(b, `<span class="statusbar__seg" style="flex:%d;background:%s" title="%s %d"></span>`,
+			item.Count, html.EscapeString(statusColor(item.Value)), html.EscapeString(item.Value), item.Count)
+	}
+	_, _ = b.WriteString(`</div><ul class="statusbar__legend">`)
+	for _, item := range breakdown {
+		_, _ = fmt.Fprintf(b, `<li><span class="dot" style="background:%s" aria-hidden="true"></span>%s <strong>%d</strong></li>`,
+			html.EscapeString(statusColor(item.Value)), html.EscapeString(item.Value), item.Count)
+	}
+	_, _ = b.WriteString(`</ul></div>` + "\n")
+}
+
+// docEyebrow identifies the document's position in the spec tree above the
+// title: the declared level and document-id when present.
+func docEyebrow(doc model.Document) string {
+	if doc.XReqmd == nil {
+		return ""
+	}
+	var parts []string
+	if doc.XReqmd.Level != "" {
+		parts = append(parts, `<span>`+html.EscapeString(doc.XReqmd.Level)+`</span>`)
+	}
+	if doc.XReqmd.DocumentID != "" {
+		parts = append(parts, `<code>`+html.EscapeString(doc.XReqmd.DocumentID)+`</code>`)
+	}
+	return strings.Join(parts, "<span aria-hidden=\"true\">·</span>")
 }
 
 // renderDocChain writes the optional document chain navigation block.
@@ -432,8 +498,9 @@ func renderDocChain(b *bufio.Writer, g DocChainGraph) {
 	_, _ = b.WriteString("</nav>\n")
 }
 
-// renderToolbar writes the view switcher, search field, active-filter chips
-// placeholder, and the per-attribute filter menus.
+// renderToolbar writes the search field, the live count, the active-filter
+// chips placeholder, and the per-attribute filter menus. The view switcher
+// lives in the app bar, so this is a single sticky row.
 func renderToolbar(b *bufio.Writer, doc model.Document, rd *renderData) {
 	statusEnabled := doc.XReqmd == nil || !doc.XReqmd.IgnoreStatus
 	defaultStatus := ""
@@ -441,22 +508,11 @@ func renderToolbar(b *bufio.Writer, doc model.Document, rd *renderData) {
 		defaultStatus = model.StatusApproved
 	}
 
-	_, _ = b.WriteString("<div class=\"toolbar\">\n")
-	_, _ = b.WriteString("  <div class=\"toolbar__row\">\n")
-	_, _ = b.WriteString(`    <div class="viewswitch" role="group" aria-label="View">
-      <button type="button" class="viewswitch__btn is-active" data-view="document" aria-pressed="true" title="Document view (g d)">Document</button>
-      <button type="button" class="viewswitch__btn" data-view="table" aria-pressed="false" title="Table view (g t)">Table</button>
-      <button type="button" class="viewswitch__btn" data-view="trace" aria-pressed="false" title="Trace explorer (g r)">Trace</button>
-      <button type="button" class="viewswitch__btn" data-view="coverage" aria-pressed="false" title="Coverage view (g c)">Coverage</button>
-    </div>
-`)
-	_, _ = b.WriteString(`  </div>` + "\n")
-	_, _ = fmt.Fprintf(b, `  <div class="toolbar__row">
+	_, _ = fmt.Fprintf(b, `<div class="toolbar">
+  <div class="toolbar__row">
     <input type="search" class="search" data-search placeholder="Search ID, title, body, attributes…" autocomplete="off" spellcheck="false" aria-label="Search requirements">
     <span class="count" data-count role="status" aria-live="polite"></span>
-  </div>
-  <div class="toolbar__chips" data-active-filters hidden></div>
-  <div class="filters" data-filters data-default-status=%q>
+    <div class="filters" data-filters data-default-status=%q>
 `, defaultStatus)
 
 	// Status is the lifecycle filter; keep it first for stable ordering.
@@ -471,21 +527,23 @@ func renderToolbar(b *bufio.Writer, doc model.Document, rd *renderData) {
 		return attrs[i] < attrs[j]
 	})
 	for _, attr := range attrs {
-		_, _ = fmt.Fprintf(b, `    <details class="filter" data-filter-group=%q>
-      <summary class="filter__toggle">%s<span class="filter__count" data-filter-count=%q></span></summary>
-      <div class="filter__menu">
+		_, _ = fmt.Fprintf(b, `      <details class="filter" data-filter-group=%q>
+        <summary class="filter__toggle">%s<span class="filter__count" data-filter-count=%q></span></summary>
+        <div class="filter__menu">
 `, attr, html.EscapeString(formatAttrLabel(attr)), attr)
 		for _, value := range rd.Filters[attr] {
 			checked := ""
 			if attr == model.AttrStatus && statusEnabled && value == model.StatusApproved {
 				checked = " checked"
 			}
-			_, _ = fmt.Fprintf(b, `        <label class="filter__option"><input type="checkbox" value="%s" data-filter-attr="%s"%s><span>%s</span></label>`+"\n",
+			_, _ = fmt.Fprintf(b, `          <label class="filter__option"><input type="checkbox" value="%s" data-filter-attr="%s"%s><span>%s</span></label>`+"\n",
 				html.EscapeString(value), attr, checked, html.EscapeString(value))
 		}
-		_, _ = b.WriteString("      </div>\n    </details>\n")
+		_, _ = b.WriteString("        </div>\n      </details>\n")
 	}
-	_, _ = b.WriteString("  </div>\n")
+	_, _ = b.WriteString(`    </div>` + "\n")
+	_, _ = b.WriteString(`  </div>` + "\n")
+	_, _ = b.WriteString(`  <div class="toolbar__chips" data-active-filters hidden></div>` + "\n")
 	_, _ = b.WriteString(`<noscript><p class="filter-note">The Table, Trace, and Coverage views and the search filters need JavaScript. The Document view is complete without it.</p></noscript>` + "\n")
 	_, _ = b.WriteString("</div>\n")
 }
@@ -497,7 +555,7 @@ func renderToolbar(b *bufio.Writer, doc model.Document, rd *renderData) {
 // survives a JavaScript failure or an offline file:// open.
 func renderDocumentView(b *bufio.Writer, doc model.Document, rd *renderData, propOrder []string, an *Analysis, resolveLink func(string) string, chain DocChainGraph) {
 	_, _ = b.WriteString("<section class=\"view view--document\" data-view-panel=\"document\">\n")
-	_, _ = b.WriteString("<main class=\"doc\">\n")
+	_, _ = b.WriteString("<div class=\"doc\">\n")
 	renderDocChain(b, chain)
 	if len(doc.Nodes) == 0 {
 		renderEmptyState(b, "No requirements", "This document contains no requirement nodes.")
@@ -509,14 +567,24 @@ func renderDocumentView(b *bufio.Writer, doc model.Document, rd *renderData, pro
 			switch n.Kind {
 			case model.KindRequirement:
 				renderCard(b, n, propOrder, an, resolveLink, depth > 0)
+				if len(n.Children) > 0 {
+					// A requirement's children (methods, sub-requirements, and the
+					// doc sections extracted from its comment) sit in one rail so
+					// the content frame shows the same nesting as the outline.
+					_, _ = b.WriteString("<div class=\"req__children\">\n")
+					walk(n.Children, depth+1)
+					_, _ = b.WriteString("</div>\n")
+				}
 			case model.KindSection:
-				renderSectionBlock(b, n, anchor, depth > 0)
+				renderSectionOpen(b, n, anchor, depth > 0)
+				// Children belong inside the folder, so the summary folds them.
+				walk(n.Children, depth+1)
+				renderSectionClose(b, n)
 			}
-			walk(n.Children, depth+1)
 		}
 	}
 	walk(doc.Nodes, 0)
-	_, _ = b.WriteString("</main>\n</section>\n")
+	_, _ = b.WriteString("</div>\n</section>\n")
 }
 
 // renderEmptyState writes a consistent empty-state block.
@@ -525,25 +593,23 @@ func renderEmptyState(b *bufio.Writer, title, body string) {
 		html.EscapeString(title), html.EscapeString(body))
 }
 
-// renderSectionBlock writes a non-requirement node. A section with children is
-// a collapsible folder (expanded by default, so browser find and print reach
-// the content); a section without children is a plain prose block, heading
-// optional — an untitled section is the document preamble.
-func renderSectionBlock(b *bufio.Writer, node *model.Node, anchor string, isChild bool) {
+// renderSectionOpen writes a non-requirement node and, when it is a titled
+// section with children, opens the collapsible folder that must wrap those
+// children. The caller renders the children and then calls renderSectionClose;
+// a section without children is a plain prose block, heading optional — an
+// untitled section is the document preamble.
+func renderSectionOpen(b *bufio.Writer, node *model.Node, anchor string, isChild bool) {
 	class := "item item--section"
 	if isChild {
 		class += " item--child"
 	}
 	escAnchor := html.EscapeString(anchor)
 	_, _ = fmt.Fprintf(b, "<section class=\"%s\" id=\"%s\" data-anchor=\"%s\">\n", class, escAnchor, escAnchor)
-	hasChildren := len(node.Children) > 0
-	if hasChildren {
-		_, _ = b.WriteString("<details open>\n")
-	}
+	folder := sectionIsFolder(node)
 	if node.Title != "" {
 		tag := itemHeadingTag(node.Level, isChild)
-		if hasChildren {
-			_, _ = fmt.Fprintf(b, "<summary class=\"item__head\"><%s class=\"item__title\">%s</%s><a class=\"anchor\" href=\"#%s\" aria-label=\"Link to this section\">#</a></summary>\n",
+		if folder {
+			_, _ = fmt.Fprintf(b, "<details open>\n<summary class=\"item__head\"><%s class=\"item__title\">%s</%s><a class=\"anchor\" href=\"#%s\" aria-label=\"Link to this section\">#</a></summary>\n",
 				tag, html.EscapeString(node.Title), tag, escAnchor)
 		} else {
 			_, _ = fmt.Fprintf(b, "<%s class=\"item__title\">%s</%s>\n", tag, html.EscapeString(node.Title), tag)
@@ -552,10 +618,21 @@ func renderSectionBlock(b *bufio.Writer, node *model.Node, anchor string, isChil
 	if node.Body != "" {
 		_, _ = fmt.Fprintf(b, "<div class=\"item__body prose\">\n%s\n</div>\n", renderMarkdown(node.Body))
 	}
-	if hasChildren {
+}
+
+// renderSectionClose closes what renderSectionOpen started.
+func renderSectionClose(b *bufio.Writer, node *model.Node) {
+	if sectionIsFolder(node) {
 		_, _ = b.WriteString("</details>\n")
 	}
 	_, _ = b.WriteString("</section>\n")
+}
+
+// sectionIsFolder reports whether a section is rendered as a collapsible
+// folder. An untitled section has no summary to click, so its children render
+// directly instead of inside a details element nobody can open.
+func sectionIsFolder(node *model.Node) bool {
+	return len(node.Children) > 0 && node.Title != ""
 }
 
 // renderCard writes one requirement card. Semantic state is carried on data
@@ -600,7 +677,8 @@ func renderCard(b *bufio.Writer, req *model.Node, propOrder []string, an *Analys
 	rows := attrRows(req, propOrder)
 	hasTraces := len(st.Up)+len(st.Down) > 0
 	if len(rows) > 0 || req.Rationale != "" || len(st.Evidence) > 0 || hasTraces {
-		_, _ = fmt.Fprintf(b, "<details class=\"req__detail\"><summary class=\"req__detail-toggle\">Details</summary>\n<div class=\"req__detail-body\">\n")
+		_, _ = fmt.Fprintf(b, "<details class=\"req__detail\"><summary class=\"req__detail-toggle\">Details%s</summary>\n<div class=\"req__detail-body\">\n",
+			detailMeta(len(rows), hasTraces, len(st.Evidence)))
 		renderAttrGrid(b, rows)
 		renderRationale(b, req)
 		renderEvidenceList(b, st)
@@ -611,14 +689,37 @@ func renderCard(b *bufio.Writer, req *model.Node, propOrder []string, an *Analys
 	_, _ = b.WriteString("</article>\n")
 }
 
+// detailMeta summarises what the collapsed detail block holds, so a reader
+// can tell whether opening it is worth the click.
+func detailMeta(attrs int, hasTraces bool, evidence int) string {
+	var parts []string
+	if attrs > 0 {
+		parts = append(parts, fmt.Sprintf("%d %s", attrs, plural(attrs, "attribute")))
+	}
+	if hasTraces {
+		parts = append(parts, "traces")
+	}
+	if evidence > 0 {
+		parts = append(parts, fmt.Sprintf("%d evidence", evidence))
+	}
+	if len(parts) == 0 {
+		return ""
+	}
+	return `<span class="req__detail-meta">` + html.EscapeString(strings.Join(parts, " · ")) + `</span>`
+}
+
+func plural(n int, word string) string {
+	if n == 1 {
+		return word
+	}
+	return word + "s"
+}
+
 // renderCardHeader writes the ID/title heading and the anchor link.
 func renderCardHeader(b *bufio.Writer, req *model.Node, isChild bool) {
 	escID := html.EscapeString(req.ID)
 	escTitle := html.EscapeString(req.Title)
-	tag := "h2"
-	if isChild {
-		tag = "h3"
-	}
+	tag := itemHeadingTag(req.Level, isChild)
 	_, _ = b.WriteString("<header class=\"req__head\">\n")
 	if escTitle != "" {
 		_, _ = fmt.Fprintf(b, "<%s class=\"req__title\"><code class=\"req__id\">%s</code> <span class=\"req__name\">%s</span></%s>\n", tag, escID, escTitle, tag)

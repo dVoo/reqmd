@@ -15,10 +15,10 @@ import (
 	"github.com/dVoo/reqmd/internal/model"
 	"github.com/dVoo/reqmd/internal/schema"
 
+	meta "github.com/yuin/goldmark-meta/v2"
 	"github.com/yuin/goldmark/v2/ast"
 	"github.com/yuin/goldmark/v2/extension"
 	"github.com/yuin/goldmark/v2/parser"
-	meta "github.com/yuin/goldmark-meta/v2"
 
 	"golang.org/x/sync/errgroup"
 	"gopkg.in/yaml.v3"
@@ -633,7 +633,6 @@ func isDashLine(line []byte) bool {
 	return true
 }
 
-
 // nextLine returns the line at byte offset pos (without the trailing \n)
 // and whether there was a newline. The returned slice references src —
 // no allocation.
@@ -761,9 +760,12 @@ func renderFence(info string, c *ast.CodeBlock, src []byte) string {
 func paragraphText(p *ast.Paragraph, src []byte) string {
 	var b strings.Builder
 	for _, seg := range p.Source() {
-		// Write the segment bytes directly (trimmed in place) instead of
-		// converting each line to a string first — the conversion copies.
+		// Write the segment bytes directly instead of converting each line to a
+		// string first — the conversion copies. A segment ends at its line
+		// break, so the newline is re-added: dropping it glues the last word of
+		// one line onto the first word of the next ("list" + "of").
 		_, _ = b.Write(bytes.TrimRight(seg.Bytes(src), "\r\n"))
+		b.WriteByte('\n')
 	}
 	return strings.TrimSpace(b.String())
 }
