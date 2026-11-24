@@ -77,8 +77,14 @@ func (l *PythonLanguage) BindDoc(node *sitter.Node, src []byte) string {
 		return ""
 	}
 
+	// A decorated definition is captured as its inner function/class node;
+	// the decorators (and comments above them) are siblings of the wrapper.
+	walkFrom := node
+	if parent := node.Parent(); parent != nil && parent.Kind() == "decorated_definition" {
+		walkFrom = parent
+	}
 	var parts []string
-	prev := node.PrevSibling()
+	prev := walkFrom.PrevSibling()
 	// Walk backwards through comment nodes. Stop on the first
 	// non-comment sibling, which is the boundary to the previous
 	// declaration.

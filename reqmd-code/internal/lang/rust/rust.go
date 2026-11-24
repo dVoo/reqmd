@@ -88,7 +88,21 @@ func (l *RustLanguage) BindDoc(node *sitter.Node, src []byte) string {
 	// declaration.
 	for prev != nil {
 		kind := prev.Kind()
+		// `#[test]`, `#[inline]`, `#[cfg(...)]` sit between the doc comment
+		// and the item, so walk past them. An inner attribute (`#![...]`)
+		// applies to the enclosing module, so it is a real boundary; stop
+		// instead of binding the module doc to the first item.
+		if kind == "attribute_item" && !strings.HasPrefix(strings.TrimSpace(prev.Utf8Text(src)), "#![") {
+			prev = prev.PrevSibling()
+			continue
+		}
 		if kind != "line_comment" && kind != "block_comment" {
+			break
+		}
+		// `//!` and `/*!` are inner (module-level) docs: they can only appear
+		// before the first item, so binding them would attach the module doc
+		// to that item. They are a boundary, not a sibling doc.
+		if text := strings.TrimSpace(prev.Utf8Text(src)); strings.HasPrefix(text, "//!") || strings.HasPrefix(text, "/*!") {
 			break
 		}
 		parts = append(parts, cleanComment(prev.Utf8Text(src)))

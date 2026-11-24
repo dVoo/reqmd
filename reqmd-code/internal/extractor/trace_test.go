@@ -45,6 +45,21 @@ func TestExtractTraces(t *testing.T) {
 			wantExplicit: []string{"REQ-XYZ-001~3"},
 		},
 		{
+			name:         "single stray space is tolerated",
+			text:         " reqmd:trace REQ-001",
+			wantExplicit: []string{"REQ-001"},
+		},
+		{
+			name:         "indented code example is not a marker",
+			text:         "    reqmd:trace REQ-DEMO-001\n\treqmd:trace REQ-DEMO-002",
+			wantExplicit: nil,
+		},
+		{
+			name:         "CRLF line ending",
+			text:         "reqmd:trace REQ-001\r\n",
+			wantExplicit: []string{"REQ-001"},
+		},
+		{
 			name:         "invalid ID is silently skipped",
 			text:         "reqmd:trace REQ-foo-bar\nreqmd:trace REQ-001",
 			wantExplicit: []string{"REQ-001"},

@@ -1,6 +1,7 @@
 package rust
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
@@ -17,6 +18,77 @@ func TestRustLanguageRegisters(t *testing.T) {
 	if l.Name() != "rust" {
 		t.Errorf("expected name=rust, got %q", l.Name())
 	}
+}
+
+// TestBindDocAboveTestAttribute verifies that a doc comment above a
+// `#[test]` attribute still binds to the function: the attribute sits
+// between the comment and the item.
+func TestBindDocAboveTestAttribute(t *testing.T) {
+	const src = `/// reqmd:trace parse
+#[test]
+fn test_parse() {
+    parse();
+}
+`
+	syms, err := (&RustLanguage{}).Parse("a.rs", []byte(src))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	for _, s := range syms {
+		if s.Name == "test_parse" {
+			if !strings.Contains(s.Doc, "reqmd:trace parse") {
+				t.Errorf("doc = %q, want the marker above #[test]", s.Doc)
+			}
+			return
+		}
+	}
+	t.Fatalf("test_parse not extracted: %+v", syms)
+}
+
+// TestBindDocStopsAtInnerAttribute verifies that a module-level inner
+// attribute does not let the crate doc bind to the first item.
+func TestBindDocStopsAtInnerAttribute(t *testing.T) {
+	const src = `// reqmd:trace outer
+#![allow(dead_code)]
+
+/// own doc
+fn first() {}
+`
+	syms, err := (&RustLanguage{}).Parse("a.rs", []byte(src))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	for _, s := range syms {
+		if s.Name == "first" {
+			if strings.Contains(s.Doc, "reqmd:trace outer") {
+				t.Errorf("doc = %q, must not cross the inner attribute", s.Doc)
+			}
+			return
+		}
+	}
+	t.Fatalf("first not extracted: %+v", syms)
+}
+
+// TestBindDocStopsAtModuleDoc verifies that an inner doc comment (`//!`)
+// does not bind to the first item: module docs are not item docs.
+func TestBindDocStopsAtModuleDoc(t *testing.T) {
+	const src = `//! reqmd:trace outer
+
+fn first() {}
+`
+	syms, err := (&RustLanguage{}).Parse("a.rs", []byte(src))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	for _, s := range syms {
+		if s.Name == "first" {
+			if strings.Contains(s.Doc, "reqmd:trace outer") {
+				t.Errorf("doc = %q, must not include the module doc", s.Doc)
+			}
+			return
+		}
+	}
+	t.Fatalf("first not extracted: %+v", syms)
 }
 
 // TestParseSample verifies that Parse correctly identifies and classifies

@@ -31,8 +31,11 @@ var builtinDefs = []BuiltinAttr{
 		Definition: map[string]any{
 			"type": "array",
 			"items": map[string]any{
-				"type":    "string",
-				"pattern": "^([a-z0-9_-]+/)?[A-Z][A-Z0-9]*(-[A-Z0-9]+)*-[A-Z]*[0-9]+(~[0-9]+)?$",
+				"type": "string",
+				// Two branches: authored IDs keep the strict uppercase shape (a
+				// typo stays a Pass-1 error), while generated source-proxy IDs
+				// are `IMP-<pkg>-<Symbol>-<7hex>` and must be referenceable.
+				"pattern": "^([a-z0-9_-]+/)?([A-Z][A-Z0-9]*(-[A-Z0-9]+)*-[A-Z]*[0-9]+|[A-Z][A-Z0-9]*(-[A-Za-z0-9_]+){2,}-[0-9a-f]{7})(~[0-9]+)?$",
 			},
 			"description": "Upstream requirement ID references for traceability",
 		},

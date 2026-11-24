@@ -1,6 +1,7 @@
 package python
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
@@ -171,6 +172,30 @@ MODULE_LEVEL = 1
 	if !foundConst {
 		t.Errorf("module-level const MODULE_LEVEL missing or wrong kind: %+v", syms)
 	}
+}
+
+// TestBindDocAboveDecorator verifies that a `#` comment above a decorator
+// binds to the decorated function (the query captures the inner node, so
+// the walk must start at the decorated_definition wrapper).
+func TestBindDocAboveDecorator(t *testing.T) {
+	const src = `# reqmd:trace parse
+@pytest.fixture
+def test_parse():
+    pass
+`
+	syms, err := (&PythonLanguage{}).Parse("a.py", []byte(src))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	for _, s := range syms {
+		if s.Name == "test_parse" {
+			if !strings.Contains(s.Doc, "reqmd:trace parse") {
+				t.Errorf("doc = %q, want the marker above the decorator", s.Doc)
+			}
+			return
+		}
+	}
+	t.Fatalf("test_parse not extracted: %+v", syms)
 }
 
 // TestParseDecoratedClassDedup verifies that a decorated class

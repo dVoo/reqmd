@@ -34,7 +34,7 @@ var validIDRe = regexp.MustCompile(`^([a-z0-9_-]+/)?[A-Z][A-Z0-9-]+(~[0-9]+)?$`)
 // traceRe matches an explicit `reqmd:trace` directive line. One ID per
 // line is canonical; a comma-separated list on one line is also accepted
 // as a tolerated fallback.
-var traceRe = regexp.MustCompile(`(?m)^reqmd:trace[ \t]+(.+?)$`)
+var traceRe = regexp.MustCompile(`(?m)^ ?reqmd:trace[ \t]+(.+?)\r?$`)
 
 // heuristicRe matches bare requirement IDs in free-form text. Used only
 // when the CLI flag --heuristic-traces is set. Requires at least 3 digits

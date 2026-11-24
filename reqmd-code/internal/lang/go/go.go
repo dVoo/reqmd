@@ -82,7 +82,13 @@ func cleanComment(text, kind string) string {
 		for i, ln := range lines {
 			ln = strings.TrimPrefix(ln, "///")
 			ln = strings.TrimPrefix(ln, "//")
-			lines[i] = strings.TrimRight(ln, " \t")
+			// Drop the one conventional space after the marker, but keep a
+			// second one: gofmt writes doc code blocks as `//\tcode` or
+			// `//    code`, and both must survive as indented Markdown.
+			if len(ln) >= 2 && ln[0] == ' ' && ln[1] != ' ' {
+				ln = ln[1:]
+			}
+			lines[i] = strings.TrimRight(ln, " \t\r")
 		}
 	case "block_comment":
 		// /* ... */: drop the delimiters, keep interior lines.
@@ -94,7 +100,7 @@ func cleanComment(text, kind string) string {
 			lines[len(lines)-1] = strings.TrimSuffix(last, "*/")
 		}
 		for i, ln := range lines {
-			lines[i] = strings.TrimRight(ln, " \t")
+			lines[i] = strings.TrimRight(ln, " \t\r")
 		}
 	}
 	// Strip blank lines at the start and end for tidy output.

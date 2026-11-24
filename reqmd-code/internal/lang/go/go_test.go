@@ -11,6 +11,27 @@ import (
 // types (struct + interface), two methods (pointer + value receiver),
 // a constant, and two variables. Doc comments must be attached to the
 // right symbol. The test runs entirely in-memory; no external fixture.
+// TestCleanCommentMarkerSpacing pins the space handling that makes
+// `// reqmd:trace ...` markers extractable while keeping gofmt's indented
+// doc code blocks intact.
+func TestCleanCommentMarkerSpacing(t *testing.T) {
+	cases := []struct{ in, want string }{
+		{"// reqmd:trace SW-A-001", "reqmd:trace SW-A-001"},
+		{"//    code block", "    code block"},
+		{"//\tcode block", "\tcode block"},
+		{"//  two spaces", "  two spaces"},
+		{"// trailing \r", "trailing"},
+	}
+	for _, c := range cases {
+		if got := cleanComment(c.in, "comment"); got != c.want {
+			t.Errorf("cleanComment(%q) = %q, want %q", c.in, got, c.want)
+		}
+	}
+	if got := cleanComment("/* text */", "block_comment"); got != " text" {
+		t.Errorf("cleanComment(block) = %q, want %q", got, " text")
+	}
+}
+
 func TestParseSample(t *testing.T) {
 	const src = `// Package samplepkg is a small fixture.
 package samplepkg

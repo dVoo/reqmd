@@ -179,6 +179,48 @@ func TestStatus_BuiltInInjectedWithEnum(t *testing.T) {
 	}
 }
 
+// TestTrace_BuiltInPattern pins the trace item shape: authored IDs stay
+// strict (a lowercase typo is a validation error), while source-proxy IDs
+// (`IMP-<pkg>-<Symbol>-<7hex>`) are accepted so a test can trace to one.
+func TestTrace_BuiltInPattern(t *testing.T) {
+	raw := map[string]any{
+		"$schema": "https://json-schema.org/draft/2020-12/schema",
+		"type":    "object",
+	}
+	c, err := Compile(raw, ".")
+	if err != nil {
+		t.Fatalf("Compile: %v", err)
+	}
+
+	valid := []string{
+		"SW-PAR-001",
+		"SW-PAR-001~2",
+		"system/REQ-FEAT-007",
+		"IMP-clang-Parse-479c6b0",
+		"IMP-python-PythonLanguage-78bcb41",
+		"graph/IMP-graph-New-1234567",
+	}
+	for _, id := range valid {
+		if err := c.Validate(map[string]any{"trace": []any{id}}); err != nil {
+			t.Errorf("Validate(trace: [%q]) = %v, want nil", id, err)
+		}
+	}
+
+	invalid := []string{
+		"SW-imp-001",              // authored typo: must stay a Pass-1 error
+		"REQ-foo-bar",             // lowercase segment, no numeric suffix
+		"IMP-clang-Parse-479C6B0", // generated hash is lowercase hex
+		"SW-imp-0000001",          // 7 hex chars but not a generated shape
+		"Parse",                   // symbol name, not a requirement ID
+		"Parser.Parse",            // symbol reference, not an ID
+	}
+	for _, id := range invalid {
+		if err := c.Validate(map[string]any{"trace": []any{id}}); err == nil {
+			t.Errorf("Validate(trace: [%q]) = nil, want error", id)
+		}
+	}
+}
+
 func contains(s, substr string) bool {
 	return len(s) >= len(substr) && containsStr(s, substr)
 }
