@@ -74,8 +74,8 @@ trace: []
 ```
 
 Query returns the embedded tree-sitter query for symbol extraction.
- If the query file is missing (a packaging error), it returns an empty
- query rather than panicking; Parse will then emit zero symbols.
+If the query file is missing (a packaging error), it returns an empty
+query rather than panicking; Parse will then emit zero symbols.
 
 #### IMP-golang-BindDoc-6672a28: BindDoc
 ```attr
@@ -88,30 +88,30 @@ trace: []
 ```
 
 BindDoc returns the cleaned doc comment for the given declaration
- node. It walks backwards over any contiguous run of `//` line
- comments and `/* ... */` block comments, joins them with newlines,
- and strips comment markers. Returns the empty string when no
- preceding comment is present.
+node. It walks backwards over any contiguous run of `//` line
+comments and `/* ... */` block comments, joins them with newlines,
+and strips comment markers. Returns the empty string when no
+preceding comment is present.
 
 #### IMP-golang-Parse-494f364: Parse
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
-x-reqmd.source-line: 119
+x-reqmd.source-line: 125
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 Parse parses the given Go source bytes and returns a flat list of
- top-level symbols, in source order. It uses the embedded tree-sitter
- query to find function, method, type, const, and var declarations,
- and the package_clause to populate Symbol.Package.
+top-level symbols, in source order. It uses the embedded tree-sitter
+query to find function, method, type, const, and var declarations,
+and the package_clause to populate Symbol.Package.
 
- Two passes over the query results: the first collects the package
- name (if any), the second builds the symbol list. Symbols with no
- detectable package get Package = "" — callers can fall back to the
- file's parent directory if needed.
+Two passes over the query results: the first collects the package
+name (if any), the second builds the symbol list. Symbols with no
+detectable package get Package = "" — callers can fall back to the
+file's parent directory if needed.
 
 ### IMP-golang-cleanComment-43de13f: cleanComment
 ```attr
@@ -124,87 +124,101 @@ trace: []
 ```
 
 cleanComment strips comment markers and trims per-line trailing
- whitespace. `///` godoc lines are reduced to `//` form so callers
- don't need to know about that distinction.
+whitespace. `///` godoc lines are reduced to `//` form so callers
+don't need to know about that distinction.
 
 ### IMP-golang-symbolFromMatch-e334dce: symbolFromMatch
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
-x-reqmd.source-line: 181
+x-reqmd.source-line: 187
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 symbolFromMatch builds a model.Symbol from the per-match capture map.
- The map keys are the @-names from queries/symbols.scm. Returns false
- when the match has no usable captures.
+The map keys are the @-names from queries/symbols.scm. Returns false
+when the match has no usable captures.
 
 ### IMP-golang-receiverType-f900c3c: receiverType
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
-x-reqmd.source-line: 233
+x-reqmd.source-line: 239
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 receiverType extracts the receiver type name from a method_declaration
- node via the `receiver` field. The receiver is a `parameter_list`
- whose first `parameter_declaration` holds `<name> <type>`; we surface
- the type text (e.g. `*Foo` or `Foo`).
+node via the `receiver` field. The receiver is a `parameter_list`
+whose first `parameter_declaration` holds `<name> <type>`; we surface
+the type text (e.g. `*Foo` or `Foo`).
 
 ### IMP-golang-init-1865057: init
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
-x-reqmd.source-line: 255
+x-reqmd.source-line: 261
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 ## reqmd-code/internal/lang/go/go_test.go
+### IMP-golang-TestCleanCommentMarkerSpacing-01e8b2e: TestCleanCommentMarkerSpacing
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
+x-reqmd.source-line: 17
+x-reqmd.symbol-kind: function
+trace:
+  - IMP-golang-cleanComment-43de13f
+```
+
+TestParseSample verifies that Parse correctly identifies and classifies
+all top-level symbols in a representative Go file: a function, two
+types (struct + interface), two methods (pointer + value receiver),
+a constant, and two variables. Doc comments must be attached to the
+right symbol. The test runs entirely in-memory; no external fixture.
+TestCleanCommentMarkerSpacing pins the space handling that makes
+`// reqmd:trace ...` markers extractable while keeping gofmt's indented
+doc code blocks intact.
+
 ### IMP-golang-TestParseSample-0f1d96a: TestParseSample
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
-x-reqmd.source-line: 14
+x-reqmd.source-line: 35
 x-reqmd.symbol-kind: function
 trace: []
 ```
-
-TestParseSample verifies that Parse correctly identifies and classifies
- all top-level symbols in a representative Go file: a function, two
- types (struct + interface), two methods (pointer + value receiver),
- a constant, and two variables. Doc comments must be attached to the
- right symbol. The test runs entirely in-memory; no external fixture.
 
 ### IMP-golang-TestParseLocalConstVarSkipped-cd0e041: TestParseLocalConstVarSkipped
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
-x-reqmd.source-line: 105
+x-reqmd.source-line: 126
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 TestParseLocalConstVarSkipped verifies that const and var declarations
- nested inside function bodies are not emitted as top-level symbols.
- Two test helpers that each declare `const src = ...` would otherwise
- collide on the same requirement ID (the ID hashes package + name only).
- The package-level blank identifier `var _ T = ...` is also skipped.
+nested inside function bodies are not emitted as top-level symbols.
+Two test helpers that each declare `const src = ...` would otherwise
+collide on the same requirement ID (the ID hashes package + name only).
+The package-level blank identifier `var _ T = ...` is also skipped.
 
 ### IMP-golang-TestParseEmpty-a722689: TestParseEmpty
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
-x-reqmd.source-line: 149
+x-reqmd.source-line: 170
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -216,25 +230,25 @@ TestParseEmpty handles zero-byte and unparseable input gracefully.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
-x-reqmd.source-line: 163
+x-reqmd.source-line: 184
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 TestParseNoSymbols handles a file with no top-level declarations
- (e.g. comments only). The package_clause still matches but emits no
- symbols.
+(e.g. comments only). The package_clause still matches but emits no
+symbols.
 
 ### IMP-golang-TestParseFromDisk-5238d95: TestParseFromDisk
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
-x-reqmd.source-line: 178
+x-reqmd.source-line: 199
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 TestParseFromDisk reads a real .go file from disk and prints the
- results. Smoke test for the embed + filesystem round-trip.
+results. Smoke test for the embed + filesystem round-trip.
 

@@ -74,8 +74,8 @@ trace: []
 ```
 
 Query returns the embedded tree-sitter query for symbol extraction.
- If the query file is missing (a packaging error), it returns an empty
- query rather than panicking; Parse will then emit zero symbols.
+If the query file is missing (a packaging error), it returns an empty
+query rather than panicking; Parse will then emit zero symbols.
 
 #### IMP-clang-BindDoc-6a7679c: BindDoc
 ```attr
@@ -88,10 +88,10 @@ trace: []
 ```
 
 BindDoc returns the cleaned doc comment for the given declaration
- node. It walks backwards over any contiguous run of `//` line
- comments and `/* ... */` block comments, joins them with newlines,
- and strips comment markers. Returns the empty string when no
- preceding comment is present.
+node. It walks backwards over any contiguous run of `//` line
+comments and `/* ... */` block comments, joins them with newlines,
+and strips comment markers. Returns the empty string when no
+preceding comment is present.
 
 #### IMP-clang-Parse-479c6b0: Parse
 ```attr
@@ -104,10 +104,10 @@ trace: []
 ```
 
 Parse parses the given C source bytes and returns a flat list of
- top-level symbols, in source order. It uses the embedded tree-sitter
- query to find function, type, variable, and macro declarations, and
- drops type specifiers that are merely the inner half of a typedef
- (those are emitted once, via the typedef itself).
+top-level symbols, in source order. It uses the embedded tree-sitter
+query to find function, type, variable, and macro declarations, and
+drops type specifiers that are merely the inner half of a typedef
+(those are emitted once, via the typedef itself).
 
 ### IMP-clang-cleanComment-2cbe326: cleanComment
 ```attr
@@ -120,11 +120,11 @@ trace: []
 ```
 
 cleanComment strips C comment markers from a comment node's text and
- trims per-line whitespace. Both `//` line comments and `/* ... */`
- block comments arrive as a single tree-sitter `comment` node; the
- leading delimiter distinguishes the two styles. The conventional
- single space after the marker (`// foo` → `foo`) is dropped, as is
- per-line indentation inside block comments.
+trims per-line whitespace. Both `//` line comments and `/* ... */`
+block comments arrive as a single tree-sitter `comment` node; the
+leading delimiter distinguishes the two styles. The conventional
+single space after the marker (`// foo` → `foo`) is dropped, as is
+per-line indentation inside block comments.
 
 ### IMP-clang-symbolFromMatch-b9ebaa1: symbolFromMatch
 ```attr
@@ -137,9 +137,9 @@ trace: []
 ```
 
 symbolFromMatch builds a model.Symbol from the per-match capture map.
- The map keys are the @-names from queries/symbols.scm. Returns false
- when the match has no usable captures or refers to a function-local
- declaration.
+The map keys are the @-names from queries/symbols.scm. Returns false
+when the match has no usable captures or refers to a function-local
+declaration.
 
 ### IMP-clang-init-831d7f6: init
 ```attr
@@ -159,11 +159,12 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 14
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-CLanguage-fc60bcb
 ```
 
 TestCLanguageRegisters verifies that CLanguage self-registered itself
- with the global lang.Registry on package init.
+with the global lang.Registry on package init.
 
 ### IMP-clang-TestParseSample-91ac5ed: TestParseSample
 ```attr
@@ -176,9 +177,9 @@ trace: []
 ```
 
 TestParseSample verifies that Parse correctly identifies and classifies
- all top-level symbols in a representative C file: a macro, a typedef'd
- struct, a standalone struct, an enum, a global variable, and two
- functions. Doc comments must be attached to the right symbol.
+all top-level symbols in a representative C file: a macro, a typedef'd
+struct, a standalone struct, an enum, a global variable, and two
+functions. Doc comments must be attached to the right symbol.
 
 ### IMP-clang-TestParseTypedefDedup-08c6c42: TestParseTypedefDedup
 ```attr
@@ -191,8 +192,8 @@ trace: []
 ```
 
 TestParseTypedefDedup verifies that a `typedef struct Foo { ... } Foo;`
- emits exactly one type symbol (the typedef alias), not two: both the
- inner struct_specifier and the outer type_definition match the query.
+emits exactly one type symbol (the typedef alias), not two: both the
+inner struct_specifier and the outer type_definition match the query.
 
 ### IMP-clang-TestParseMultiDeclarator-001e95f: TestParseMultiDeclarator
 ```attr
@@ -205,7 +206,7 @@ trace: []
 ```
 
 TestParseMultiDeclarator verifies that `int a, b;` emits one symbol per
- declarator, not one per declaration.
+declarator, not one per declaration.
 
 ### IMP-clang-TestParsePrototypeSkipped-08e07e9: TestParsePrototypeSkipped
 ```attr
@@ -218,8 +219,8 @@ trace: []
 ```
 
 TestParsePrototypeSkipped verifies that a function prototype without a
- body (`int foo(int);`) is not emitted as a symbol. The definition
- (with a body) is emitted exactly once.
+body (`int foo(int);`) is not emitted as a symbol. The definition
+(with a body) is emitted exactly once.
 
 ### IMP-clang-TestParseLocalDeclarationsSkipped-31ed8fd: TestParseLocalDeclarationsSkipped
 ```attr
@@ -232,9 +233,9 @@ trace: []
 ```
 
 TestParseLocalDeclarationsSkipped verifies that declarations inside
- function bodies (local structs, local variables) are not emitted as
- top-level symbols. Two same-named locals in different functions would
- otherwise collide on the same requirement ID.
+function bodies (local structs, local variables) are not emitted as
+top-level symbols. Two same-named locals in different functions would
+otherwise collide on the same requirement ID.
 
 ### IMP-clang-TestParseEmpty-258d6dc: TestParseEmpty
 ```attr
@@ -255,11 +256,12 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 212
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-cleanComment-2cbe326
 ```
 
 TestCleanComment covers both `//` line comments and `/* ... */` block
- comments, including multi-line blocks.
+comments, including multi-line blocks.
 
 ### IMP-clang-TestBindDocIncludesDoc-99fa9e8: TestBindDocIncludesDoc
 ```attr
@@ -272,7 +274,7 @@ trace: []
 ```
 
 TestBindDocIncludesDoc verifies that BindDoc attaches the full comment
- block (including a reqmd:trace marker) to the following declaration.
+block (including a reqmd:trace marker) to the following declaration.
 
 ### IMP-clang-TestParseFromDisk-67e380a: TestParseFromDisk
 ```attr
@@ -285,5 +287,5 @@ trace: []
 ```
 
 TestParseFromDisk reads a real .c file from disk and verifies the
- embed + filesystem round-trip.
+embed + filesystem round-trip.
 

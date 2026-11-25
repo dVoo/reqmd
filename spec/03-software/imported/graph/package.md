@@ -14,8 +14,8 @@ trace: []
 ```
 
 Coverage states reported by CoverageStates. They describe what the
- requires-trace-from check concluded for a single requirement, so exports
- never infer coverage from link presence.
+requires-trace-from check concluded for a single requirement, so exports
+never infer coverage from link presence.
 
 ### IMP-graph-CoverageMissing-aa30c41: CoverageMissing
 ```attr
@@ -28,8 +28,8 @@ trace: []
 ```
 
 Coverage states reported by CoverageStates. They describe what the
- requires-trace-from check concluded for a single requirement, so exports
- never infer coverage from link presence.
+requires-trace-from check concluded for a single requirement, so exports
+never infer coverage from link presence.
 
 ### IMP-graph-CoverageNotRequired-c4a9f1d: CoverageNotRequired
 ```attr
@@ -42,8 +42,8 @@ trace: []
 ```
 
 Coverage states reported by CoverageStates. They describe what the
- requires-trace-from check concluded for a single requirement, so exports
- never infer coverage from link presence.
+requires-trace-from check concluded for a single requirement, so exports
+never infer coverage from link presence.
 
 ### IMP-graph-CoverageUnresolved-1b08f3c: CoverageUnresolved
 ```attr
@@ -56,8 +56,8 @@ trace: []
 ```
 
 Coverage states reported by CoverageStates. They describe what the
- requires-trace-from check concluded for a single requirement, so exports
- never infer coverage from link presence.
+requires-trace-from check concluded for a single requirement, so exports
+never infer coverage from link presence.
 
 ### IMP-graph-CoverageMiss-857ed57: CoverageMiss
 ```attr
@@ -70,7 +70,7 @@ trace: []
 ```
 
 CoverageMiss is one unmet `requires-trace-from` expectation. Unknown is
- true when the expected source names no known document-id or level.
+true when the expected source names no known document-id or level.
 
 ### IMP-graph-NodeCoverage-860badb: NodeCoverage
 ```attr
@@ -83,10 +83,10 @@ trace: []
 ```
 
 NodeCoverage is the presentation view of one requirement's upstream
- coverage: the same conclusion checkRequiresTraceFromCoverage reaches,
- without the CheckResult wrapper. Misses is empty unless State is
- CoverageMissing or CoverageUnresolved; Drafts counts in-filter inbound
- requirements ignored by the status gate.
+coverage: the same conclusion checkRequiresTraceFromCoverage reaches,
+without the CheckResult wrapper. Misses is empty unless State is
+CoverageMissing or CoverageUnresolved; Drafts counts in-filter inbound
+requirements ignored by the status gate.
 
 ### IMP-graph-TraceLink-2cfbd0e: TraceLink
 ```attr
@@ -99,9 +99,9 @@ trace: []
 ```
 
 TraceLink is one declared `trace` reference with its resolution and
- version-pin state. Resolved is false for dangling and ambiguous refs; ID
- is empty in that case. Direction is "outdated", "predated", or "" for a
- current/unpinned link, using the same skip rules as the version-pin check.
+version-pin state. Resolved is false for dangling and ambiguous refs; ID
+is empty in that case. Direction is "outdated", "predated", or "" for a
+current/unpinned link, using the same skip rules as the version-pin check.
 
 ### IMP-graph-NodeVerification-680a83e: NodeVerification
 ```attr
@@ -114,8 +114,89 @@ trace: []
 ```
 
 NodeVerification is the presentation view of one requirement's
- verification state. Eligible marks the measures the missing-verdict check
- expects a result for; Outcome is empty when such a measure has none.
+verification state. Eligible marks the measures the missing-verdict check
+expects a result for; Outcome is empty when such a measure has none.
+
+## internal/graph/evidence_test.go
+### IMP-graph-evidenceChain-22d2085: evidenceChain
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/evidence_test.go
+x-reqmd.source-line: 13
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+evidenceChain builds the three-level chain SYS-001 ← TEST-001 ← RESULT,
+plus a direct result on SYS-001, with the tests document status supplied
+by the caller (approved is a coverage provider, draft is not).
+
+### IMP-graph-evidenceReq-e942444: evidenceReq
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/evidence_test.go
+x-reqmd.source-line: 51
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+evidenceReq builds a requirement node for the graph.
+
+### IMP-graph-TestMeasureEvidence_CachedMatchesUncached-837efe3: TestMeasureEvidence_CachedMatchesUncached
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/evidence_test.go
+x-reqmd.source-line: 58
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestMeasureEvidence_CachedMatchesUncached compares the cached roll-up with
+the freshly computed one (first call uncached, second served from the
+cache) across a multi-level chain.
+
+### IMP-graph-TestMeasureEvidence_Memoized-38031a7: TestMeasureEvidence_Memoized
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/evidence_test.go
+x-reqmd.source-line: 91
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestMeasureEvidence_Memoized proves the roll-up is served from the cache:
+after the first call, dropping the chain's inbound edges does not change
+the answer until the cache is invalidated.
+
+### IMP-graph-TestMeasureEvidence_SetFilterInvalidates-2816fc3: TestMeasureEvidence_SetFilterInvalidates
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/evidence_test.go
+x-reqmd.source-line: 108
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestMeasureEvidence_SetFilterInvalidates ensures filter-scoped evidence is
+recomputed after SetFilter instead of reusing the pre-filter answer.
+
+### IMP-graph-TestVerificationStates_NoResultsSkipsRollup-850a0ea: TestVerificationStates_NoResultsSkipsRollup
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/evidence_test.go
+x-reqmd.source-line: 126
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestVerificationStates_NoResultsSkipsRollup pins the early exit: without
+result nodes no evidence is gathered and every outcome stays empty.
 
 ## internal/graph/graph.go
 ### IMP-graph-LevelError-0404fb1: LevelError
@@ -249,12 +330,12 @@ trace: []
 ```
 
 RepinDelta describes a single version-pin change that the repin
- command proposes or applies. One delta corresponds to one
- requirement's one trace ref. DeltaKind distinguishes "outdated"
- (pin < upstream.version) from "unpinned" (no pin against a
- versioned upstream) when promoteUnpinned is true. Predated
- findings (pin > upstream.version) are surfaced as DeltaPredated
- and never auto-fixed by repin.
+command proposes or applies. One delta corresponds to one
+requirement's one trace ref. DeltaKind distinguishes "outdated"
+(pin < upstream.version) from "unpinned" (no pin against a
+versioned upstream) when promoteUnpinned is true. Predated
+findings (pin > upstream.version) are surfaced as DeltaPredated
+and never auto-fixed by repin.
 
 ### IMP-graph-CachedNode-c82f26b: CachedNode
 ```attr
@@ -267,34 +348,34 @@ trace: []
 ```
 
 CachedNode is an in-memory typed representation of a requirement node,
- populated once at graph creation. All check methods iterate this cache.
+populated once at graph creation. All check methods iterate this cache.
 
 #### IMP-graph-isSuppressed-a75ef65: isSuppressed
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1545
+x-reqmd.source-line: 1568
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 isSuppressed returns true if the given check name is in this node's
- suppression set. O(1) via the precomputed map; falls back to the
- linear scan only if the set was not built (defensive).
+suppression set. O(1) via the precomputed map; falls back to the
+linear scan only if the set was not built (defensive).
 
 #### IMP-graph-effectiveStatus-42ced62: effectiveStatus
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1555
+x-reqmd.source-line: 1578
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 effectiveStatus returns the built-in status value, falling back to
- model.StatusDefault ("approved") when no status attr is declared.
+model.StatusDefault ("approved") when no status attr is declared.
 
 ### IMP-graph-Graph-186bdff: Graph
 ```attr
@@ -307,73 +388,73 @@ trace: []
 ```
 
 Graph wraps an in-memory adjacency map with a typed node cache. It is
- built once from parsed documents and queried by Pass 2 check methods.
+built once from parsed documents and queried by Pass 2 check methods.
 
 #### IMP-graph-SetFilter-3588adb: SetFilter
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 140
+x-reqmd.source-line: 141
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 SetFilter restricts per-requirement checks to the given set of requirement
- IDs. nil means no filter (check everything — the default); an empty
- non-nil set means "the filter matched nothing" — no requirement is
- checked. The distinction matters: a --filter expression that matches no
- requirements must scope the graph to the empty set, not reset to
- check-everything. The graph is always built from the full document tree
- so trace references to filtered-out requirements still resolve; only the
- per-req check/report loop is scoped.
+IDs. nil means no filter (check everything — the default); an empty
+non-nil set means "the filter matched nothing" — no requirement is
+checked. The distinction matters: a --filter expression that matches no
+requirements must scope the graph to the empty set, not reset to
+check-everything. The graph is always built from the full document tree
+so trace references to filtered-out requirements still resolve; only the
+per-req check/report loop is scoped.
 
 #### IMP-graph-SetDisjointAttrs-8acf10b: SetDisjointAttrs
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 147
+x-reqmd.source-line: 149
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 SetDisjointAttrs enables the disjoint-attribute check for the named
- array-typed attributes. Empty or nil disables it.
+array-typed attributes. Empty or nil disables it.
 
 #### IMP-graph-inFilter-25a0fba: inFilter
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 153
+x-reqmd.source-line: 155
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 inFilter reports whether a requirement ID is in the active filter set.
- Returns true when no filter is active (nil filter = check everything).
+Returns true when no filter is active (nil filter = check everything).
 
 #### IMP-graph-firstDocID-8625bf6: firstDocID
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 430
+x-reqmd.source-line: 432
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 firstDocID returns the first document-id associated with any of the given
- directory paths, or the first directory path itself if no document-id
- is declared.
+directory paths, or the first directory path itself if no document-id
+is declared.
 
 #### IMP-graph-inferBoundaries-7fc25a7: inferBoundaries
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 450
+x-reqmd.source-line: 452
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -384,35 +465,35 @@ inferBoundaries returns two maps describing the V-model topology:
    - leafDirs: directories that are at the bottom (are not referenced as
      upstream sources by any other document).
 
- The returned maps are pure functions of the documents; callers should
- treat them as read-only.
+The returned maps are pure functions of the documents; callers should
+treat them as read-only.
 
 #### IMP-graph-resolveCoverageSource-602ac8e: resolveCoverageSource
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 492
+x-reqmd.source-line: 494
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 resolveCoverageSource resolves a coverage-expectation token (a document-id or a
- level name) to the set of directory paths that satisfy it. Returns
- nil/empty when nothing matches.
+level name) to the set of directory paths that satisfy it. Returns
+nil/empty when nothing matches.
 
 #### IMP-graph-CheckResults-f98967d: CheckResults
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 523
+x-reqmd.source-line: 525
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 CheckResults runs all Pass 2 validation checks and returns the combined results.
- Checks performed:
+Checks performed:
    - Broken reference (WARNING): trace target not found; also includes
      duplicate ID and ambiguous reference errors collected during edge creation.
    - Circular dependency (ERROR): cycles detected via DFS.
@@ -436,88 +517,91 @@ CheckResults runs all Pass 2 validation checks and returns the combined results.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 550
+x-reqmd.source-line: 552
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 checkCircular detects cycles using DFS on the in-memory cached nodes.
- Returns ERROR results when a cycle is detected.
+Returns ERROR results when a cycle is detected.
 
 #### IMP-graph-ensureBoundaries-d241cd3: ensureBoundaries
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 591
+x-reqmd.source-line: 593
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 ensureBoundaries computes the V-model boundaries when CheckResults has not
- run yet, so analysis callers get the same boundary inference.
+run yet, so analysis callers get the same boundary inference.
 
 #### IMP-graph-coverageState-afd14ce: coverageState
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 601
+x-reqmd.source-line: 603
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 coverageState classifies one node using the coverage rules of
- checkRequiresTraceFromCoverage. It is the single implementation both the
- check and CoverageStates read.
+checkRequiresTraceFromCoverage. It is the single implementation both the
+check and CoverageStates read.
 
 #### IMP-graph-explicitCoverage-af57a45: explicitCoverage
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 613
+x-reqmd.source-line: 615
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 explicitCoverage classifies a requirement that declares (or inherits) a
- requires-trace-from expectation.
+requires-trace-from expectation.
 
 #### IMP-graph-inboundFrom-8fab110: inboundFrom
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 642
+x-reqmd.source-line: 644
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 inboundFrom reports whether an in-filter, approved inbound requirement comes
- from one of the expected document directories. drafts counts in-filter
- inbound requirements ignored by the status gate.
+from one of the expected document directories. drafts counts in-filter
+inbound requirements ignored by the status gate.
 
 #### IMP-graph-genericCoverage-ab8c9e6: genericCoverage
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 669
+x-reqmd.source-line: 674
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 genericCoverage applies the boundary-aware untraced rule for requirements
- without a requires-trace-from expectation: an inbound link, the root
- boundary, or a nested sub-requirement needs no coverage.
+without a requires-trace-from expectation: an inbound link, the root or leaf
+boundary, or a nested sub-requirement needs no coverage. The boundary halves
+mirror checkRequiresTraceFromCoverage exactly — a leaf document sits at the
+bottom of the V, so nothing can trace *to* it and its requirements are not
+missing coverage.
 
 #### IMP-graph-checkRequiresTraceFromCoverage-b763ab0: checkRequiresTraceFromCoverage
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 690
+x-reqmd.source-line: 695
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -537,207 +621,207 @@ checkRequiresTraceFromCoverage runs two related checks:
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 769
+x-reqmd.source-line: 774
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 hasFilteredInbound reports whether any inbound edge originates from a
- requirement in the active filter set. With no filter active (nil), it
- degenerates to "has any inbound" — preserving the pre-filter behavior
- exactly without iterating the inbound list.
+requirement in the active filter set. With no filter active (nil), it
+degenerates to "has any inbound" — preserving the pre-filter behavior
+exactly without iterating the inbound list.
 
 #### IMP-graph-hasFilteredOutbound-82016fe: hasFilteredOutbound
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 779
+x-reqmd.source-line: 784
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 hasFilteredOutbound reports whether any outbound edge targets a
- requirement in the active filter set. With no filter active (nil), it
- degenerates to "has any outbound" — preserving the pre-filter behavior.
+requirement in the active filter set. With no filter active (nil), it
+degenerates to "has any outbound" — preserving the pre-filter behavior.
 
 #### IMP-graph-checkDispositionReason-b62bc60: checkDispositionReason
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 789
+x-reqmd.source-line: 794
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 checkDispositionReason detects nodes where disposition is set to a value
- other than "implemented" but disposition-reason is missing or empty.
- Returns WARNING for each.
+other than "implemented" but disposition-reason is missing or empty.
+Returns WARNING for each.
 
 #### IMP-graph-checkMandatoryDisposition-f8f6727: checkMandatoryDisposition
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 816
+x-reqmd.source-line: 821
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 checkMandatoryDisposition detects nodes in directories where
- mandatory-disposition is set and the requirement has no disposition value.
- Returns ERROR for each violation.
+mandatory-disposition is set and the requirement has no disposition value.
+Returns ERROR for each violation.
 
 #### IMP-graph-checkIDPrefixes-d92a5f0: checkIDPrefixes
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 844
+x-reqmd.source-line: 849
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 checkIDPrefixes validates that every requirement ID matches the declared
- prefix for its document directory and that no two directories share a prefix.
- Prefix collision is an ERROR: two document directories must not declare the
- same ID prefix, since that would make requirement IDs ambiguous across docs.
+prefix for its document directory and that no two directories share a prefix.
+Prefix collision is an ERROR: two document directories must not declare the
+same ID prefix, since that would make requirement IDs ambiguous across docs.
 
 #### IMP-graph-pinStatus-f3ee71c: pinStatus
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 892
+x-reqmd.source-line: 897
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 pinStatus classifies a single version pin against its target's
- current version. Shared by checkVersionPins (which emits findings)
- and RepinDeltas (which proposes edits). Returns the direction
- ("outdated", "predated", or "" for current) and ok=true when the
- pin is comparable to the target. Returns ok=false when the pin
- should be skipped (target missing, external, unversioned, or
- the node suppresses the version-pin check).
+current version. Shared by checkVersionPins (which emits findings)
+and RepinDeltas (which proposes edits). Returns the direction
+("outdated", "predated", or "" for current) and ok=true when the
+pin is comparable to the target. Returns ok=false when the pin
+should be skipped (target missing, external, unversioned, or
+the node suppresses the version-pin check).
 
 #### IMP-graph-checkVersionPins-9ee679f: checkVersionPins
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 925
+x-reqmd.source-line: 930
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 checkVersionPins compares each downstream requirement's `~N` version pin
- on a trace reference against the upstream requirement's `version`.
- Findings:
+on a trace reference against the upstream requirement's `version`.
+Findings:
    - outdated — upstream version V > pinned N. Downstream must be re-verified.
    - predated — upstream version V < pinned N. Downstream claims a version
      that does not exist on the upstream; data integrity issue.
 
- Both emit ERROR by default. Outdated findings carry
- Code="version-pin" + Direction="outdated" and can be demoted to WARNING
- by the cmd layer when --relaxed-versions is set. Predated stays ERROR.
+Both emit ERROR by default. Outdated findings carry
+Code="version-pin" + Direction="outdated" and can be demoted to WARNING
+by the cmd layer when --relaxed-versions is set. Predated stays ERROR.
 
- Skip rules are shared with RepinDeltas via pinStatus.
+Skip rules are shared with RepinDeltas via pinStatus.
 
 #### IMP-graph-measureGate-567b976: measureGate
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 970
+x-reqmd.source-line: 975
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 measureGate applies the shared eligibility gate for the outcome-gated
- checks: a node must be a measure (not a result), an approved coverage
- provider (draft measures are not expected to have results), and not
- deferred/rejected (those are exempt from verification).
+checks: a node must be a measure (not a result), an approved coverage
+provider (draft measures are not expected to have results), and not
+deferred/rejected (those are exempt from verification).
 
 #### IMP-graph-checkMissingVerdict-c8e4978: checkMissingVerdict
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 990
+x-reqmd.source-line: 995
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 checkMissingVerdict flags approved verification measures whose rolled-up
- evidence set is empty. A measure is any approved, non-result node carrying
- a `verify` attribute (see isMeasure). Evidence is the union of the
- measure's own attached results and the results of approved, in-filter
- nodes in its inbound trace closure (downstream test cases). Draft measures
- are skipped (a draft measure is not expected to have results yet).
+evidence set is empty. A measure is any approved, non-result node carrying
+a `verify` attribute (see isMeasure). Evidence is the union of the
+measure's own attached results and the results of approved, in-filter
+nodes in its inbound trace closure (downstream test cases). Draft measures
+are skipped (a draft measure is not expected to have results yet).
 
- The check runs only when result pseudo-requirements are present in the
- graph (loaded via `check --results`). With no results loaded, no node
- has IsResult=true and the check is a no-op.
+The check runs only when result pseudo-requirements are present in the
+graph (loaded via `check --results`). With no results loaded, no node
+has IsResult=true and the check is a no-op.
 
- Severity: WARNING. Suppress per-node with
- `reqmd-suppress: [missing-verdict]`. Code: "missing-verdict".
+Severity: WARNING. Suppress per-node with
+`reqmd-suppress: [missing-verdict]`. Code: "missing-verdict".
 
 #### IMP-graph-checkFailingVerdict-d16fe4c: checkFailingVerdict
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1035
+x-reqmd.source-line: 1040
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 checkFailingVerdict flags approved measures whose rolled-up verdict is
- fail. Like checkMissingVerdict it is a no-op when no result nodes are
- present. Draft measures are skipped (a draft measure is not expected to
- gate on results), mirroring the missing-verdict draft gate.
+fail. Like checkMissingVerdict it is a no-op when no result nodes are
+present. Draft measures are skipped (a draft measure is not expected to
+gate on results), mirroring the missing-verdict draft gate.
 
- The message names the failing case(s) and their source file(s).
+The message names the failing case(s) and their source file(s).
 
- Severity: ERROR. Suppress per-node with
- `reqmd-suppress: [failing-verdict]`. Code: "failing-verdict".
+Severity: ERROR. Suppress per-node with
+`reqmd-suppress: [failing-verdict]`. Code: "failing-verdict".
 
 #### IMP-graph-hasResultNodes-7d55ead: hasResultNodes
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1076
+x-reqmd.source-line: 1081
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 hasResultNodes reports whether any synthesized result pseudo-requirement
- is present in the graph.
+is present in the graph.
 
 #### IMP-graph-isMeasure-d3d8fed: isMeasure
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1084
+x-reqmd.source-line: 1089
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 isMeasure reports whether a node is a verification measure — a
- requirement authored with a `verify` attribute (e.g. verify: Test,
- verify: Review). Whether a result currently traces to it is irrelevant to
- the definition (see checkMissingVerdict). Result nodes are not measures.
+requirement authored with a `verify` attribute (e.g. verify: Test,
+verify: Review). Whether a result currently traces to it is irrelevant to
+the definition (see checkMissingVerdict). Result nodes are not measures.
 
 #### IMP-graph-evidenceItem-68bb8e5: evidenceItem
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1165
+x-reqmd.source-line: 1170
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -749,39 +833,43 @@ evidenceItem derives an EvidenceItem from a synthesized result node.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1179
+x-reqmd.source-line: 1184
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 evidenceCase resolves the case key of a result node: the `#case` suffix on
- a case-keyed result, or the case key of the synthesized test case the
- result traces to, or "" for a direct (uncased) result.
+a case-keyed result, or the case key of the synthesized test case the
+result traces to, or "" for a direct (uncased) result.
 
 #### IMP-graph-measureEvidence-4a52af0: measureEvidence
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1198
+x-reqmd.source-line: 1214
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 measureEvidence gathers the evidence set of a requirement: its own
- attached results plus the results of approved, in-filter nodes in its
- inbound trace closure (downstream authored test cases and synthesized
- cases). Draft in-filter intermediaries are not contributors and are
- reported in the returned draft count. self holds the results attached
- directly to the requirement; items is the deduplicated union (by case
- key, keeping the higher severity).
+attached results plus the results of approved, in-filter nodes in its
+inbound trace closure (downstream authored test cases and synthesized
+cases). Draft in-filter intermediaries are not contributors and are
+reported in the returned draft count. self holds the results attached
+directly to the requirement; items is the deduplicated union (by case
+key, keeping the higher severity).
+
+Results are computed once per requirement and cached on the graph
+(invalidated by SetFilter) so repeated presentation/check passes over the
+same inbound closure stay cheap. The returned slices are read-only.
 
 #### IMP-graph-failingEvidence-f67bd40: failingEvidence
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1257
+x-reqmd.source-line: 1280
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -793,250 +881,250 @@ failingEvidence returns the evidence items whose outcome is fail.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1271
+x-reqmd.source-line: 1294
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 severityOf computes the rolled-up severity of a node's evidence set,
- recursing through approved, in-filter intermediaries. Results are cached
- on the graph (invalidated by SetFilter) so a whole check pass stays cheap.
+recursing through approved, in-filter intermediaries. Results are cached
+on the graph (invalidated by SetFilter) so a whole check pass stays cheap.
 
 #### IMP-graph-measureSeverity-77a210e: measureSeverity
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1314
+x-reqmd.source-line: 1337
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 measureSeverity returns the rolled-up severity of a measure's evidence
- set (sevNone when the set is empty).
+set (sevNone when the set is empty).
 
 #### IMP-graph-latestOutcomeFor-e2aaff3: latestOutcomeFor
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1323
+x-reqmd.source-line: 1346
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 latestOutcomeFor returns the outcome and source file of the result node
- tracing to the given measure. Since the result layer
- (internal/verify.MergeLatest) already collapses to one result per
- measure, there is at most one result node per measure. Returns
- ("", "", false) if no result traces to the measure.
+tracing to the given measure. Since the result layer
+(internal/verify.MergeLatest) already collapses to one result per
+measure, there is at most one result node per measure. Returns
+("", "", false) if no result traces to the measure.
 
 #### IMP-graph-checkVerdicts-50f5597: checkVerdicts
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1344
+x-reqmd.source-line: 1367
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 checkVerdicts emits an INFO-level result for each measure that has a
- non-empty rolled-up evidence set, showing the rolled-up outcome. This
- makes passing verdicts visible in the output — without it, a clean run
- with --results looks identical to a run without --results. Measures
- without evidence are covered by checkMissingVerdict and emit no verdict
- line here.
+non-empty rolled-up evidence set, showing the rolled-up outcome. This
+makes passing verdicts visible in the output — without it, a clean run
+with --results looks identical to a run without --results. Measures
+without evidence are covered by checkMissingVerdict and emit no verdict
+line here.
 
- Severity: INFO (never affects exit code). Code: "verdict".
+Severity: INFO (never affects exit code). Code: "verdict".
 
 #### IMP-graph-MeasureOutcome-1fbdb57: MeasureOutcome
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1381
+x-reqmd.source-line: 1404
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 MeasureOutcome returns the latest verification outcome for a measure
- (pass, fail, skipped, inconclusive) and whether a result exists. Returns
- ("", false) if the measure has no result or is not a measure.
+(pass, fail, skipped, inconclusive) and whether a result exists. Returns
+("", false) if the measure has no result or is not a measure.
 
 #### IMP-graph-rollupVerdict-a36e2f2: rollupVerdict
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1403
+x-reqmd.source-line: 1426
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 rollupVerdict computes the strict verdict roll-up for a node from its
- evidence set: the highest-severity outcome plus a representative source
- file (the node's own attached result when present, else the file of the
- highest-severity downstream item). ok is false when the evidence set is
- empty. Shared by checkVerdicts and MeasureVerdicts so the roll-up rule
- lives in one place.
+evidence set: the highest-severity outcome plus a representative source
+file (the node's own attached result when present, else the file of the
+highest-severity downstream item). ok is false when the evidence set is
+empty. Shared by checkVerdicts and MeasureVerdicts so the roll-up rule
+lives in one place.
 
 #### IMP-graph-MeasureVerdicts-ce3940b: MeasureVerdicts
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1427
+x-reqmd.source-line: 1450
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 MeasureVerdicts returns, for every non-synthetic node with a non-empty
- rolled-up evidence set, the rolled-up outcome, a representative source
- file, and the deduplicated evidence items. The set is keyed by requirement
- ID and computed from graph adjacency, so a single source of truth feeds
- all outputs. Returns nil when no results are loaded.
+rolled-up evidence set, the rolled-up outcome, a representative source
+file, and the deduplicated evidence items. The set is keyed by requirement
+ID and computed from graph adjacency, so a single source of truth feeds
+all outputs. Returns nil when no results are loaded.
 
 #### IMP-graph-HasResults-7adf509: HasResults
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1447
+x-reqmd.source-line: 1470
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 HasResults reports whether the graph contains any synthesized result
- pseudo-requirements (i.e. `--results` was supplied).
+pseudo-requirements (i.e. `--results` was supplied).
 
 #### IMP-graph-RootDirs-133e25f: RootDirs
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1455
+x-reqmd.source-line: 1478
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 RootDirs returns the document directory paths at the top of the V-model
- (no upstream sources declared, or external), sorted. Uses the cached
- boundaries from CheckResults; returns empty if CheckResults has not been
- called.
+(no upstream sources declared, or external), sorted. Uses the cached
+boundaries from CheckResults; returns empty if CheckResults has not been
+called.
 
 #### IMP-graph-LeafDirs-f06eb17: LeafDirs
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1464
+x-reqmd.source-line: 1487
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 LeafDirs returns a sorted slice of document directory paths that are at
- the bottom of the V-model (not referenced as upstream sources by any
- other document).
- Uses the cached boundaries from CheckResults; returns empty if CheckResults
- has not been called.
+the bottom of the V-model (not referenced as upstream sources by any
+other document).
+Uses the cached boundaries from CheckResults; returns empty if CheckResults
+has not been called.
 
 #### IMP-graph-NodeCount-b5b435a: NodeCount
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1486
+x-reqmd.source-line: 1509
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 Query / inspection methods on *Graph
- NodeCount returns the number of requirement nodes in the graph.
+NodeCount returns the number of requirement nodes in the graph.
 
 #### IMP-graph-UpstreamNeighbors-5e29545: UpstreamNeighbors
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1492
+x-reqmd.source-line: 1515
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 UpstreamNeighbors returns the requirement IDs that the given requirement
- traces TO — its parents/upstream requirements. Returns nil if not found.
+traces TO — its parents/upstream requirements. Returns nil if not found.
 
 #### IMP-graph-DownstreamNeighbors-21bdb76: DownstreamNeighbors
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1501
+x-reqmd.source-line: 1524
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 DownstreamNeighbors returns the requirement IDs that trace TO the given
- requirement — its children/downstream requirements. Returns nil if not found.
+requirement — its children/downstream requirements. Returns nil if not found.
 
 #### IMP-graph-ResolveTraceRef-89c568f: ResolveTraceRef
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1514
+x-reqmd.source-line: 1537
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 ResolveTraceRef resolves a raw trace reference (as written in the
- `trace` attribute, before pin stripping) to the bare requirement ID it
- points at, using the same rules New uses: a `doc-id/ID` prefix resolves
- through document-ids, falling back to a directory path; a bare ID
- resolves globally. ok is false for a dangling or ambiguous-everywhere
- reference. Callers that need dangling refs keep the raw string.
+`trace` attribute, before pin stripping) to the bare requirement ID it
+points at, using the same rules New uses: a `doc-id/ID` prefix resolves
+through document-ids, falling back to a directory path; a bare ID
+resolves globally. ok is false for a dangling or ambiguous-everywhere
+reference. Callers that need dangling refs keep the raw string.
 
 #### IMP-graph-Documents-61288d7: Documents
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1538
+x-reqmd.source-line: 1561
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 Documents returns the document slice the graph was built from, in the
- order given to New. Exports and reporters use it to look up authored
- metadata (attributes, titles) that the cached node view does not carry.
+order given to New. Exports and reporters use it to look up authored
+metadata (attributes, titles) that the cached node view does not carry.
 
 #### IMP-graph-RepinDeltas-c2e94c2: RepinDeltas
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1588
+x-reqmd.source-line: 1611
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 RepinDeltas computes the list of version-pin changes the repin
- command would propose (or apply) against this graph.
+command would propose (or apply) against this graph.
 
- Without promoteUnpinned, only outdated findings are returned —
- refs whose pin is strictly below the upstream's current version.
- Predated findings (pin strictly above upstream version) are
- surfaced separately so the user can see them; repin never
- auto-fixes a predated pin because it is a data integrity error,
- not a process error.
+Without promoteUnpinned, only outdated findings are returned —
+refs whose pin is strictly below the upstream's current version.
+Predated findings (pin strictly above upstream version) are
+surfaced separately so the user can see them; repin never
+auto-fixes a predated pin because it is a data integrity error,
+not a process error.
 
- With promoteUnpinned=true, refs that have no pin at all
- (`~N` not present in the source) against a versioned upstream
- also produce a delta. This converts "no claim" into "claimed at
- current version" — the caller is expected to opt in deliberately.
+With promoteUnpinned=true, refs that have no pin at all
+(`~N` not present in the source) against a versioned upstream
+also produce a delta. This converts "no claim" into "claimed at
+current version" — the caller is expected to opt in deliberately.
 
- Rules shared with checkVersionPins:
+Rules shared with checkVersionPins:
    - Skip synthetic nodes (result pseudo-requirements and future
      synthesized test cases — they exist in memory only, so there is no
      source file to rewrite). IsResult is kept for nodes built directly
@@ -1045,58 +1133,59 @@ RepinDeltas computes the list of version-pin changes the repin
    - Skip refs whose target is external (versions out of our control).
    - Skip refs whose target has no version (no ground truth).
 
- Returns deltas sorted for stable output: by source file, then
- requirement ID, then source ref.
+Returns deltas sorted for stable output: by source file, then
+requirement ID, then source ref.
 
 #### IMP-graph-isCoverageProvider-9153780: isCoverageProvider
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1657
+x-reqmd.source-line: 1680
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 isCoverageProvider reports whether a node counts as a valid upstream
- coverage source for downstream requirements. A node is a coverage
- provider when its document has opted out of the status lifecycle
- (x-reqmd.ignore-status) or its effective status is "approved".
+coverage source for downstream requirements. A node is a coverage
+provider when its document has opted out of the status lifecycle
+(x-reqmd.ignore-status) or its effective status is "approved".
 
 #### IMP-graph-checkDisjointAttribute-013f99b: checkDisjointAttribute
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1677
+x-reqmd.source-line: 1700
 x-reqmd.symbol-kind: method
 trace: []
 ```
 
 checkDisjointAttribute verifies that for every trace link, the source and
- target requirements have at least one overlapping value for each declared
- disjoint-check attribute. Requirements with an empty/absent value for the
- attribute are exempt ("applies to all"). Both non-empty with zero
- intersection → ERROR. Filter-aware: only checks source reqs in the active
- filter set.
+target requirements have at least one overlapping value for each declared
+disjoint-check attribute. Requirements with an empty/absent value for the
+attribute are exempt ("applies to all"). Both non-empty with zero
+intersection → ERROR. Filter-aware: only checks source reqs in the active
+filter set.
 
 ### IMP-graph-New-16672c9: New
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 172
+x-reqmd.source-line: 174
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - SW-GRA-001
 ```
 
 reqmd:trace SW-GRA-001
- New builds a pure Go in-memory adjacency graph from all parsed documents.
- It creates one CachedNode per requirement and populates Inbound/Outbound
- adjacency from trace attributes. Broken trace references (target ID not
- found in any document) are collected as WARNING results.
+New builds a pure Go in-memory adjacency graph from all parsed documents.
+It creates one CachedNode per requirement and populates Inbound/Outbound
+adjacency from trace attributes. Broken trace references (target ID not
+found in any document) are collected as WARNING results.
 
- Trace reference resolution:
+Trace reference resolution:
    - "doc-id/ID" — prefix is resolved as a document-id first, falling back
      to a directory path if no matching document-id is found.
    - "ID" — resolved against the global ID map; emits an ERROR ambiguity
@@ -1107,37 +1196,37 @@ reqmd:trace SW-GRA-001
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1095
+x-reqmd.source-line: 1100
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 expectsVerification reports whether a measure's disposition still expects
- verification results. A deferred or rejected measure is not expected to be
- verified, so it is exempt from the outcome-gated checks (mirroring how
- such dispositions suppress the generic trace warnings).
+verification results. A deferred or rejected measure is not expected to be
+verified, so it is exempt from the outcome-gated checks (mirroring how
+such dispositions suppress the generic trace warnings).
 
 ### IMP-graph-severity-8c8004a: severity
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1110
+x-reqmd.source-line: 1115
 x-reqmd.symbol-kind: type
 trace: []
 ```
 
 Evidence-set roll-up (strict aggregation)
- severity ranks verification outcomes for strict roll-up aggregation:
- any fail → fail, else inconclusive → inconclusive, else skipped →
- skipped, else pass; an empty evidence set has severity none.
+severity ranks verification outcomes for strict roll-up aggregation:
+any fail → fail, else inconclusive → inconclusive, else skipped →
+skipped, else pass; an empty evidence set has severity none.
 
 ### IMP-graph-sevFail-dc8e7f9: sevFail
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1112
+x-reqmd.source-line: 1117
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1147,7 +1236,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1112
+x-reqmd.source-line: 1117
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1157,7 +1246,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1112
+x-reqmd.source-line: 1117
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1167,7 +1256,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1112
+x-reqmd.source-line: 1117
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1177,7 +1266,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1112
+x-reqmd.source-line: 1117
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1187,7 +1276,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1121
+x-reqmd.source-line: 1126
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1199,7 +1288,7 @@ outcomeSeverity maps an outcome string onto the severity lattice.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1137
+x-reqmd.source-line: 1142
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1211,54 +1300,66 @@ severityOutcome maps a severity back to its outcome string ("" for none).
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1157
+x-reqmd.source-line: 1162
 x-reqmd.symbol-kind: type
 trace: []
 ```
 
 EvidenceItem is one verification result contributing to a measure's
- evidence set: its case key ("" for direct, uncased results), outcome,
- source report file, and the synthesized test case's Markdown description
- (empty for direct results and authored test cases).
+evidence set: its case key ("" for direct, uncased results), outcome,
+source report file, and the synthesized test case's Markdown description
+(empty for direct results and authored test cases).
+
+### IMP-graph-evidenceResult-18730a5: evidenceResult
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/graph.go
+x-reqmd.source-line: 1197
+x-reqmd.symbol-kind: type
+trace: []
+```
+
+evidenceResult is the memoized outcome of measureEvidence.
 
 ### IMP-graph-NodeVerdict-84bafd6: NodeVerdict
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1391
+x-reqmd.source-line: 1414
 x-reqmd.symbol-kind: type
 trace: []
 ```
 
 NodeVerdict is the rolled-up verdict and a representative result source
- file for a single node, resolved by the graph. It feeds exporters and
- reporters; Outcome is the strict roll-up over the node's evidence set
- (own attached results plus approved downstream test cases), and Evidence
- lists the deduplicated items that make up that set (case, outcome, file,
- description).
+file for a single node, resolved by the graph. It feeds exporters and
+reporters; Outcome is the strict roll-up over the node's evidence set
+(own attached results plus approved downstream test cases), and Evidence
+lists the deduplicated items that make up that set (case, outcome, file,
+description).
 
 ### IMP-graph-sortedKeys-5e2bad4: sortedKeys
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1472
+x-reqmd.source-line: 1495
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 sortedKeys returns the keys of a string-keyed map in sorted order.
- Map iteration order is randomized in Go, so any code path that turns a
- map into an ordered result (findings, listings) must sort to stay
- deterministic.
+Map iteration order is randomized in Go, so any code path that turns a
+map into an ordered result (findings, listings) must sort to stay
+deterministic.
 
 ### IMP-graph-CodeDisjointAttribute-443a7cc: CodeDisjointAttribute
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1669
+x-reqmd.source-line: 1692
 x-reqmd.symbol-kind: const
 trace: []
 ```
@@ -1270,25 +1371,25 @@ CodeDisjointAttribute is the check code for the disjoint-attribute check.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1746
+x-reqmd.source-line: 1769
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 intersects reports whether two string slices have at least one element
- in common. Both slices are assumed non-empty.
+in common. Both slices are assumed non-empty.
 
 ### IMP-graph-CollectDisjointAttrs-e44228b: CollectDisjointAttrs
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph.go
-x-reqmd.source-line: 1762
+x-reqmd.source-line: 1785
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 CollectDisjointAttrs merges disjoint-check attribute names from CLI flags
- and x-reqmd.disjoint-check schema declarations into a sorted,
- deduplicated slice. Returns nil when nothing is configured.
+and x-reqmd.disjoint-check schema declarations into a sorted,
+deduplicated slice. Returns nil when nothing is configured.
 

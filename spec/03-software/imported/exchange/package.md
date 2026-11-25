@@ -14,7 +14,7 @@ trace: []
 ```
 
 maxProblems caps how many violations one run reports, so a large broken
- bundle produces a readable list instead of thousands of lines.
+bundle produces a readable list instead of thousands of lines.
 
 ### IMP-exchange-maxRenderDepth-376c8d1: maxRenderDepth
 ```attr
@@ -27,8 +27,8 @@ trace: []
 ```
 
 maxRenderDepth is the deepest nesting the renderer accepts: depth 0 renders
- "##", so depth 4 is "######" and depth 5 would be seven hashes, which
- CommonMark does not treat as a heading.
+"##", so depth 4 is "######" and depth 5 would be seven hashes, which
+CommonMark does not treat as a heading.
 
 ### IMP-exchange-Options-676fff4: Options
 ```attr
@@ -53,7 +53,7 @@ trace: []
 ```
 
 ValidationError reports every violation found in one pass. Producers fix a
- batch, not one error at a time.
+batch, not one error at a time.
 
 #### IMP-exchange-Error-422078f: Error
 ```attr
@@ -120,7 +120,7 @@ trace: []
 ```
 
 totalProblems reports how many violations were seen, including the ones
- dropped by the cap.
+dropped by the cap.
 
 #### IMP-exchange-validateDocument-9261b7b: validateDocument
 ```attr
@@ -217,7 +217,7 @@ trace: []
 ```
 
 renderItems flattens the item tree into render order, resolving IDs, links,
- the status mapping and each item's heading depth.
+the status mapping and each item's heading depth.
 
 #### IMP-exchange-mapStatus-97e68a8: mapStatus
 ```attr
@@ -230,7 +230,7 @@ trace: []
 ```
 
 mapStatus returns the reqmd status to render and, when the source value could
- not be mapped, the original value to preserve as provenance.
+not be mapped, the original value to preserve as provenance.
 
 #### IMP-exchange-buildRefIndex-d719c53: buildRefIndex
 ```attr
@@ -285,7 +285,7 @@ trace: []
 ```
 
 isReqmdStatus reports whether a value is a status reqmd can carry: a built-in
- or a valid x-reqmd.additional-status-values token.
+or a valid x-reqmd.additional-status-values token.
 
 ### IMP-exchange-refIndex-4488c29: refIndex
 ```attr
@@ -298,7 +298,7 @@ trace: []
 ```
 
 refIndex maps a key to the reqmd ID of the requirement it names, per document
- key, so cross-document links resolve.
+key, so cross-document links resolve.
 
 ### IMP-exchange-qualifyRef-44316ee: qualifyRef
 ```attr
@@ -311,8 +311,8 @@ trace: []
 ```
 
 qualifyRef renders a cross-document trace ref. reqmd resolves
- "<document-id>/<id>", falling back to "<dir>/<id>", so the emitted ref uses
- the target's document-id when it has one and its directory otherwise.
+"<document-id>/<id>", falling back to "<dir>/<id>", so the emitted ref uses
+the target's document-id when it has one and its directory otherwise.
 
 ### IMP-exchange-add-8d99cc1: add
 ```attr
@@ -325,7 +325,7 @@ trace: []
 ```
 
 add appends a rendered file, rejecting a second document claiming the same
- output path.
+output path.
 
 ### IMP-exchange-docName-cb3f89f: docName
 ```attr
@@ -348,8 +348,8 @@ trace: []
 ```
 
 itemLabel is how an item is addressed in an error message: its title when it
- has one (that is what a producer or reviewer recognises), else its key, else
- a placeholder for a headingless block.
+has one (that is what a producer or reviewer recognises), else its key, else
+a placeholder for a headingless block.
 
 ### IMP-exchange-cutDocRef-77c5799: cutDocRef
 ```attr
@@ -374,8 +374,8 @@ trace: []
 ```
 
 checkSingleLine rejects a producer string that would break the one-line
- structure of a heading or document title: a line break injects extra Markdown
- lines and can steal the attr block of the next item.
+structure of a heading or document title: a line break injects extra Markdown
+lines and can steal the attr block of the next item.
 
 ### IMP-exchange-checkAttrKey-f4ed8b0: checkAttrKey
 ```attr
@@ -388,9 +388,9 @@ trace: []
 ```
 
 checkAttrKey rejects an attribute name that cannot be written as "key: value".
- reqmd's attr scanner splits each line at the first colon and never unquotes
- keys, so a key containing a colon would silently arrive under a different
- name ("a:b: v" is read as attribute "a").
+reqmd's attr scanner splits each line at the first colon and never unquotes
+keys, so a key containing a colon would silently arrive under a different
+name ("a:b: v" is read as attribute "a").
 
 ### IMP-exchange-checkScalarValue-ef036e3: checkScalarValue
 ```attr
@@ -403,7 +403,7 @@ trace: []
 ```
 
 checkScalarValue rejects an attribute value the renderer cannot write: reqmd
- attr blocks hold scalars and flat lists of scalars, never nested structures.
+attr blocks hold scalars and flat lists of scalars, never nested structures.
 
 ### IMP-exchange-cleanRelDir-6f2bf1d: cleanRelDir
 ```attr
@@ -416,7 +416,7 @@ trace: []
 ```
 
 cleanRelDir normalizes a document directory and rejects paths that escape the
- output root.
+output root.
 
 ### IMP-exchange-cleanFileName-82ff162: cleanFileName
 ```attr
@@ -429,7 +429,7 @@ trace: []
 ```
 
 cleanFileName rejects a .md name that is not a plain file name in the
- document directory.
+document directory.
 
 ## reqmd-import/exchange/build_test.go
 ### IMP-exchange-bundle-0de44b2: bundle
@@ -479,7 +479,7 @@ trace: []
 ```
 
 wantProblems asserts that every fragment appears in the error report, i.e.
- that violations are batched rather than reported one at a time.
+that violations are batched rather than reported one at a time.
 
 ### IMP-exchange-TestBuild_RendersDocument-7fc2521: TestBuild_RendersDocument
 ```attr
@@ -502,7 +502,7 @@ trace: []
 ```
 
 TestBuild_NestedSectionsAndDepth covers the tree: a section renders a heading
- with children one level deeper, and no attr block.
+with children one level deeper, and no attr block.
 
 ### IMP-exchange-TestBuild_LinksResolve-10292b4: TestBuild_LinksResolve
 ```attr
@@ -515,7 +515,7 @@ trace: []
 ```
 
 TestBuild_LinksResolve covers document-local and cross-document links: a link
- becomes a trace ref, qualified by the target document's id when it has one.
+becomes a trace ref, qualified by the target document's id when it has one.
 
 ### IMP-exchange-TestBuild_CrossDocumentLinkFallsBackToDir-aa509d7: TestBuild_CrossDocumentLinkFallsBackToDir
 ```attr
@@ -528,7 +528,7 @@ trace: []
 ```
 
 TestBuild_CrossDocumentLinkFallsBackToDir covers a target document without a
- document-id: reqmd resolves "<dir>/<id>", so the ref must use the dir.
+document-id: reqmd resolves "<dir>/<id>", so the ref must use the dir.
 
 ### IMP-exchange-TestBuild_StatusMapping-48d7331: TestBuild_StatusMapping
 ```attr
@@ -541,8 +541,8 @@ trace: []
 ```
 
 TestBuild_StatusMapping covers the renderer-side status map: a mapped value is
- used and extends the document enum; an unmapped one falls back to the default
- and keeps the original as provenance.
+used and extends the document enum; an unmapped one falls back to the default
+and keeps the original as provenance.
 
 ### IMP-exchange-TestBuild_SchemaOnlyDocument-3ae4b47: TestBuild_SchemaOnlyDocument
 ```attr
@@ -587,7 +587,7 @@ trace: []
 ```
 
 TestBuild_BatchesViolations is the core producer-facing guarantee: every
- violation is reported in one run instead of one at a time.
+violation is reported in one run instead of one at a time.
 
 ### IMP-exchange-TestBuild_ValidationRules-5c56e6f: TestBuild_ValidationRules
 ```attr
@@ -618,7 +618,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 461
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Decode-a1934ec
 ```
 
 ### IMP-exchange-TestDecodeRejectsTrailingData-e75bfe0: TestDecodeRejectsTrailingData
@@ -628,7 +629,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 479
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Decode-a1934ec
 ```
 
 ### IMP-exchange-TestBuild_IsIdempotent-929e54c: TestBuild_IsIdempotent
@@ -642,7 +644,7 @@ trace: []
 ```
 
 TestBuild_IsIdempotent verifies byte-determinism: the same bundle renders the
- same bytes, so re-running an import is a no-op.
+same bytes, so re-running an import is a no-op.
 
 ### IMP-exchange-TestValidationError_ListsEveryProblem-fbe4c3d: TestValidationError_ListsEveryProblem
 ```attr
@@ -651,7 +653,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 525
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-ValidationError-1f2139d
 ```
 
 TestValidationError_ListsEveryProblem pins the report shape producers rely on.
@@ -668,8 +671,8 @@ trace: []
 ```
 
 SchemaURL is the value a bundle must declare in its "$schema" field. It is
- also the identity of the format: a breaking change moves to a new URL
- instead of growing an in-place version.
+also the identity of the format: a breaking change moves to a new URL
+instead of growing an in-place version.
 
 ### IMP-exchange-KindRequirement-90a4237: KindRequirement
 ```attr
@@ -682,7 +685,7 @@ trace: []
 ```
 
 Item kinds. A requirement renders a heading plus an attr block and takes part
- in validation, tracing and coverage; a section renders structure only.
+in validation, tracing and coverage; a section renders structure only.
 
 ### IMP-exchange-KindSection-131ac5b: KindSection
 ```attr
@@ -695,7 +698,7 @@ trace: []
 ```
 
 Item kinds. A requirement renders a heading plus an attr block and takes part
- in validation, tracing and coverage; a section renders structure only.
+in validation, tracing and coverage; a section renders structure only.
 
 ### IMP-exchange-maxDepth-8eb5541: maxDepth
 ```attr
@@ -708,8 +711,8 @@ trace: []
 ```
 
 maxDepth bounds bundle nesting at decode time. The renderer separately
- rejects anything deeper than six heading levels; this guard only keeps a
- hostile bundle from exhausting the stack.
+rejects anything deeper than six heading levels; this guard only keeps a
+hostile bundle from exhausting the stack.
 
 ### IMP-exchange-Bundle-18665d2: Bundle
 ```attr
@@ -722,7 +725,7 @@ trace: []
 ```
 
 Bundle is the top-level exchange document: the documents to render, in
- output order.
+output order.
 
 ### IMP-exchange-Document-dfafec7: Document
 ```attr
@@ -735,7 +738,7 @@ trace: []
 ```
 
 Document describes one reqmd document directory: one schema.yaml plus, when
- it has items, one .md file.
+it has items, one .md file.
 
 ### IMP-exchange-XReqmd-eb3fed7: XReqmd
 ```attr
@@ -748,7 +751,7 @@ trace: []
 ```
 
 XReqmd is every reqmd-specific decision for one document. A producer that
- only knows the neutral part of the format omits it.
+only knows the neutral part of the format omits it.
 
 ### IMP-exchange-Upstream-39ed6e7: Upstream
 ```attr
@@ -773,8 +776,8 @@ trace: []
 ```
 
 Item is one content item. Nesting replaces a parent pointer entirely: a child
- cannot reference a missing parent, cannot be listed before it, and cannot
- form a cycle.
+cannot reference a missing parent, cannot be listed before it, and cannot
+form a cycle.
 
 ### IMP-exchange-Decode-a1934ec: Decode
 ```attr
@@ -787,8 +790,8 @@ trace: []
 ```
 
 Decode reads one exchange bundle. Unknown fields are rejected so a producer
- typo fails loudly instead of silently dropping data, and nesting deeper than
- maxDepth is refused before it can exhaust the stack.
+typo fails loudly instead of silently dropping data, and nesting deeper than
+maxDepth is refused before it can exhaust the stack.
 
 ### IMP-exchange-checkNesting-2671524: checkNesting
 ```attr
@@ -814,9 +817,9 @@ trace: []
 ```
 
 schemaPath is the published contract this format claims to implement. The
- fixtures below are the shared corpus a third-party producer can copy: every
- valid bundle must satisfy both the schema (shape) and Build (semantics), and
- every invalid bundle names the rule it breaks.
+fixtures below are the shared corpus a third-party producer can copy: every
+valid bundle must satisfy both the schema (shape) and Build (semantics), and
+every invalid bundle names the rule it breaks.
 
 ### IMP-exchange-validFixtures-200e162: validFixtures
 ```attr
@@ -841,9 +844,9 @@ trace: []
 ```
 
 invalidFixtures must be rejected. Which rule each one breaks, and with which
- message, is asserted once in build_test.go: the corpus's job is that the
- published schema and the renderer agree about what is legal, not to restate
- the wording of every error.
+message, is asserted once in build_test.go: the corpus's job is that the
+published schema and the renderer agree about what is legal, not to restate
+the wording of every error.
 
 ### IMP-exchange-TestFixtures_SchemaAcceptsValidBundles-86a7784: TestFixtures_SchemaAcceptsValidBundles
 ```attr
@@ -856,7 +859,7 @@ trace: []
 ```
 
 TestFixtures_SchemaAcceptsValidBundles is the neutrality check: the published
- schema alone accepts every well-formed bundle, with no Go-specific knowledge.
+schema alone accepts every well-formed bundle, with no Go-specific knowledge.
 
 ### IMP-exchange-TestFixtures_ValidBundlesBuild-54be37a: TestFixtures_ValidBundlesBuild
 ```attr
@@ -881,8 +884,8 @@ trace: []
 ```
 
 TestFixtures_InvalidBundlesAreRejected verifies the corpus's negative half:
- nothing in it renders. A rejection at decode time (unknown field, nesting
- guard) counts the same as one at build time — both are loud.
+nothing in it renders. A rejection at decode time (unknown field, nesting
+guard) counts the same as one at build time — both are loud.
 
 ### IMP-exchange-readFixture-e1b130f: readFixture
 ```attr
@@ -908,11 +911,11 @@ trace: []
 ```
 
 This file holds the structural assertions the rendering tests use instead of
- substring matching. A rendered document is asserted through its outline —
- heading level, heading text, and the parsed attr block — so a change in
- formatting (spacing, quoting style, key order) does not break a test that is
- really about structure, while a change in nesting or identity does.
- outlineHeading is one rendered heading.
+substring matching. A rendered document is asserted through its outline —
+heading level, heading text, and the parsed attr block — so a change in
+formatting (spacing, quoting style, key order) does not break a test that is
+really about structure, while a change in nesting or identity does.
+outlineHeading is one rendered heading.
 
 ### IMP-exchange-outline-e94c7e4: outline
 ```attr
@@ -925,8 +928,8 @@ trace: []
 ```
 
 outline parses a rendered document into its headings. It only understands the
- shape the renderer produces (ATX headings, opaque ```attr blocks), which is
- exactly what the assertions need.
+shape the renderer produces (ATX headings, opaque ```attr blocks), which is
+exactly what the assertions need.
 
 ### IMP-exchange-atxLevel-450428d: atxLevel
 ```attr
@@ -951,7 +954,7 @@ trace: []
 ```
 
 heading returns the outline entry whose text contains want, failing when it
- is absent or ambiguous.
+is absent or ambiguous.
 
 ### IMP-exchange-attrString-c97aca4: attrString
 ```attr

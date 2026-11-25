@@ -27,15 +27,15 @@ trace: []
 
 builtinDefs is the canonical list of all reqmd built-in attributes.
 
- Order defines the display order: trace first (most common), then the
- remaining attributes in the order they were added to the tool.
+Order defines the display order: trace first (most common), then the
+remaining attributes in the order they were added to the tool.
 
 ### IMP-schema-builtinSet-7d54e71: builtinSet
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
-x-reqmd.source-line: 84
+x-reqmd.source-line: 87
 x-reqmd.symbol-kind: var
 trace: []
 ```
@@ -47,7 +47,7 @@ builtinSet is a name → true map for fast lookup.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
-x-reqmd.source-line: 86
+x-reqmd.source-line: 89
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -57,7 +57,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
-x-reqmd.source-line: 94
+x-reqmd.source-line: 97
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -69,35 +69,35 @@ IsBuiltin returns true if name is a reserved reqmd built-in attribute.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
-x-reqmd.source-line: 101
+x-reqmd.source-line: 104
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 RejectBuiltinRedefinition checks a user schema's attrs map for any
- attribute names that are reserved by reqmd. Returns an error listing
- all redefined names, or nil if the schema is clean.
+attribute names that are reserved by reqmd. Returns an error listing
+all redefined names, or nil if the schema is clean.
 
 ### IMP-schema-BuiltinPropertyDefs-06f06a6: BuiltinPropertyDefs
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
-x-reqmd.source-line: 118
+x-reqmd.source-line: 121
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 BuiltinPropertyDefs returns a JSON Schema properties map containing
- all built-in attribute definitions. The returned map can be merged
- into a schema's "properties" field.
+all built-in attribute definitions. The returned map can be merged
+into a schema's "properties" field.
 
 ### IMP-schema-BuiltinNames-55fc6b1: BuiltinNames
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
-x-reqmd.source-line: 127
+x-reqmd.source-line: 130
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -109,17 +109,17 @@ BuiltinNames returns the sorted list of built-in attribute names.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
-x-reqmd.source-line: 142
+x-reqmd.source-line: 145
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 InjectBuiltins adds all built-in property definitions to the given
- JSON Schema map's "properties" field, creating it if needed.
- It does not modify the schema's "required" list — built-ins are
- always optional.
+JSON Schema map's "properties" field, creating it if needed.
+It does not modify the schema's "required" list — built-ins are
+always optional.
 
- Must be called after Normalize and before Compile (JSON marshal).
+Must be called after Normalize and before Compile (JSON marshal).
 
 ## internal/schema/builtin_test.go
 ### IMP-schema-TestIsBuiltin-fb6a98f: TestIsBuiltin
@@ -129,7 +129,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 8
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-IsBuiltin-11dd61b
 ```
 
 ### IMP-schema-TestRejectBuiltinRedefinition_Empty-9f4ed04: TestRejectBuiltinRedefinition_Empty
@@ -139,7 +140,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 32
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-RejectBuiltinRedefinition-4335d76
 ```
 
 ### IMP-schema-TestRejectBuiltinRedefinition_Clean-0f42f8c: TestRejectBuiltinRedefinition_Clean
@@ -149,7 +151,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 41
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-RejectBuiltinRedefinition-4335d76
 ```
 
 ### IMP-schema-TestRejectBuiltinRedefinition_RejectsBuiltins-f038a39: TestRejectBuiltinRedefinition_RejectsBuiltins
@@ -159,7 +162,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 51
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-RejectBuiltinRedefinition-4335d76
 ```
 
 ### IMP-schema-TestBuiltinPropertyDefs-2f44e2a: TestBuiltinPropertyDefs
@@ -169,7 +173,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 68
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-BuiltinPropertyDefs-06f06a6
 ```
 
 ### IMP-schema-TestBuiltinNames-9684d55: TestBuiltinNames
@@ -179,7 +184,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 80
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-BuiltinNames-55fc6b1
 ```
 
 ### IMP-schema-TestInjectBuiltins_EmptySchema-8a82c34: TestInjectBuiltins_EmptySchema
@@ -189,7 +195,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 94
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-InjectBuiltins-a14f691
 ```
 
 ### IMP-schema-TestInjectBuiltins_ExistingProps-9e6cff3: TestInjectBuiltins_ExistingProps
@@ -199,7 +206,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 109
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-InjectBuiltins-a14f691
 ```
 
 ### IMP-schema-TestRejectBuiltinRedefinition_JSONSchema-0525396: TestRejectBuiltinRedefinition_JSONSchema
@@ -209,7 +217,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 130
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-RejectBuiltinRedefinition-4335d76
 ```
 
 ### IMP-schema-TestBuiltinNames_IncludesStatus-b611ee1: TestBuiltinNames_IncludesStatus
@@ -219,7 +228,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
 x-reqmd.source-line: 149
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-BuiltinNames-55fc6b1
 ```
 
 T1: BuiltinNames must include "status".
@@ -235,15 +245,29 @@ trace: []
 ```
 
 T2: Compile injects the built-in `status` attribute with the canonical
- enum [draft, approved] into an empty schema. A subsequent validate
- accepts both values and rejects everything else.
+enum [draft, approved] into an empty schema. A subsequent validate
+accepts both values and rejects everything else.
+
+### IMP-schema-TestTrace_BuiltInPattern-9876d61: TestTrace_BuiltInPattern
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/schema/builtin_test.go
+x-reqmd.source-line: 185
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+TestTrace_BuiltInPattern pins the trace item shape: authored IDs stay
+strict (a lowercase typo is a validation error), while source-proxy IDs
+(`IMP-<pkg>-<Symbol>-<7hex>`) are accepted so a test can trace to one.
 
 ### IMP-schema-contains-eebd9c5: contains
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
-x-reqmd.source-line: 182
+x-reqmd.source-line: 224
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -253,7 +277,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
-x-reqmd.source-line: 186
+x-reqmd.source-line: 228
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -282,8 +306,8 @@ trace: []
 ```
 
 PropertyNames returns the ordered list of property names from the schema:
- required fields first (in schema order), then optional fields
- alphabetically, then built-in attributes at the end.
+required fields first (in schema order), then optional fields
+alphabetically, then built-in attributes at the end.
 
 #### IMP-schema-Validate-dc2b0c7: Validate
 ```attr
@@ -308,8 +332,8 @@ trace: []
 ```
 
 Compile validates the schema, injects built-in attrs, and compiles it
- against JSON Schema 2020-12. schemaPath is the directory containing the
- schema file.
+against JSON Schema 2020-12. schemaPath is the directory containing the
+schema file.
 
 ### IMP-schema-statusAdditionPattern-9bc9ec4: statusAdditionPattern
 ```attr
@@ -322,8 +346,8 @@ trace: []
 ```
 
 statusAdditionPattern matches the lowercase-only requirement for
- x-reqmd.additional-status-values entries: starts with a lowercase letter,
- then lowercase letters, digits, hyphen, or underscore.
+x-reqmd.additional-status-values entries: starts with a lowercase letter,
+then lowercase letters, digits, hyphen, or underscore.
 
 ### IMP-schema-requiresTraceFromTokenPattern-04bb454: requiresTraceFromTokenPattern
 ```attr
@@ -336,8 +360,8 @@ trace: []
 ```
 
 requiresTraceFromTokenPattern mirrors the built-in requires-trace-from
- item pattern: lowercase letters, digits, hyphen, or underscore. Document
- defaults name document-ids or levels, which follow the same shape.
+item pattern: lowercase letters, digits, hyphen, or underscore. Document
+defaults name document-ids or levels, which follow the same shape.
 
 ### IMP-schema-collectRequiresTraceFromDefault-9bf7ba8: collectRequiresTraceFromDefault
 ```attr
@@ -350,11 +374,11 @@ trace: []
 ```
 
 collectRequiresTraceFromDefault reads x-reqmd.requires-trace-from (the
- document-wide default coverage expectation) from a normalized schema map,
- validates each token, and returns the cleaned slice. A bare string is
- accepted and treated as a one-token list. The empty list is allowed (it
- means every requirement in the document opts out of downstream coverage).
- Returns nil (no error) when the key is absent.
+document-wide default coverage expectation) from a normalized schema map,
+validates each token, and returns the cleaned slice. A bare string is
+accepted and treated as a one-token list. The empty list is allowed (it
+means every requirement in the document opts out of downstream coverage).
+Returns nil (no error) when the key is absent.
 
 ### IMP-schema-collectStatusAdditions-f44c619: collectStatusAdditions
 ```attr
@@ -367,10 +391,10 @@ trace: []
 ```
 
 collectStatusAdditions reads x-reqmd.additional-status-values from a
- normalized schema map, validates each entry (lowercase only, no
- duplication, no built-in collision), and returns the cleaned slice.
- Returns nil (no error) when the field is absent or empty — empty
- additions are a no-op.
+normalized schema map, validates each entry (lowercase only, no
+duplication, no built-in collision), and returns the cleaned slice.
+Returns nil (no error) when the field is absent or empty — empty
+additions are a no-op.
 
 ### IMP-schema-applyStatusAdditions-c04654b: applyStatusAdditions
 ```attr
@@ -383,8 +407,8 @@ trace: []
 ```
 
 applyStatusAdditions appends the validated extension values to the
- built-in `status` enum in the schema's properties. Called after
- InjectBuiltins so the built-in definition is already present.
+built-in `status` enum in the schema's properties. Called after
+InjectBuiltins so the built-in definition is already present.
 
 ### IMP-schema-orderedPropertyNames-3c943f8: orderedPropertyNames
 ```attr
@@ -397,10 +421,10 @@ trace: []
 ```
 
 orderedPropertyNames is the single implementation of the property-order
- convention: required fields in schema order, then remaining property
- keys sorted alphabetically, then built-in attribute names not already
- listed. Shared by PropertyNames (compiled schema) and ExtractProperties
- (raw schema map) so the ordering rule lives in one place.
+convention: required fields in schema order, then remaining property
+keys sorted alphabetically, then built-in attribute names not already
+listed. Shared by PropertyNames (compiled schema) and ExtractProperties
+(raw schema map) so the ordering rule lives in one place.
 
 ### IMP-schema-propertyKeySet-9047e5c: propertyKeySet
 ```attr
@@ -413,8 +437,8 @@ trace: []
 ```
 
 propertyKeySet converts a property map (either form) into a key set for
- orderedPropertyNames. The compiled schema uses *jsonschema.Schema
- values, the raw map uses any.
+orderedPropertyNames. The compiled schema uses *jsonschema.Schema
+values, the raw map uses any.
 
 ### IMP-schema-Normalize-45f2527: Normalize
 ```attr
@@ -427,8 +451,8 @@ trace: []
 ```
 
 Normalize validates a schema and checks for built-in redefinition.
- The schema must be valid JSON Schema 2020-12 (in YAML map form).
- It is returned as-is; built-in attrs are injected later by Compile.
+The schema must be valid JSON Schema 2020-12 (in YAML map form).
+It is returned as-is; built-in attrs are injected later by Compile.
 
 ### IMP-schema-ExtractProperties-cf4b9c4: ExtractProperties
 ```attr
@@ -441,9 +465,9 @@ trace: []
 ```
 
 ExtractProperties extracts property order from a raw JSON Schema map.
- Uses the google/jsonschema-go library to parse the schema struct.
- Required fields first (in schema's required order), then optional
- fields alphabetically, then built-in attributes at the end.
+Uses the google/jsonschema-go library to parse the schema struct.
+Required fields first (in schema's required order), then optional
+fields alphabetically, then built-in attributes at the end.
 
 ### IMP-schema-Title-85fc48a: Title
 ```attr
@@ -456,7 +480,7 @@ trace: []
 ```
 
 Title extracts a human-readable title from a parsed schema.
- Uses "$id — title", "$id", or "title" from the JSON Schema.
+Uses "$id — title", "$id", or "title" from the JSON Schema.
 
 ### IMP-schema-ExtractXReqmd-ba67a24: ExtractXReqmd
 ```attr
@@ -469,7 +493,7 @@ trace: []
 ```
 
 ExtractXReqmd reads the x-reqmd extension block from a parsed schema.
- Returns nil if the key is absent. All fields are optional.
+Returns nil if the key is absent. All fields are optional.
 
 ## internal/schema/schema_test.go
 ### IMP-schema-validSchema-2914ec9: validSchema
@@ -491,7 +515,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 28
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 ### IMP-schema-TestCompile_BadSchema-b42fe2a: TestCompile_BadSchema
@@ -501,7 +526,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 39
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 ### IMP-schema-TestValidate_ValidAttrs-90b6e61: TestValidate_ValidAttrs
@@ -601,13 +627,14 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 219
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 Status built-in: extension mechanism (additional-status-values)
- T8 / T17: additional-status-values accepted and applied to the built-in
- `status` enum. Empty array is a no-op (T17), values extend the enum
- (T8) so the validator accepts them.
+T8 / T17: additional-status-values accepted and applied to the built-in
+`status` enum. Empty array is a no-op (T17), values extend the enum
+(T8) so the validator accepts them.
 
 ### IMP-schema-TestCompile_StatusAdditionsEmptyIsNoop-4cd6cc2: TestCompile_StatusAdditionsEmptyIsNoop
 ```attr
@@ -616,7 +643,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 242
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 ### IMP-schema-TestCompile_StatusAdditionsRejectsBuiltins-6a05643: TestCompile_StatusAdditionsRejectsBuiltins
@@ -626,7 +654,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 257
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 T9: built-in collision rejected as config-error.
@@ -638,7 +667,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 274
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 T10: capitalized additions rejected (lowercase-only is config-error).
@@ -650,7 +680,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 295
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 T18: duplicate additions rejected.
@@ -662,11 +693,12 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 314
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 T12: user schema with `properties: {status: ...}` triggers the
- built-in redefinition check.
+built-in redefinition check.
 
 ### IMP-schema-TestCompile_AdditionalPropertiesFalseAcceptsBuiltInStatus-19061c7: TestCompile_AdditionalPropertiesFalseAcceptsBuiltInStatus
 ```attr
@@ -675,13 +707,14 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 335
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 T15: schemas with `additionalProperties: false` (e.g. 00-aspice,
- 01-stakeholder) must still accept the new built-in `status` attribute.
- The built-in is injected before the additionalProperties check runs,
- so it's not flagged as an "additional" property.
+01-stakeholder) must still accept the new built-in `status` attribute.
+The built-in is injected before the additionalProperties check runs,
+so it's not flagged as an "additional" property.
 
 ### IMP-schema-compileWithRTF-989abb7: compileWithRTF
 ```attr
@@ -702,7 +735,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 382
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 ### IMP-schema-TestCompile_RequiresTraceFromDefaultRejected-2a1d672: TestCompile_RequiresTraceFromDefaultRejected
@@ -712,7 +746,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 394
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Compile-cf14b49
 ```
 
 ### IMP-schema-TestExtractXReqmd_RequiresTraceFromScalarNormalized-27d851f: TestExtractXReqmd_RequiresTraceFromScalarNormalized
@@ -722,7 +757,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 418
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-ExtractXReqmd-ba67a24
 ```
 
 ### IMP-schema-TestExtractXReqmd_RequiresTraceFromEmptyStaysDistinct-4a6082b: TestExtractXReqmd_RequiresTraceFromEmptyStaysDistinct
@@ -732,7 +768,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 429
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-ExtractXReqmd-ba67a24
 ```
 
 ### IMP-schema-TestExtractXReqmd_RequiresTraceFromAbsentIsNil-1ce84e6: TestExtractXReqmd_RequiresTraceFromAbsentIsNil
@@ -742,7 +779,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 443
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-ExtractXReqmd-ba67a24
 ```
 
 ### IMP-schema-TestExtractXReqmd_MalformedDefaultDoesNotDropBlock-cf54ac7: TestExtractXReqmd_MalformedDefaultDoesNotDropBlock
@@ -752,7 +790,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 454
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-ExtractXReqmd-ba67a24
 ```
 
 ## reqmd-code/internal/schema/template.go
@@ -779,8 +818,8 @@ trace: []
 ```
 
 Document returns the document metadata — title, attr properties and the
- x-reqmd block — read from standard_schema.yaml. Callers override Key, Dir,
- File, Title and the ID prefix per document.
+x-reqmd block — read from standard_schema.yaml. Callers override Key, Dir,
+File, Title and the ID prefix per document.
 
 ### IMP-schema-asString-30a00ad: asString
 ```attr

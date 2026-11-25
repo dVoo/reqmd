@@ -110,7 +110,7 @@ trace: []
 ```
 
 renderSubmoduleSection renders the submodule changes section.
- Returns an empty string if there are no submodule changes.
+Returns an empty string if there are no submodule changes.
 
 ### IMP-reporter-FormatDiffJSON-ba26c18: FormatDiffJSON
 ```attr
@@ -144,7 +144,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/diff_test.go
 x-reqmd.source-line: 10
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatDiff-2a9528e
 ```
 
 ### IMP-reporter-TestFormatDiff_NoSubmodules-321d12f: TestFormatDiff_NoSubmodules
@@ -154,7 +155,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/diff_test.go
 x-reqmd.source-line: 39
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatDiff-2a9528e
 ```
 
 ### IMP-reporter-TestShortHash-38bc934: TestShortHash
@@ -164,7 +166,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/diff_test.go
 x-reqmd.source-line: 51
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-shortHash-b263d54
 ```
 
 ## internal/reporter/reporter.go
@@ -203,7 +206,7 @@ trace: []
 ```
 
 ExitCodeError wraps a desired process exit code so that main.go
- can set exit code via cobra error handling instead of os.Exit in command handlers.
+can set exit code via cobra error handling instead of os.Exit in command handlers.
 
 #### IMP-reporter-Error-d7589b1: Error
 ```attr
@@ -262,8 +265,8 @@ trace: []
 ```
 
 NewIndex populates the pre-indexed maps from the flat slices.
- Bucketing by reqID makes the per-reqID lookups in Format()/FormatJSON() O(1)
- instead of scanning all errors/checks per requirement.
+Bucketing by reqID makes the per-reqID lookups in Format()/FormatJSON() O(1)
+instead of scanning all errors/checks per requirement.
 
 #### IMP-reporter-ExitCode-22aced1: ExitCode
 ```attr
@@ -292,8 +295,8 @@ trace: []
 ```
 
 counts tallies WARNING and ERROR-level graph checks in a single pass.
- Shared by ExitCode, Format, and FormatJSON so the summary numbers are
- computed the same way everywhere.
+Shared by ExitCode, Format, and FormatJSON so the summary numbers are
+computed the same way everywhere.
 
 #### IMP-reporter-resultFindings-da40197: resultFindings
 ```attr
@@ -306,10 +309,10 @@ trace: []
 ```
 
 resultFindings returns graph checks that belong to the verification
- results layer rather than to an authored requirement: findings attributed
- to synthesized nodes (RESULT:/TC: IDs) and loader warnings attached
- without a ReqID (e.g. unbound-result). These are rendered in a dedicated
- results section, never as requirement-attributed findings.
+results layer rather than to an authored requirement: findings attributed
+to synthesized nodes (RESULT:/TC: IDs) and loader warnings attached
+without a ReqID (e.g. unbound-result). These are rendered in a dedicated
+results section, never as requirement-attributed findings.
 
 #### IMP-reporter-Format-dde0447: Format
 ```attr
@@ -322,14 +325,14 @@ trace: []
 ```
 
 Format produces the per-file, per-requirement validation report
- as specified in the spec tree under spec/.
+as specified in the spec tree under spec/.
 
 #### IMP-reporter-FormatJSON-7d0f915: FormatJSON
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 471
+x-reqmd.source-line: 480
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -341,36 +344,36 @@ FormatJSON serializes the full check report as JSON.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 257
+x-reqmd.source-line: 266
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 FormatList produces a text table for `reqmd list`. Every node appears
- in document order with a leading Type column: requirements carry their
- ID (+ title) and attributes, containers and info items show their
- heading text with empty attribute cells.
+in document order with a leading Type column: requirements carry their
+ID (+ title) and attributes, containers and info items show their
+heading text with empty attribute cells.
 
 ### IMP-reporter-FormatStats-2b22ce0: FormatStats
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 303
+x-reqmd.source-line: 312
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 FormatStats produces a stats breakdown. The per-document header shows
- requirement and item counts; a type breakdown section precedes the
- attribute-value breakdowns.
+requirement and item counts; a type breakdown section precedes the
+attribute-value breakdowns.
 
 ### IMP-reporter-DocumentSummary-360b609: DocumentSummary
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 349
+x-reqmd.source-line: 358
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -382,35 +385,35 @@ DocumentSummary is the data needed for list/stats display.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 359
+x-reqmd.source-line: 368
 x-reqmd.symbol-kind: type
 trace: []
 ```
 
 NodeRow is a single row in list/stats output: a requirement or an
- information item (container/info), in document order.
+information item (container/info), in document order.
 
 ### IMP-reporter-attributeCounts-eb7d80a: attributeCounts
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 370
+x-reqmd.source-line: 379
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 attributeCounts tallies string attribute values per declared property
- across a document's rows. Properties with no string values are omitted.
- Shared by the text and JSON stats formatters so both report identical
- breakdowns.
+across a document's rows. Properties with no string values are omitted.
+Shared by the text and JSON stats formatters so both report identical
+breakdowns.
 
 ### IMP-reporter-sortedKeys-a407aab: sortedKeys
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 386
+x-reqmd.source-line: 395
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -420,7 +423,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 399
+x-reqmd.source-line: 408
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -432,7 +435,7 @@ JSON output types (private — serialized via json.Marshal)
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 408
+x-reqmd.source-line: 417
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -442,7 +445,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 417
+x-reqmd.source-line: 426
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -452,7 +455,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 424
+x-reqmd.source-line: 433
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -462,7 +465,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 430
+x-reqmd.source-line: 439
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -472,7 +475,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 440
+x-reqmd.source-line: 449
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -482,7 +485,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 445
+x-reqmd.source-line: 454
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -492,7 +495,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 449
+x-reqmd.source-line: 458
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -502,7 +505,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 455
+x-reqmd.source-line: 464
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -512,7 +515,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 463
+x-reqmd.source-line: 472
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -522,20 +525,20 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 563
+x-reqmd.source-line: 579
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 FormatListJSON serializes list output as JSON. All nodes appear in
- document order in the `rows` array with a `type` discriminator.
+document order in the `rows` array with a `type` discriminator.
 
 ### IMP-reporter-FormatStatsJSON-e3ea6f2: FormatStatsJSON
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 594
+x-reqmd.source-line: 610
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -547,7 +550,7 @@ FormatStatsJSON serializes stats output as JSON.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter.go
-x-reqmd.source-line: 595
+x-reqmd.source-line: 611
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -613,12 +616,36 @@ trace: []
 
 --- Format (new format with DocHeaders) ---
 
+### IMP-reporter-TestFormat_DuplicateReqIDPrintsFindingsOnce-1ad55df: TestFormat_DuplicateReqIDPrintsFindingsOnce
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/reporter/reporter_test.go
+x-reqmd.source-line: 189
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+--- Duplicate requirement IDs ---
+A document holding the same requirement ID three times lists that ID three
+times in ReqIDs; every finding bucketed to the ID must still print once.
+
+### IMP-reporter-TestFormatJSON_DuplicateReqIDRendersOnce-ce6bf9a: TestFormatJSON_DuplicateReqIDRendersOnce
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/reporter/reporter_test.go
+x-reqmd.source-line: 213
+x-reqmd.symbol-kind: function
+trace: []
+```
+
 ### IMP-reporter-TestFormat_EmptyWithDocHeaders-654afa3: TestFormat_EmptyWithDocHeaders
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 187
+x-reqmd.source-line: 237
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -630,7 +657,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 212
+x-reqmd.source-line: 262
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -642,7 +669,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 227
+x-reqmd.source-line: 277
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -654,9 +681,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 253
+x-reqmd.source-line: 303
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatList-a6f5d1d
 ```
 
 --- FormatList ---
@@ -666,9 +694,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 302
+x-reqmd.source-line: 352
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatList-a6f5d1d
 ```
 
 ### IMP-reporter-TestFormatListJSON_WithTitle-ce5e1e2: TestFormatListJSON_WithTitle
@@ -676,9 +705,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 325
+x-reqmd.source-line: 375
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatListJSON-be34f2b
 ```
 
 ### IMP-reporter-TestFormatStats-fe92ba0: TestFormatStats
@@ -686,9 +716,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 363
+x-reqmd.source-line: 413
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatStats-2b22ce0
 ```
 
 --- FormatStats ---
@@ -698,7 +729,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 405
+x-reqmd.source-line: 455
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -710,7 +741,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 490
+x-reqmd.source-line: 540
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -720,7 +751,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 508
+x-reqmd.source-line: 558
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -730,7 +761,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 530
+x-reqmd.source-line: 580
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -740,9 +771,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 554
+x-reqmd.source-line: 604
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatListJSON-be34f2b
 ```
 
 ### IMP-reporter-TestFormatStatsJSON-8a521b2: TestFormatStatsJSON
@@ -750,9 +782,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 586
+x-reqmd.source-line: 636
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatStatsJSON-e3ea6f2
 ```
 
 ### IMP-reporter-TestFormat_ResultsSection-45a5597: TestFormat_ResultsSection
@@ -760,7 +793,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
-x-reqmd.source-line: 620
+x-reqmd.source-line: 670
 x-reqmd.symbol-kind: function
 trace: []
 ```

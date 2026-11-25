@@ -14,7 +14,7 @@ trace: []
 ```
 
 analysisDoc builds a document with a document-id so qualified trace refs
- and coverage sources resolve.
+and coverage sources resolve.
 
 ### IMP-graph_test-attrs-c0facb2: attrs
 ```attr
@@ -37,8 +37,8 @@ trace: []
 ```
 
 TestCoverageStates_Semantic pins the coverage states to the same rules the
- requires-trace-from check applies: approved providers only, draft inbound
- requirements ignored, explicit opt-out, unknown sources unresolved.
+requires-trace-from check applies: approved providers only, draft inbound
+requirements ignored, explicit opt-out, unknown sources unresolved.
 
 ### IMP-graph_test-TestCoverageStates_GenericFallback-303ba4a: TestCoverageStates_GenericFallback
 ```attr
@@ -51,14 +51,14 @@ trace: []
 ```
 
 TestCoverageStates_GenericFallback checks the boundary-aware fallback used
- when a requirement declares no requires-trace-from expectation.
+when a requirement declares no requires-trace-from expectation.
 
 ### IMP-graph_test-TestTraceRefs-cce5c9d: TestTraceRefs
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/analysis_test.go
-x-reqmd.source-line: 150
+x-reqmd.source-line: 156
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -70,13 +70,13 @@ TestTraceRefs covers pin/version annotation and unresolved links.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/analysis_test.go
-x-reqmd.source-line: 181
+x-reqmd.source-line: 187
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 TestVerificationStates checks that eligibility follows the missing-verdict
- gate and that unverified eligible measures are visible as empty outcomes.
+gate and that unverified eligible measures are visible as empty outcomes.
 
 ## internal/graph/filter_test.go
 ### IMP-graph_test-TestFilterAwareCoverage_FilteredOutInboundNoFalseFailure-f72457f: TestFilterAwareCoverage_FilteredOutInboundNoFalseFailure
@@ -90,12 +90,12 @@ trace: []
 ```
 
 Filter-aware coverage checking (RFC §3.2)
- TestFilterAwareCoverage_FilteredOutInboundNoFalseFailure verifies that
- a requirement excluded by the filter does not cause a false coverage
- failure for a filtered-in requirement. This is the core behavioral
- guarantee of RFC §3.2: "A requirement excluded by the filter cannot be
- required as, or count as, a coverage provider for another excluded
- requirement."
+TestFilterAwareCoverage_FilteredOutInboundNoFalseFailure verifies that
+a requirement excluded by the filter does not cause a false coverage
+failure for a filtered-in requirement. This is the core behavioral
+guarantee of RFC §3.2: "A requirement excluded by the filter cannot be
+required as, or count as, a coverage provider for another excluded
+requirement."
 
 ### IMP-graph_test-TestFilterAwareCoverage_FilteredInProviderSatisfies-5cc3985: TestFilterAwareCoverage_FilteredInProviderSatisfies
 ```attr
@@ -108,7 +108,7 @@ trace: []
 ```
 
 TestFilterAwareCoverage_FilteredInProviderSatisfies verifies that a
- filtered-in inbound requirement properly satisfies coverage.
+filtered-in inbound requirement properly satisfies coverage.
 
 ### IMP-graph_test-TestFilterAwareCoverage_DocumentDefault-8fe20cd: TestFilterAwareCoverage_DocumentDefault
 ```attr
@@ -121,8 +121,8 @@ trace: []
 ```
 
 TestFilterAwareCoverage_DocumentDefault verifies filter-aware coverage
- interacts with the x-reqmd.requires-trace-from document default: an
- inherited expectation behaves like a per-requirement one under --filter.
+interacts with the x-reqmd.requires-trace-from document default: an
+inherited expectation behaves like a per-requirement one under --filter.
 
 ### IMP-graph_test-TestFilter_NoFilter_ParityWithUnfiltered-a6c1b74: TestFilter_NoFilter_ParityWithUnfiltered
 ```attr
@@ -135,7 +135,7 @@ trace: []
 ```
 
 TestFilter_NoFilter_ParityWithUnfiltered verifies that an empty filter
- set produces identical results to no filter at all.
+set produces identical results to no filter at all.
 
 ### IMP-graph_test-TestDisjointAttribute_ZeroIntersection_Errors-0665bca: TestDisjointAttribute_ZeroIntersection_Errors
 ```attr
@@ -148,9 +148,9 @@ trace: []
 ```
 
 Disjoint-attribute check (RFC §3.5)
- TestDisjointAttribute_ZeroIntersection_Errors verifies that a trace link
- between two requirements with non-overlapping variant arrays produces an
- ERROR.
+TestDisjointAttribute_ZeroIntersection_Errors verifies that a trace link
+between two requirements with non-overlapping variant arrays produces an
+ERROR.
 
 ### IMP-graph_test-TestDisjointAttribute_PartialOverlap_NoError-c19a427: TestDisjointAttribute_PartialOverlap_NoError
 ```attr
@@ -163,7 +163,7 @@ trace: []
 ```
 
 TestDisjointAttribute_PartialOverlap_NoError verifies that overlapping
- values do not trigger an error.
+values do not trigger an error.
 
 ### IMP-graph_test-TestDisjointAttribute_EmptyAttribute_Exempt-7d2dc7e: TestDisjointAttribute_EmptyAttribute_Exempt
 ```attr
@@ -176,7 +176,7 @@ trace: []
 ```
 
 TestDisjointAttribute_EmptyAttribute_Exempt verifies that a requirement
- with an empty/absent variant attribute is exempt (treated as "applies to all").
+with an empty/absent variant attribute is exempt (treated as "applies to all").
 
 ### IMP-graph_test-TestDisjointAttribute_NoAttrsSet_NoCheck-59286f6: TestDisjointAttribute_NoAttrsSet_NoCheck
 ```attr
@@ -189,7 +189,7 @@ trace: []
 ```
 
 TestDisjointAttribute_NoAttrsSet_NoCheck verifies that without
- SetDisjointAttrs, the check is a no-op.
+SetDisjointAttrs, the check is a no-op.
 
 ### IMP-graph_test-filterByMessage-f8326fc: filterByMessage
 ```attr
@@ -275,7 +275,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
 x-reqmd.source-line: 56
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 1. Empty docs
@@ -287,7 +288,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
 x-reqmd.source-line: 74
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 Helpers
@@ -299,7 +301,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
 x-reqmd.source-line: 109
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 3. Valid trace — two requirements, one traces to the other
@@ -311,7 +314,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
 x-reqmd.source-line: 183
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 4. Dangling trace — one req traces to a non-existent ID
@@ -323,7 +327,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
 x-reqmd.source-line: 230
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 5. Circular trace — A→B→C→A
@@ -335,31 +340,48 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
 x-reqmd.source-line: 268
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 6. Orphan detection — A→B means A has no incoming → orphan
+
+### IMP-graph_test-TestNew_LeafBoundarySuppressesUntraced-eeaf8a0: TestNew_LeafBoundarySuppressesUntraced
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/graph_test.go
+x-reqmd.source-line: 303
+x-reqmd.symbol-kind: function
+trace:
+  - graph/IMP-graph-New-16672c9
+```
+
+7. Orphan suppression via directory boundary (no upstream sources)
+TestNew_LeafBoundarySuppressesUntraced closes the gap left when the leaf rule
+was added to the check: a requirement at the bottom of the V has no possible
+downstream tracer, so generic untraced must stay silent there.
 
 ### IMP-graph_test-TestNew_RootBoundarySuppressesOrphan-fa26002: TestNew_RootBoundarySuppressesOrphan
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 300
+x-reqmd.source-line: 331
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
-
-7. Orphan suppression via directory boundary (no upstream sources)
 
 ### IMP-graph_test-TestNew_NonBoundaryOrphanAndMissing-92dfcdf: TestNew_NonBoundaryOrphanAndMissing
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 349
+x-reqmd.source-line: 380
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 8. Orphan and missing-downstream when NOT in a boundary directory
@@ -369,9 +391,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 410
+x-reqmd.source-line: 441
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 9. Orphan suppression via disposition (no root boundary, but disposition set)
@@ -381,9 +404,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 452
+x-reqmd.source-line: 483
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 10. Disposition without rationale — deferred/rejected with no rationale
@@ -393,9 +417,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 505
+x-reqmd.source-line: 536
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 11. `needs` attribute — explicit coverage expectations
@@ -405,9 +430,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 557
+x-reqmd.source-line: 588
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_NeedsCoverageUnknownTarget-ae444a3: TestNew_NeedsCoverageUnknownTarget
@@ -415,9 +441,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 597
+x-reqmd.source-line: 628
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_NeedsEmptySaysNoCoverageExpected-6cd29a6: TestNew_NeedsEmptySaysNoCoverageExpected
@@ -425,9 +452,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 625
+x-reqmd.source-line: 656
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_NeedsSuppressesGenericOrphan-6ee3508: TestNew_NeedsSuppressesGenericOrphan
@@ -435,9 +463,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 650
+x-reqmd.source-line: 681
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestXReqmdDefault_InheritedAndSatisfied-a0808da: TestXReqmdDefault_InheritedAndSatisfied
@@ -445,7 +474,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 689
+x-reqmd.source-line: 720
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -457,7 +486,7 @@ x-reqmd.requires-trace-from document default (SYS-FMT-003)
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 716
+x-reqmd.source-line: 747
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -467,7 +496,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 743
+x-reqmd.source-line: 774
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -477,7 +506,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 771
+x-reqmd.source-line: 802
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -487,7 +516,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 803
+x-reqmd.source-line: 834
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -497,7 +526,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 842
+x-reqmd.source-line: 873
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -507,7 +536,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 875
+x-reqmd.source-line: 906
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -517,7 +546,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 893
+x-reqmd.source-line: 924
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -527,9 +556,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 925
+x-reqmd.source-line: 956
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNeighbors-b80a675: TestNeighbors
@@ -537,7 +567,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 967
+x-reqmd.source-line: 998
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -549,7 +579,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1020
+x-reqmd.source-line: 1051
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -561,7 +591,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1045
+x-reqmd.source-line: 1076
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -573,9 +603,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1108
+x-reqmd.source-line: 1139
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_MultipleBrokenRefs-4d09bde: TestNew_MultipleBrokenRefs
@@ -583,9 +614,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1158
+x-reqmd.source-line: 1189
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 15. Multiple broken refs from same requirement
@@ -595,9 +627,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1194
+x-reqmd.source-line: 1225
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 16. External suppresses orphan
@@ -607,9 +640,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1222
+x-reqmd.source-line: 1253
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 17. Child requirement suppresses orphan via IsChild
@@ -619,9 +653,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1253
+x-reqmd.source-line: 1284
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 18. Duplicate ID across documents
@@ -631,9 +666,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1286
+x-reqmd.source-line: 1317
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 19. Prefix collision is WARNING, not ERROR
@@ -643,9 +679,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1316
+x-reqmd.source-line: 1347
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 20. Version-pin checks — current, outdated, predated, no-pin, missing version, external, suppressed
@@ -655,9 +692,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1340
+x-reqmd.source-line: 1371
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_VersionPinPredated-a7d0045: TestNew_VersionPinPredated
@@ -665,9 +703,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1381
+x-reqmd.source-line: 1412
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_VersionPinDeterministicOrder-d48b40c: TestNew_VersionPinDeterministicOrder
@@ -675,9 +714,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1419
+x-reqmd.source-line: 1450
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-slicesEqual-8eaea0f: slicesEqual
@@ -685,7 +725,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1473
+x-reqmd.source-line: 1504
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -697,9 +737,10 @@ slicesEqual is a tiny string-slice equality helper for the test above.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1485
+x-reqmd.source-line: 1516
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_VersionPinUpstreamNoVersionIsClean-3422b1d: TestNew_VersionPinUpstreamNoVersionIsClean
@@ -707,9 +748,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1509
+x-reqmd.source-line: 1540
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_VersionPinExternalUpstreamIsClean-31b24f9: TestNew_VersionPinExternalUpstreamIsClean
@@ -717,9 +759,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1531
+x-reqmd.source-line: 1562
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_VersionPinSuppression-329c1f1: TestNew_VersionPinSuppression
@@ -727,9 +770,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1557
+x-reqmd.source-line: 1588
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_VersionPinChildWithPin-6a4fc53: TestNew_VersionPinChildWithPin
@@ -737,9 +781,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1583
+x-reqmd.source-line: 1614
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestNew_VersionPinQualifiedRef-e26aa59: TestNew_VersionPinQualifiedRef
@@ -747,9 +792,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1623
+x-reqmd.source-line: 1654
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - graph/IMP-graph-New-16672c9
 ```
 
 ### IMP-graph_test-TestStatus_DefaultIsApproved-2cdf0f5: TestStatus_DefaultIsApproved
@@ -757,34 +803,34 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1672
+x-reqmd.source-line: 1703
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 Status lifecycle tests
- T3: missing status attr → default (approved). A node with no `status`
- attr is treated as approved, so it counts as a coverage provider.
+T3: missing status attr → default (approved). A node with no `status`
+attr is treated as approved, so it counts as a coverage provider.
 
 ### IMP-graph_test-TestStatus_DraftDoesNotProvideCoverage-59c4fc5: TestStatus_DraftDoesNotProvideCoverage
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1706
+x-reqmd.source-line: 1737
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 T4: a draft inbound does NOT satisfy coverage. STK-001 needs [system]
- but the only system doc is draft → missing-coverage warning.
+but the only system doc is draft → missing-coverage warning.
 
 ### IMP-graph_test-TestStatus_ApprovedProvidesCoverage-591dffe: TestStatus_ApprovedProvidesCoverage
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1741
+x-reqmd.source-line: 1772
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -796,7 +842,7 @@ T5: an approved inbound DOES satisfy coverage.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1772
+x-reqmd.source-line: 1803
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -808,101 +854,101 @@ T6: case-insensitive — "APPROVED" still counts as approved.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1804
+x-reqmd.source-line: 1835
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 T11: ignore-status: true document → all requirements are coverage
- providers regardless of their `status` value (even draft).
+providers regardless of their `status` value (even draft).
 
 ### IMP-graph_test-TestStatus_MessageMentionsDraftCount-7492021: TestStatus_MessageMentionsDraftCount
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1837
+x-reqmd.source-line: 1868
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 T13: updated checkNeedsCoverage message includes "(%d draft downstreams
- ignored)" when at least one inbound is filtered by the status gate.
+ignored)" when at least one inbound is filtered by the status gate.
 
 ### IMP-graph_test-TestStatus_MessageHasNoParentheticalWhenZeroDrafts-f363bab: TestStatus_MessageHasNoParentheticalWhenZeroDrafts
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1881
+x-reqmd.source-line: 1912
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 T16: when draftCount == 0, message has no parenthetical. This is the
- classic case where the need simply has no inbound at all (orphan-ish).
+classic case where the need simply has no inbound at all (orphan-ish).
 
 ### IMP-graph_test-TestStatus_IgnoreAndAdditionsCombination-9d797f0: TestStatus_IgnoreAndAdditionsCombination
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1924
+x-reqmd.source-line: 1955
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 T19: ignore-status + additional-status-values combination. The ignore
- flag bypasses the status gate entirely, AND the schema accepts the
- extension value.
+flag bypasses the status gate entirely, AND the schema accepts the
+extension value.
 
 ### IMP-graph_test-TestStatus_UnknownValueIsNotApproved-9baa120: TestStatus_UnknownValueIsNotApproved
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 1964
+x-reqmd.source-line: 1995
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 T7: schema-level reject of capitalized status. Compile fails when
- user puts `status: Implemented` in an attr block that doesn't match
- the new built-in enum. (The validator catches it; we mirror the test
- here on the graph side: an uppercase status attr in the data is
- treated as a non-coverage provider because it's not "approved".)
+user puts `status: Implemented` in an attr block that doesn't match
+the new built-in enum. (The validator catches it; we mirror the test
+here on the graph side: an uppercase status attr in the data is
+treated as a non-coverage provider because it's not "approved".)
 
 ### IMP-graph_test-TestStatus_AdditionalPropertiesFalseGraphBuilds-f4017b9: TestStatus_AdditionalPropertiesFalseGraphBuilds
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 2007
+x-reqmd.source-line: 2038
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 T15 (graph-side counterpart): schemas with `additionalProperties: false`
- (e.g. 00-aspice, 01-stakeholder) must still parse and inject the
- built-in `status` attribute. The full Validate() path is exercised
- against the real spec/ tree by the CLI check command. Here we just
- confirm the graph builds without panic on a flat additionalProperties
- schema that contains `status` in the resulting attribute set.
+(e.g. 00-aspice, 01-stakeholder) must still parse and inject the
+built-in `status` attribute. The full Validate() path is exercised
+against the real spec/ tree by the CLI check command. Here we just
+confirm the graph builds without panic on a flat additionalProperties
+schema that contains `status` in the resulting attribute set.
 
 ### IMP-graph_test-TestStatus_FullPipelineAgainstMigratedSpec-edc0f99: TestStatus_FullPipelineAgainstMigratedSpec
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/graph_test.go
-x-reqmd.source-line: 2039
+x-reqmd.source-line: 2070
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 T14: full pipeline against the migrated spec/ tree. The 4 migrated
- dirs (01a, 02, 03, 04) plus 00 and 01 must all build a graph
- successfully and produce no coverage errors stemming from the status
- gate. The graph must reflect the new status values without errors.
+dirs (01a, 02, 03, 04) plus 00 and 01 must all build a graph
+successfully and produce no coverage errors stemming from the status
+gate. The graph must reflect the new status values without errors.
 
 ## internal/graph/repin_test.go
 ### IMP-graph_test-reqWithSuppressions-de5b2e2: reqWithSuppressions
@@ -916,8 +962,8 @@ trace: []
 ```
 
 reqWithSuppressions builds a Requirement with a non-empty Suppressions
- slice — needed for tests that exercise reqmd-suppress handling, because
- the synthetic req() factory leaves Suppressions as nil.
+slice — needed for tests that exercise reqmd-suppress handling, because
+the synthetic req() factory leaves Suppressions as nil.
 
 ### IMP-graph_test-TestRepinDeltas_Outdated-ddde2ae: TestRepinDeltas_Outdated
 ```attr
@@ -1050,7 +1096,7 @@ trace: []
 ```
 
 RepinDeltas: any node from a Synthetic document is not a source
- (future synthesized test-case nodes must not be rewritten in the report)
+(future synthesized test-case nodes must not be rewritten in the report)
 
 ### IMP-graph_test-TestRepinDeltas_Sorted-ddd1237: TestRepinDeltas_Sorted
 ```attr
@@ -1076,7 +1122,7 @@ trace: []
 ```
 
 resultReq builds a synthesized verification-result pseudo-requirement
- tracing to measureID with the given outcome.
+tracing to measureID with the given outcome.
 
 ### IMP-graph_test-measureReq-794b472: measureReq
 ```attr
@@ -1089,7 +1135,7 @@ trace: []
 ```
 
 measureReq builds a verification-measure requirement (an authored req
- that a result traces to). By default it has status approved.
+that a result traces to). By default it has status approved.
 
 ### IMP-graph_test-resultDoc-55a42cb: resultDoc
 ```attr
@@ -1212,7 +1258,7 @@ trace: []
 ```
 
 case-keyed chains (patterns C/D/E): cased results + synthesized TC nodes
- bootTimeCase is the case key used by the case-keyed chain fixtures.
+bootTimeCase is the case key used by the case-keyed chain fixtures.
 
 ### IMP-graph_test-casedResultReq-41bde99: casedResultReq
 ```attr
@@ -1249,7 +1295,7 @@ trace: []
 ```
 
 A cased result (pattern C) attaches to an authored measure and flows
- through the existing checks like any other result.
+through the existing checks like any other result.
 
 ### IMP-graph_test-TestSynthChain_TCToRequirement_NoBrokenRefs-02b40b6: TestSynthChain_TCToRequirement_NoBrokenRefs
 ```attr
@@ -1262,10 +1308,10 @@ trace: []
 ```
 
 A synthesized test case (patterns D/E) traces to the requirements it
- verifies; result → case → requirement edges resolve without broken refs.
- The requirement's rolled-up evidence set includes the passing case, so no
- missing-verdict fires (this is the roll-up behavior landed in the
- evidence-set phase).
+verifies; result → case → requirement edges resolve without broken refs.
+The requirement's rolled-up evidence set includes the passing case, so no
+missing-verdict fires (this is the roll-up behavior landed in the
+evidence-set phase).
 
 ### IMP-graph_test-TestRollup_MixedEvidenceOneFailingFails-b155496: TestRollup_MixedEvidenceOneFailingFails
 ```attr
@@ -1278,7 +1324,7 @@ trace: []
 ```
 
 Mixed evidence on one requirement: a direct passing result (A) plus a
- failing case on an authored downstream test (C). Any fail → fail.
+failing case on an authored downstream test (C). Any fail → fail.
 
 ### IMP-graph_test-TestRollup_DraftTCIgnored-87b3c65: TestRollup_DraftTCIgnored
 ```attr
@@ -1291,7 +1337,7 @@ trace: []
 ```
 
 A draft downstream test case does not contribute evidence; the requirement
- stays missing-verdict and the message reports the ignored draft.
+stays missing-verdict and the message reports the ignored draft.
 
 ### IMP-graph_test-TestRollup_FilterExcludesTestsDoc-e6e2079: TestRollup_FilterExcludesTestsDoc
 ```attr
@@ -1304,7 +1350,7 @@ trace: []
 ```
 
 Under --filter, evidence is computed within the filtered subset: excluding
- the tests document leaves the requirement uncovered without a false fail.
+the tests document leaves the requirement uncovered without a false fail.
 
 ### IMP-graph_test-TestVerdict_DeferredDispositionSuppresses-7766189: TestVerdict_DeferredDispositionSuppresses
 ```attr
@@ -1317,7 +1363,7 @@ trace: []
 ```
 
 Deferred/rejected dispositions do not expect verification: neither
- missing-verdict nor failing-verdict fires for them.
+missing-verdict nor failing-verdict fires for them.
 
 ### IMP-graph_test-TestMeasureVerdicts_EvidenceCarriesDescription-c526d97: TestMeasureVerdicts_EvidenceCarriesDescription
 ```attr
@@ -1330,5 +1376,5 @@ trace: []
 ```
 
 The evidence items surfaced by MeasureVerdicts carry the synthesized test
- case's Markdown description, so exporters can render it inline.
+case's Markdown description, so exporters can render it inline.
 

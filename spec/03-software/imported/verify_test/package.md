@@ -26,7 +26,7 @@ trace: []
 ```
 
 CTRF parser
- ctrfReport builds a minimal CTRF JSON report with the given tests.
+ctrfReport builds a minimal CTRF JSON report with the given tests.
 
 ### IMP-verify_test-TestLoadCTRF_PassFail-b91f1a4: TestLoadCTRF_PassFail
 ```attr
@@ -49,8 +49,8 @@ trace: []
 ```
 
 An uninstrumented test (no extra.x-reqmd block) is skipped silently:
- the old per-test "no x-reqmd.id" warning is gone so suites can adopt
- reqmd incrementally without spamming every uninstrumented test.
+the old per-test "no x-reqmd.id" warning is gone so suites can adopt
+reqmd incrementally without spamming every uninstrumented test.
 
 ### IMP-verify_test-TestLoadCTRF_UnboundResultWarns-96e81b8: TestLoadCTRF_UnboundResultWarns
 ```attr
@@ -63,7 +63,7 @@ trace: []
 ```
 
 A test with an x-reqmd block but nothing bindable (no id, no verifies)
- yields an unbound-result warning.
+yields an unbound-result warning.
 
 ### IMP-verify_test-TestLoadCTRF_VersionPinPreserved-f1c65fe: TestLoadCTRF_VersionPinPreserved
 ```attr
@@ -92,7 +92,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
 x-reqmd.source-line: 173
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - verify/IMP-verify-MergeLatest-79e3025
 ```
 
 Multi-file merge
@@ -104,7 +105,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
 x-reqmd.source-line: 187
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - verify/IMP-verify-MergeLatest-79e3025
 ```
 
 ### IMP-verify_test-TestLoadResults_NonCTRFJsonSkipped-1349326: TestLoadResults_NonCTRFJsonSkipped
@@ -114,7 +116,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
 x-reqmd.source-line: 202
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - verify/IMP-verify-LoadResults-e444d2c
 ```
 
 Auto-detection (non-CTRF json skipped)
@@ -126,7 +129,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
 x-reqmd.source-line: 221
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - verify/IMP-verify-LoadResults-e444d2c
 ```
 
 ### IMP-verify_test-TestLoadCTRF_ResultsArrayRejected-fc5eec4: TestLoadCTRF_ResultsArrayRejected
@@ -166,7 +170,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
 x-reqmd.source-line: 281
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - verify/IMP-verify-Synthesize-d4769b6
 ```
 
 Synthesize
@@ -178,7 +183,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
 x-reqmd.source-line: 307
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - verify/IMP-verify-IsResultNode-1bd2c9b
 ```
 
 ### IMP-verify_test-TestLoadCTRF_IDWithCase_RecordsCaseKey-709880c: TestLoadCTRF_IDWithCase_RecordsCaseKey
@@ -220,7 +226,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
 x-reqmd.source-line: 425
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - verify/IMP-verify-Synthesize-d4769b6
 ```
 
 ### IMP-verify_test-TestIsTestCaseNode-4bdc873: TestIsTestCaseNode
@@ -230,6 +237,7 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
 x-reqmd.source-line: 473
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - verify/IMP-verify-IsTestCaseNode-5f32cca
 ```
 

@@ -14,8 +14,8 @@ trace: []
 ```
 
 GeneratedMarker is the HTML-comment sentinel embedded in the header of
- every generated file. The idempotent write path uses it to distinguish
- generated content from hand-authored content in the same tree.
+every generated file. The idempotent write path uses it to distinguish
+generated content from hand-authored content in the same tree.
 
 ### IMP-writer-legacyMarker-4a7dcdd: legacyMarker
 ```attr
@@ -28,9 +28,9 @@ trace: []
 ```
 
 legacyMarker is the pre-rename marker emitted by reqmd-code before the
- renderer moved to reqmd-import. It is still recognized so a re-run
- overwrites an existing generated tree instead of mistaking it for
- hand-authored content.
+renderer moved to reqmd-import. It is still recognized so a re-run
+overwrites an existing generated tree instead of mistaking it for
+hand-authored content.
 
 ### IMP-writer-KindRequirement-b12f9b5: KindRequirement
 ```attr
@@ -43,7 +43,7 @@ trace: []
 ```
 
 Kind discriminates a rendered item. A requirement gets an attr block; a
- section never does, which is the only difference reqmd cares about.
+section never does, which is the only difference reqmd cares about.
 
 ### IMP-writer-KindSection-c5fd98d: KindSection
 ```attr
@@ -56,7 +56,7 @@ trace: []
 ```
 
 Kind discriminates a rendered item. A requirement gets an attr block; a
- section never does, which is the only difference reqmd cares about.
+section never does, which is the only difference reqmd cares about.
 
 ### IMP-writer-Item-c445e3f: Item
 ```attr
@@ -69,8 +69,8 @@ trace: []
 ```
 
 Item is one resolved content item to render: its heading depth, its final
- reqmd ID (requirements only), the trace refs, and the remaining attr-block
- entries.
+reqmd ID (requirements only), the trace refs, and the remaining attr-block
+entries.
 
 #### IMP-writer-IsRequirement-440dc92: IsRequirement
 ```attr
@@ -83,8 +83,8 @@ trace: []
 ```
 
 IsRequirement reports whether the item renders an attr block. Only an
- explicit KindSection makes a section: the zero value is a requirement, so an
- item built without a kind can never silently lose its attr block.
+explicit KindSection makes a section: the zero value is a requirement, so an
+item built without a kind can never silently lose its attr block.
 
 ### IMP-writer-File-24cd9e6: File
 ```attr
@@ -121,9 +121,9 @@ trace: []
 ```
 
 Write writes every file under outDir, creating directories as needed. A
- file is only rewritten when its content changed; existing content without
- the generated marker is left untouched so hand-authored files are never
- clobbered.
+file is only rewritten when its content changed; existing content without
+the generated marker is left untouched so hand-authored files are never
+clobbered.
 
 ### IMP-writer-writeIfChanged-a5c5088: writeIfChanged
 ```attr
@@ -142,13 +142,14 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
 x-reqmd.source-line: 106
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - SW-IMP-005
 ```
 
 reqmd:trace SW-IMP-005
- RenderDocument renders a document: title, generated marker, optional
- preamble prose, then the items in the order given. Depth is carried per item,
- so a section's children must follow it in the slice.
+RenderDocument renders a document: title, generated marker, optional
+preamble prose, then the items in the order given. Depth is carried per item,
+so a section's children must follow it in the slice.
 
 ### IMP-writer-RenderItem-136994f: RenderItem
 ```attr
@@ -161,10 +162,10 @@ trace: []
 ```
 
 RenderItem renders one item: heading, then (for a requirement) the attr
- block, then the body. Depth is the nesting level: 0 renders "##", 1 renders
- "###", and so on (reqmd accepts any heading level from h2 down). An item
- without a title renders as a plain prose block, which is how the headingless
- document preamble and untitled sections are represented.
+block, then the body. Depth is the nesting level: 0 renders "##", 1 renders
+"###", and so on (reqmd accepts any heading level from h2 down). An item
+without a title renders as a plain prose block, which is how the headingless
+document preamble and untitled sections are represented.
 
 ### IMP-writer-writeAttr-19d41f8: writeAttr
 ```attr
@@ -177,7 +178,7 @@ trace: []
 ```
 
 writeAttr writes the attr-block body: status first, then the remaining
- attributes in sorted key order (deterministic output), then the trace list.
+attributes in sorted key order (deterministic output), then the trace list.
 
 ### IMP-writer-writeAttrValue-844e649: writeAttrValue
 ```attr
@@ -232,12 +233,12 @@ trace: []
 ```
 
 quoteIfNeeded formats a value as a YAML scalar that reqmd reads back
- unchanged. A plain scalar is unsafe when it contains YAML punctuation, when
- it has leading or trailing whitespace, or when reqmd's attr scanner
- (internal/parser/attrscan.go, parseScalar) would retype it as null, a bool,
- or an integer — so all of those are double-quoted with the escapes that
- scanner understands. Over-quoting is harmless; under-quoting silently
- changes the value's type.
+unchanged. A plain scalar is unsafe when it contains YAML punctuation, when
+it has leading or trailing whitespace, or when reqmd's attr scanner
+(internal/parser/attrscan.go, parseScalar) would retype it as null, a bool,
+or an integer — so all of those are double-quoted with the escapes that
+scanner understands. Over-quoting is harmless; under-quoting silently
+changes the value's type.
 
 ### IMP-writer-plainScalarSafe-aada755: plainScalarSafe
 ```attr
@@ -250,10 +251,10 @@ trace: []
 ```
 
 plainScalarSafe reports whether s can be written as a plain (unquoted) YAML
- scalar without changing its meaning for reqmd's attr scanner. The retype
- list must stay a superset of that scanner's parseScalar: if the scanner
- starts resolving something new to a non-string, a value that this function
- calls safe becomes corrupt.
+scalar without changing its meaning for reqmd's attr scanner. The retype
+list must stay a superset of that scanner's parseScalar: if the scanner
+starts resolving something new to a non-string, a value that this function
+calls safe becomes corrupt.
 
 ## reqmd-import/internal/writer/writer_test.go
 ### IMP-writer-firstLine-5d9de94: firstLine
@@ -273,7 +274,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
 x-reqmd.source-line: 20
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-writer-RenderDocument-9c37809
 ```
 
 ### IMP-writer-TestRenderItemHeadingDepth-c23dda8: TestRenderItemHeadingDepth
@@ -283,7 +285,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
 x-reqmd.source-line: 72
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-writer-RenderItem-136994f
 ```
 
 ### IMP-writer-TestRenderItemFieldsDeterministic-dfa5678: TestRenderItemFieldsDeterministic
@@ -293,7 +296,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
 x-reqmd.source-line: 89
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-writer-RenderItem-136994f
 ```
 
 ### IMP-writer-TestRenderItemUnsupportedFieldType-6cb9e56: TestRenderItemUnsupportedFieldType
@@ -303,7 +307,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
 x-reqmd.source-line: 119
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-writer-RenderItem-136994f
 ```
 
 ### IMP-writer-TestIsGenerated-7b1177d: TestIsGenerated
@@ -313,7 +318,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
 x-reqmd.source-line: 131
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-writer-IsGenerated-a943579
 ```
 
 ### IMP-writer-TestWriteIdempotent-90fb814: TestWriteIdempotent
@@ -323,7 +329,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
 x-reqmd.source-line: 150
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-writer-Write-44afbbf
 ```
 
 TestWriteIdempotent verifies a second Write produces byte-identical files.
@@ -335,11 +342,12 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
 x-reqmd.source-line: 170
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-writer-Write-44afbbf
 ```
 
 TestWriteDoesNotClobberHandAuthored verifies a hand-authored file (no
- generated marker) is left untouched.
+generated marker) is left untouched.
 
 ### IMP-writer-readAll-288c5bf: readAll
 ```attr
@@ -362,8 +370,8 @@ trace: []
 ```
 
 TestRenderSection covers the two section shapes: a titled section renders a
- heading with no attr block, and an untitled section renders as a plain prose
- block (the document preamble and untitled sections use the same form).
+heading with no attr block, and an untitled section renders as a plain prose
+block (the document preamble and untitled sections use the same form).
 
 ### IMP-writer-TestQuoteIfNeeded-3ed73fa: TestQuoteIfNeeded
 ```attr
@@ -372,7 +380,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
 x-reqmd.source-line: 239
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-writer-quoteIfNeeded-5d24016
 ```
 
 ### IMP-writer-TestQuoteIfNeededRoundTrip-bf7ce49: TestQuoteIfNeededRoundTrip
@@ -382,6 +391,7 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
 x-reqmd.source-line: 290
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-writer-quoteIfNeeded-5d24016
 ```
 

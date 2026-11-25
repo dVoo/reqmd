@@ -14,12 +14,12 @@ trace: []
 ```
 
 CTRF report shape. Only the fields reqmd needs are decoded; the per-test
- `extra` extension point carries the reqmd binding fields (id, case,
- verifies, description). `results` is kept as raw JSON at first so the
- top-level shape can be validated without decoding the (potentially very
- large) test list more than once.
+`extra` extension point carries the reqmd binding fields (id, case,
+verifies, description). `results` is kept as raw JSON at first so the
+top-level shape can be validated without decoding the (potentially very
+large) test list more than once.
 
- Reference: https://ctrf.io/docs/full-schema
+Reference: https://ctrf.io/docs/full-schema
 
 ### IMP-verify-ctrfTest-27e8525: ctrfTest
 ```attr
@@ -54,9 +54,9 @@ trace: []
 ```
 
 loadCTRFData parses CTRF JSON bytes into Results. The path is
- used only for error messages and evidence attribution.
+used only for error messages and evidence attribution.
 
- Binding (extra.x-reqmd):
+Binding (extra.x-reqmd):
    - id present → the result binds directly to that requirement ID
      (patterns A/C); an explicit `case` is recorded on the result.
    - no id but verifies present → a test case is synthesized under the
@@ -76,7 +76,7 @@ trace: []
 ```
 
 xreqmdFields holds the reqmd binding fields from a CTRF test's
- extra.x-reqmd block. present is true when the block exists.
+extra.x-reqmd block. present is true when the block exists.
 
 ### IMP-verify-extractXReqmd-8f9db16: extractXReqmd
 ```attr
@@ -89,7 +89,7 @@ trace: []
 ```
 
 extractXReqmd reads the reqmd binding fields from a CTRF test's `extra`
- object. Returns present=false when there is no x-reqmd block.
+object. Returns present=false when there is no x-reqmd block.
 
 ### IMP-verify-implicitCaseKey-7a20044: implicitCaseKey
 ```attr
@@ -102,8 +102,8 @@ trace: []
 ```
 
 implicitCaseKey derives a stable case key from the report suite and test
- name for verifies-only bindings (pattern E): suite + "/" + name, or the
- bare name when the report has no suite.
+name for verifies-only bindings (pattern E): suite + "/" + name, or the
+bare name when the report has no suite.
 
 ### IMP-verify-ctrfStatusToOutcome-a91839e: ctrfStatusToOutcome
 ```attr
@@ -116,7 +116,7 @@ trace: []
 ```
 
 ctrfStatusToOutcome maps CTRF status to reqmd outcome. A flaky test is
- inconclusive regardless of its (passing) final status.
+inconclusive regardless of its (passing) final status.
 
 ### IMP-verify-msEpochToTime-ef9cf53: msEpochToTime
 ```attr
@@ -129,7 +129,7 @@ trace: []
 ```
 
 msEpochToTime converts a CTRF millisecond epoch to time.Time, falling
- back to start when stop is 0, then to the zero value.
+back to start when stop is 0, then to the zero value.
 
 ### IMP-verify-isCTRFFileData-cdbc327: isCTRFFileData
 ```attr
@@ -142,8 +142,8 @@ trace: []
 ```
 
 isCTRFFileData is a cheap shape check on already-read bytes.
- Used by the dir walker to distinguish CTRF `.json` from other
- `.json` (coverage reports, etc.) without reading the file twice.
+Used by the dir walker to distinguish CTRF `.json` from other
+`.json` (coverage reports, etc.) without reading the file twice.
 
 ### IMP-verify-looksLikeCTRF-9aaacf6: looksLikeCTRF
 ```attr
@@ -156,9 +156,9 @@ trace: []
 ```
 
 looksLikeCTRF reports whether the JSON bytes decode to an object with a
- top-level `results` object. The probe decodes only the top-level key and
- keeps `results` as raw bytes — the potentially huge test list is NOT
- decoded into Go values here (that happens once, in loadCTRFData).
+top-level `results` object. The probe decodes only the top-level key and
+keeps `results` as raw bytes — the potentially huge test list is NOT
+decoded into Go values here (that happens once, in loadCTRFData).
 
 ### IMP-verify-isCTRFResultsObject-6fca12e: isCTRFResultsObject
 ```attr
@@ -171,8 +171,8 @@ trace: []
 ```
 
 isCTRFResultsObject reports whether the raw `results` value is a non-empty
- object (CTRF's results is an object containing `tests[]`, never an array).
- This is a byte-level check — no JSON decode of the contents.
+object (CTRF's results is an object containing `tests[]`, never an array).
+This is a byte-level check — no JSON decode of the contents.
 
 ## internal/verify/results.go
 ### IMP-verify-Outcome-a06c25a: Outcome
@@ -246,9 +246,9 @@ trace: []
 ```
 
 Verdict is the outcome + source for a single measure, ready for
- consumption by exporters and reporters. It's the transport type
- between verify (which loads results) and exporter (which renders
- them), avoiding a direct dependency from exporter on verify.
+consumption by exporters and reporters. It's the transport type
+between verify (which loads results) and exporter (which renders
+them), avoiding a direct dependency from exporter on verify.
 
 ### IMP-verify-Result-d685357: Result
 ```attr
@@ -261,14 +261,14 @@ trace: []
 ```
 
 Result is one verification result, already mapped to a measure ID (and,
- for case-keyed runs, to a test-case identity). Multiple results for the
- same measure are merged by VerifiedAt (latest wins) before synthesis.
+for case-keyed runs, to a test-case identity). Multiple results for the
+same measure are merged by VerifiedAt (latest wins) before synthesis.
 
- The identity fields (Name, CaseKey, Verifies, Description) back the
- requirement → test-case → result chain model. Today only MeasureID is
- populated and Name is captured from CTRF; CaseKey/Verifies/Description
- are the v2 fields parsed in the binding phase that introduces synthesized
- test cases.
+The identity fields (Name, CaseKey, Verifies, Description) back the
+requirement → test-case → result chain model. Today only MeasureID is
+populated and Name is captured from CTRF; CaseKey/Verifies/Description
+are the v2 fields parsed in the binding phase that introduces synthesized
+test cases.
 
 ### IMP-verify-ResultKey-6769bce: ResultKey
 ```attr
@@ -281,10 +281,10 @@ trace: []
 ```
 
 ResultKey identifies a merged verification slot: the binding target
- (an authored requirement ID, or a synthesized test-case ID "TC:<case>")
- plus the test-case key. Case is empty for the degenerate single-result
- model (patterns A/B/F); two results sharing a key collapse into one via
- latest-wins merging.
+(an authored requirement ID, or a synthesized test-case ID "TC:<case>")
+plus the test-case key. Case is empty for the degenerate single-result
+model (patterns A/B/F); two results sharing a key collapse into one via
+latest-wins merging.
 
 ### IMP-verify-resultKeyFor-e5f7a05: resultKeyFor
 ```attr
@@ -309,10 +309,10 @@ trace: []
 ```
 
 MergeLatest returns, for each (target, case) key, the result with the
- latest VerifiedAt. Ties are broken by lexical order of Source for
- determinism. The `~N` pin is stripped from the key so results pinned to
- different versions of the same measure collapse to one entry (the pin is
- preserved on the synthesized trace edge, not the result identity).
+latest VerifiedAt. Ties are broken by lexical order of Source for
+determinism. The `~N` pin is stripped from the key so results pinned to
+different versions of the same measure collapse to one entry (the pin is
+preserved on the synthesized trace edge, not the result identity).
 
 ### IMP-verify-LoadMerged-bff839e: LoadMerged
 ```attr
@@ -325,10 +325,10 @@ trace: []
 ```
 
 LoadMerged is a convenience wrapper that loads results from the
- given paths and merges them by (target, case) key (latest verdict wins).
- Returns the merged map, any warnings, and an error. When paths
- is empty/nil, returns (nil, nil, nil) — callers should check for
- nil before calling Synthesize.
+given paths and merges them by (target, case) key (latest verdict wins).
+Returns the merged map, any warnings, and an error. When paths
+is empty/nil, returns (nil, nil, nil) — callers should check for
+nil before calling Synthesize.
 
 ### IMP-verify-LoadVerdicts-8fd7b04: LoadVerdicts
 ```attr
@@ -341,12 +341,12 @@ trace: []
 ```
 
 LoadVerdicts loads results, merges by (target, case) key, and converts
- to a per-target Verdict map for exporters that render per-measure badges
- before roll-up semantics land. For targets with several cases the verdict
- is the latest result across those cases (by VerifiedAt); rolled-up verdict
- computation is a graph concern in the evidence-set phase. This is the
- shared results-loading path for check, serve, and export csv/html/graph.
- Returns all nil when paths is empty.
+to a per-target Verdict map for exporters that render per-measure badges
+before roll-up semantics land. For targets with several cases the verdict
+is the latest result across those cases (by VerifiedAt); rolled-up verdict
+computation is a graph concern in the evidence-set phase. This is the
+shared results-loading path for check, serve, and export csv/html/graph.
+Returns all nil when paths is empty.
 
 ### IMP-verify-latestVerdict-52bcba6: latestVerdict
 ```attr
@@ -369,15 +369,15 @@ trace: []
 ```
 
 LoadResults walks the given paths and loads verification results from
- each. A path may be:
+each. A path may be:
    - a directory: walked; `.ctrf.json` and CTRF-shaped `.json` files are
      parsed as CTRF, directories containing `schema.yaml` are loaded as
      manual results via parser.Discover, other files are skipped.
    - a file: parsed as CTRF if `.ctrf.json` or CTRF-shaped `.json`.
 
- Returns the merged set of results and any warnings (e.g. unmapped CTRF
- tests). Warnings are returned as CheckResult-shaped messages via the
- returned warning slice; errors abort loading.
+Returns the merged set of results and any warnings (e.g. unmapped CTRF
+tests). Warnings are returned as CheckResult-shaped messages via the
+returned warning slice; errors abort loading.
 
 ### IMP-verify-readInRoot-a08ae61: readInRoot
 ```attr
@@ -390,7 +390,7 @@ trace: []
 ```
 
 readInRoot reads one file from the walked results tree through the walk
- root, refusing paths that escape it.
+root, refusing paths that escape it.
 
 ### IMP-verify-loadDir-5073ff5: loadDir
 ```attr
@@ -403,15 +403,15 @@ trace: []
 ```
 
 loadDir walks a results directory. CTRF files (`.ctrf.json` or
- CTRF-shaped `.json`) are parsed directly. Subdirectories with a
- `schema.yaml` are loaded as manual-results document dirs via
- parser.Discover. Non-CTRF files (coverage.json, junit.xml, etc.) are
- skipped silently.
+CTRF-shaped `.json`) are parsed directly. Subdirectories with a
+`schema.yaml` are loaded as manual-results document dirs via
+parser.Discover. Non-CTRF files (coverage.json, junit.xml, etc.) are
+skipped silently.
 
- Each `.json` file is read once: the bytes are used for the CTRF
- shape check and, if it passes, for the full parse. This avoids
- the double-read that occurred when isCTRFFile and loadCTRFFile
- each opened the file independently.
+Each `.json` file is read once: the bytes are used for the CTRF
+shape check and, if it passes, for the full parse. This avoids
+the double-read that occurred when isCTRFFile and loadCTRFFile
+each opened the file independently.
 
 ### IMP-verify-ctrfPending-e93263c: ctrfPending
 ```attr
@@ -424,8 +424,8 @@ trace: []
 ```
 
 CTRF files pending load: (path, data) pairs. The data is
- already read during the walk for the shape check, so we pass
- it to loadCTRFData to avoid a second read.
+already read during the walk for the shape check, so we pass
+it to loadCTRFData to avoid a second read.
 
 ### IMP-verify-loadManualDir-d23cee7: loadManualDir
 ```attr
@@ -438,7 +438,7 @@ trace: []
 ```
 
 loadManualDir parses a manual-results document dir via the standard
- parser pipeline and extracts result attrs from each requirement.
+parser pipeline and extracts result attrs from each requirement.
 
 ### IMP-verify-resultFromReq-660ae11: resultFromReq
 ```attr
@@ -451,8 +451,22 @@ trace: []
 ```
 
 resultFromReq builds a Result from a parsed manual-results requirement.
- Returns ok=false if the requirement has no `x-reqmd.outcome` attr (not a
- result). Result attributes are tool-owned and namespaced under x-reqmd.*.
+Returns ok=false if the requirement has no `x-reqmd.outcome` attr (not a
+result). Result attributes are tool-owned and namespaced under x-reqmd.*.
+
+### IMP-verify-parseVerifiedAt-7024f14: parseVerifiedAt
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/verify/results.go
+x-reqmd.source-line: 379
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+parseVerifiedAt accepts an RFC 3339 date-time (like CTRF's `stop`) or a
+bare `YYYY-MM-DD` date, which means midnight UTC. Unparsable values yield
+the zero time.
 
 ## internal/verify/results_internal_test.go
 ### IMP-verify-TestLoadManualDir_ResultFields-28467e0: TestLoadManualDir_ResultFields
@@ -462,14 +476,15 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
 x-reqmd.source-line: 20
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-verify-loadManualDir-d23cee7
 ```
 
 Manual-results loading (loadManualDir)
- TestLoadManualDir_ResultFields creates a temp results dir with a schema.yaml
- and a .md file holding a manual-results requirement (outcome, trace,
- verifier, evidence, verified-at), then asserts loadManualDir returns one
- Result with every field populated correctly.
+TestLoadManualDir_ResultFields creates a temp results dir with a schema.yaml
+and a .md file holding a manual-results requirement (outcome, trace,
+verifier, evidence, verified-at), then asserts loadManualDir returns one
+Result with every field populated correctly.
 
 ### IMP-verify-TestResultFromReq_HappyPath-e8440e3: TestResultFromReq_HappyPath
 ```attr
@@ -478,19 +493,32 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
 x-reqmd.source-line: 100
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-verify-resultFromReq-660ae11
 ```
 
 resultFromReq — direct construction tests
 
-### IMP-verify-TestResultFromReq_NoOutcomeNotAResult-7a130a2: TestResultFromReq_NoOutcomeNotAResult
+### IMP-verify-TestResultFromReq_VerifiedAtFormats-15c7a91: TestResultFromReq_VerifiedAtFormats
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
 x-reqmd.source-line: 140
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-verify-resultFromReq-660ae11
+```
+
+### IMP-verify-TestResultFromReq_NoOutcomeNotAResult-7a130a2: TestResultFromReq_NoOutcomeNotAResult
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/verify/results_internal_test.go
+x-reqmd.source-line: 184
+x-reqmd.symbol-kind: function
+trace:
+  - IMP-verify-resultFromReq-660ae11
 ```
 
 ### IMP-verify-TestResultFromReq_EmptyTraceFallsBackToReqID-3e4e555: TestResultFromReq_EmptyTraceFallsBackToReqID
@@ -498,9 +526,10 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
-x-reqmd.source-line: 155
+x-reqmd.source-line: 199
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-verify-resultFromReq-660ae11
 ```
 
 ## internal/verify/synth.go
@@ -515,9 +544,9 @@ trace: []
 ```
 
 resultDocLevel is the x-reqmd level assigned to synthesized
- verification-result documents. The graph uses levels to infer V-model
- boundaries; results are the bottom of the V (leaves), so they must not
- be treated as roots.
+verification-result documents. The graph uses levels to infer V-model
+boundaries; results are the bottom of the V (leaves), so they must not
+be treated as roots.
 
 ### IMP-verify-testCasePrefix-eb83fce: testCasePrefix
 ```attr
@@ -530,9 +559,9 @@ trace: []
 ```
 
 testCasePrefix prefixes the ID of a synthesized test-case node
- ("TC:<case-key>"). Case-keyed CTRF entries (patterns D/E) synthesize one
- such node per case; it carries the `verifies` trace edges to the
- requirements it exercises and the Markdown description body.
+("TC:<case-key>"). Case-keyed CTRF entries (patterns D/E) synthesize one
+such node per case; it carries the `verifies` trace edges to the
+requirements it exercises and the Markdown description body.
 
 ### IMP-verify-Synthesize-d4769b6: Synthesize
 ```attr
@@ -545,7 +574,7 @@ trace: []
 ```
 
 Synthesize builds one model.Document (marked Synthetic) holding the
- pseudo-requirements derived from merged results:
+pseudo-requirements derived from merged results:
 
    - One result node per merged (target, case) key:
      ID RESULT:<target>[#<case>], trace: [<pinned target ref>], plus
@@ -555,9 +584,9 @@ Synthesize builds one model.Document (marked Synthetic) holding the
      Body = the Markdown description of the winning run, Title = the test
      name.
 
- The returned Document is appended to the spec docs before graph.New so
- all existing graph machinery (broken-ref, circular, version-pin) works on
- result→measure and case→requirement edges with no new traversal code.
+The returned Document is appended to the spec docs before graph.New so
+all existing graph machinery (broken-ref, circular, version-pin) works on
+result→measure and case→requirement edges with no new traversal code.
 
 ### IMP-verify-synthesizeTestCase-6f1bfc2: synthesizeTestCase
 ```attr
@@ -570,9 +599,9 @@ trace: []
 ```
 
 synthesizeTestCase builds the synthesized test-case node for a
- case-keyed CTRF result. Its trace edges go to the requirements it
- exercises (extra.x-reqmd.verifies, pins allowed); its body is the
- Markdown description taken from the winning run.
+case-keyed CTRF result. Its trace edges go to the requirements it
+exercises (extra.x-reqmd.verifies, pins allowed); its body is the
+Markdown description taken from the winning run.
 
 ### IMP-verify-synthesizeResult-703c47f: synthesizeResult
 ```attr
@@ -585,9 +614,9 @@ trace: []
 ```
 
 synthesizeResult builds a single pseudo-requirement node from a merged
- result. The binding target (with its `~N` pin preserved for id-bound
- results) becomes the trace target; a case-keyed result gets a distinct
- node ID so several cases can attach to the same authored measure.
+result. The binding target (with its `~N` pin preserved for id-bound
+results) becomes the trace target; a case-keyed result gets a distinct
+node ID so several cases can attach to the same authored measure.
 
 ### IMP-verify-resultNodeID-3c86e9a: resultNodeID
 ```attr
@@ -600,8 +629,8 @@ trace: []
 ```
 
 resultNodeID is the synthetic ID of a result node:
- RESULT:<target> for the single-result model, RESULT:<target>#<case> when
- the run is case-keyed.
+RESULT:<target> for the single-result model, RESULT:<target>#<case> when
+the run is case-keyed.
 
 ### IMP-verify-outcomeTitle-63d650c: outcomeTitle
 ```attr
@@ -638,8 +667,8 @@ trace: []
 ```
 
 IsResultNode reports whether a requirement ID belongs to a synthesized
- verification-result pseudo-requirement (i.e. produced by Synthesize).
- Used by graph checks to distinguish result nodes from authored ones.
+verification-result pseudo-requirement (i.e. produced by Synthesize).
+Used by graph checks to distinguish result nodes from authored ones.
 
 ### IMP-verify-IsTestCaseNode-5f32cca: IsTestCaseNode
 ```attr
@@ -652,8 +681,8 @@ trace: []
 ```
 
 IsTestCaseNode reports whether a requirement ID belongs to a synthesized
- test case ("TC:..."). Used to recognize case nodes independently of the
- RESULT prefix.
+test case ("TC:..."). Used to recognize case nodes independently of the
+RESULT prefix.
 
 ### IMP-verify-ResultOutcome-43be5fd: ResultOutcome
 ```attr
@@ -666,5 +695,5 @@ trace: []
 ```
 
 ResultOutcome extracts the outcome attribute from a synthesized result
- node's requirement attrs. Returns "" if not present.
+node's requirement attrs. Returns "" if not present.
 
