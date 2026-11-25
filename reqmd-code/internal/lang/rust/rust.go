@@ -31,6 +31,7 @@ package rust
 
 import (
 	"embed"
+	"regexp"
 	"strings"
 
 	"github.com/dVoo/reqmd/reqmd-code/internal/lang"
@@ -159,6 +160,40 @@ func cleanComment(text string) string {
 	return strings.Join(lines, "\n")
 }
 
+// testAttrRe matches a test attribute, including common paths such as
+// `#[tokio::test]`; it deliberately does not match `#[cfg(test)]`.
+var testAttrRe = regexp.MustCompile(`^#\[\s*(?:[A-Za-z0-9_]+::)*test(?:\s*\([\s\S]*\))?\s*\]$`)
+
+// hasTestAttribute reports whether the item carries a `#[test]` attribute.
+// It walks the same sibling run BindDoc does: attributes and comments may sit
+// between the item and the attribute, while an inner attribute or inner doc
+// comment ends the run.
+func hasTestAttribute(node *sitter.Node, src []byte) bool {
+	if node == nil {
+		return false
+	}
+	for prev := node.PrevSibling(); prev != nil; prev = prev.PrevSibling() {
+		switch prev.Kind() {
+		case "attribute_item":
+			text := strings.TrimSpace(prev.Utf8Text(src))
+			if strings.HasPrefix(text, "#![") {
+				return false
+			}
+			if testAttrRe.MatchString(text) {
+				return true
+			}
+		case "line_comment", "block_comment":
+			text := strings.TrimSpace(prev.Utf8Text(src))
+			if strings.HasPrefix(text, "//!") || strings.HasPrefix(text, "/*!") {
+				return false
+			}
+		default:
+			return false
+		}
+	}
+	return false
+}
+
 // Parse parses the given Rust source bytes and returns a flat list of
 // top-level symbols, in source order. It uses the embedded tree-sitter
 // query to find function, method, type, const, and static declarations,
@@ -241,6 +276,12 @@ func (l *RustLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 		}
 
 		if sym, ok := symbolFromMatch(captures, file, pkgName, src, l); ok {
+			// `#[test]` is not encoded in the query captures, so mark the
+			// symbol here. The resolver uses it for convention linking and to
+			// keep tests out of the target pool.
+			if n := declNode(captures); n != nil {
+				sym.IsTest = hasTestAttribute(n, src)
+			}
 			out = append(out, sym)
 		}
 	}
@@ -249,6 +290,26 @@ func (l *RustLanguage) Parse(file string, src []byte) ([]model.Symbol, error) {
 	// but be defensive in case the binding reorders.
 	lang.SortByStartLine(out)
 	return out, nil
+}
+
+// declNode returns the primary declaration node for a match, if any.
+func declNode(captures map[string]*sitter.Node) *sitter.Node {
+	if n := captures["method.decl"]; n != nil {
+		return n
+	}
+	if n := captures["func.decl"]; n != nil {
+		return n
+	}
+	if n := captures["type.decl"]; n != nil {
+		return n
+	}
+	if n := captures["const.decl"]; n != nil {
+		return n
+	}
+	if n := captures["var.decl"]; n != nil {
+		return n
+	}
+	return nil
 }
 
 // symbolFromMatch builds a model.Symbol from the per-match capture map.

@@ -1,6 +1,7 @@
 package lang
 
 import (
+	"path/filepath"
 	"sort"
 	"strings"
 
@@ -8,6 +9,35 @@ import (
 
 	sitter "github.com/tree-sitter/go-tree-sitter"
 )
+
+// IsTestFile reports whether path follows one of the supported languages'
+// test-file conventions. It is language-agnostic on purpose: a resolver that
+// sees only a symbol should not need to know which plugin produced it.
+//
+//	Go         *_test.go
+//	Python     test_*.py, *_test.py
+//	Rust       tests/*.rs, *_test.rs
+//	C/C++      test_*.c/.cc/.cpp/.cxx, *_test.c/.cc/.cpp/.cxx
+//
+// A new language adds its convention here, and can still mark inline tests
+// through model.Symbol.IsTest.
+func IsTestFile(path string) bool {
+	p := filepath.ToSlash(path)
+	base := filepath.Base(p)
+	ext := filepath.Ext(base)
+	stem := strings.TrimSuffix(base, ext)
+	switch ext {
+	case ".go":
+		return strings.HasSuffix(base, "_test.go")
+	case ".py":
+		return strings.HasPrefix(base, "test_") || strings.HasSuffix(base, "_test.py")
+	case ".rs":
+		return strings.HasSuffix(base, "_test.rs") || strings.HasPrefix(p, "tests/") || strings.Contains(p, "/tests/")
+	case ".c", ".cc", ".cpp", ".cxx":
+		return strings.HasPrefix(stem, "test_") || strings.HasSuffix(stem, "_test")
+	}
+	return false
+}
 
 // HasAncestorKind reports whether any ancestor of node has one of the given
 // tree-sitter node kinds. Every plugin uses it to reject declarations local

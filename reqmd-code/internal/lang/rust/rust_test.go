@@ -322,3 +322,46 @@ fn compute() -> i32 {
 		t.Errorf("BindDoc = %q, want %q", got, want)
 	}
 }
+
+// TestParseMarksTestAttributes pins IsTest detection, including path-qualified
+// test attributes and inline test modules.
+func TestParseMarksTestAttributes(t *testing.T) {
+	const src = `#[test]
+fn test_parse() {}
+
+#[tokio::test]
+async fn test_async() {}
+
+#[cfg(test)]
+fn cfg_only() {}
+
+mod tests {
+    #[test]
+    fn helper_named() {}
+}
+`
+	syms, err := (&RustLanguage{}).Parse("a.rs", []byte(src))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	want := map[string]bool{
+		"test_parse":   true,
+		"test_async":   true,
+		"cfg_only":     false,
+		"helper_named": true,
+	}
+	seen := make(map[string]bool, len(want))
+	for _, s := range syms {
+		if expect, ok := want[s.Name]; ok {
+			seen[s.Name] = true
+			if s.IsTest != expect {
+				t.Errorf("%s IsTest = %v, want %v", s.Name, s.IsTest, expect)
+			}
+		}
+	}
+	for name := range want {
+		if !seen[name] {
+			t.Errorf("%s was not extracted", name)
+		}
+	}
+}

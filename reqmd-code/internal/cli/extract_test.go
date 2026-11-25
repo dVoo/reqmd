@@ -829,3 +829,220 @@ func TestFormatTraceRefErrors(t *testing.T) {
 		t.Errorf("missing cap notice:\n%s", msg)
 	}
 }
+
+// testLinks returns an item's links for assertions.
+func testLinks(t *testing.T, items []exchange.Item, title string) []string {
+	t.Helper()
+	return itemByTitle(t, items, title).Links
+}
+
+// TestRunExtract_LinkTestsOffByDefault pins that conventions are opt-in.
+func TestRunExtract_LinkTestsOffByDefault(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+func Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+func TestParse() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	alpha := docByDir(t, bundle, "alpha")
+	if links := testLinks(t, alpha.Items, "TestParse"); len(links) != 0 {
+		t.Errorf("links = %v, want none without --link-tests", links)
+	}
+}
+
+// TestRunExtract_ConventionGo covers CamelCase matching: longest candidate,
+// CamelCase boundaries, initial-case folding, methods, types, and the target
+// pool exclusions.
+func TestRunExtract_ConventionGo(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+func Parse() {}
+func parse() {}
+func ParseFromDisk() {}
+func URLParser() {}
+func cleanComment() {}
+type Point struct{}
+type Graph struct{}
+
+func (g *Graph) CheckResults() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+func TestParse() {}
+func TestParseFromDisk() {}
+func TestURLParser() {}
+func TestCleanComment() {}
+func TestPoint() {}
+func TestGraph_CheckResults() {}
+func TestGraph_CheckResults_Empty() {}
+func TestParseHelper() {}
+func TestMain(m *testing.M) {}
+
+type ParseHelper struct{}
+`)
+	bundle, _, errOut := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	alpha := docByDir(t, bundle, "alpha")
+	key := func(title string) string { return itemByTitle(t, alpha.Items, title).Key }
+
+	cases := map[string]string{
+		"TestParse":                    key("Parse"),
+		"TestParseFromDisk":            key("ParseFromDisk"),
+		"TestURLParser":                key("URLParser"),
+		"TestCleanComment":             key("cleanComment"),
+		"TestPoint":                    key("Point"),
+		"TestGraph_CheckResults":       key("CheckResults"),
+		"TestGraph_CheckResults_Empty": key("CheckResults"),
+		// The test-file type ParseHelper must not win over the production Parse.
+		"TestParseHelper": key("Parse"),
+	}
+	for test, want := range cases {
+		if got := testLinks(t, alpha.Items, test); !slices.Equal(got, []string{want}) {
+			t.Errorf("%s links = %v, want [%s]", test, got, want)
+		}
+	}
+	if links := testLinks(t, alpha.Items, "TestMain"); len(links) != 0 {
+		t.Errorf("TestMain links = %v, want none", links)
+	}
+	// Exact case outranks the folded lowercase candidate `parse`.
+	if got := testLinks(t, alpha.Items, "TestParse"); !slices.Equal(got, []string{key("Parse")}) {
+		t.Errorf("TestParse links = %v, want the exact-case Parse", got)
+	}
+	if strings.Contains(errOut, "ambiguous") {
+		t.Errorf("unexpected ambiguity warning: %s", errOut)
+	}
+}
+
+// TestRunExtract_ConventionGoExternalTestPackage covers the `_test` half of
+// basePackage: a test in package alpha_test links to package alpha.
+func TestRunExtract_ConventionGoExternalTestPackage(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+func Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha_test
+
+func TestParse() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	alpha := docByDir(t, bundle, "alpha")
+	parse := itemByTitle(t, alpha.Items, "Parse")
+	ext := docByDir(t, bundle, "alpha_test")
+	if got := testLinks(t, ext.Items, "TestParse"); !slices.Equal(got, []string{"alpha/" + parse.Key}) {
+		t.Errorf("links = %v, want [alpha/%s]", got, parse.Key)
+	}
+}
+
+// TestRunExtract_ConventionPython covers snake_case across test documents.
+func TestRunExtract_ConventionPython(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "parse.py", `def parse():
+    pass
+`)
+	writeFile(t, src, "test_parse.py", `def test_parse():
+    pass
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	parse := docByDir(t, bundle, "parse")
+	fn := itemByTitle(t, parse.Items, "parse")
+	tests := docByDir(t, bundle, "test_parse")
+	if got := testLinks(t, tests.Items, "test_parse"); !slices.Equal(got, []string{"parse/" + fn.Key}) {
+		t.Errorf("links = %v, want [parse/%s]", got, fn.Key)
+	}
+}
+
+// TestRunExtract_ConventionRustInline covers an inline #[test] module.
+func TestRunExtract_ConventionRustInline(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.rs", `fn parse() {}
+
+mod tests {
+    #[test]
+    fn test_parse() {}
+}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	a := docByDir(t, bundle, "a")
+	fn := itemByTitle(t, a.Items, "parse")
+	if got := testLinks(t, a.Items, "test_parse"); !slices.Equal(got, []string{fn.Key}) {
+		t.Errorf("links = %v, want [%s]", got, fn.Key)
+	}
+}
+
+// TestRunExtract_ConventionExplicitWins pins that any explicit directive
+// (an ID ref or none) suppresses convention linking.
+func TestRunExtract_ConventionExplicitWins(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+func Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+// reqmd:trace SW-EXP-001
+func TestParse() {}
+
+// reqmd:trace none
+func TestParseB() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	alpha := docByDir(t, bundle, "alpha")
+	if links := testLinks(t, alpha.Items, "TestParse"); len(links) != 0 {
+		t.Errorf("explicit ID should suppress convention, links = %v", links)
+	}
+	if refs := itemByTitle(t, alpha.Items, "TestParse").Refs; !slices.Equal(refs, []string{"SW-EXP-001"}) {
+		t.Errorf("refs = %v, want [SW-EXP-001]", refs)
+	}
+	if links := testLinks(t, alpha.Items, "TestParseB"); len(links) != 0 {
+		t.Errorf("none should suppress convention, links = %v", links)
+	}
+}
+
+// TestRunExtract_ConventionAmbiguousWarns pins non-fatal tie handling.
+func TestRunExtract_ConventionAmbiguousWarns(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+type A_B struct{}
+type A struct{}
+
+func (x *A_B) C() {}
+func (x *A) B_C() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+func TestA_B_C() {}
+`)
+	bundle, _, errOut := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	alpha := docByDir(t, bundle, "alpha")
+	if links := testLinks(t, alpha.Items, "TestA_B_C"); len(links) != 0 {
+		t.Errorf("ambiguous match produced links %v", links)
+	}
+	if !strings.Contains(errOut, "ambiguous convention match") {
+		t.Errorf("stderr = %q, want an ambiguity warning", errOut)
+	}
+}
+
+// TestRunExtract_ConventionNoGlobalFallback pins that a test in one package
+// cannot link to a same-named symbol in an unrelated package.
+func TestRunExtract_ConventionNoGlobalFallback(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "alpha/a.go", `package alpha
+
+func Parse() {}
+`)
+	writeFile(t, src, "beta/b_test.go", `package beta
+
+func TestParse() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	beta := docByDir(t, bundle, "beta")
+	if links := testLinks(t, beta.Items, "TestParse"); len(links) != 0 {
+		t.Errorf("cross-package convention link = %v, want none", links)
+	}
+}

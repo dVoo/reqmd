@@ -29,6 +29,7 @@ type extractFlags struct {
 	output          string
 	idPrefix        string
 	heuristicTraces bool
+	linkTests       bool
 }
 
 // NewRootCmd builds the reqmd-code command tree. Extraction is the tool's
@@ -67,6 +68,7 @@ Examples:
 
 	cmd.Flags().StringVar(&f.lang, "lang", "", "restrict to one language (e.g. 'c', 'cpp', 'go', 'python', 'rust'); default: all registered")
 	cmd.Flags().BoolVar(&f.heuristicTraces, "heuristic-traces", false, "also extract bare requirement IDs from prose (not just explicit reqmd:trace markers)")
+	cmd.Flags().BoolVar(&f.linkTests, "link-tests", false, "link unit tests to the symbols their names refer to (TestParse/test_parse); explicit reqmd:trace markers win")
 	cmd.Flags().StringVar(&f.idPrefix, "id-prefix", "IMP-", "prefix for generated requirement IDs")
 	cmd.Flags().StringVarP(&f.output, "output", "o", "", "write the JSON bundle to this file instead of stdout")
 
@@ -275,8 +277,13 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 		pkgSymbols[pkgName] = kept
 	}
 	index := newSymbolIndex(pkgSymbols)
+	var conventionPool map[string][]conventionTarget
+	if f.linkTests {
+		conventionPool = buildConventionPool(pkgSymbols)
+	}
 
 	var refErrs []traceRefError
+	var conventionWarns []string
 
 	for _, pkgName := range pkgNames {
 		kept := pkgSymbols[pkgName]
@@ -355,6 +362,21 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 					item.Links = append(item.Links, link)
 				}
 			}
+			// Convention linking is opt-in and never overrides an explicit
+			// directive: any marker content (IDs, symbols, none, malformed)
+			// suppresses it for that item.
+			if f.linkTests && !hasExplicitDirective(traces) {
+				if link, candidates, ok := conventionLink(pkgName, s, conventionPool); ok {
+					if !seenLinks[link] {
+						seenLinks[link] = true
+						item.Links = append(item.Links, link)
+					}
+				} else if len(candidates) > 0 {
+					conventionWarns = append(conventionWarns, fmt.Sprintf(
+						"%s:%d (%s): ambiguous convention match (candidates: %s)",
+						relPath(srcDir, s.File), s.StartLine, s.Name, strings.Join(candidates, ", ")))
+				}
+			}
 			// The doc comment becomes content nodes under the symbol rather
 			// than its body: a section body may not contain headings, and a
 			// doc comment often does.
@@ -395,6 +417,12 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 	// `-o` file is never created or truncated on failure.
 	if len(refErrs) > 0 {
 		return formatTraceRefErrors(refErrs)
+	}
+	if len(conventionWarns) > 0 {
+		sort.Strings(conventionWarns)
+		for _, w := range conventionWarns {
+			fmt.Fprintf(cmd.ErrOrStderr(), "warn: %s\n", w)
+		}
 	}
 
 	bundle := exchange.Bundle{Schema: exchange.SchemaURL, Documents: docs}
@@ -611,6 +639,174 @@ func basePackage(pkg string) string {
 	}
 	return ""
 }
+
+// conventionTarget is a symbol a test name may refer to by convention.
+type conventionTarget struct {
+	pkg      string
+	nativeID string
+	key      string
+}
+
+// buildConventionPool collects the symbols convention matching may link to:
+// production functions, methods, and types. Constants, variables, and tests
+// (including symbols in test files and inline `#[test]` items) are excluded so
+// a test can never link to another test or to a constant.
+func buildConventionPool(pkgs map[string][]packagedSymbol) map[string][]conventionTarget {
+	pool := make(map[string][]conventionTarget, len(pkgs))
+	for pkg, kept := range pkgs {
+		targets := make([]conventionTarget, 0, len(kept))
+		for _, ps := range kept {
+			s := ps.sym
+			if s.Kind == model.SymbolConst || s.Kind == model.SymbolVar || s.IsTest || lang.IsTestFile(s.File) {
+				continue
+			}
+			key := s.Name
+			if s.Receiver != "" {
+				key = model.StripReceiverName(s.Receiver) + "_" + s.Name
+			}
+			targets = append(targets, conventionTarget{pkg: pkg, nativeID: ps.nativeID, key: key})
+		}
+		pool[pkg] = targets
+	}
+	return pool
+}
+
+// hasExplicitDirective reports whether an item already carries an explicit
+// trace directive. Convention linking only fills the gap when nothing was
+// written by hand.
+func hasExplicitDirective(traces extractor.TraceRefs) bool {
+	return len(traces.ReqIDs) > 0 || len(traces.SymbolRefs) > 0 || len(traces.Malformed) > 0 || traces.OptOut
+}
+
+// conventionLink resolves a test symbol to the production symbol its name
+// refers to. Lookup is scoped to the same package, then the base package of a
+// test package — never globally, so unrelated packages cannot produce a link.
+func conventionLink(fromPkg string, sym model.Symbol, pool map[string][]conventionTarget) (link string, candidates []string, ok bool) {
+	if !sym.IsTest && !lang.IsTestFile(sym.File) {
+		return "", nil, false
+	}
+	stem, camel, ok := testStem(sym)
+	if !ok {
+		return "", nil, false
+	}
+	tiers := []string{fromPkg}
+	if base := basePackage(fromPkg); base != "" && base != fromPkg {
+		tiers = append(tiers, base)
+	}
+	for _, pkg := range tiers {
+		target, cands, found := matchConvention(stem, camel, pool[pkg])
+		if found {
+			link := target.nativeID
+			if target.pkg != fromPkg {
+				link = target.pkg + "/" + target.nativeID
+			}
+			return link, nil, true
+		}
+		if len(cands) > 0 {
+			return "", cands, false
+		}
+	}
+	return "", nil, false
+}
+
+// testStem returns the part of a test name that names its target, and whether
+// the language uses CamelCase (`TestParse`) or snake_case (`test_parse`).
+// Symbol kinds other than functions/methods never yield a stem.
+func testStem(sym model.Symbol) (stem string, camel bool, ok bool) {
+	if sym.Kind != model.SymbolFunction && sym.Kind != model.SymbolMethod {
+		return "", false, false
+	}
+	name := sym.Name
+	if filepath.Ext(sym.File) == ".go" {
+		if name == "TestMain" || len(name) <= len("Test") || !strings.HasPrefix(name, "Test") {
+			return "", false, false
+		}
+		rest := name[len("Test"):]
+		if !isUpperByte(rest[0]) {
+			return "", false, false
+		}
+		return rest, true, true
+	}
+	if len(name) <= len("test_") || !strings.HasPrefix(name, "test_") {
+		return "", false, false
+	}
+	return name[len("test_"):], false, true
+}
+
+// matchConvention finds the longest candidate key that the test stem starts
+// with at a valid boundary. A tie across distinct targets is ambiguous and
+// returns the candidate names.
+func matchConvention(stem string, camel bool, targets []conventionTarget) (conventionTarget, []string, bool) {
+	var best []conventionTarget
+	bestLen := -1
+	bestExact := false
+	consider := func(t conventionTarget, text string, exact bool) {
+		if !strings.HasPrefix(stem, text) || !boundaryOK(stem[len(text):], text, camel) {
+			return
+		}
+		switch {
+		case len(text) > bestLen || (len(text) == bestLen && exact && !bestExact):
+			best = []conventionTarget{t}
+			bestLen = len(text)
+			bestExact = exact
+		case len(text) == bestLen && exact == bestExact:
+			for _, b := range best {
+				if b.pkg == t.pkg && b.nativeID == t.nativeID {
+					return
+				}
+			}
+			best = append(best, t)
+		}
+	}
+	for _, t := range targets {
+		consider(t, t.key, true)
+		// Go convention often names an unexported function: TestCleanComment
+		// refers to cleanComment. Compare a title-cased variant of a lowercase
+		// candidate, and let an exact case match outrank it.
+		if camel && len(t.key) > 0 && isLowerByte(t.key[0]) {
+			folded := string(t.key[0]-'a'+'A') + t.key[1:]
+			consider(t, folded, false)
+		}
+	}
+	if bestLen < 0 {
+		return conventionTarget{}, nil, false
+	}
+	if len(best) > 1 {
+		names := make([]string, len(best))
+		for i, b := range best {
+			names[i] = b.pkg + "/" + b.key
+		}
+		sort.Strings(names)
+		return conventionTarget{}, names, false
+	}
+	return best[0], nil, true
+}
+
+// boundaryOK reports whether the text after a matched candidate is a valid
+// word boundary: end of name or an underscore for both styles, and a
+// CamelCase boundary for CamelCase names.
+func boundaryOK(rest, cand string, camel bool) bool {
+	if rest == "" {
+		return true
+	}
+	if !camel {
+		return rest[0] == '_'
+	}
+	if rest[0] == '_' {
+		return true
+	}
+	if !isUpperByte(rest[0]) {
+		return false
+	}
+	last := cand[len(cand)-1]
+	if !isUpperByte(last) {
+		return true
+	}
+	return len(rest) > 1 && isLowerByte(rest[1])
+}
+
+func isUpperByte(c byte) bool { return c >= 'A' && c <= 'Z' }
+func isLowerByte(c byte) bool { return c >= 'a' && c <= 'z' }
 
 // nativeKey is a symbol's disambiguation key inside its package. Methods are
 // keyed "Receiver.Name" so a method and a same-named top-level function don't

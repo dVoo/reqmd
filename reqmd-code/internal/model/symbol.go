@@ -47,6 +47,12 @@ type Symbol struct {
 	// (Go package path, Python module path, Rust crate name, etc.). The
 	// writer uses this to bucket symbols into per-package .md files.
 	Package string
+	// IsTest marks a symbol declared as a test by an AST marker (`#[test]`
+	// in Rust, `@Test` in a future Java plugin). Languages whose test
+	// convention is a file-name convention (Go `_test.go`, Python
+	// `test_*.py`, C/C++ `test_*`) leave this false; the resolver infers
+	// those from the file and the function name.
+	IsTest bool
 	// Doc is the cleaned comment text immediately preceding the symbol's
 	// declaration. May be empty if no doc comment is present.
 	Doc string

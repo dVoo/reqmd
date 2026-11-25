@@ -75,3 +75,30 @@ func walk(n *sitter.Node, fn func(*sitter.Node)) {
 		walk(n.Child(i), fn)
 	}
 }
+
+// TestIsTestFile pins the file-name conventions used by convention linking.
+func TestIsTestFile(t *testing.T) {
+	tests := map[string]bool{
+		"a_test.go":            true,
+		"pkg/foo_test.go":      true,
+		"a.go":                 false,
+		"test_foo.py":          true,
+		"foo_test.py":          true,
+		"foo.py":               false,
+		"tests/integration.rs": true,
+		"crates/x/src/lib.rs":  false,
+		"foo_test.rs":          true,
+		"test_foo.c":           true,
+		"foo_test.cpp":         true,
+		"a/test_foo.cc":        true,
+		"foo_test.hpp":         false,
+		"notes_test.txt":       false,
+		"contest_test.go":      true,
+		"tests/README.md":      false,
+	}
+	for path, want := range tests {
+		if got := lang.IsTestFile(path); got != want {
+			t.Errorf("IsTestFile(%q) = %v, want %v", path, got, want)
+		}
+	}
+}
