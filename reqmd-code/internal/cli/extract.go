@@ -383,13 +383,15 @@ func runExtract(cmd *cobra.Command, args []string, f *extractFlags) error {
 			item.Children = append(item.Children, docSections(s.Doc)...)
 			// Methods nest under their type as a child item, which is how the
 			// renderer expresses heading depth now that items are a tree.
+			// Every item enters its file's list. nestMethods later pulls a method
+			// under its type when that type is emitted in the same file; otherwise
+			// the method stays at this file's level, where it still counts.
 			if s.Kind == model.SymbolMethod && s.Receiver != "" {
 				// The parent (a type/struct/class) is a top-level symbol, so its
 				// key in nativeIDs is its bare name. Methods themselves are keyed
 				// by "Receiver.Name".
 				if pid, ok := nativeIDs[pkgName][model.StripReceiverName(s.Receiver)]; ok {
 					childOf[pid] = append(childOf[pid], item)
-					continue
 				}
 			}
 			fileItems = append(fileItems, item)
@@ -645,6 +647,13 @@ type conventionTarget struct {
 	pkg      string
 	nativeID string
 	key      string
+	// display is the unambiguous name used in ambiguity warnings
+	// (pkg/Type.Method for a method, pkg/Name otherwise).
+	display string
+	// bareMethod marks the fallback key for a method (its bare name). A real
+	// function/type of the same name outranks it, so `Parse` never links to a
+	// method when the package also defines `func Parse`.
+	bareMethod bool
 }
 
 // buildConventionPool collects the symbols convention matching may link to:
@@ -660,11 +669,17 @@ func buildConventionPool(pkgs map[string][]packagedSymbol) map[string][]conventi
 			if s.Kind == model.SymbolConst || s.Kind == model.SymbolVar || s.IsTest || lang.IsTestFile(s.File) {
 				continue
 			}
-			key := s.Name
 			if s.Receiver != "" {
-				key = model.StripReceiverName(s.Receiver) + "_" + s.Name
+				// Primary key: Type_Method. Fallback: the bare method name, for
+				// tests that name the method without its receiver.
+				display := pkg + "/" + model.StripReceiverName(s.Receiver) + "." + s.Name
+				targets = append(targets,
+					conventionTarget{pkg: pkg, nativeID: ps.nativeID, key: model.StripReceiverName(s.Receiver) + "_" + s.Name, display: display},
+					conventionTarget{pkg: pkg, nativeID: ps.nativeID, key: s.Name, display: display, bareMethod: true},
+				)
+				continue
 			}
-			targets = append(targets, conventionTarget{pkg: pkg, nativeID: ps.nativeID, key: key})
+			targets = append(targets, conventionTarget{pkg: pkg, nativeID: ps.nativeID, key: s.Name, display: pkg + "/" + s.Name})
 		}
 		pool[pkg] = targets
 	}
@@ -740,16 +755,23 @@ func matchConvention(stem string, camel bool, targets []conventionTarget) (conve
 	var best []conventionTarget
 	bestLen := -1
 	bestExact := false
+	bestBare := false
 	consider := func(t conventionTarget, text string, exact bool) {
 		if !strings.HasPrefix(stem, text) || !boundaryOK(stem[len(text):], text, camel) {
 			return
 		}
-		switch {
-		case len(text) > bestLen || (len(text) == bestLen && exact && !bestExact):
+		better := bestLen < 0 ||
+			len(text) > bestLen ||
+			(len(text) == bestLen && exact && !bestExact) ||
+			(len(text) == bestLen && exact == bestExact && !t.bareMethod && bestBare)
+		if better {
 			best = []conventionTarget{t}
 			bestLen = len(text)
 			bestExact = exact
-		case len(text) == bestLen && exact == bestExact:
+			bestBare = t.bareMethod
+			return
+		}
+		if len(text) == bestLen && exact == bestExact && t.bareMethod == bestBare {
 			for _, b := range best {
 				if b.pkg == t.pkg && b.nativeID == t.nativeID {
 					return
@@ -774,7 +796,7 @@ func matchConvention(stem string, camel bool, targets []conventionTarget) (conve
 	if len(best) > 1 {
 		names := make([]string, len(best))
 		for i, b := range best {
-			names[i] = b.pkg + "/" + b.key
+			names[i] = b.display
 		}
 		sort.Strings(names)
 		return conventionTarget{}, names, false
@@ -853,12 +875,34 @@ func nestMethods(items []exchange.Item, childOf map[string][]exchange.Item) []ex
 	if len(childOf) == 0 {
 		return items
 	}
+	// Attach a method to its type only when that type is emitted in this file
+	// section. A method whose type lives in another file stays at its own file's
+	// level, where it still counts (and can be linked to).
+	present := make(map[string]int, len(items))
 	for i := range items {
-		if kids, ok := childOf[items[i].Key]; ok {
-			items[i].Children = append(items[i].Children, kids...)
+		present[items[i].Key] = i
+	}
+	drop := make(map[string]bool)
+	for pid, kids := range childOf {
+		i, ok := present[pid]
+		if !ok {
+			continue
+		}
+		items[i].Children = append(items[i].Children, kids...)
+		for _, kid := range kids {
+			drop[kid.Key] = true
 		}
 	}
-	return items
+	if len(drop) == 0 {
+		return items
+	}
+	out := make([]exchange.Item, 0, len(items))
+	for _, it := range items {
+		if !drop[it.Key] {
+			out = append(out, it)
+		}
+	}
+	return out
 }
 
 // relPath renders a source file relative to the scanned root, so a per-file

@@ -117,7 +117,62 @@ NodeVerification is the presentation view of one requirement's
 verification state. Eligible marks the measures the missing-verdict check
 expects a result for; Outcome is empty when such a measure has none.
 
-## internal/graph/evidence_test.go
+### IMP-graph-CoverageStates-6accec7: CoverageStates
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/analysis.go
+x-reqmd.source-line: 60
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+CoverageStates returns the coverage state of every requirement node.
+
+### IMP-graph-TraceRefs-8ad701a: TraceRefs
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/analysis.go
+x-reqmd.source-line: 72
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+TraceRefs returns the declared trace references of one requirement in
+source order, each resolved to its target and annotated with the resolved
+version and the authored version pin. References that do not resolve are
+returned with Resolved=false so the caller can surface link health.
+
+### IMP-graph-VersionOf-ff7ca98: VersionOf
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/analysis.go
+x-reqmd.source-line: 97
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+VersionOf returns the declared `version` of a requirement, or 0.
+
+### IMP-graph-VerificationStates-edc734e: VerificationStates
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: internal/graph/analysis.go
+x-reqmd.source-line: 109
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+VerificationStates returns the verification state of every non-synthetic
+requirement. Eligible follows the missing-verdict gate (approved measure
+with a `verify` attribute that is not deferred or rejected), so a
+presentation denominator matches the check's expectation set. Without
+result nodes no verdict can exist, so the roll-up is skipped entirely.
+
+## internal/graph/evidence\_test.go
 ### IMP-graph-evidenceChain-22d2085: evidenceChain
 ```attr
 status: approved
@@ -144,55 +199,59 @@ trace: []
 
 evidenceReq builds a requirement node for the graph.
 
-### IMP-graph-TestMeasureEvidence_CachedMatchesUncached-837efe3: TestMeasureEvidence_CachedMatchesUncached
+### IMP-graph-TestMeasureEvidence\_CachedMatchesUncached-837efe3: TestMeasureEvidence\_CachedMatchesUncached
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/evidence_test.go
 x-reqmd.source-line: 58
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-graph-measureEvidence-4a52af0
 ```
 
 TestMeasureEvidence_CachedMatchesUncached compares the cached roll-up with
 the freshly computed one (first call uncached, second served from the
 cache) across a multi-level chain.
 
-### IMP-graph-TestMeasureEvidence_Memoized-38031a7: TestMeasureEvidence_Memoized
+### IMP-graph-TestMeasureEvidence\_Memoized-38031a7: TestMeasureEvidence\_Memoized
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/evidence_test.go
 x-reqmd.source-line: 91
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-graph-measureEvidence-4a52af0
 ```
 
 TestMeasureEvidence_Memoized proves the roll-up is served from the cache:
 after the first call, dropping the chain's inbound edges does not change
 the answer until the cache is invalidated.
 
-### IMP-graph-TestMeasureEvidence_SetFilterInvalidates-2816fc3: TestMeasureEvidence_SetFilterInvalidates
+### IMP-graph-TestMeasureEvidence\_SetFilterInvalidates-2816fc3: TestMeasureEvidence\_SetFilterInvalidates
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/evidence_test.go
 x-reqmd.source-line: 108
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-graph-measureEvidence-4a52af0
 ```
 
 TestMeasureEvidence_SetFilterInvalidates ensures filter-scoped evidence is
 recomputed after SetFilter instead of reusing the pre-filter answer.
 
-### IMP-graph-TestVerificationStates_NoResultsSkipsRollup-850a0ea: TestVerificationStates_NoResultsSkipsRollup
+### IMP-graph-TestVerificationStates\_NoResultsSkipsRollup-850a0ea: TestVerificationStates\_NoResultsSkipsRollup
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/graph/evidence_test.go
 x-reqmd.source-line: 126
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-graph-VerificationStates-edc734e
 ```
 
 TestVerificationStates_NoResultsSkipsRollup pins the early exit: without

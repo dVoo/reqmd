@@ -288,7 +288,7 @@ trace: []
 FormatTextApplied renders an ApplyReport as a one-line summary.
 Used after a successful --yes run.
 
-## internal/repin/repin_test.go
+## internal/repin/repin\_test.go
 ### IMP-repin-writeFile-e36944a: writeFile
 ```attr
 status: approved
@@ -333,7 +333,7 @@ supplied pin (or no pin when pin is ""). The downstream's trace
 line is rendered exactly as supplied so we can assert byte-level
 edits in Apply.
 
-### IMP-repin-TestBuild_Outdated-1e31778: TestBuild_Outdated
+### IMP-repin-TestBuild\_Outdated-1e31778: TestBuild\_Outdated
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -346,7 +346,7 @@ trace:
 
 Build
 
-### IMP-repin-TestBuild_PromoteUnpinned-9dcb605: TestBuild_PromoteUnpinned
+### IMP-repin-TestBuild\_PromoteUnpinned-9dcb605: TestBuild\_PromoteUnpinned
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -357,7 +357,7 @@ trace:
   - IMP-repin-Build-e76efe3
 ```
 
-### IMP-repin-TestBuild_NoPromoteUnpinned-0171e10: TestBuild_NoPromoteUnpinned
+### IMP-repin-TestBuild\_NoPromoteUnpinned-0171e10: TestBuild\_NoPromoteUnpinned
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -368,7 +368,7 @@ trace:
   - IMP-repin-Build-e76efe3
 ```
 
-### IMP-repin-TestBuild_CurrentIsNoOp-e4931f1: TestBuild_CurrentIsNoOp
+### IMP-repin-TestBuild\_CurrentIsNoOp-e4931f1: TestBuild\_CurrentIsNoOp
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -379,7 +379,7 @@ trace:
   - IMP-repin-Build-e76efe3
 ```
 
-### IMP-repin-TestApply_RewritesAttrBlockOnly-7f89609: TestApply_RewritesAttrBlockOnly
+### IMP-repin-TestApply\_RewritesAttrBlockOnly-7f89609: TestApply\_RewritesAttrBlockOnly
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -392,7 +392,7 @@ trace:
 
 Apply: file rewrite semantics
 
-### IMP-repin-TestApply_PromoteAddsPin-026610f: TestApply_PromoteAddsPin
+### IMP-repin-TestApply\_PromoteAddsPin-026610f: TestApply\_PromoteAddsPin
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -403,7 +403,7 @@ trace:
   - IMP-repin-Apply-5d0fd9b
 ```
 
-### IMP-repin-TestApply_PreservesProseWithTilde-cc05272: TestApply_PreservesProseWithTilde
+### IMP-repin-TestApply\_PreservesProseWithTilde-cc05272: TestApply\_PreservesProseWithTilde
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -414,7 +414,7 @@ trace:
   - IMP-repin-Apply-5d0fd9b
 ```
 
-### IMP-repin-TestApply_Idempotent-be9805f: TestApply_Idempotent
+### IMP-repin-TestApply\_Idempotent-be9805f: TestApply\_Idempotent
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -425,7 +425,7 @@ trace:
   - IMP-repin-Apply-5d0fd9b
 ```
 
-### IMP-repin-TestApply_UnpinnedPromoteDoesNotCorruptPinnedSiblings-c1fd101: TestApply_UnpinnedPromoteDoesNotCorruptPinnedSiblings
+### IMP-repin-TestApply\_UnpinnedPromoteDoesNotCorruptPinnedSiblings-c1fd101: TestApply\_UnpinnedPromoteDoesNotCorruptPinnedSiblings
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -443,7 +443,7 @@ already-pinned ref "UP-001~3" to "UP-001~3~3". The apply path
 must use whole-ref matching so an unpinned ref never corrupts a
 pinned sibling.
 
-### IMP-repin-TestApply_SkipsPredated-6633c33: TestApply_SkipsPredated
+### IMP-repin-TestApply\_SkipsPredated-6633c33: TestApply\_SkipsPredated
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -454,7 +454,7 @@ trace:
   - IMP-repin-Apply-5d0fd9b
 ```
 
-### IMP-repin-TestApply_MultipleDeltasSameFile-33d073f: TestApply_MultipleDeltasSameFile
+### IMP-repin-TestApply\_MultipleDeltasSameFile-33d073f: TestApply\_MultipleDeltasSameFile
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -491,7 +491,7 @@ trace:
 
 locateAttrBlocks
 
-### IMP-repin-TestLocateAttrBlocks_NoBlocks-ce0a15e: TestLocateAttrBlocks_NoBlocks
+### IMP-repin-TestLocateAttrBlocks\_NoBlocks-ce0a15e: TestLocateAttrBlocks\_NoBlocks
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -502,7 +502,7 @@ trace:
   - IMP-repin-locateAttrBlocks-482068e
 ```
 
-### IMP-repin-TestLocateAttrBlocks_IgnoresFencedButNotAttr-4a508d6: TestLocateAttrBlocks_IgnoresFencedButNotAttr
+### IMP-repin-TestLocateAttrBlocks\_IgnoresFencedButNotAttr-4a508d6: TestLocateAttrBlocks\_IgnoresFencedButNotAttr
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -513,7 +513,7 @@ trace:
   - IMP-repin-locateAttrBlocks-482068e
 ```
 
-### IMP-repin-TestFormatText_Empty-aedec57: TestFormatText_Empty
+### IMP-repin-TestFormatText\_Empty-aedec57: TestFormatText\_Empty
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -526,7 +526,7 @@ trace:
 
 FormatText
 
-### IMP-repin-TestFormatText_Outdated-6b59b62: TestFormatText_Outdated
+### IMP-repin-TestFormatText\_Outdated-6b59b62: TestFormatText\_Outdated
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -537,7 +537,7 @@ trace:
   - IMP-repin-FormatText-ef8de19
 ```
 
-### IMP-repin-TestResultJSON_Roundtrip-82619ce: TestResultJSON_Roundtrip
+### IMP-repin-TestResultJSON\_Roundtrip-82619ce: TestResultJSON\_Roundtrip
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -550,7 +550,7 @@ trace:
 
 JSON output
 
-### IMP-repin-TestBuild_SortedByFile-d604ba6: TestBuild_SortedByFile
+### IMP-repin-TestBuild\_SortedByFile-d604ba6: TestBuild\_SortedByFile
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -564,7 +564,7 @@ trace:
 Sort order — repin reuses graph's sort; this is a regression test
 to ensure Build preserves it.
 
-### IMP-repin-TestApply_PreservesFileMode-ff4fcfc: TestApply_PreservesFileMode
+### IMP-repin-TestApply\_PreservesFileMode-ff4fcfc: TestApply\_PreservesFileMode
 ```attr
 status: approved
 x-reqmd.imported: true

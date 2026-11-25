@@ -121,7 +121,7 @@ always optional.
 
 Must be called after Normalize and before Compile (JSON marshal).
 
-## internal/schema/builtin_test.go
+## internal/schema/builtin\_test.go
 ### IMP-schema-TestIsBuiltin-fb6a98f: TestIsBuiltin
 ```attr
 status: approved
@@ -133,7 +133,7 @@ trace:
   - IMP-schema-IsBuiltin-11dd61b
 ```
 
-### IMP-schema-TestRejectBuiltinRedefinition_Empty-9f4ed04: TestRejectBuiltinRedefinition_Empty
+### IMP-schema-TestRejectBuiltinRedefinition\_Empty-9f4ed04: TestRejectBuiltinRedefinition\_Empty
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -144,7 +144,7 @@ trace:
   - IMP-schema-RejectBuiltinRedefinition-4335d76
 ```
 
-### IMP-schema-TestRejectBuiltinRedefinition_Clean-0f42f8c: TestRejectBuiltinRedefinition_Clean
+### IMP-schema-TestRejectBuiltinRedefinition\_Clean-0f42f8c: TestRejectBuiltinRedefinition\_Clean
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -155,7 +155,7 @@ trace:
   - IMP-schema-RejectBuiltinRedefinition-4335d76
 ```
 
-### IMP-schema-TestRejectBuiltinRedefinition_RejectsBuiltins-f038a39: TestRejectBuiltinRedefinition_RejectsBuiltins
+### IMP-schema-TestRejectBuiltinRedefinition\_RejectsBuiltins-f038a39: TestRejectBuiltinRedefinition\_RejectsBuiltins
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -188,7 +188,7 @@ trace:
   - IMP-schema-BuiltinNames-55fc6b1
 ```
 
-### IMP-schema-TestInjectBuiltins_EmptySchema-8a82c34: TestInjectBuiltins_EmptySchema
+### IMP-schema-TestInjectBuiltins\_EmptySchema-8a82c34: TestInjectBuiltins\_EmptySchema
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -199,7 +199,7 @@ trace:
   - IMP-schema-InjectBuiltins-a14f691
 ```
 
-### IMP-schema-TestInjectBuiltins_ExistingProps-9e6cff3: TestInjectBuiltins_ExistingProps
+### IMP-schema-TestInjectBuiltins\_ExistingProps-9e6cff3: TestInjectBuiltins\_ExistingProps
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -210,7 +210,7 @@ trace:
   - IMP-schema-InjectBuiltins-a14f691
 ```
 
-### IMP-schema-TestRejectBuiltinRedefinition_JSONSchema-0525396: TestRejectBuiltinRedefinition_JSONSchema
+### IMP-schema-TestRejectBuiltinRedefinition\_JSONSchema-0525396: TestRejectBuiltinRedefinition\_JSONSchema
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -221,7 +221,7 @@ trace:
   - IMP-schema-RejectBuiltinRedefinition-4335d76
 ```
 
-### IMP-schema-TestBuiltinNames_IncludesStatus-b611ee1: TestBuiltinNames_IncludesStatus
+### IMP-schema-TestBuiltinNames\_IncludesStatus-b611ee1: TestBuiltinNames\_IncludesStatus
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -234,7 +234,7 @@ trace:
 
 T1: BuiltinNames must include "status".
 
-### IMP-schema-TestStatus_BuiltInInjectedWithEnum-028e347: TestStatus_BuiltInInjectedWithEnum
+### IMP-schema-TestStatus\_BuiltInInjectedWithEnum-028e347: TestStatus\_BuiltInInjectedWithEnum
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -248,7 +248,7 @@ T2: Compile injects the built-in `status` attribute with the canonical
 enum [draft, approved] into an empty schema. A subsequent validate
 accepts both values and rejects everything else.
 
-### IMP-schema-TestTrace_BuiltInPattern-9876d61: TestTrace_BuiltInPattern
+### IMP-schema-TestTrace\_BuiltInPattern-9876d61: TestTrace\_BuiltInPattern
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -495,7 +495,7 @@ trace: []
 ExtractXReqmd reads the x-reqmd extension block from a parsed schema.
 Returns nil if the key is absent. All fields are optional.
 
-## internal/schema/schema_test.go
+## internal/schema/schema\_test.go
 ### IMP-schema-validSchema-2914ec9: validSchema
 ```attr
 status: approved
@@ -508,7 +508,7 @@ trace: []
 
 validSchema is a valid JSON Schema 2020-12 in YAML map form.
 
-### IMP-schema-TestCompile_HappyPath-33e4447: TestCompile_HappyPath
+### IMP-schema-TestCompile\_HappyPath-33e4447: TestCompile\_HappyPath
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -519,7 +519,7 @@ trace:
   - IMP-schema-Compile-cf14b49
 ```
 
-### IMP-schema-TestCompile_BadSchema-b42fe2a: TestCompile_BadSchema
+### IMP-schema-TestCompile\_BadSchema-b42fe2a: TestCompile\_BadSchema
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -530,47 +530,51 @@ trace:
   - IMP-schema-Compile-cf14b49
 ```
 
-### IMP-schema-TestValidate_ValidAttrs-90b6e61: TestValidate_ValidAttrs
+### IMP-schema-TestValidate\_ValidAttrs-90b6e61: TestValidate\_ValidAttrs
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 47
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Validate-dc2b0c7
 ```
 
-### IMP-schema-TestValidate_MissingRequired-eec25ac: TestValidate_MissingRequired
+### IMP-schema-TestValidate\_MissingRequired-eec25ac: TestValidate\_MissingRequired
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 65
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Validate-dc2b0c7
 ```
 
-### IMP-schema-TestValidate_WrongEnum-326c419: TestValidate_WrongEnum
+### IMP-schema-TestValidate\_WrongEnum-326c419: TestValidate\_WrongEnum
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 87
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Validate-dc2b0c7
 ```
 
-### IMP-schema-TestValidate_NilAttrs-6bcbc16: TestValidate_NilAttrs
+### IMP-schema-TestValidate\_NilAttrs-6bcbc16: TestValidate\_NilAttrs
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
 x-reqmd.source-line: 106
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-schema-Validate-dc2b0c7
 ```
 
-### IMP-schema-TestProperties_NilSchema-309dfbe: TestProperties_NilSchema
+### IMP-schema-TestProperties\_NilSchema-309dfbe: TestProperties\_NilSchema
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -580,7 +584,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-schema-TestProperties_EmptySchema-2e9908c: TestProperties_EmptySchema
+### IMP-schema-TestProperties\_EmptySchema-2e9908c: TestProperties\_EmptySchema
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -590,7 +594,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-schema-TestProperties_Ordering-b2905a2: TestProperties_Ordering
+### IMP-schema-TestProperties\_Ordering-b2905a2: TestProperties\_Ordering
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -600,7 +604,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-schema-TestProperties_OnlyRequired-34bcd49: TestProperties_OnlyRequired
+### IMP-schema-TestProperties\_OnlyRequired-34bcd49: TestProperties\_OnlyRequired
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -610,7 +614,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-schema-TestProperties_NoRequired-4f78a40: TestProperties_NoRequired
+### IMP-schema-TestProperties\_NoRequired-4f78a40: TestProperties\_NoRequired
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -620,7 +624,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-schema-TestCompile_StatusAdditionsAccepted-70f42ac: TestCompile_StatusAdditionsAccepted
+### IMP-schema-TestCompile\_StatusAdditionsAccepted-70f42ac: TestCompile\_StatusAdditionsAccepted
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -636,7 +640,7 @@ T8 / T17: additional-status-values accepted and applied to the built-in
 `status` enum. Empty array is a no-op (T17), values extend the enum
 (T8) so the validator accepts them.
 
-### IMP-schema-TestCompile_StatusAdditionsEmptyIsNoop-4cd6cc2: TestCompile_StatusAdditionsEmptyIsNoop
+### IMP-schema-TestCompile\_StatusAdditionsEmptyIsNoop-4cd6cc2: TestCompile\_StatusAdditionsEmptyIsNoop
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -647,7 +651,7 @@ trace:
   - IMP-schema-Compile-cf14b49
 ```
 
-### IMP-schema-TestCompile_StatusAdditionsRejectsBuiltins-6a05643: TestCompile_StatusAdditionsRejectsBuiltins
+### IMP-schema-TestCompile\_StatusAdditionsRejectsBuiltins-6a05643: TestCompile\_StatusAdditionsRejectsBuiltins
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -660,7 +664,7 @@ trace:
 
 T9: built-in collision rejected as config-error.
 
-### IMP-schema-TestCompile_StatusAdditionsRejectsCapitalized-cf7278f: TestCompile_StatusAdditionsRejectsCapitalized
+### IMP-schema-TestCompile\_StatusAdditionsRejectsCapitalized-cf7278f: TestCompile\_StatusAdditionsRejectsCapitalized
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -673,7 +677,7 @@ trace:
 
 T10: capitalized additions rejected (lowercase-only is config-error).
 
-### IMP-schema-TestCompile_StatusAdditionsRejectsDuplicates-e40694d: TestCompile_StatusAdditionsRejectsDuplicates
+### IMP-schema-TestCompile\_StatusAdditionsRejectsDuplicates-e40694d: TestCompile\_StatusAdditionsRejectsDuplicates
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -686,7 +690,7 @@ trace:
 
 T18: duplicate additions rejected.
 
-### IMP-schema-TestCompile_StatusBuiltInIsInjectedAndRedefinitionRejected-787195e: TestCompile_StatusBuiltInIsInjectedAndRedefinitionRejected
+### IMP-schema-TestCompile\_StatusBuiltInIsInjectedAndRedefinitionRejected-787195e: TestCompile\_StatusBuiltInIsInjectedAndRedefinitionRejected
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -700,7 +704,7 @@ trace:
 T12: user schema with `properties: {status: ...}` triggers the
 built-in redefinition check.
 
-### IMP-schema-TestCompile_AdditionalPropertiesFalseAcceptsBuiltInStatus-19061c7: TestCompile_AdditionalPropertiesFalseAcceptsBuiltInStatus
+### IMP-schema-TestCompile\_AdditionalPropertiesFalseAcceptsBuiltInStatus-19061c7: TestCompile\_AdditionalPropertiesFalseAcceptsBuiltInStatus
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -728,7 +732,7 @@ trace: []
 
 x-reqmd.requires-trace-from document default
 
-### IMP-schema-TestCompile_RequiresTraceFromDefaultAccepted-d9d1299: TestCompile_RequiresTraceFromDefaultAccepted
+### IMP-schema-TestCompile\_RequiresTraceFromDefaultAccepted-d9d1299: TestCompile\_RequiresTraceFromDefaultAccepted
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -739,7 +743,7 @@ trace:
   - IMP-schema-Compile-cf14b49
 ```
 
-### IMP-schema-TestCompile_RequiresTraceFromDefaultRejected-2a1d672: TestCompile_RequiresTraceFromDefaultRejected
+### IMP-schema-TestCompile\_RequiresTraceFromDefaultRejected-2a1d672: TestCompile\_RequiresTraceFromDefaultRejected
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -750,7 +754,7 @@ trace:
   - IMP-schema-Compile-cf14b49
 ```
 
-### IMP-schema-TestExtractXReqmd_RequiresTraceFromScalarNormalized-27d851f: TestExtractXReqmd_RequiresTraceFromScalarNormalized
+### IMP-schema-TestExtractXReqmd\_RequiresTraceFromScalarNormalized-27d851f: TestExtractXReqmd\_RequiresTraceFromScalarNormalized
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -761,7 +765,7 @@ trace:
   - IMP-schema-ExtractXReqmd-ba67a24
 ```
 
-### IMP-schema-TestExtractXReqmd_RequiresTraceFromEmptyStaysDistinct-4a6082b: TestExtractXReqmd_RequiresTraceFromEmptyStaysDistinct
+### IMP-schema-TestExtractXReqmd\_RequiresTraceFromEmptyStaysDistinct-4a6082b: TestExtractXReqmd\_RequiresTraceFromEmptyStaysDistinct
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -772,7 +776,7 @@ trace:
   - IMP-schema-ExtractXReqmd-ba67a24
 ```
 
-### IMP-schema-TestExtractXReqmd_RequiresTraceFromAbsentIsNil-1ce84e6: TestExtractXReqmd_RequiresTraceFromAbsentIsNil
+### IMP-schema-TestExtractXReqmd\_RequiresTraceFromAbsentIsNil-1ce84e6: TestExtractXReqmd\_RequiresTraceFromAbsentIsNil
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -783,7 +787,7 @@ trace:
   - IMP-schema-ExtractXReqmd-ba67a24
 ```
 
-### IMP-schema-TestExtractXReqmd_MalformedDefaultDoesNotDropBlock-cf54ac7: TestExtractXReqmd_MalformedDefaultDoesNotDropBlock
+### IMP-schema-TestExtractXReqmd\_MalformedDefaultDoesNotDropBlock-cf54ac7: TestExtractXReqmd\_MalformedDefaultDoesNotDropBlock
 ```attr
 status: approved
 x-reqmd.imported: true

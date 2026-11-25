@@ -1,9 +1,9 @@
-# Package: verify_test
+# Package: verify\_test
 
 <!-- reqmd: generated -->
 
-## internal/verify/verify_test.go
-### IMP-verify_test-writeFixture-e0c0c1b: writeFixture
+## internal/verify/verify\_test.go
+### IMP-verify\_test-writeFixture-e0c0c1b: writeFixture
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -15,7 +15,7 @@ trace: []
 
 writeFixture writes fixture content to a file, failing the test on error.
 
-### IMP-verify_test-ctrfReport-79379c6: ctrfReport
+### IMP-verify\_test-ctrfReport-79379c6: ctrfReport
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -28,7 +28,7 @@ trace: []
 CTRF parser
 ctrfReport builds a minimal CTRF JSON report with the given tests.
 
-### IMP-verify_test-TestLoadCTRF_PassFail-b91f1a4: TestLoadCTRF_PassFail
+### IMP-verify\_test-TestLoadCTRF\_PassFail-b91f1a4: TestLoadCTRF\_PassFail
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -38,7 +38,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-verify_test-TestLoadCTRF_UninstrumentedTestSkippedSilently-d9022ec: TestLoadCTRF_UninstrumentedTestSkippedSilently
+### IMP-verify\_test-TestLoadCTRF\_UninstrumentedTestSkippedSilently-d9022ec: TestLoadCTRF\_UninstrumentedTestSkippedSilently
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -52,7 +52,7 @@ An uninstrumented test (no extra.x-reqmd block) is skipped silently:
 the old per-test "no x-reqmd.id" warning is gone so suites can adopt
 reqmd incrementally without spamming every uninstrumented test.
 
-### IMP-verify_test-TestLoadCTRF_UnboundResultWarns-96e81b8: TestLoadCTRF_UnboundResultWarns
+### IMP-verify\_test-TestLoadCTRF\_UnboundResultWarns-96e81b8: TestLoadCTRF\_UnboundResultWarns
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -65,7 +65,7 @@ trace: []
 A test with an x-reqmd block but nothing bindable (no id, no verifies)
 yields an unbound-result warning.
 
-### IMP-verify_test-TestLoadCTRF_VersionPinPreserved-f1c65fe: TestLoadCTRF_VersionPinPreserved
+### IMP-verify\_test-TestLoadCTRF\_VersionPinPreserved-f1c65fe: TestLoadCTRF\_VersionPinPreserved
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -75,7 +75,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-verify_test-TestLoadCTRF_FlakyIsInconclusive-ce6325e: TestLoadCTRF_FlakyIsInconclusive
+### IMP-verify\_test-TestLoadCTRF\_FlakyIsInconclusive-ce6325e: TestLoadCTRF\_FlakyIsInconclusive
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -85,7 +85,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-verify_test-TestMergeLatest_LatestByVerifiedAt-2266f70: TestMergeLatest_LatestByVerifiedAt
+### IMP-verify\_test-TestMergeLatest\_LatestByVerifiedAt-2266f70: TestMergeLatest\_LatestByVerifiedAt
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -98,7 +98,7 @@ trace:
 
 Multi-file merge
 
-### IMP-verify_test-TestMergeLatest_PinStrippedFromKey-f51f924: TestMergeLatest_PinStrippedFromKey
+### IMP-verify\_test-TestMergeLatest\_PinStrippedFromKey-f51f924: TestMergeLatest\_PinStrippedFromKey
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -109,7 +109,7 @@ trace:
   - verify/IMP-verify-MergeLatest-79e3025
 ```
 
-### IMP-verify_test-TestLoadResults_NonCTRFJsonSkipped-1349326: TestLoadResults_NonCTRFJsonSkipped
+### IMP-verify\_test-TestLoadResults\_NonCTRFJsonSkipped-1349326: TestLoadResults\_NonCTRFJsonSkipped
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -122,7 +122,7 @@ trace:
 
 Auto-detection (non-CTRF json skipped)
 
-### IMP-verify_test-TestLoadResults_PlainJsonCTRFShapeAccepted-f530cff: TestLoadResults_PlainJsonCTRFShapeAccepted
+### IMP-verify\_test-TestLoadResults\_PlainJsonCTRFShapeAccepted-f530cff: TestLoadResults\_PlainJsonCTRFShapeAccepted
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -133,7 +133,7 @@ trace:
   - verify/IMP-verify-LoadResults-e444d2c
 ```
 
-### IMP-verify_test-TestLoadCTRF_ResultsArrayRejected-fc5eec4: TestLoadCTRF_ResultsArrayRejected
+### IMP-verify\_test-TestLoadCTRF\_ResultsArrayRejected-fc5eec4: TestLoadCTRF\_ResultsArrayRejected
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -143,7 +143,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-verify_test-TestLoadCTRF_ResultsArrayJsonSkippedSilently-e97acae: TestLoadCTRF_ResultsArrayJsonSkippedSilently
+### IMP-verify\_test-TestLoadCTRF\_ResultsArrayJsonSkippedSilently-e97acae: TestLoadCTRF\_ResultsArrayJsonSkippedSilently
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -153,7 +153,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-verify_test-TestLoadCTRF_MalformedJSONError-23d5f1e: TestLoadCTRF_MalformedJSONError
+### IMP-verify\_test-TestLoadCTRF\_MalformedJSONError-23d5f1e: TestLoadCTRF\_MalformedJSONError
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -163,7 +163,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-verify_test-TestSynthesize_ResultNodeIDAndTrace-0191e26: TestSynthesize_ResultNodeIDAndTrace
+### IMP-verify\_test-TestSynthesize\_ResultNodeIDAndTrace-0191e26: TestSynthesize\_ResultNodeIDAndTrace
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -176,7 +176,7 @@ trace:
 
 Synthesize
 
-### IMP-verify_test-TestIsResultNode-d92525e: TestIsResultNode
+### IMP-verify\_test-TestIsResultNode-d92525e: TestIsResultNode
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -187,7 +187,7 @@ trace:
   - verify/IMP-verify-IsResultNode-1bd2c9b
 ```
 
-### IMP-verify_test-TestLoadCTRF_IDWithCase_RecordsCaseKey-709880c: TestLoadCTRF_IDWithCase_RecordsCaseKey
+### IMP-verify\_test-TestLoadCTRF\_IDWithCase\_RecordsCaseKey-709880c: TestLoadCTRF\_IDWithCase\_RecordsCaseKey
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -199,7 +199,7 @@ trace: []
 
 v2 binding (patterns C/D/E)
 
-### IMP-verify_test-TestLoadCTRF_CaseAndVerifies_SynthesizesCaseBinding-9262656: TestLoadCTRF_CaseAndVerifies_SynthesizesCaseBinding
+### IMP-verify\_test-TestLoadCTRF\_CaseAndVerifies\_SynthesizesCaseBinding-9262656: TestLoadCTRF\_CaseAndVerifies\_SynthesizesCaseBinding
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -209,7 +209,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-verify_test-TestLoadCTRF_VerifiesOnly_ImplicitCaseFromSuiteName-838ccf7: TestLoadCTRF_VerifiesOnly_ImplicitCaseFromSuiteName
+### IMP-verify\_test-TestLoadCTRF\_VerifiesOnly\_ImplicitCaseFromSuiteName-838ccf7: TestLoadCTRF\_VerifiesOnly\_ImplicitCaseFromSuiteName
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -219,7 +219,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-verify_test-TestSynthesize_CaseKeyedCreatesTCAndCasedResults-02d0ab5: TestSynthesize_CaseKeyedCreatesTCAndCasedResults
+### IMP-verify\_test-TestSynthesize\_CaseKeyedCreatesTCAndCasedResults-02d0ab5: TestSynthesize\_CaseKeyedCreatesTCAndCasedResults
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -230,7 +230,7 @@ trace:
   - verify/IMP-verify-Synthesize-d4769b6
 ```
 
-### IMP-verify_test-TestIsTestCaseNode-4bdc873: TestIsTestCaseNode
+### IMP-verify\_test-TestIsTestCaseNode-4bdc873: TestIsTestCaseNode
 ```attr
 status: approved
 x-reqmd.imported: true

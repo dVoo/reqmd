@@ -21,6 +21,11 @@ func TestModuleNameFromFile(t *testing.T) {
 		{`windows\dir\file.cpp`, "file"},
 		{"", ""},
 		{"noext", "noext"},
+		// Python packages: __init__ takes the directory's name.
+		{"reqmd_io/__init__.py", "reqmd_io"},
+		{`reqmd_io\__init__.py`, "reqmd_io"},
+		{"/abs/python/reqmd_io/__init__.py", "reqmd_io"},
+		{"__init__.py", "__init__"},
 	}
 	for _, c := range cases {
 		if got := lang.ModuleNameFromFile(c.in); got != c.want {

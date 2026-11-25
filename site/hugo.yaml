@@ -1,3 +1,4 @@
+---
 # --- Site identity ---
 baseURL: "https://reqmd.dev/"
 title: "reqmd"
@@ -78,6 +79,11 @@ outputs:
   taxonomy: ["html"]
   term: ["html"]
 
+# --- Ignore editor/tool scratch files ---
+ignoreFiles:
+  - "content/.*pi-lens-seed.*"
+  - "static/.*pi-lens-seed.*"
+
 # --- Permalinks ---
 permalinks:
   page: "/:slug/"
@@ -100,26 +106,65 @@ menu:
     - name: "Cheat sheet"
       pageRef: "/cheat-sheet"
       weight: 30
-    - name: "Compare"
-      pageRef: "/compare"
+    - name: "Code & import"
+      pageRef: "/import"
       weight: 40
-    - name: "Structure"
-      pageRef: "/structure"
+    - name: "AI"
+      pageRef: "/ai"
       weight: 50
     - name: "FAQ"
       pageRef: "/faq"
       weight: 60
-    - name: "AI"
-      pageRef: "/ai"
-      weight: 70
+  docs:
+    - name: "Use cases"
+      pageRef: "/use-cases"
+      weight: 10
+      params: {group: "Learn"}
+    - name: "Quickstart"
+      pageRef: "/quickstart"
+      weight: 20
+      params: {group: "Learn"}
+    - name: "Structure"
+      pageRef: "/structure"
+      weight: 30
+      params: {group: "Learn"}
+    - name: "Cheat sheet"
+      pageRef: "/cheat-sheet"
+      weight: 40
+      params: {group: "Reference"}
+    - name: "Code & import"
+      pageRef: "/import"
+      weight: 50
+      params: {group: "Reference"}
     - name: "Exchange format"
       pageRef: "/exchange"
+      weight: 60
+      params: {group: "Reference"}
+    - name: "AI & agents"
+      pageRef: "/ai"
+      weight: 70
+      params: {group: "Reference"}
+    - name: "Compare"
+      pageRef: "/compare"
       weight: 80
+      params: {group: "Project"}
+    - name: "Benchmarks"
+      pageRef: "/benchmarks"
+      weight: 90
+      params: {group: "Project"}
+    - name: "FAQ"
+      pageRef: "/faq"
+      weight: 100
+      params: {group: "Project"}
+    - name: "About"
+      pageRef: "/about"
+      weight: 110
+      params: {group: "Project"}
   footer:
     - name: "Source"
       url: "https://github.com/dVoo/reqmd"
       weight: 1
-    - name: "Import"
+    - name: "Code & import"
       pageRef: "/import"
       weight: 2
     - name: "License"

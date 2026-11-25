@@ -254,8 +254,8 @@ A document is a root boundary when it has no upstream sources, or is
 declared external. A document is a leaf boundary when it is not
 referenced as an upstream source by any other document.
 
-## internal/exporter/boundary_test.go
-### IMP-exporter-TestComputeBoundaries_MixedTopology-c690610: TestComputeBoundaries_MixedTopology
+## internal/exporter/boundary\_test.go
+### IMP-exporter-TestComputeBoundaries\_MixedTopology-c690610: TestComputeBoundaries\_MixedTopology
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -265,7 +265,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-exporter-TestComputeBoundaries_ExternalOverridesSources-d8fb15c: TestComputeBoundaries_ExternalOverridesSources
+### IMP-exporter-TestComputeBoundaries\_ExternalOverridesSources-d8fb15c: TestComputeBoundaries\_ExternalOverridesSources
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -275,7 +275,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-exporter-TestComputeBoundaries_NilXReqmd-f1e8644: TestComputeBoundaries_NilXReqmd
+### IMP-exporter-TestComputeBoundaries\_NilXReqmd-f1e8644: TestComputeBoundaries\_NilXReqmd
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -285,7 +285,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-exporter-TestComputeBoundaries_EmptySources-eebf857: TestComputeBoundaries_EmptySources
+### IMP-exporter-TestComputeBoundaries\_EmptySources-eebf857: TestComputeBoundaries\_EmptySources
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -295,7 +295,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## internal/exporter/browser_test.go
+## internal/exporter/browser\_test.go
 ### IMP-exporter-browserFixture-a979123: browserFixture
 ```attr
 status: approved
@@ -979,7 +979,7 @@ BasenameChainGraph collapses every non-current card's Path to its
 basename. Useful when all HTML files are served at a single URL root
 (the dev server).
 
-## internal/exporter/docchain_test.go
+## internal/exporter/docchain\_test.go
 ### IMP-exporter-makeDoc-967426e: makeDoc
 ```attr
 status: approved
@@ -1013,7 +1013,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
 x-reqmd.source-line: 29
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exporter-BuildChainGraph-f460196
 ```
 
 ### IMP-exporter-TestBuildChainGraphParallelBranches-fec9442: TestBuildChainGraphParallelBranches
@@ -1023,7 +1024,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
 x-reqmd.source-line: 64
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exporter-BuildChainGraph-f460196
 ```
 
 ### IMP-exporter-TestBuildChainGraphExternalFlag-b8a454c: TestBuildChainGraphExternalFlag
@@ -1033,7 +1035,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
 x-reqmd.source-line: 93
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exporter-BuildChainGraph-f460196
 ```
 
 ### IMP-exporter-TestBuildChainGraphCycle-0f31159: TestBuildChainGraphCycle
@@ -1043,7 +1046,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
 x-reqmd.source-line: 112
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exporter-BuildChainGraph-f460196
 ```
 
 ### IMP-exporter-TestBuildChainGraphDeeperLevels-ca5d1c3: TestBuildChainGraphDeeperLevels
@@ -1053,7 +1057,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
 x-reqmd.source-line: 134
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exporter-BuildChainGraph-f460196
 ```
 
 ### IMP-exporter-TestBuildChainGraphNoUpstream-8342a2f: TestBuildChainGraphNoUpstream
@@ -1063,7 +1068,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
 x-reqmd.source-line: 165
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exporter-BuildChainGraph-f460196
 ```
 
 ### IMP-exporter-TestResolveAndRelativizeChainOutputs-012d207: TestResolveAndRelativizeChainOutputs
@@ -1076,7 +1082,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## internal/exporter/exporter_test.go
+## internal/exporter/exporter\_test.go
 ### IMP-exporter-schemaWithTitle-be55a35: schemaWithTitle
 ```attr
 status: approved
@@ -1670,7 +1676,7 @@ trace: []
 
 renderChainCard writes one <a> (or <span> for the current doc) card.
 
-## internal/exporter/html_test.go
+## internal/exporter/html\_test.go
 ### IMP-exporter-analysisFor-931d377: analysisFor
 ```attr
 status: approved
@@ -1857,7 +1863,7 @@ trace:
   - IMP-exporter-HTML-1ac7457
 ```
 
-### IMP-exporter-TestHTMLExport_UndeclaredAttributeRendered-7cd4750: TestHTMLExport_UndeclaredAttributeRendered
+### IMP-exporter-TestHTMLExport\_UndeclaredAttributeRendered-7cd4750: TestHTMLExport\_UndeclaredAttributeRendered
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2222,7 +2228,7 @@ trace: []
 jsonVersion renders the `version` attribute as a decimal string so the
 column has one type regardless of the YAML scalar, or null when absent.
 
-## internal/exporter/json_test.go
+## internal/exporter/json\_test.go
 ### IMP-exporter-jsonDocs-2b7e0bb: jsonDocs
 ```attr
 status: approved
@@ -3491,7 +3497,7 @@ trace: []
 
 renderBodyClose writes the end of the shell and document.
 
-## internal/exporter/render_test.go
+## internal/exporter/render\_test.go
 ### IMP-exporter-testDoc-f9ee094: testDoc
 ```attr
 status: approved
@@ -3505,7 +3511,7 @@ trace: []
 testDoc builds a document with a container, requirement children, and an
 info item so the render data covers every node kind.
 
-### IMP-exporter-TestBuildRenderData_SlugAnchors-58f3692: TestBuildRenderData_SlugAnchors
+### IMP-exporter-TestBuildRenderData\_SlugAnchors-58f3692: TestBuildRenderData\_SlugAnchors
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -3520,7 +3526,7 @@ TestBuildRenderData_SlugAnchors covers the section anchor rules: a slug from
 the title, a deterministic suffix on collisions, and a fixed anchor for the
 untitled preamble.
 
-### IMP-exporter-TestBuildRenderData_SlugNeverShadowsRequirementID-431feb7: TestBuildRenderData_SlugNeverShadowsRequirementID
+### IMP-exporter-TestBuildRenderData\_SlugNeverShadowsRequirementID-431feb7: TestBuildRenderData\_SlugNeverShadowsRequirementID
 ```attr
 status: approved
 x-reqmd.imported: true

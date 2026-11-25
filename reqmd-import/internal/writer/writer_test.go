@@ -309,3 +309,40 @@ func TestQuoteIfNeededRoundTrip(t *testing.T) {
 		}
 	}
 }
+
+// TestRenderItemEscapesHeadingMarkdown pins that heading text carrying inline
+// Markdown metacharacters stays literal, so a package or symbol named
+// `__init__` keeps its underscores in the parsed ID and title.
+func TestRenderItemEscapesHeadingMarkdown(t *testing.T) {
+	out, err := RenderItem(Item{
+		ID:     "IMP-__init__-Parse-1234567",
+		Title:  "__init__ *x*",
+		Status: "approved",
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := `## IMP-\_\_init\_\_-Parse-1234567: \_\_init\_\_ \*x\*`
+	if got := firstLine(out); got != want {
+		t.Errorf("heading = %q, want %q", got, want)
+	}
+	sec, err := RenderItem(Item{Kind: KindSection, Title: "a_b"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := firstLine(sec); got != `## a\_b` {
+		t.Errorf("section heading = %q, want %q", got, `## a\_b`)
+	}
+}
+
+// TestRenderDocumentEscapesTitle pins the document h1 escaping: an
+// emphasis-like title must not lose its underscores.
+func TestRenderDocumentEscapesTitle(t *testing.T) {
+	out, err := RenderDocument("Package: __init__", "", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(out, "# Package: \\_\\_init\\_\\_\n") {
+		t.Errorf("title = %q, want escaped underscores", firstLine(out))
+	}
+}

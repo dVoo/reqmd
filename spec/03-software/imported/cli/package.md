@@ -60,8 +60,8 @@ trace: []
 applyFilter compiles and applies a filter expression to a doc slice,
 returning the filtered docs. Shared by both baseline diff modes.
 
-## internal/cli/baseline_test.go
-### IMP-cli-TestBaselineDiff_FlagGroupValidation-57599da: TestBaselineDiff_FlagGroupValidation
+## internal/cli/baseline\_test.go
+### IMP-cli-TestBaselineDiff\_FlagGroupValidation-57599da: TestBaselineDiff\_FlagGroupValidation
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -76,7 +76,7 @@ TestBaselineDiff_FlagGroupValidation verifies cobra flag-group rules:
 mutually exclusive with the two-view mode. These are validated before
 RunE, so no git repo is required.
 
-### IMP-cli-TestBaselineDiff_TwoTagFilter-333109c: TestBaselineDiff_TwoTagFilter
+### IMP-cli-TestBaselineDiff\_TwoTagFilter-333109c: TestBaselineDiff\_TwoTagFilter
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -89,7 +89,7 @@ trace: []
 TestBaselineDiff_TwoTagFilter compares two tags and verifies --filter
 scopes both snapshots (RFC §3.3).
 
-### IMP-cli-TestBaselineDiff_FilteredViews-f36004f: TestBaselineDiff_FilteredViews
+### IMP-cli-TestBaselineDiff\_FilteredViews-f36004f: TestBaselineDiff\_FilteredViews
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -255,7 +255,7 @@ trace: []
 
 formatReport conditionally returns the report in text or JSON format.
 
-## internal/cli/check_test.go
+## internal/cli/check\_test.go
 ### IMP-cli-jsonCheckSummary-95c047d: jsonCheckSummary
 ```attr
 status: approved
@@ -269,7 +269,7 @@ trace: []
 jsonCheckSummary captures the parts of `check --json` output that the
 filter/disjoint tests assert on.
 
-### IMP-cli-TestCheckCmd_FilterScopesValidation-01cdba8: TestCheckCmd_FilterScopesValidation
+### IMP-cli-TestCheckCmd\_FilterScopesValidation-01cdba8: TestCheckCmd\_FilterScopesValidation
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -279,7 +279,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestCheckCmd_FilterUnknownAttributeFails-fb8a60d: TestCheckCmd_FilterUnknownAttributeFails
+### IMP-cli-TestCheckCmd\_FilterUnknownAttributeFails-fb8a60d: TestCheckCmd\_FilterUnknownAttributeFails
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -289,7 +289,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestCheckCmd_FilterSyntaxErrorFails-2976cfe: TestCheckCmd_FilterSyntaxErrorFails
+### IMP-cli-TestCheckCmd\_FilterSyntaxErrorFails-2976cfe: TestCheckCmd\_FilterSyntaxErrorFails
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -299,7 +299,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestCheckCmd_FilterBuiltinTraceVar-b98cd83: TestCheckCmd_FilterBuiltinTraceVar
+### IMP-cli-TestCheckCmd\_FilterBuiltinTraceVar-b98cd83: TestCheckCmd\_FilterBuiltinTraceVar
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -313,7 +313,7 @@ TestCheckCmd_FilterBuiltinTraceVar verifies the RFC §2.3 built-in
 attribute `trace` is accepted by the typo check even though it is not
 declared in the fixture schema.
 
-### IMP-cli-TestCheckCmd_DisjointCheckFlag-e752672: TestCheckCmd_DisjointCheckFlag
+### IMP-cli-TestCheckCmd\_DisjointCheckFlag-e752672: TestCheckCmd\_DisjointCheckFlag
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -323,7 +323,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestCheckCmd_DisjointCheckClean-b020839: TestCheckCmd_DisjointCheckClean
+### IMP-cli-TestCheckCmd\_DisjointCheckClean-b020839: TestCheckCmd\_DisjointCheckClean
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -336,7 +336,7 @@ trace: []
 TestCheckCmd_DisjointCheckClean verifies the disjoint check is off by
 default and passes when variants overlap.
 
-### IMP-cli-TestCheckCmd_DisjointCheckSchemaDecl-3074657: TestCheckCmd_DisjointCheckSchemaDecl
+### IMP-cli-TestCheckCmd\_DisjointCheckSchemaDecl-3074657: TestCheckCmd\_DisjointCheckSchemaDecl
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -349,7 +349,7 @@ trace: []
 TestCheckCmd_DisjointCheckSchemaDecl verifies the check is enabled via
 x-reqmd.disjoint-check in schema.yaml (RFC §3.5).
 
-### IMP-cli-TestCheckCmd_FilterWithResults-44c63c4: TestCheckCmd_FilterWithResults
+### IMP-cli-TestCheckCmd\_FilterWithResults-44c63c4: TestCheckCmd\_FilterWithResults
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -364,7 +364,7 @@ interplay: a measure in the filter set reports its failing verdict even
 though the synthesized RESULT node is not itself in the filter set; a
 measure excluded by the filter is not reported.
 
-### IMP-cli-TestCheckCmd_RequiresTraceFromDocumentDefault-6e84959: TestCheckCmd_RequiresTraceFromDocumentDefault
+### IMP-cli-TestCheckCmd\_RequiresTraceFromDocumentDefault-6e84959: TestCheckCmd\_RequiresTraceFromDocumentDefault
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -392,7 +392,7 @@ writeUnboundResultsDir creates a results dir containing one CTRF report
 whose test declares x-reqmd but binds to nothing (case only). Returns the
 results dir path.
 
-### IMP-cli-TestCheckCmd_IgnoreUnboundResults-7e63da7: TestCheckCmd_IgnoreUnboundResults
+### IMP-cli-TestCheckCmd\_IgnoreUnboundResults-7e63da7: TestCheckCmd\_IgnoreUnboundResults
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -405,7 +405,7 @@ trace: []
 TestCheckCmd_IgnoreUnboundResults verifies unbound-result warnings surface
 by default and are suppressed by --ignore-unbound-results.
 
-### IMP-cli-TestCheckCmd_RelaxedFilterAllowsUndeclared-b2dc1a6: TestCheckCmd_RelaxedFilterAllowsUndeclared
+### IMP-cli-TestCheckCmd\_RelaxedFilterAllowsUndeclared-b2dc1a6: TestCheckCmd\_RelaxedFilterAllowsUndeclared
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -420,7 +420,7 @@ contract: an attribute present on requirements but declared in no
 schema.yaml is rejected by the default typo check and accepted — with a
 warning instead of an error — when the flag is set.
 
-## internal/cli/e2e_test.go
+## internal/cli/e2e\_test.go
 ### IMP-cli-bundleFixture-721d374: bundleFixture
 ```attr
 status: approved
@@ -447,7 +447,7 @@ trace: []
 renderBundle runs a bundle through the renderer and writes the files it
 produces into dir, exactly as `reqmd-import` does.
 
-### IMP-cli-TestE2E_ExchangeBundleToCheckAndExports-f638a3c: TestE2E_ExchangeBundleToCheckAndExports
+### IMP-cli-TestE2E\_ExchangeBundleToCheckAndExports-f638a3c: TestE2E\_ExchangeBundleToCheckAndExports
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -463,7 +463,7 @@ exports carry the structure the bundle declared. It asserts behaviour across
 module boundaries (exchange → parser → graph → exporter) instead of inside a
 single package, which is where the pipeline actually breaks.
 
-### IMP-cli-TestE2E_SectionsSurviveParseAndFilter-ad82110: TestE2E_SectionsSurviveParseAndFilter
+### IMP-cli-TestE2E\_SectionsSurviveParseAndFilter-ad82110: TestE2E\_SectionsSurviveParseAndFilter
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -477,7 +477,7 @@ TestE2E_SectionsSurviveParseAndFilter covers the section model end to end in
 reqmd core: a real document is parsed into a tree, and a filtered view drops
 a folder whose requirements were all pruned while keeping leaf sections.
 
-### IMP-cli-TestE2E_CSVImporterToCheckChain-e38dc5a: TestE2E_CSVImporterToCheckChain
+### IMP-cli-TestE2E\_CSVImporterToCheckChain-e38dc5a: TestE2E\_CSVImporterToCheckChain
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -492,7 +492,7 @@ Python interpreter is available: DOORS CSV → reqmd_io bundle → renderer →
 check. It is skipped rather than failed when python3 is missing, the same way
 the client-side JS tests skip without node.
 
-### IMP-cli-TestE2E_ExportJSONTables-000a151: TestE2E_ExportJSONTables
+### IMP-cli-TestE2E\_ExportJSONTables-000a151: TestE2E\_ExportJSONTables
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -507,7 +507,7 @@ CLI boundary: the four tables always exist, results stay empty without
 --results, authored text survives the JSON encoding, and a second export is
 byte-identical.
 
-### IMP-cli-TestE2E_ExportJSONFilter-3b5f786: TestE2E_ExportJSONFilter
+### IMP-cli-TestE2E\_ExportJSONFilter-3b5f786: TestE2E\_ExportJSONFilter
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -522,7 +522,7 @@ requirements table and, because the command hands the filtered docs to the
 trace writer, traces.ndjson follows it too. Findings still cover the whole
 graph, so that table is written regardless.
 
-### IMP-cli-TestE2E_ExportJSONResults-de998aa: TestE2E_ExportJSONResults
+### IMP-cli-TestE2E\_ExportJSONResults-de998aa: TestE2E\_ExportJSONResults
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -536,7 +536,7 @@ TestE2E_ExportJSONResults covers --results: a manual result bound to an
 authored measure becomes a verdict row while the requirement and trace
 tables keep the authored tree only.
 
-### IMP-cli-TestE2E_ExportJSONDisjointFinding-e09b821: TestE2E_ExportJSONDisjointFinding
+### IMP-cli-TestE2E\_ExportJSONDisjointFinding-e09b821: TestE2E\_ExportJSONDisjointFinding
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -573,7 +573,7 @@ trace: []
 
 keysOf lists map keys for failure messages.
 
-### IMP-cli-TestE2E_ExportHTMLConcurrentPagesDeterministic-ba5414c: TestE2E_ExportHTMLConcurrentPagesDeterministic
+### IMP-cli-TestE2E\_ExportHTMLConcurrentPagesDeterministic-ba5414c: TestE2E\_ExportHTMLConcurrentPagesDeterministic
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -587,8 +587,8 @@ TestE2E_ExportHTMLConcurrentPagesDeterministic pins the concurrent page
 render: a multi-document export runs on a worker pool, so the bytes must not
 depend on which worker finished first.
 
-## internal/cli/export_test.go
-### IMP-cli-TestExportCSV_Filter-7a4ad02: TestExportCSV_Filter
+## internal/cli/export\_test.go
+### IMP-cli-TestExportCSV\_Filter-7a4ad02: TestExportCSV\_Filter
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -598,7 +598,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestExportHTML_Filter-1df7a3f: TestExportHTML_Filter
+### IMP-cli-TestExportHTML\_Filter-1df7a3f: TestExportHTML\_Filter
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -608,7 +608,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestExportHTML_ProjectIndex-83dbdfa: TestExportHTML_ProjectIndex
+### IMP-cli-TestExportHTML\_ProjectIndex-83dbdfa: TestExportHTML\_ProjectIndex
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -621,7 +621,7 @@ trace: []
 TestExportHTML_ProjectIndex verifies that an export writes the project home
 alongside the document pages.
 
-### IMP-cli-TestExportHTML_NestedTraceLinks-484a380: TestExportHTML_NestedTraceLinks
+### IMP-cli-TestExportHTML\_NestedTraceLinks-484a380: TestExportHTML\_NestedTraceLinks
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -806,8 +806,8 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## internal/cli/init_test.go
-### IMP-cli-TestInit_GenericPreset-0811774: TestInit_GenericPreset
+## internal/cli/init\_test.go
+### IMP-cli-TestInit\_GenericPreset-0811774: TestInit\_GenericPreset
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -820,7 +820,7 @@ trace: []
 TestInit_GenericPreset checks the default preset renders a schema and an
 example document with the requested prefix.
 
-### IMP-cli-TestInit_ResultsPreset-644594f: TestInit_ResultsPreset
+### IMP-cli-TestInit\_ResultsPreset-644594f: TestInit\_ResultsPreset
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -833,7 +833,7 @@ trace: []
 TestInit_ResultsPreset checks the results preset overrides level and prefix
 so the scaffolded directory is a valid manual-results document.
 
-### IMP-cli-TestInit_CustomPresetDir-75d28d9: TestInit_CustomPresetDir
+### IMP-cli-TestInit\_CustomPresetDir-75d28d9: TestInit\_CustomPresetDir
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -846,7 +846,7 @@ trace: []
 TestInit_CustomPresetDir checks a preset directory renders both templates
 with the schema variables.
 
-### IMP-cli-TestInit_ExistingFilesNeedForce-cd66359: TestInit_ExistingFilesNeedForce
+### IMP-cli-TestInit\_ExistingFilesNeedForce-cd66359: TestInit\_ExistingFilesNeedForce
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -880,8 +880,8 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## internal/cli/list_stats_test.go
-### IMP-cli-TestListCmd_Filter-56e0080: TestListCmd_Filter
+## internal/cli/list\_stats\_test.go
+### IMP-cli-TestListCmd\_Filter-56e0080: TestListCmd\_Filter
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -891,7 +891,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestListCmd_FilterJSON-907c912: TestListCmd_FilterJSON
+### IMP-cli-TestListCmd\_FilterJSON-907c912: TestListCmd\_FilterJSON
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -901,7 +901,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestStatsCmd_Filter-d509761: TestStatsCmd_Filter
+### IMP-cli-TestStatsCmd\_Filter-d509761: TestStatsCmd\_Filter
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -911,7 +911,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestListCmd_ShowsItems-69d106c: TestListCmd_ShowsItems
+### IMP-cli-TestListCmd\_ShowsItems-69d106c: TestListCmd\_ShowsItems
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -921,7 +921,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestListCmd_ItemsJSON-971a01c: TestListCmd_ItemsJSON
+### IMP-cli-TestListCmd\_ItemsJSON-971a01c: TestListCmd\_ItemsJSON
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -931,7 +931,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-cli-TestStatsCmd_ShowsItems-59e04ad: TestStatsCmd_ShowsItems
+### IMP-cli-TestStatsCmd\_ShowsItems-59e04ad: TestStatsCmd\_ShowsItems
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1253,7 +1253,7 @@ directory is watched. For a directory path, the directory itself is
 watched (for CTRF files) plus any subdirectories containing a schema.yaml
 (manual-results dirs).
 
-## internal/cli/serve_test.go
+## internal/cli/serve\_test.go
 ### IMP-cli-findResult-d74f389: findResult
 ```attr
 status: approved
@@ -1266,7 +1266,7 @@ trace: []
 
 findResult reports whether any check result for reqID mentions substr.
 
-### IMP-cli-TestServeDiscover_WholeTree-62ae3f1: TestServeDiscover_WholeTree
+### IMP-cli-TestServeDiscover\_WholeTree-62ae3f1: TestServeDiscover\_WholeTree
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1319,7 +1319,7 @@ buildDocSummaries converts parsed documents into a slice of DocumentSummary
 for use by list and stats commands. Rows contain every node — requirements
 and information items (containers + info blocks) — in document order.
 
-## internal/cli/testutil_test.go
+## internal/cli/testutil\_test.go
 ### IMP-cli-writeFile-467aec0: writeFile
 ```attr
 status: approved
@@ -1545,7 +1545,7 @@ the output.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 465
+x-reqmd.source-line: 467
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1559,7 +1559,7 @@ Keeping it local to this file avoids a public utility for one caller.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 475
+x-reqmd.source-line: 477
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1572,7 +1572,7 @@ its stable native ID.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 482
+x-reqmd.source-line: 484
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1585,7 +1585,7 @@ declaring symbol.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 490
+x-reqmd.source-line: 492
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1597,7 +1597,7 @@ formatTraceRefErrors renders the batched failures deterministically.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 515
+x-reqmd.source-line: 517
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1610,7 +1610,7 @@ start line, then name. Methods therefore follow their parent type.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 530
+x-reqmd.source-line: 532
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1624,7 +1624,7 @@ symbol do not churn IDs.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 540
+x-reqmd.source-line: 542
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1636,7 +1636,7 @@ symbolTarget is a resolved explicit reference.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 548
+x-reqmd.source-line: 550
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1650,7 +1650,7 @@ a `reqmd:trace` target can use: the bare name for non-methods, and
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 573
+x-reqmd.source-line: 575
 x-reqmd.symbol-kind: method
 trace: []
 ```
@@ -1666,7 +1666,7 @@ match. On ambiguity it returns the candidate names.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 552
+x-reqmd.source-line: 554
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1676,7 +1676,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 633
+x-reqmd.source-line: 635
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1689,7 +1689,7 @@ when the name is not a test package.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 644
+x-reqmd.source-line: 646
 x-reqmd.symbol-kind: type
 trace: []
 ```
@@ -1701,7 +1701,7 @@ conventionTarget is a symbol a test name may refer to by convention.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 654
+x-reqmd.source-line: 663
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1716,7 +1716,7 @@ a test can never link to another test or to a constant.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 677
+x-reqmd.source-line: 692
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1730,7 +1730,7 @@ written by hand.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 684
+x-reqmd.source-line: 699
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1744,7 +1744,7 @@ test package — never globally, so unrelated packages cannot produce a link.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 715
+x-reqmd.source-line: 730
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1758,7 +1758,7 @@ Symbol kinds other than functions/methods never yield a stem.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 739
+x-reqmd.source-line: 754
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1772,7 +1772,7 @@ returns the candidate names.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 788
+x-reqmd.source-line: 810
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1786,7 +1786,7 @@ CamelCase boundary for CamelCase names.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 808
+x-reqmd.source-line: 830
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1796,7 +1796,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 809
+x-reqmd.source-line: 831
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1806,7 +1806,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 814
+x-reqmd.source-line: 836
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1820,7 +1820,7 @@ collapse into one requirement ID; everything else is keyed by name.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 822
+x-reqmd.source-line: 844
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1832,7 +1832,7 @@ countRequirements counts requirement-kind items in a document tree.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 835
+x-reqmd.source-line: 857
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1845,7 +1845,7 @@ affecting the other documents built from the same template.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 852
+x-reqmd.source-line: 874
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1859,7 +1859,7 @@ file section is the authoritative grouping.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 867
+x-reqmd.source-line: 911
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1873,7 +1873,7 @@ outside the root keeps its full path.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 882
+x-reqmd.source-line: 926
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1891,7 +1891,7 @@ mistaken for a heading.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 941
+x-reqmd.source-line: 985
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1903,7 +1903,7 @@ atxHeading parses "## Title" into its level and text.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
-x-reqmd.source-line: 954
+x-reqmd.source-line: 998
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -1911,7 +1911,7 @@ trace: []
 isRuleLine reports whether a line is a decorative rule: three or more of the
 same Markdown rule character, nothing else.
 
-## reqmd-code/internal/cli/extract_test.go
+## reqmd-code/internal/cli/extract\_test.go
 ### IMP-cli-runTestExtract-4e9ac61: runTestExtract
 ```attr
 status: approved
@@ -1963,7 +1963,7 @@ trace: []
 
 allItems flattens a document's item tree in render order.
 
-### IMP-cli-TestRunExtract_HappyPath-574371b: TestRunExtract_HappyPath
+### IMP-cli-TestRunExtract\_HappyPath-574371b: TestRunExtract\_HappyPath
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1974,7 +1974,7 @@ trace:
   - IMP-cli-runExtract-7eb6f35
 ```
 
-### IMP-cli-TestRunExtract_RejectsMissingSource-d630987: TestRunExtract_RejectsMissingSource
+### IMP-cli-TestRunExtract\_RejectsMissingSource-d630987: TestRunExtract\_RejectsMissingSource
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1985,7 +1985,7 @@ trace:
   - IMP-cli-runExtract-7eb6f35
 ```
 
-### IMP-cli-TestRunExtract_RejectsFileAsSource-72cc925: TestRunExtract_RejectsFileAsSource
+### IMP-cli-TestRunExtract\_RejectsFileAsSource-72cc925: TestRunExtract\_RejectsFileAsSource
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1996,7 +1996,7 @@ trace:
   - IMP-cli-runExtract-7eb6f35
 ```
 
-### IMP-cli-TestRunExtract_RejectsUnknownLang-8dbede0: TestRunExtract_RejectsUnknownLang
+### IMP-cli-TestRunExtract\_RejectsUnknownLang-8dbede0: TestRunExtract\_RejectsUnknownLang
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2007,7 +2007,7 @@ trace:
   - IMP-cli-runExtract-7eb6f35
 ```
 
-### IMP-cli-TestRunExtract_SkipsNoiseDirs-918e8cc: TestRunExtract_SkipsNoiseDirs
+### IMP-cli-TestRunExtract\_SkipsNoiseDirs-918e8cc: TestRunExtract\_SkipsNoiseDirs
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2018,7 +2018,7 @@ trace:
   - IMP-cli-runExtract-7eb6f35
 ```
 
-### IMP-cli-TestRunExtract_LangFilter-d332500: TestRunExtract_LangFilter
+### IMP-cli-TestRunExtract\_LangFilter-d332500: TestRunExtract\_LangFilter
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2029,7 +2029,7 @@ trace:
   - IMP-cli-runExtract-7eb6f35
 ```
 
-### IMP-cli-TestRunExtract_Deterministic-9e7d9d0: TestRunExtract_Deterministic
+### IMP-cli-TestRunExtract\_Deterministic-9e7d9d0: TestRunExtract\_Deterministic
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2051,7 +2051,7 @@ trace:
   - IMP-cli-extSet-56e3a56
 ```
 
-### IMP-cli-TestRunExtract_NoSymbolsNotParseFailure-3044ec8: TestRunExtract_NoSymbolsNotParseFailure
+### IMP-cli-TestRunExtract\_NoSymbolsNotParseFailure-3044ec8: TestRunExtract\_NoSymbolsNotParseFailure
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2066,7 +2066,7 @@ TestRunExtract_NoSymbolsNotParseFailure verifies that a file with no
 extractable symbols (e.g. a package-doc-only .go file) is not counted
 as a parse failure in the summary.
 
-### IMP-cli-TestRunExtract_MultiLanguage-f737d9d: TestRunExtract_MultiLanguage
+### IMP-cli-TestRunExtract\_MultiLanguage-f737d9d: TestRunExtract\_MultiLanguage
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2081,7 +2081,7 @@ TestRunExtract_MultiLanguage walks a source tree containing one file per
 registered language and verifies that every language plugin self-registers
 and claims its extension.
 
-### IMP-cli-TestRunExtract_OutputFile-1921355: TestRunExtract_OutputFile
+### IMP-cli-TestRunExtract\_OutputFile-1921355: TestRunExtract\_OutputFile
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2120,7 +2120,7 @@ TestDocSections covers moving doc comments out of requirement bodies: the
 intro becomes an untitled section, every heading becomes a section, and a
 heading inside a fenced block is left alone as prose.
 
-### IMP-cli-TestRunExtract_DocCommentBecomesSection-a750dec: TestRunExtract_DocCommentBecomesSection
+### IMP-cli-TestRunExtract\_DocCommentBecomesSection-a750dec: TestRunExtract\_DocCommentBecomesSection
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2135,7 +2135,7 @@ TestRunExtract_DocCommentBecomesSection verifies the wiring end to end: the
 symbol keeps the attr block and its doc prose moves into a child section, and
 a Markdown heading in the doc does not break the rendered nesting.
 
-### IMP-cli-TestDocSections_GodocSeparator-f91f647: TestDocSections_GodocSeparator
+### IMP-cli-TestDocSections\_GodocSeparator-f91f647: TestDocSections\_GodocSeparator
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2174,7 +2174,7 @@ trace: []
 
 itemByTitle finds one item in a document tree by its title.
 
-### IMP-cli-TestRunExtract_ExplicitSymbolLink-68e02e2: TestRunExtract_ExplicitSymbolLink
+### IMP-cli-TestRunExtract\_ExplicitSymbolLink-68e02e2: TestRunExtract\_ExplicitSymbolLink
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2188,7 +2188,7 @@ trace:
 TestRunExtract_ExplicitSymbolLink covers the explicit marker path: a test
 traces to a same-package function by name, and the link survives rendering.
 
-### IMP-cli-TestRunExtract_MethodScopes-cf53ed2: TestRunExtract_MethodScopes
+### IMP-cli-TestRunExtract\_MethodScopes-cf53ed2: TestRunExtract\_MethodScopes
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2202,7 +2202,7 @@ trace:
 TestRunExtract_MethodScopes covers receiver-qualified references and the
 C++ `::` spelling.
 
-### IMP-cli-TestRunExtract_BasePackageResolution-b90ca57: TestRunExtract_BasePackageResolution
+### IMP-cli-TestRunExtract\_BasePackageResolution-b90ca57: TestRunExtract\_BasePackageResolution
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2216,7 +2216,7 @@ trace:
 TestRunExtract_BasePackageResolution covers external test packages, where
 the test lives in a different document from the symbol it tests.
 
-### IMP-cli-TestRunExtract_UnresolvedSymbolIsFatal-64918f1: TestRunExtract_UnresolvedSymbolIsFatal
+### IMP-cli-TestRunExtract\_UnresolvedSymbolIsFatal-64918f1: TestRunExtract\_UnresolvedSymbolIsFatal
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2230,7 +2230,7 @@ trace:
 TestRunExtract_UnresolvedSymbolIsFatal pins the hard-error contract: no
 bundle, no stdout, and an existing -o file is left untouched.
 
-### IMP-cli-TestRunExtract_AmbiguousSymbolIsFatal-ac93fec: TestRunExtract_AmbiguousSymbolIsFatal
+### IMP-cli-TestRunExtract\_AmbiguousSymbolIsFatal-ac93fec: TestRunExtract\_AmbiguousSymbolIsFatal
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2244,7 +2244,7 @@ trace:
 TestRunExtract_AmbiguousSymbolIsFatal covers a reference that matches the
 same name in two packages.
 
-### IMP-cli-TestRunExtract_MalformedMarkerIsFatal-d3e1009: TestRunExtract_MalformedMarkerIsFatal
+### IMP-cli-TestRunExtract\_MalformedMarkerIsFatal-d3e1009: TestRunExtract\_MalformedMarkerIsFatal
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2257,7 +2257,7 @@ trace:
 
 TestRunExtract_MalformedMarkerIsFatal covers prose left on the directive.
 
-### IMP-cli-TestRunExtract_QualifiedAndOptOut-74add7a: TestRunExtract_QualifiedAndOptOut
+### IMP-cli-TestRunExtract\_QualifiedAndOptOut-74add7a: TestRunExtract\_QualifiedAndOptOut
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2271,7 +2271,7 @@ trace:
 TestRunExtract_QualifiedAndOptOut covers an explicit package qualifier and
 the `none` opt-out, which must not create a link or an error.
 
-### IMP-cli-TestRunExtract_PythonTestLinksToModule-29fd858: TestRunExtract_PythonTestLinksToModule
+### IMP-cli-TestRunExtract\_PythonTestLinksToModule-29fd858: TestRunExtract\_PythonTestLinksToModule
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2285,7 +2285,7 @@ trace:
 TestRunExtract_PythonTestLinksToModule covers a test file in its own
 document reaching back to the module it tests.
 
-### IMP-cli-TestRunExtract_RequirementIDRefsPassThrough-389c640: TestRunExtract_RequirementIDRefsPassThrough
+### IMP-cli-TestRunExtract\_RequirementIDRefsPassThrough-389c640: TestRunExtract\_RequirementIDRefsPassThrough
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2299,7 +2299,7 @@ trace:
 TestRunExtract_RequirementIDRefsPassThrough keeps the ID path intact: an
 ID-shaped marker becomes a ref, not a symbol lookup, and renders into trace.
 
-### IMP-cli-TestRunExtract_CaseMismatchIsFatal-b652bd8: TestRunExtract_CaseMismatchIsFatal
+### IMP-cli-TestRunExtract\_CaseMismatchIsFatal-b652bd8: TestRunExtract\_CaseMismatchIsFatal
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2313,7 +2313,7 @@ trace:
 TestRunExtract_CaseMismatchIsFatal pins that explicit matching is
 case-sensitive: a near-miss is an error, not a silent skip.
 
-### IMP-cli-TestRunExtract_BuildTagDuplicateNotAmbiguous-9263624: TestRunExtract_BuildTagDuplicateNotAmbiguous
+### IMP-cli-TestRunExtract\_BuildTagDuplicateNotAmbiguous-9263624: TestRunExtract\_BuildTagDuplicateNotAmbiguous
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2327,7 +2327,7 @@ trace:
 TestRunExtract_BuildTagDuplicateNotAmbiguous pins that build-tag twins are
 deduplicated before indexing, so a reference to them resolves once.
 
-### IMP-cli-TestRunExtract_DuplicateLinksDeduped-563ad25: TestRunExtract_DuplicateLinksDeduped
+### IMP-cli-TestRunExtract\_DuplicateLinksDeduped-563ad25: TestRunExtract\_DuplicateLinksDeduped
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2366,7 +2366,7 @@ trace: []
 
 testLinks returns an item's links for assertions.
 
-### IMP-cli-TestRunExtract_LinkTestsOffByDefault-b997766: TestRunExtract_LinkTestsOffByDefault
+### IMP-cli-TestRunExtract\_LinkTestsOffByDefault-b997766: TestRunExtract\_LinkTestsOffByDefault
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2379,7 +2379,7 @@ trace:
 
 TestRunExtract_LinkTestsOffByDefault pins that conventions are opt-in.
 
-### IMP-cli-TestRunExtract_ConventionGo-d487a43: TestRunExtract_ConventionGo
+### IMP-cli-TestRunExtract\_ConventionGo-d487a43: TestRunExtract\_ConventionGo
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2394,7 +2394,7 @@ TestRunExtract_ConventionGo covers CamelCase matching: longest candidate,
 CamelCase boundaries, initial-case folding, methods, types, and the target
 pool exclusions.
 
-### IMP-cli-TestRunExtract_ConventionGoExternalTestPackage-6a8f55c: TestRunExtract_ConventionGoExternalTestPackage
+### IMP-cli-TestRunExtract\_ConventionGoExternalTestPackage-6a8f55c: TestRunExtract\_ConventionGoExternalTestPackage
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2408,7 +2408,7 @@ trace:
 TestRunExtract_ConventionGoExternalTestPackage covers the `_test` half of
 basePackage: a test in package alpha_test links to package alpha.
 
-### IMP-cli-TestRunExtract_ConventionPython-abc2a7f: TestRunExtract_ConventionPython
+### IMP-cli-TestRunExtract\_ConventionPython-abc2a7f: TestRunExtract\_ConventionPython
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2421,7 +2421,7 @@ trace:
 
 TestRunExtract_ConventionPython covers snake_case across test documents.
 
-### IMP-cli-TestRunExtract_ConventionRustInline-99d6be6: TestRunExtract_ConventionRustInline
+### IMP-cli-TestRunExtract\_ConventionRustInline-99d6be6: TestRunExtract\_ConventionRustInline
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2434,7 +2434,7 @@ trace:
 
 TestRunExtract_ConventionRustInline covers an inline #[test] module.
 
-### IMP-cli-TestRunExtract_ConventionExplicitWins-9826cea: TestRunExtract_ConventionExplicitWins
+### IMP-cli-TestRunExtract\_ConventionExplicitWins-9826cea: TestRunExtract\_ConventionExplicitWins
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2448,7 +2448,7 @@ trace:
 TestRunExtract_ConventionExplicitWins pins that any explicit directive
 (an ID ref or none) suppresses convention linking.
 
-### IMP-cli-TestRunExtract_ConventionAmbiguousWarns-2ddfda4: TestRunExtract_ConventionAmbiguousWarns
+### IMP-cli-TestRunExtract\_ConventionAmbiguousWarns-2ddfda4: TestRunExtract\_ConventionAmbiguousWarns
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2461,7 +2461,7 @@ trace:
 
 TestRunExtract_ConventionAmbiguousWarns pins non-fatal tie handling.
 
-### IMP-cli-TestRunExtract_ConventionNoGlobalFallback-b664803: TestRunExtract_ConventionNoGlobalFallback
+### IMP-cli-TestRunExtract\_ConventionNoGlobalFallback-b664803: TestRunExtract\_ConventionNoGlobalFallback
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -2474,6 +2474,63 @@ trace:
 
 TestRunExtract_ConventionNoGlobalFallback pins that a test in one package
 cannot link to a same-named symbol in an unrelated package.
+
+### IMP-cli-TestRunExtract\_ConventionMethodBareName-f96ed1b: TestRunExtract\_ConventionMethodBareName
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
+x-reqmd.source-line: 1052
+x-reqmd.symbol-kind: function
+trace:
+  - IMP-cli-runExtract-7eb6f35
+```
+
+TestRunExtract_ConventionMethodBareName pins the fallback that links a test
+to a method when the test names the method without its receiver.
+
+### IMP-cli-TestRunExtract\_ConventionFunctionBeatsBareMethod-392b2e3: TestRunExtract\_ConventionFunctionBeatsBareMethod
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
+x-reqmd.source-line: 1077
+x-reqmd.symbol-kind: function
+trace:
+  - IMP-cli-runExtract-7eb6f35
+```
+
+TestRunExtract_ConventionFunctionBeatsBareMethod pins the ranking: a real
+function wins over a bare method name at the same match length.
+
+### IMP-cli-TestRunExtract\_ConventionTwoBareMethodsAmbiguous-b410187: TestRunExtract\_ConventionTwoBareMethodsAmbiguous
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
+x-reqmd.source-line: 1104
+x-reqmd.symbol-kind: function
+trace:
+  - IMP-cli-runExtract-7eb6f35
+```
+
+TestRunExtract_ConventionTwoBareMethodsAmbiguous pins the tie: two methods
+with the same bare name cannot be chosen between.
+
+### IMP-cli-TestRunExtract\_MethodInOtherFileKeepsOwnLevel-d2b2734: TestRunExtract\_MethodInOtherFileKeepsOwnLevel
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
+x-reqmd.source-line: 1131
+x-reqmd.symbol-kind: function
+trace:
+  - IMP-cli-runExtract-7eb6f35
+```
+
+TestRunExtract_MethodInOtherFileKeepsOwnLevel pins that a method whose type
+is declared in another file is still emitted (at its own file's level)
+instead of being dropped during nesting.
 
 ## reqmd-import/internal/cli/root.go
 ### IMP-cli-runOptions-7da2fca: runOptions
@@ -2510,7 +2567,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## reqmd-import/internal/cli/root_test.go
+## reqmd-import/internal/cli/root\_test.go
 ### IMP-cli-schemaURL-339429d: schemaURL
 ```attr
 status: approved

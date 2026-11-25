@@ -230,7 +230,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## reqmd-code/internal/lang/python/python_test.go
+## reqmd-code/internal/lang/python/python\_test.go
 ### IMP-python-TestPythonLanguageRegisters-a4c10ad: TestPythonLanguageRegisters
 ```attr
 status: approved
@@ -297,7 +297,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
 x-reqmd.source-line: 74
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-python-BindDoc-d920b70
 ```
 
 TestBindDocNilNode is a defensive guard: passing a nil node must
@@ -310,7 +311,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
 x-reqmd.source-line: 85
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-python-Parse-3dc8efc
 ```
 
 TestParseSimple exercises the full Parse pipeline against a small
@@ -325,7 +327,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
 x-reqmd.source-line: 144
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-python-Parse-3dc8efc
 ```
 
 TestParseClassLevelConstRejected verifies that a class-level
@@ -341,7 +344,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
 x-reqmd.source-line: 180
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-python-BindDoc-d920b70
 ```
 
 TestBindDocAboveDecorator verifies that a `#` comment above a decorator
@@ -355,7 +359,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
 x-reqmd.source-line: 206
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-python-Parse-3dc8efc
 ```
 
 TestParseDecoratedClassDedup verifies that a decorated class
@@ -461,7 +466,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
 x-reqmd.source-line: 348
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-python-BindDoc-d920b70
 ```
 
 TestBindDocIncludesDocstring verifies that BindDoc returns BOTH
@@ -477,11 +483,26 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
 x-reqmd.source-line: 369
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-python-BindDoc-d920b70
 ```
 
 TestBindDocDocstringOnly verifies that BindDoc returns the
 docstring when there are no leading `#` comments. This is the
 case that previously returned "" and caused the `multiply`
 heuristic-trace test to fail.
+
+### IMP-python-TestParseFunctionLocalConstRejected-3d5a3d0: TestParseFunctionLocalConstRejected
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
+x-reqmd.source-line: 386
+x-reqmd.symbol-kind: function
+trace:
+  - IMP-python-Parse-3dc8efc
+```
+
+TestParseFunctionLocalConstRejected pins that only module-level bindings are
+constants: an assignment inside a function body is a local, not a symbol.
 

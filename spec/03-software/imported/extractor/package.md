@@ -98,7 +98,7 @@ heuristic match never repeats an explicit requirement ID.
 useHeuristic enables the broader bare-ID scan (driven by the CLI flag
 `--heuristic-traces`).
 
-## reqmd-code/internal/extractor/trace_test.go
+## reqmd-code/internal/extractor/trace\_test.go
 ### IMP-extractor-TestExtractTraces-250f30c: TestExtractTraces
 ```attr
 status: approved

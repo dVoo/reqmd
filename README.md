@@ -967,6 +967,33 @@ reqmd-code ./internal | reqmd-import - -o spec/03-software/imported
 reqmd check spec/
 ```
 
+`reqmd-code` also links a unit test to the code it tests. Put a `reqmd:trace`
+directive in the test's doc comment:
+
+```go
+// reqmd:trace Parse
+// reqmd:trace Parser.Parse
+// reqmd:trace clang/Parse
+// reqmd:trace SW-PAR-001~2
+// reqmd:trace none
+func TestParseFromDisk(t *testing.T) {}
+```
+
+One target per line (or comma-separated): a bare `Name`/`Type.Method` is a
+symbol in the same package, `Parser::Parse` is accepted for `Parser.Parse`,
+`pkg/Name` is package-qualified, a requirement ID is passed through to
+`trace:`, and `none` opts out of convention linking. An inline `// comment` on
+a directive line is part of the target and is rejected as malformed.
+
+Symbol targets resolve exactly (case-sensitive, no prefix matching) and become
+real trace edges to the generated requirement. An unknown, ambiguous, or
+malformed directive fails the extraction — before any bundle is written — with
+a batched diagnostic. `--link-tests` (off by default) links tests that have no
+directive by name (`TestParse` → `Parse`, `test_parse` → `parse`, methods
+as `Type_Method` or their bare name when unambiguous); explicit directives win and an ambiguous convention match only
+warns. Details and per-language limits:
+[reqmd-code](https://reqmd.dev/import/reqmd-code/).
+
 **ALM tools.** Any tool that can export CSV can feed reqmd. The Python package
 [`reqmd-io`](https://pypi.org/project/reqmd-io/) (`pip install reqmd-io`) emits
 the same exchange format from typed dataclasses, and the repo ships a generic
@@ -1294,12 +1321,12 @@ ReqMD dogfoods its own format. The `spec/` directory contains a complete
 All 297 hand-authored requirements validate cleanly (each document also
 carries its `## ` headings as section items). The tree also contains
 the generated `spec/03-software/imported/` proxy documents, which
-`reqmd-code` regenerates from the tool's own source — 1693 requirements across
+`reqmd-code` regenerates from the tool's own source — 1878 requirements across
 32 documents in total:
 
 ```sh
 $ reqmd check spec/
-# ... 1693 total, 1693 valid, 0 invalid, 0 parse errors
+# ... 1878 total, 1878 valid, 0 invalid, 0 parse errors
 
 $ reqmd serve spec/          # live-reloading HTML preview
 $ reqmd export html spec/ -o /tmp/out/

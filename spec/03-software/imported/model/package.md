@@ -222,7 +222,7 @@ StatusDefault is the implicit status when none is declared on a
 requirement. The built-in `status` attribute is enum [draft, approved];
 `approved` is the coverage-providing value.
 
-## internal/model/builtin_test.go
+## internal/model/builtin\_test.go
 ### IMP-model-TestStripPin-4488901: TestStripPin
 ```attr
 status: approved
@@ -514,7 +514,7 @@ trace: []
 CollectRequirements walks a node tree depth-first and returns all
 requirement-kind nodes in document order.
 
-## internal/model/node_test.go
+## internal/model/node\_test.go
 ### IMP-model-TestNodeAllFields-4f66d3a: TestNodeAllFields
 ```attr
 status: approved
@@ -581,7 +581,7 @@ trace:
   - IMP-model-Document-57ebc69
 ```
 
-## reqmd-code/internal/model/short_hash.go
+## reqmd-code/internal/model/short\_hash.go
 ### IMP-model-ShortHash-5aa3366: ShortHash
 ```attr
 status: approved

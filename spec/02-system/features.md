@@ -141,6 +141,8 @@ The disposition workflow is defined as:
 - `disposition: deferred` → no downstream traces expected; `disposition-reason` is REQUIRED
 - `disposition: rejected` → no downstream traces expected; `disposition-reason` is REQUIRED
 
+Explicit `reqmd:trace <symbol>` directives are resolved and validated by `reqmd-code` at extraction time (SYS-IMP-001), before a bundle exists; this pass validates the emitted requirement-ID references.
+
 Defining a reserved built-in attribute in `schema.yaml` produces a compile-time error.
 
 The following diagram shows the pass order and where graph construction overlaps Pass 1:
@@ -257,6 +259,8 @@ trace:
   - ASP-SR-020
 ```
 The trace model shall be upstream-only: each requirement declares its parent(s) via the `trace` attribute. Downstream links are derived automatically when the graph is built across all documents. The tool shall also support trace pinning via a `version` integer attribute and an optional `~N` suffix on trace values (e.g., `SYS-042~3` means "fulfills SYS-042 version 3"). Additionally, sub-requirements receive an automatic parent-child edge from the heading hierarchy during graph construction — no manual `trace` attribute is needed for the parent link. V-model boundaries are inferred from document topology: directories with no upstream traces suppress untraced warnings; directories not referenced as upstream (the bottom of the V) suppress both no-downstream and generic untraced warnings.
+
+Trace values may reference either an authored requirement ID (`SYS-042~3`) or a generated source-proxy ID (`IMP-<package>-<Symbol>-<7hex>`, optionally `document-id/`-qualified and `~N`-pinned). Both resolve through the same graph; the built-in trace pattern admits both forms.
 
 When multiple documents share the same ID prefix (e.g., two teams both use `STK-`), path-qualified trace references disambiguate: `stakeholder-a/STK-001` resolves to STK-001 in the `stakeholder-a/` directory. Unqualified references (`STK-001`) work when the ID is globally unique. An unqualified reference that matches IDs in multiple documents produces an ERROR suggesting the qualified form.
 
@@ -406,6 +410,10 @@ trace:
   - ASP-SR-022
 ```
 The toolchain shall include `reqmd-code`, a companion extraction tool that walks a source tree, dispatches each file to the tree-sitter language plugin claiming its extension, extracts top-level symbols (functions, methods, types, constants, variables) from C, C++, Go, Python, and Rust source, and extracts explicit `reqmd:trace` markers (and, opt-in via `--heuristic-traces`, bare requirement IDs from prose) from the adjacent doc comment. It shall emit a `reqmd-import/v1` exchange bundle (JSON) on stdout: one document per package plus a requirement-less root document carrying the umbrella schema, with each source file a `kind: section` item titled by its path relative to the scanned root, each symbol a nested `kind: requirement` item carrying its own stable `key` of the form `<symbol>-<hash>` (hash over package+symbol so keys survive line shifts), the doc comment's prose and headings rendered as child `kind: section` items instead of a body, and methods nested under their type via `children`.
+
+Each `reqmd:trace` target shall be classified as a requirement ID (emitted verbatim as a bundle ref and validated by `reqmd check`), a symbol reference (`Name`, `Type.Name`, `pkg/Name`, `pkg/Type.Name`, with `::` accepted as `.`), or the reserved `none` opt-out. Symbol references shall resolve exactly — case-sensitively, without prefix matching — against the symbols extracted in the same run, searching the same package, then the base package of a test package (`_test`/`test_`), then a globally unique match; a qualified `pkg/…` search shall not fall back. An unresolved, ambiguous, or malformed directive (a target containing whitespace) shall fail the extraction with a batched diagnostic before any bundle is written.
+
+With the opt-in `--link-tests` flag, a test function or method identified by the language test-file convention or an AST test marker shall additionally link to a production function, method, or type whose name is the longest boundary-valid match of the test name (Go `TestX` CamelCase, with initial-case folding for unexported symbols; otherwise `test_x`; methods spelled `Type_Method`, with the bare method name as a fallback that a same-named function, method, or type outranks), searched in the same package then its base package only. Explicit directives (including `none`) suppress convention linking for that item; an ambiguous convention match warns without failing the run.
 
 Generated requirements shall be first-class spec documents once rendered: `status: approved`, `x-reqmd.imported: true`, provenance attributes (`x-reqmd.source-file`, `x-reqmd.source-line`, `x-reqmd.symbol-kind`), and IDs of the form `<id-prefix><package>-<symbol>-<hash>`. The generated files shall validate, export, and diff like any other spec document, closing the V-model gap from spec to code.
 

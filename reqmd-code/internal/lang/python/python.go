@@ -324,11 +324,11 @@ func (l *PythonLanguage) Parse(file string, src []byte) ([]model.Symbol, error) 
 			}
 		}
 
-		// Class-level constants (`Cls.CONST = ...`) match the
-		// @const.decl pattern at the expression_statement node. The
-		// captured node is the expression_statement; walk parents
-		// and reject if any ancestor is a class_definition.
-		if cd := captures["const.decl"]; cd != nil && lang.HasAncestorKind(cd, "class_definition") {
+		// Only module-level bindings are symbols. The @const.decl pattern
+		// matches any expression_statement assignment, so reject matches nested
+		// in a class body (class attributes) or a function body (locals).
+		if cd := captures["const.decl"]; cd != nil &&
+			lang.HasAncestorKind(cd, "class_definition", "function_definition") {
 			continue
 		}
 

@@ -28,6 +28,10 @@ machine-readable form is
 
 ## 1. The built-in code importer
 
+[`reqmd-code`](/import/reqmd-code/) is the reference producer; its output is
+rendered by [`reqmd-import`](/import/reqmd-import/). It also links a unit test
+to the symbol it tests (`reqmd:trace`, or `--link-tests` by convention).
+
 ```sh
 # reqmd-code extracts code symbols, reqmd-import renders them as reqmd docs
 reqmd-code ./internal --lang go | reqmd-import - -o spec/03-software/imported

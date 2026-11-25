@@ -151,7 +151,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## reqmd-code/internal/lang/c/c_test.go
+## reqmd-code/internal/lang/c/c\_test.go
 ### IMP-clang-TestCLanguageRegisters-ed99033: TestCLanguageRegisters
 ```attr
 status: approved
@@ -173,7 +173,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 28
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-Parse-479c6b0
 ```
 
 TestParseSample verifies that Parse correctly identifies and classifies
@@ -188,7 +189,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 99
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-Parse-479c6b0
 ```
 
 TestParseTypedefDedup verifies that a `typedef struct Foo { ... } Foo;`
@@ -202,7 +204,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 119
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-Parse-479c6b0
 ```
 
 TestParseMultiDeclarator verifies that `int a, b;` emits one symbol per
@@ -215,7 +218,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 137
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-Parse-479c6b0
 ```
 
 TestParsePrototypeSkipped verifies that a function prototype without a
@@ -229,7 +233,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 160
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-Parse-479c6b0
 ```
 
 TestParseLocalDeclarationsSkipped verifies that declarations inside
@@ -244,7 +249,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 199
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-Parse-479c6b0
 ```
 
 TestParseEmpty handles zero-byte input gracefully.
@@ -270,7 +276,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 231
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-BindDoc-6a7679c
 ```
 
 TestBindDocIncludesDoc verifies that BindDoc attaches the full comment
@@ -283,7 +290,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
 x-reqmd.source-line: 253
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-clang-Parse-479c6b0
 ```
 
 TestParseFromDisk reads a real .c file from disk and verifies the

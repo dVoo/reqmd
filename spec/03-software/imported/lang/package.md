@@ -73,7 +73,7 @@ the default package/module name for languages whose package is the file.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
-x-reqmd.source-line: 93
+x-reqmd.source-line: 104
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -89,7 +89,7 @@ tree-sitter node text; previously each plugin reimplemented this
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
-x-reqmd.source-line: 103
+x-reqmd.source-line: 114
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -103,7 +103,7 @@ order but wants a defensive re-sort as the last step.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
-x-reqmd.source-line: 112
+x-reqmd.source-line: 123
 x-reqmd.symbol-kind: function
 trace: []
 ```

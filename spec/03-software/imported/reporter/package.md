@@ -136,8 +136,8 @@ trace: []
 
 formatValue renders an attribute value for display.
 
-## internal/reporter/diff_test.go
-### IMP-reporter-TestFormatDiff_Submodules-7ebb990: TestFormatDiff_Submodules
+## internal/reporter/diff\_test.go
+### IMP-reporter-TestFormatDiff\_Submodules-7ebb990: TestFormatDiff\_Submodules
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -148,7 +148,7 @@ trace:
   - IMP-reporter-FormatDiff-2a9528e
 ```
 
-### IMP-reporter-TestFormatDiff_NoSubmodules-321d12f: TestFormatDiff_NoSubmodules
+### IMP-reporter-TestFormatDiff\_NoSubmodules-321d12f: TestFormatDiff\_NoSubmodules
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -555,7 +555,7 @@ x-reqmd.symbol-kind: type
 trace: []
 ```
 
-## internal/reporter/reporter_test.go
+## internal/reporter/reporter\_test.go
 ### IMP-reporter-mustUnmarshal-cbdc45e: mustUnmarshal
 ```attr
 status: approved
@@ -580,79 +580,85 @@ trace: []
 
 --- ExitCode ---
 
-### IMP-reporter-TestFormat_Empty-4b3c13f: TestFormat_Empty
+### IMP-reporter-TestFormat\_Empty-4b3c13f: TestFormat\_Empty
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 85
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-Format-dde0447
 ```
 
 --- Format (empty) ---
 
-### IMP-reporter-TestFormat_WithValidationErrors-0fb0226: TestFormat_WithValidationErrors
+### IMP-reporter-TestFormat\_WithValidationErrors-0fb0226: TestFormat\_WithValidationErrors
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 95
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-Format-dde0447
 ```
 
 --- Format (validation errors) ---
 
-### IMP-reporter-TestFormat_WithNewFormat-2c91a63: TestFormat_WithNewFormat
+### IMP-reporter-TestFormat\_WithNewFormat-2c91a63: TestFormat\_WithNewFormat
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 133
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-Format-dde0447
 ```
 
 --- Format (new format with DocHeaders) ---
 
-### IMP-reporter-TestFormat_DuplicateReqIDPrintsFindingsOnce-1ad55df: TestFormat_DuplicateReqIDPrintsFindingsOnce
+### IMP-reporter-TestFormat\_DuplicateReqIDPrintsFindingsOnce-1ad55df: TestFormat\_DuplicateReqIDPrintsFindingsOnce
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 189
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-Format-dde0447
 ```
 
 --- Duplicate requirement IDs ---
 A document holding the same requirement ID three times lists that ID three
 times in ReqIDs; every finding bucketed to the ID must still print once.
 
-### IMP-reporter-TestFormatJSON_DuplicateReqIDRendersOnce-ce6bf9a: TestFormatJSON_DuplicateReqIDRendersOnce
+### IMP-reporter-TestFormatJSON\_DuplicateReqIDRendersOnce-ce6bf9a: TestFormatJSON\_DuplicateReqIDRendersOnce
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 213
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatJSON-7d0f915
 ```
 
-### IMP-reporter-TestFormat_EmptyWithDocHeaders-654afa3: TestFormat_EmptyWithDocHeaders
+### IMP-reporter-TestFormat\_EmptyWithDocHeaders-654afa3: TestFormat\_EmptyWithDocHeaders
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 237
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-Format-dde0447
 ```
 
 --- Format (empty with DocHeaders) ---
 
-### IMP-reporter-TestExitCode_GraphErrorChangesExitCode-b8da1e6: TestExitCode_GraphErrorChangesExitCode
+### IMP-reporter-TestExitCode\_GraphErrorChangesExitCode-b8da1e6: TestExitCode\_GraphErrorChangesExitCode
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -664,14 +670,15 @@ trace: []
 
 --- ExitCode with graph errors ---
 
-### IMP-reporter-TestFormat_WithParseErrors-219535a: TestFormat_WithParseErrors
+### IMP-reporter-TestFormat\_WithParseErrors-219535a: TestFormat\_WithParseErrors
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 277
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-Format-dde0447
 ```
 
 --- Format (parse errors) ---
@@ -689,7 +696,7 @@ trace:
 
 --- FormatList ---
 
-### IMP-reporter-TestFormatList_WithTitle-3a5f904: TestFormatList_WithTitle
+### IMP-reporter-TestFormatList\_WithTitle-3a5f904: TestFormatList\_WithTitle
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -700,7 +707,7 @@ trace:
   - IMP-reporter-FormatList-a6f5d1d
 ```
 
-### IMP-reporter-TestFormatListJSON_WithTitle-ce5e1e2: TestFormatListJSON_WithTitle
+### IMP-reporter-TestFormatListJSON\_WithTitle-ce5e1e2: TestFormatListJSON\_WithTitle
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -724,46 +731,50 @@ trace:
 
 --- FormatStats ---
 
-### IMP-reporter-TestFormatJSON_Simple-25c543a: TestFormatJSON_Simple
+### IMP-reporter-TestFormatJSON\_Simple-25c543a: TestFormatJSON\_Simple
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 455
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatJSON-7d0f915
 ```
 
 --- JSON output ---
 
-### IMP-reporter-TestFormatJSON_Empty-cedf301: TestFormatJSON_Empty
+### IMP-reporter-TestFormatJSON\_Empty-cedf301: TestFormatJSON\_Empty
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 540
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatJSON-7d0f915
 ```
 
-### IMP-reporter-TestFormatJSON_ParseErrors-9e07194: TestFormatJSON_ParseErrors
+### IMP-reporter-TestFormatJSON\_ParseErrors-9e07194: TestFormatJSON\_ParseErrors
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 558
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatJSON-7d0f915
 ```
 
-### IMP-reporter-TestFormatJSON_GraphErrors-936fba3: TestFormatJSON_GraphErrors
+### IMP-reporter-TestFormatJSON\_GraphErrors-936fba3: TestFormatJSON\_GraphErrors
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 580
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-FormatJSON-7d0f915
 ```
 
 ### IMP-reporter-TestFormatListJSON-6daeeeb: TestFormatListJSON
@@ -788,13 +799,14 @@ trace:
   - IMP-reporter-FormatStatsJSON-e3ea6f2
 ```
 
-### IMP-reporter-TestFormat_ResultsSection-45a5597: TestFormat_ResultsSection
+### IMP-reporter-TestFormat\_ResultsSection-45a5597: TestFormat\_ResultsSection
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/reporter/reporter_test.go
 x-reqmd.source-line: 670
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-reporter-Format-dde0447
 ```
 

@@ -63,3 +63,5 @@ The command discovers all three schemas below one root and resolves their qualif
 ## What's next
 
 Continue the V-model tour — load verification results for the boot tests. Go to [Step 11](/quickstart/11-verification-results-ctrf/).
+
+For branches, variants, forks, submodules, and subtrees side by side, see [Structure](/structure/).

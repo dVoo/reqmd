@@ -170,7 +170,7 @@ applyRewrite is the per-copy rename pass. Same as rewriteBlockForCopy
 in spirit but operates on the whole file body and uses the per-copy
 rename map (e.g. "SYS-001" -> "T00-SYS-001").
 
-## cmd/reqmd-bench-gen/main_test.go
+## cmd/reqmd-bench-gen/main\_test.go
 ### IMP-main-TestHeadingIDReMatchesRequirementHeadingLevels-e509041: TestHeadingIDReMatchesRequirementHeadingLevels
 ```attr
 status: approved

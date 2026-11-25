@@ -370,7 +370,7 @@ reqmd check spec/                              # pass
 Each generated requirement carries `x-reqmd.source-file` and
 `x-reqmd.source-line` provenance, so the agent can answer "where is
 this requirement implemented?" by reading the file. The companion
-[`reqmd-code`](/import/) page has the full reference; the takeaway
+[`reqmd-code`](/import/reqmd-code/) page has the full reference; the takeaway
 is that the spec and the code now share an ID space, and the same
 `reqmd check` loop that catches broken upstream refs also catches
 broken implementation refs.
@@ -411,7 +411,7 @@ and "own your data." It gets both.
 - [Agent skill: `reqmd-authoring`](/skills/reqmd-authoring/SKILL.md) — authoring skill: documents, `schema.yaml`, attributes, maintenance.
 - [Agent skill: `reqmd-importers`](/skills/reqmd-importers/SKILL.md) — importer skill: the exchange format, `reqmd_io`, link mapping, ALM/CSV imports.
 - [Use cases](/use-cases/) — what reqmd is designed for, and what is out of scope.
-- [Code & ALM import](/import/) — `reqmd-code` extracts C, C++, Go, Python, and Rust symbols into the exchange format; `reqmd-import` renders that bundle (or any custom importer's) into reqmd documents.
+- [Code & import](/import/) — `reqmd-code` extracts C, C++, Go, Python, and Rust symbols and links unit tests to the code they test; `reqmd-import` renders that bundle (or any custom importer's) into reqmd documents. See [reqmd-code](/import/reqmd-code/) and [reqmd-import](/import/reqmd-import/).
 - [<code>llms.txt</code>](/llms.txt) — a machine-readable index of this site for agents.
 - [<code>llms-full.txt</code>](/llms-full.txt) — the full plain-text dump of every page.
 - [FAQ](/faq/) — the questions an integrator asks.

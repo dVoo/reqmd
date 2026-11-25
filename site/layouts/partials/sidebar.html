@@ -1,8 +1,15 @@
 {{- $current := . -}}
-<aside class="sidebar" aria-label="Section navigation">
+{{- $lastGroup := "" -}}
+<aside class="sidebar" aria-label="Documentation">
   <nav class="sidebar-nav">
-    {{- range $.Site.Menus.main -}}
-      {{- $isActive := or ($current.IsMenuCurrent "main" .) ($current.HasMenuCurrent "main" .) -}}
+    {{- range $.Site.Menus.docs -}}
+      {{- $isActive := or ($current.IsMenuCurrent "docs" .) ($current.HasMenuCurrent "docs" .) -}}
+      {{- $group := "" -}}
+      {{- with .Params }}{{ $group = .group }}{{ end -}}
+      {{- if and $group (ne $group $lastGroup) -}}
+        <div class="sidebar-heading">{{ $group }}</div>
+        {{- $lastGroup = $group -}}
+      {{- end -}}
       {{- $children := "" -}}
       {{- with .Page -}}
         {{- $children = where .Pages "Kind" "page" -}}

@@ -105,7 +105,7 @@ func writeIfChanged(path string, data []byte) error {
 // so a section's children must follow it in the slice.
 func RenderDocument(title, preamble string, items []Item) (string, error) {
 	var b strings.Builder
-	fmt.Fprintf(&b, "# %s\n\n", title)
+	fmt.Fprintf(&b, "# %s\n\n", escapeHeading(title))
 	b.WriteString(GeneratedMarker)
 	b.WriteString("\n\n")
 	if preamble != "" {
@@ -127,14 +127,36 @@ func RenderDocument(title, preamble string, items []Item) (string, error) {
 // "###", and so on (reqmd accepts any heading level from h2 down). An item
 // without a title renders as a plain prose block, which is how the headingless
 // document preamble and untitled sections are represented.
+// headingEscaper escapes the characters that would start inline Markdown
+// inside a generated heading. A symbol or package named `__init__` would
+// otherwise parse as emphasis and vanish from the ID (`IMP-init-…`), breaking
+// the document's id-prefix. A backslash before an ASCII punctuation character
+// is a CommonMark escape, so the parsed heading text is identical to the
+// authored one.
+var headingEscaper = strings.NewReplacer(
+	`\`, `\\`,
+	"`", "\\`",
+	"*", "\\*",
+	"_", "\\_",
+	"[", "\\[",
+	"]", "\\]",
+	"<", "\\<",
+	">", "\\>",
+	"&", "\\&",
+	"!", "\\!",
+	"~", "\\~",
+)
+
+func escapeHeading(s string) string { return headingEscaper.Replace(s) }
+
 func RenderItem(it Item) (string, error) {
 	var b strings.Builder
 	heading := strings.Repeat("#", 2+it.Depth)
 	if it.Title != "" {
 		if it.IsRequirement() && it.ID != "" {
-			fmt.Fprintf(&b, "%s %s: %s\n", heading, it.ID, it.Title)
+			fmt.Fprintf(&b, "%s %s: %s\n", heading, escapeHeading(it.ID), escapeHeading(it.Title))
 		} else {
-			fmt.Fprintf(&b, "%s %s\n", heading, it.Title)
+			fmt.Fprintf(&b, "%s %s\n", heading, escapeHeading(it.Title))
 		}
 	}
 	if it.IsRequirement() {

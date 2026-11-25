@@ -468,8 +468,8 @@ parseVerifiedAt accepts an RFC 3339 date-time (like CTRF's `stop`) or a
 bare `YYYY-MM-DD` date, which means midnight UTC. Unparsable values yield
 the zero time.
 
-## internal/verify/results_internal_test.go
-### IMP-verify-TestLoadManualDir_ResultFields-28467e0: TestLoadManualDir_ResultFields
+## internal/verify/results\_internal\_test.go
+### IMP-verify-TestLoadManualDir\_ResultFields-28467e0: TestLoadManualDir\_ResultFields
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -486,7 +486,7 @@ and a .md file holding a manual-results requirement (outcome, trace,
 verifier, evidence, verified-at), then asserts loadManualDir returns one
 Result with every field populated correctly.
 
-### IMP-verify-TestResultFromReq_HappyPath-e8440e3: TestResultFromReq_HappyPath
+### IMP-verify-TestResultFromReq\_HappyPath-e8440e3: TestResultFromReq\_HappyPath
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -499,7 +499,7 @@ trace:
 
 resultFromReq — direct construction tests
 
-### IMP-verify-TestResultFromReq_VerifiedAtFormats-15c7a91: TestResultFromReq_VerifiedAtFormats
+### IMP-verify-TestResultFromReq\_VerifiedAtFormats-15c7a91: TestResultFromReq\_VerifiedAtFormats
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -510,7 +510,7 @@ trace:
   - IMP-verify-resultFromReq-660ae11
 ```
 
-### IMP-verify-TestResultFromReq_NoOutcomeNotAResult-7a130a2: TestResultFromReq_NoOutcomeNotAResult
+### IMP-verify-TestResultFromReq\_NoOutcomeNotAResult-7a130a2: TestResultFromReq\_NoOutcomeNotAResult
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -521,7 +521,7 @@ trace:
   - IMP-verify-resultFromReq-660ae11
 ```
 
-### IMP-verify-TestResultFromReq_EmptyTraceFallsBackToReqID-3e4e555: TestResultFromReq_EmptyTraceFallsBackToReqID
+### IMP-verify-TestResultFromReq\_EmptyTraceFallsBackToReqID-3e4e555: TestResultFromReq\_EmptyTraceFallsBackToReqID
 ```attr
 status: approved
 x-reqmd.imported: true

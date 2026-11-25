@@ -1,9 +1,9 @@
-# Package: lang_test
+# Package: lang\_test
 
 <!-- reqmd: generated -->
 
-## reqmd-code/internal/lang/helpers_test.go
-### IMP-lang_test-TestModuleNameFromFile-ef68781: TestModuleNameFromFile
+## reqmd-code/internal/lang/helpers\_test.go
+### IMP-lang\_test-TestModuleNameFromFile-ef68781: TestModuleNameFromFile
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -18,12 +18,12 @@ TestModuleNameFromFile covers the helper every plugin uses to derive a
 default package name from the source path (one shared table instead of one
 per language).
 
-### IMP-lang_test-TestHasAncestorKind-22d86e7: TestHasAncestorKind
+### IMP-lang\_test-TestHasAncestorKind-22d86e7: TestHasAncestorKind
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers_test.go
-x-reqmd.source-line: 34
+x-reqmd.source-line: 38
 x-reqmd.symbol-kind: function
 trace:
   - lang/IMP-lang-HasAncestorKind-4f7ba1a
@@ -32,24 +32,24 @@ trace:
 TestHasAncestorKind covers the shared ancestor walk: the nil guard, a
 matching ancestor, and one of several candidate kinds.
 
-### IMP-lang_test-walk-9689cad: walk
+### IMP-lang\_test-walk-9689cad: walk
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers_test.go
-x-reqmd.source-line: 72
+x-reqmd.source-line: 76
 x-reqmd.symbol-kind: function
 trace: []
 ```
 
 walk visits every node depth-first.
 
-### IMP-lang_test-TestIsTestFile-e0e6742: TestIsTestFile
+### IMP-lang\_test-TestIsTestFile-e0e6742: TestIsTestFile
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers_test.go
-x-reqmd.source-line: 80
+x-reqmd.source-line: 84
 x-reqmd.symbol-kind: function
 trace:
   - lang/IMP-lang-IsTestFile-68ae539

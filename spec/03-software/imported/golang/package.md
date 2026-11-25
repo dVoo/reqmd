@@ -166,7 +166,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## reqmd-code/internal/lang/go/go_test.go
+## reqmd-code/internal/lang/go/go\_test.go
 ### IMP-golang-TestCleanCommentMarkerSpacing-01e8b2e: TestCleanCommentMarkerSpacing
 ```attr
 status: approved
@@ -194,7 +194,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
 x-reqmd.source-line: 35
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-golang-Parse-494f364
 ```
 
 ### IMP-golang-TestParseLocalConstVarSkipped-cd0e041: TestParseLocalConstVarSkipped
@@ -204,7 +205,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
 x-reqmd.source-line: 126
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-golang-Parse-494f364
 ```
 
 TestParseLocalConstVarSkipped verifies that const and var declarations
@@ -220,7 +222,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
 x-reqmd.source-line: 170
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-golang-Parse-494f364
 ```
 
 TestParseEmpty handles zero-byte and unparseable input gracefully.
@@ -232,7 +235,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
 x-reqmd.source-line: 184
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-golang-Parse-494f364
 ```
 
 TestParseNoSymbols handles a file with no top-level declarations
@@ -246,7 +250,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
 x-reqmd.source-line: 199
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-golang-Parse-494f364
 ```
 
 TestParseFromDisk reads a real .go file from disk and prints the

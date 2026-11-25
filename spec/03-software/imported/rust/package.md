@@ -217,7 +217,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## reqmd-code/internal/lang/rust/rust_test.go
+## reqmd-code/internal/lang/rust/rust\_test.go
 ### IMP-rust-TestRustLanguageRegisters-ae8e5ad: TestRustLanguageRegisters
 ```attr
 status: approved
@@ -239,7 +239,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 26
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-BindDoc-c2956d0
 ```
 
 TestBindDocAboveTestAttribute verifies that a doc comment above a
@@ -253,7 +254,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 50
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-BindDoc-c2956d0
 ```
 
 TestBindDocStopsAtInnerAttribute verifies that a module-level inner
@@ -266,7 +268,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 74
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-BindDoc-c2956d0
 ```
 
 TestBindDocStopsAtModuleDoc verifies that an inner doc comment (`//!`)
@@ -279,7 +282,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 99
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-Parse-569329c
 ```
 
 TestParseSample verifies that Parse correctly identifies and classifies
@@ -295,7 +299,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 188
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-Parse-569329c
 ```
 
 TestParseTraitDefaultMethod verifies that a trait method with a default
@@ -308,7 +313,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 213
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-Parse-569329c
 ```
 
 TestParseGenericImpl verifies that the receiver of a method on a generic
@@ -321,7 +327,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 238
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-Parse-569329c
 ```
 
 TestParseLocalItemsSkipped verifies that items declared inside
@@ -335,7 +342,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 272
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-Parse-569329c
 ```
 
 TestParseEmpty handles zero-byte input gracefully.
@@ -361,7 +369,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 306
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-BindDoc-c2956d0
 ```
 
 TestBindDocIncludesDoc verifies that BindDoc attaches the full doc
@@ -374,7 +383,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
 x-reqmd.source-line: 328
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-rust-Parse-569329c
 ```
 
 TestParseMarksTestAttributes pins IsTest detection, including path-qualified

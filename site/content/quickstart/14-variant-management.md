@@ -196,4 +196,4 @@ Reviewers preview exactly the Sport configuration locally — trace links, statu
 
 ## What's next
 
-You've seen the generic filtering primitive that makes variant management work. It's the same flag used for any attribute slice — owner, priority, platform. For verification per configuration, combine `--filter` with `--results` (see [Step 11](/quickstart/11-verification-results-ctrf/)); for the full command surface, see the [Cheat sheet](/cheat-sheet/).
+You've seen the generic filtering primitive that makes variant management work. It's the same flag used for any attribute slice — owner, priority, platform. For verification per configuration, combine `--filter` with `--results` (see [Step 11](/quickstart/11-verification-results-ctrf/)); for the full command surface, see the [Cheat sheet](/cheat-sheet/). For the other axes of divergence (branches, forks, submodules), see [Structure](/structure/).

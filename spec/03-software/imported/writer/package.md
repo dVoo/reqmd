@@ -151,13 +151,13 @@ RenderDocument renders a document: title, generated marker, optional
 preamble prose, then the items in the order given. Depth is carried per item,
 so a section's children must follow it in the slice.
 
-### IMP-writer-RenderItem-136994f: RenderItem
+### IMP-writer-headingEscaper-3d460e9: headingEscaper
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 130
-x-reqmd.symbol-kind: function
+x-reqmd.source-line: 136
+x-reqmd.symbol-kind: var
 trace: []
 ```
 
@@ -166,13 +166,39 @@ block, then the body. Depth is the nesting level: 0 renders "##", 1 renders
 "###", and so on (reqmd accepts any heading level from h2 down). An item
 without a title renders as a plain prose block, which is how the headingless
 document preamble and untitled sections are represented.
+headingEscaper escapes the characters that would start inline Markdown
+inside a generated heading. A symbol or package named `__init__` would
+otherwise parse as emphasis and vanish from the ID (`IMP-init-…`), breaking
+the document's id-prefix. A backslash before an ASCII punctuation character
+is a CommonMark escape, so the parsed heading text is identical to the
+authored one.
+
+### IMP-writer-escapeHeading-6d2f897: escapeHeading
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/internal/writer/writer.go
+x-reqmd.source-line: 150
+x-reqmd.symbol-kind: function
+trace: []
+```
+
+### IMP-writer-RenderItem-136994f: RenderItem
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/internal/writer/writer.go
+x-reqmd.source-line: 152
+x-reqmd.symbol-kind: function
+trace: []
+```
 
 ### IMP-writer-writeAttr-19d41f8: writeAttr
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 163
+x-reqmd.source-line: 185
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -185,7 +211,7 @@ attributes in sorted key order (deterministic output), then the trace list.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 181
+x-reqmd.source-line: 203
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -195,7 +221,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 210
+x-reqmd.source-line: 232
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -205,7 +231,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 226
+x-reqmd.source-line: 248
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -215,7 +241,7 @@ trace: []
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 242
+x-reqmd.source-line: 264
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -227,7 +253,7 @@ writeRefList writes a YAML block list, or `key: []` when empty.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 260
+x-reqmd.source-line: 282
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -245,7 +271,7 @@ changes the value's type.
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
-x-reqmd.source-line: 280
+x-reqmd.source-line: 302
 x-reqmd.symbol-kind: function
 trace: []
 ```
@@ -256,7 +282,7 @@ list must stay a superset of that scanner's parseScalar: if the scanner
 starts resolving something new to a non-string, a value that this function
 calls safe becomes corrupt.
 
-## reqmd-import/internal/writer/writer_test.go
+## reqmd-import/internal/writer/writer\_test.go
 ### IMP-writer-firstLine-5d9de94: firstLine
 ```attr
 status: approved
@@ -394,4 +420,33 @@ x-reqmd.symbol-kind: function
 trace:
   - IMP-writer-quoteIfNeeded-5d24016
 ```
+
+### IMP-writer-TestRenderItemEscapesHeadingMarkdown-88484c4: TestRenderItemEscapesHeadingMarkdown
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
+x-reqmd.source-line: 316
+x-reqmd.symbol-kind: function
+trace:
+  - IMP-writer-RenderItem-136994f
+```
+
+TestRenderItemEscapesHeadingMarkdown pins that heading text carrying inline
+Markdown metacharacters stays literal, so a package or symbol named
+`__init__` keeps its underscores in the parsed ID and title.
+
+### IMP-writer-TestRenderDocumentEscapesTitle-7a45697: TestRenderDocumentEscapesTitle
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
+x-reqmd.source-line: 340
+x-reqmd.symbol-kind: function
+trace:
+  - IMP-writer-RenderDocument-9c37809
+```
+
+TestRenderDocumentEscapesTitle pins the document h1 escaping: an
+emphasis-like title must not lose its underscores.
 

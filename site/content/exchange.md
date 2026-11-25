@@ -1,7 +1,9 @@
 ---
 title: "Exchange format v1"
-description: "The neutral JSON contract for importing requirements into reqmd: nested items, sections as structure, requirement keys, links and refs — with a published JSON Schema."
+description: "The neutral JSON contract between requirement producers (ALM exports, source-code extractors, scripts) and reqmd — field reference, rules, and the published JSON Schema."
+url: "/exchange/v1/"
 weight: 10
+aliases: ["/exchange/"]
 ---
 
 The exchange format is how requirement data enters reqmd from anywhere else —
@@ -12,6 +14,19 @@ it into reqmd documents (`schema.yaml` plus Markdown).
 Nothing in the format depends on reqmd. There is no reqmd-only required field,
 no id scheme to know about, and no YAML to get right. If you can write JSON and
 read the two tables below, you can produce a bundle.
+
+Two directions feed the same contract:
+
+```text
+DOORS / codeBeamer / CSV ──▶ your producer ──┐
+source code ──▶ reqmd-code ──────────────────┼─▶ exchange bundle ──▶ reqmd-import ──▶ .md + schema.yaml
+                                             ┘
+```
+
+The built-in producer is [reqmd-code](/import/reqmd-code/); the renderer is
+[reqmd-import](/import/reqmd-import/). Load the [JSON Schema](/exchange/v1/schema.json)
+into your producer's tests and validate a bundle before you ever run the
+renderer.
 
 **v1 is unstable.** The format is still in alpha and may change without a
 version bump until the first tagged release. Every breaking change afterwards
@@ -122,11 +137,11 @@ navigated.
 The renderer does not verify this; it is a producer obligation. Markdown
 examples in a body must be fenced so they are not parsed as headings:
 
-````text
+`````text
 ````markdown
 ## This is an example, not a heading
 ````
-````
+`````
 
 ## 7. `x-reqmd` — renderer configuration
 

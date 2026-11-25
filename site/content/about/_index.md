@@ -19,17 +19,17 @@ reqmd is a Go CLI for writing, validating, and exporting requirement specs in pl
 | Level | Directory | Reqs | Description |
 |-------|-----------|:----:|-------------|
 | External | `spec/00-aspice/` | 191 | Reference base practices (`external: true`) |
-| Stakeholder | `spec/01-stakeholder/` | 5 | Stakeholder goals (top boundary, no upstream) |
+| Stakeholder | `spec/01-stakeholder/` | 7 | Stakeholder goals (top boundary, no upstream) |
 | Stakeholder mapping | `spec/01a-aspice-stakeholder/` | 19 | Stakeholder requirements mapped to reference practices |
-| System | `spec/02-system/` | 19 | Feature specifications |
-| Software | `spec/03-software/` | 27 | Component-level design |
-| Tests | `spec/04-tests/` | 13 | Test specifications (mandatory-disposition) |
+| System | `spec/02-system/` | 24 | Feature specifications |
+| Software | `spec/03-software/` | 35 | Component-level design |
+| Tests | `spec/04-tests/` | 21 | Test specifications (mandatory-disposition) |
 
-All 274 requirements validate cleanly:
+All 297 hand-authored requirements validate cleanly; with the generated `spec/03-software/imported/` proxies the tree holds 1,878:
 
 ```sh
 $ reqmd check spec/
-# ... 274 total, 274 valid, 0 invalid, 0 parse errors, 23 warnings
+# ... 1878 total, 1878 valid, 0 invalid, 0 parse errors
 
 $ reqmd serve spec/          # live-reloading HTML preview
 $ reqmd export html spec/ -o /tmp/out/

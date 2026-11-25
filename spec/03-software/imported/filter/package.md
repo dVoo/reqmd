@@ -322,7 +322,7 @@ x-reqmd.symbol-kind: method
 trace: []
 ```
 
-## internal/filter/filter_test.go
+## internal/filter/filter\_test.go
 ### IMP-filter-testReq-328520b: testReq
 ```attr
 status: approved
@@ -353,7 +353,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-### IMP-filter-TestCompileAndMatch_Equality-8fffca1: TestCompileAndMatch_Equality
+### IMP-filter-TestCompileAndMatch\_Equality-8fffca1: TestCompileAndMatch\_Equality
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -364,7 +364,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompileAndMatch_ArrayIn-1c93a59: TestCompileAndMatch_ArrayIn
+### IMP-filter-TestCompileAndMatch\_ArrayIn-1c93a59: TestCompileAndMatch\_ArrayIn
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -375,7 +375,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompileAndMatch_NilAttribute-6d118bc: TestCompileAndMatch_NilAttribute
+### IMP-filter-TestCompileAndMatch\_NilAttribute-6d118bc: TestCompileAndMatch\_NilAttribute
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -386,7 +386,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompileAndMatch_NilCoalescing-1f25f20: TestCompileAndMatch_NilCoalescing
+### IMP-filter-TestCompileAndMatch\_NilCoalescing-1f25f20: TestCompileAndMatch\_NilCoalescing
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -397,7 +397,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompileAndMatch_NumericComparison-12893e9: TestCompileAndMatch_NumericComparison
+### IMP-filter-TestCompileAndMatch\_NumericComparison-12893e9: TestCompileAndMatch\_NumericComparison
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -408,7 +408,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompileAndMatch_BuiltInIDAndTitle-d27bc68: TestCompileAndMatch_BuiltInIDAndTitle
+### IMP-filter-TestCompileAndMatch\_BuiltInIDAndTitle-d27bc68: TestCompileAndMatch\_BuiltInIDAndTitle
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -419,7 +419,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompileAndMatch_BooleanComposition-3fe2287: TestCompileAndMatch_BooleanComposition
+### IMP-filter-TestCompileAndMatch\_BooleanComposition-3fe2287: TestCompileAndMatch\_BooleanComposition
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -430,7 +430,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompile_SyntaxError-8019356: TestCompile_SyntaxError
+### IMP-filter-TestCompile\_SyntaxError-8019356: TestCompile\_SyntaxError
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -441,7 +441,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompile_UnknownAttribute-407e2d1: TestCompile_UnknownAttribute
+### IMP-filter-TestCompile\_UnknownAttribute-407e2d1: TestCompile\_UnknownAttribute
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -452,7 +452,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompile_EmptyExpression-1ae7b0a: TestCompile_EmptyExpression
+### IMP-filter-TestCompile\_EmptyExpression-1ae7b0a: TestCompile\_EmptyExpression
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -463,7 +463,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompile_AllowsExprBuiltins-71f36c6: TestCompile_AllowsExprBuiltins
+### IMP-filter-TestCompile\_AllowsExprBuiltins-71f36c6: TestCompile\_AllowsExprBuiltins
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -474,7 +474,7 @@ trace:
   - IMP-filter-Compile-a260df6
 ```
 
-### IMP-filter-TestCompile_AllowsCrossSchemaAttribute-185a5b4: TestCompile_AllowsCrossSchemaAttribute
+### IMP-filter-TestCompile\_AllowsCrossSchemaAttribute-185a5b4: TestCompile\_AllowsCrossSchemaAttribute
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -493,10 +493,10 @@ x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 279
 x-reqmd.symbol-kind: function
 trace:
-  - IMP-filter-Filter-fe786ff
+  - IMP-filter-FilterDocs-2f82f12
 ```
 
-### IMP-filter-TestFilterDocs_PreservesDocStructure-0485295: TestFilterDocs_PreservesDocStructure
+### IMP-filter-TestFilterDocs\_PreservesDocStructure-0485295: TestFilterDocs\_PreservesDocStructure
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -504,10 +504,10 @@ x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 309
 x-reqmd.symbol-kind: function
 trace:
-  - IMP-filter-Filter-fe786ff
+  - IMP-filter-FilterDocs-2f82f12
 ```
 
-### IMP-filter-TestFilterDocs_DoesNotMutateOriginal-6641d5c: TestFilterDocs_DoesNotMutateOriginal
+### IMP-filter-TestFilterDocs\_DoesNotMutateOriginal-6641d5c: TestFilterDocs\_DoesNotMutateOriginal
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -515,10 +515,10 @@ x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 335
 x-reqmd.symbol-kind: function
 trace:
-  - IMP-filter-Filter-fe786ff
+  - IMP-filter-FilterDocs-2f82f12
 ```
 
-### IMP-filter-TestFilterDocs_KeepsSectionsThatStillLeadSomewhere-295da3b: TestFilterDocs_KeepsSectionsThatStillLeadSomewhere
+### IMP-filter-TestFilterDocs\_KeepsSectionsThatStillLeadSomewhere-295da3b: TestFilterDocs\_KeepsSectionsThatStillLeadSomewhere
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -526,10 +526,10 @@ x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 354
 x-reqmd.symbol-kind: function
 trace:
-  - IMP-filter-Filter-fe786ff
+  - IMP-filter-FilterDocs-2f82f12
 ```
 
-### IMP-filter-TestFilterDocs_DropsSectionThatLostAllChildren-5424ce1: TestFilterDocs_DropsSectionThatLostAllChildren
+### IMP-filter-TestFilterDocs\_DropsSectionThatLostAllChildren-5424ce1: TestFilterDocs\_DropsSectionThatLostAllChildren
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -537,13 +537,13 @@ x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 395
 x-reqmd.symbol-kind: function
 trace:
-  - IMP-filter-Filter-fe786ff
+  - IMP-filter-FilterDocs-2f82f12
 ```
 
 A section that had children but lost them all to the filter is context for
 content that is gone: it is dropped even when it carries prose.
 
-### IMP-filter-TestFilterDocs_KeepsLeafSectionsAndPreamble-8746b1e: TestFilterDocs_KeepsLeafSectionsAndPreamble
+### IMP-filter-TestFilterDocs\_KeepsLeafSectionsAndPreamble-8746b1e: TestFilterDocs\_KeepsLeafSectionsAndPreamble
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -551,7 +551,7 @@ x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 421
 x-reqmd.symbol-kind: function
 trace:
-  - IMP-filter-Filter-fe786ff
+  - IMP-filter-FilterDocs-2f82f12
 ```
 
 A leaf section is content: it survives a filter even with no requirements in
@@ -569,7 +569,7 @@ trace: []
 
 titles is a debug helper for prune assertions.
 
-### IMP-filter-TestFilterDocs_ReattachesChildrenOfPrunedReq-c822721: TestFilterDocs_ReattachesChildrenOfPrunedReq
+### IMP-filter-TestFilterDocs\_ReattachesChildrenOfPrunedReq-c822721: TestFilterDocs\_ReattachesChildrenOfPrunedReq
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -577,10 +577,10 @@ x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 459
 x-reqmd.symbol-kind: function
 trace:
-  - IMP-filter-Filter-fe786ff
+  - IMP-filter-FilterDocs-2f82f12
 ```
 
-### IMP-filter-TestFilterDocsAndIDs_MatchesSeparateCalls-5a8d517: TestFilterDocsAndIDs_MatchesSeparateCalls
+### IMP-filter-TestFilterDocsAndIDs\_MatchesSeparateCalls-5a8d517: TestFilterDocsAndIDs\_MatchesSeparateCalls
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -588,7 +588,7 @@ x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 485
 x-reqmd.symbol-kind: function
 trace:
-  - IMP-filter-Filter-fe786ff
+  - IMP-filter-FilterDocsAndIDs-97e9fb7
 ```
 
 FilterDocsAndIDs must return exactly what FilterDocs and MatchingIDs return
@@ -603,7 +603,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 551
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-filter-MatchingIDs-7e11246
 ```
 
 ### IMP-filter-TestExprAndRefs-3707609: TestExprAndRefs
@@ -613,7 +614,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
 x-reqmd.source-line: 578
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-filter-Expr-2023150
 ```
 
 ### IMP-filter-TestBuildValidAttrs-d411a09: TestBuildValidAttrs
@@ -651,7 +653,7 @@ trace:
   - IMP-filter-BuildFoundAttrs-157302b
 ```
 
-### IMP-filter-TestCompileForDocs_StrictRejectsUndeclared-ae86a23: TestCompileForDocs_StrictRejectsUndeclared
+### IMP-filter-TestCompileForDocs\_StrictRejectsUndeclared-ae86a23: TestCompileForDocs\_StrictRejectsUndeclared
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -665,7 +667,7 @@ trace:
 TestCompileForDocs_StrictRejectsUndeclared pins the default behavior: the
 global typo check rejects attributes that no schema declares.
 
-### IMP-filter-TestCompileForDocs_RelaxedAllowsFoundAttr-6e25897: TestCompileForDocs_RelaxedAllowsFoundAttr
+### IMP-filter-TestCompileForDocs\_RelaxedAllowsFoundAttr-6e25897: TestCompileForDocs\_RelaxedAllowsFoundAttr
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -680,7 +682,7 @@ TestCompileForDocs_RelaxedAllowsFoundAttr is the relaxed-filter contract:
 an attribute present on a requirement becomes filterable even though no
 schema.yaml declares it, and the deviation is reported as a warning.
 
-### IMP-filter-TestCompileForDocs_RelaxedWarnsOnTrulyUnknown-d916b6a: TestCompileForDocs_RelaxedWarnsOnTrulyUnknown
+### IMP-filter-TestCompileForDocs\_RelaxedWarnsOnTrulyUnknown-d916b6a: TestCompileForDocs\_RelaxedWarnsOnTrulyUnknown
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -694,7 +696,7 @@ trace:
 TestCompileForDocs_RelaxedWarnsOnTrulyUnknown verifies relaxed mode turns
 a genuine typo into a warning instead of aborting the run.
 
-### IMP-filter-TestCompileForDocs_RelaxedDeclaredAttrNoWarning-256c7a0: TestCompileForDocs_RelaxedDeclaredAttrNoWarning
+### IMP-filter-TestCompileForDocs\_RelaxedDeclaredAttrNoWarning-256c7a0: TestCompileForDocs\_RelaxedDeclaredAttrNoWarning
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -708,7 +710,7 @@ trace:
 TestCompileForDocs_RelaxedDeclaredAttrNoWarning keeps relaxed mode quiet
 for expressions that only use declared attributes.
 
-### IMP-filter-TestCompileForDocs_EmptyExpression-61baade: TestCompileForDocs_EmptyExpression
+### IMP-filter-TestCompileForDocs\_EmptyExpression-61baade: TestCompileForDocs\_EmptyExpression
 ```attr
 status: approved
 x-reqmd.imported: true

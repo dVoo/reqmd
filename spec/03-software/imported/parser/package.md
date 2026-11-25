@@ -69,8 +69,8 @@ timestamp, hex, big integer) — returns errUnsupported so decodeAttrs
 re-parses the block with yaml.v3. Callers should use decodeAttrs, not this
 function directly.
 
-## internal/parser/attrscan_test.go
-### IMP-parser-TestDecodeAttrYAML_Scalars-c181e5c: TestDecodeAttrYAML_Scalars
+## internal/parser/attrscan\_test.go
+### IMP-parser-TestDecodeAttrYAML\_Scalars-c181e5c: TestDecodeAttrYAML\_Scalars
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -81,7 +81,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_QuotedStrings-552fc27: TestDecodeAttrYAML_QuotedStrings
+### IMP-parser-TestDecodeAttrYAML\_QuotedStrings-552fc27: TestDecodeAttrYAML\_QuotedStrings
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -92,7 +92,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_BlockList-691e48c: TestDecodeAttrYAML_BlockList
+### IMP-parser-TestDecodeAttrYAML\_BlockList-691e48c: TestDecodeAttrYAML\_BlockList
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -103,7 +103,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_FlowSeq-e8e0bbe: TestDecodeAttrYAML_FlowSeq
+### IMP-parser-TestDecodeAttrYAML\_FlowSeq-e8e0bbe: TestDecodeAttrYAML\_FlowSeq
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -114,7 +114,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_EmptyValue-6e824d9: TestDecodeAttrYAML_EmptyValue
+### IMP-parser-TestDecodeAttrYAML\_EmptyValue-6e824d9: TestDecodeAttrYAML\_EmptyValue
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -125,7 +125,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_Comments-b820f3d: TestDecodeAttrYAML_Comments
+### IMP-parser-TestDecodeAttrYAML\_Comments-b820f3d: TestDecodeAttrYAML\_Comments
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -136,7 +136,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_BlankLines-e425642: TestDecodeAttrYAML_BlankLines
+### IMP-parser-TestDecodeAttrYAML\_BlankLines-e425642: TestDecodeAttrYAML\_BlankLines
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -147,7 +147,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_EmptyKey-279d177: TestDecodeAttrYAML_EmptyKey
+### IMP-parser-TestDecodeAttrYAML\_EmptyKey-279d177: TestDecodeAttrYAML\_EmptyKey
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -158,7 +158,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_BadYAML-92dd0bd: TestDecodeAttrYAML_BadYAML
+### IMP-parser-TestDecodeAttrYAML\_BadYAML-92dd0bd: TestDecodeAttrYAML\_BadYAML
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -169,7 +169,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_MixedTypes-54633eb: TestDecodeAttrYAML_MixedTypes
+### IMP-parser-TestDecodeAttrYAML\_MixedTypes-54633eb: TestDecodeAttrYAML\_MixedTypes
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -180,7 +180,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrYAML_ParityWithYAMLv3-fe54232: TestDecodeAttrYAML_ParityWithYAMLv3
+### IMP-parser-TestDecodeAttrYAML\_ParityWithYAMLv3-fe54232: TestDecodeAttrYAML\_ParityWithYAMLv3
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -191,7 +191,7 @@ trace:
   - IMP-parser-decodeAttrYAML-b0e14ba
 ```
 
-### IMP-parser-TestDecodeAttrs_DuplicateKey-ac3785f: TestDecodeAttrs_DuplicateKey
+### IMP-parser-TestDecodeAttrs\_DuplicateKey-ac3785f: TestDecodeAttrs\_DuplicateKey
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -205,7 +205,7 @@ trace:
 TestDecodeAttrs_DuplicateKey rejects a repeated key instead of silently
 keeping the last value (yaml.v3 rejects it too, with a line number).
 
-### IMP-parser-TestDecodeAttrYAML_UnsupportedScalarIsReported-6da2475: TestDecodeAttrYAML_UnsupportedScalarIsReported
+### IMP-parser-TestDecodeAttrYAML\_UnsupportedScalarIsReported-6da2475: TestDecodeAttrYAML\_UnsupportedScalarIsReported
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -423,7 +423,7 @@ trace: []
 
 splitFlowItems splits a flow sequence body on commas, respecting quotes.
 
-## internal/parser/bench_test.go
+## internal/parser/bench\_test.go
 ### IMP-parser-benchAttr-94dfd1d: benchAttr
 ```attr
 status: approved
@@ -1077,7 +1077,7 @@ isGeneratedMarker reports whether an HTML block is one of the renderer's
 generated-content markers. Such a block is tool metadata: keeping it would
 open a phantom headingless content node in every generated document.
 
-## internal/parser/parser_test.go
+## internal/parser/parser\_test.go
 ### IMP-parser-parseReqTree-07a3a65: parseReqTree
 ```attr
 status: approved
@@ -1103,7 +1103,7 @@ trace: []
 
 reqsOf returns the flat requirement list of an assembled tree.
 
-### IMP-parser-TestParseMD_Full-9d1bcca: TestParseMD_Full
+### IMP-parser-TestParseMD\_Full-9d1bcca: TestParseMD\_Full
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1117,7 +1117,7 @@ trace:
 TestParseMD_Full verifies a normal requirement with heading, attr block,
 prose body, and *Rationale: line.
 
-### IMP-parser-TestParseMD_NoRationale-a066ea1: TestParseMD_NoRationale
+### IMP-parser-TestParseMD\_NoRationale-a066ea1: TestParseMD\_NoRationale
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1131,7 +1131,7 @@ trace:
 TestParseMD_NoRationale verifies that a requirement without *Rationale:*
 has an empty Rational field.
 
-### IMP-parser-TestParseMD_MultipleRequirements-af22eff: TestParseMD_MultipleRequirements
+### IMP-parser-TestParseMD\_MultipleRequirements-af22eff: TestParseMD\_MultipleRequirements
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1145,7 +1145,7 @@ trace:
 TestParseMD_MultipleRequirements verifies that multiple requirements
 in one document are each parsed correctly.
 
-### IMP-parser-TestParseMD_HeadingWithoutAttrIsInfo-c482966: TestParseMD_HeadingWithoutAttrIsInfo
+### IMP-parser-TestParseMD\_HeadingWithoutAttrIsInfo-c482966: TestParseMD\_HeadingWithoutAttrIsInfo
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1159,7 +1159,7 @@ trace:
 TestParseMD_HeadingWithoutAttrIsInfo verifies that a heading without an
 attr block produces an info item instead of a requirement.
 
-### IMP-parser-TestParseMD_BadYAML-b6e68d1: TestParseMD_BadYAML
+### IMP-parser-TestParseMD\_BadYAML-b6e68d1: TestParseMD\_BadYAML
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1173,7 +1173,7 @@ trace:
 TestParseMD_BadYAML verifies that invalid YAML inside an ```attr``` block
 returns an error.
 
-### IMP-parser-TestParseMD_NonAttrCodeBlock-81dc505: TestParseMD_NonAttrCodeBlock
+### IMP-parser-TestParseMD\_NonAttrCodeBlock-81dc505: TestParseMD\_NonAttrCodeBlock
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1187,7 +1187,7 @@ trace:
 TestParseMD_NonAttrCodeBlock verifies that a fenced code block with a
 non-attr info string (e.g. ```json) inside a requirement body is preserved.
 
-### IMP-parser-TestParseMD_EmptyFile-1ed701a: TestParseMD_EmptyFile
+### IMP-parser-TestParseMD\_EmptyFile-1ed701a: TestParseMD\_EmptyFile
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1201,7 +1201,7 @@ trace:
 TestParseMD_EmptyFile verifies that parsing an empty source returns
 no nodes and no error.
 
-### IMP-parser-TestParseMD_ThematicBreak-858144f: TestParseMD_ThematicBreak
+### IMP-parser-TestParseMD\_ThematicBreak-858144f: TestParseMD\_ThematicBreak
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1215,7 +1215,7 @@ trace:
 TestParseMD_ThematicBreak verifies that thematic breaks (---) inside
 a requirement body are preserved and don't disrupt body accumulation.
 
-### IMP-parser-TestParseMD_ArrayAttr-3b2533f: TestParseMD_ArrayAttr
+### IMP-parser-TestParseMD\_ArrayAttr-3b2533f: TestParseMD\_ArrayAttr
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1229,7 +1229,7 @@ trace:
 TestParseMD_ArrayAttr verifies that an attribute with a YAML array value
 is parsed into []interface{} with the correct elements.
 
-### IMP-parser-TestParseMD_SubReqUnderParent-8cbf9e9: TestParseMD_SubReqUnderParent
+### IMP-parser-TestParseMD\_SubReqUnderParent-8cbf9e9: TestParseMD\_SubReqUnderParent
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1243,7 +1243,7 @@ trace:
 TestParseMD_SubReqUnderParent verifies that a ### heading with an attr block
 immediately following a ## heading creates a sub-requirement with ParentID set.
 
-### IMP-parser-TestParseMD_MultipleSubReqs-1879aa2: TestParseMD_MultipleSubReqs
+### IMP-parser-TestParseMD\_MultipleSubReqs-1879aa2: TestParseMD\_MultipleSubReqs
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1257,7 +1257,7 @@ trace:
 TestParseMD_MultipleSubReqs verifies that multiple ### sub-requirements
 under the same ## parent all get the correct ParentID.
 
-### IMP-parser-TestParseMD_SubReqDynamicLevel-0a560b0: TestParseMD_SubReqDynamicLevel
+### IMP-parser-TestParseMD\_SubReqDynamicLevel-0a560b0: TestParseMD\_SubReqDynamicLevel
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1271,7 +1271,7 @@ trace:
 TestParseMD_SubReqDynamicLevel verifies that a ### heading with attr block
 as the FIRST requirement is a top-level requirement, not an orphan child.
 
-### IMP-parser-TestParseMD_SubHeadingBecomesInfo-345b983: TestParseMD_SubHeadingBecomesInfo
+### IMP-parser-TestParseMD\_SubHeadingBecomesInfo-345b983: TestParseMD\_SubHeadingBecomesInfo
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1285,7 +1285,7 @@ trace:
 TestParseMD_SubHeadingBecomesInfo verifies that a ### heading without an
 attr block under a requirement becomes an info item child, not body text.
 
-### IMP-parser-TestParseMD_DynamicReqLevel-7f422c2: TestParseMD_DynamicReqLevel
+### IMP-parser-TestParseMD\_DynamicReqLevel-7f422c2: TestParseMD\_DynamicReqLevel
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1300,7 +1300,7 @@ TestParseMD_DynamicReqLevel verifies that requirements chain by heading
 level when the content tree starts at level 2 (h1 is reserved for the
 document title).
 
-### IMP-parser-TestParseMD_H1IsDocumentTitle-9cbe059: TestParseMD_H1IsDocumentTitle
+### IMP-parser-TestParseMD\_H1IsDocumentTitle-9cbe059: TestParseMD\_H1IsDocumentTitle
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1316,7 +1316,7 @@ as the document title: an h1 with an attr block is rejected (requirements
 must be level 2+), and a plain h1 is captured as the title and never
 becomes a content node.
 
-### IMP-parser-TestParseMD_SecondH1Rejected-1c7406e: TestParseMD_SecondH1Rejected
+### IMP-parser-TestParseMD\_SecondH1Rejected-1c7406e: TestParseMD\_SecondH1Rejected
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1346,7 +1346,7 @@ trace:
 TestParseSingleFile verifies ParseSingleFile reads a real file from disk
 and produces the correct results. Uses t.TempDir() for the temp file.
 
-### IMP-parser-TestParseMD_Title-adb89a7: TestParseMD_Title
+### IMP-parser-TestParseMD\_Title-adb89a7: TestParseMD\_Title
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1360,7 +1360,7 @@ trace:
 TestParseMD_Title verifies that a heading with "ID: Title" format
 splits the ID and Title correctly.
 
-### IMP-parser-TestParseMD_NoTitle-57898c2: TestParseMD_NoTitle
+### IMP-parser-TestParseMD\_NoTitle-57898c2: TestParseMD\_NoTitle
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1373,7 +1373,7 @@ trace:
 
 TestParseMD_NoTitle verifies that a heading without ": " has empty Title.
 
-### IMP-parser-TestParseMD_TitleWithColonInTitle-a90e081: TestParseMD_TitleWithColonInTitle
+### IMP-parser-TestParseMD\_TitleWithColonInTitle-a90e081: TestParseMD\_TitleWithColonInTitle
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1387,7 +1387,7 @@ trace:
 TestParseMD_TitleWithColonInTitle verifies that only the first ": " splits
 (IDs can't contain colons per the ID pattern, but titles may).
 
-### IMP-parser-TestParseMD_ContainerHoldsRequirements-c119338: TestParseMD_ContainerHoldsRequirements
+### IMP-parser-TestParseMD\_ContainerHoldsRequirements-c119338: TestParseMD\_ContainerHoldsRequirements
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1402,7 +1402,7 @@ TestParseMD_ContainerHoldsRequirements verifies that a container heading
 (no attr block) becomes a KindSection node that holds the requirements
 nested under it, which stay top-level (no requirement parent).
 
-### IMP-parser-TestParseMD_UserExample1-4fe01b9: TestParseMD_UserExample1
+### IMP-parser-TestParseMD\_UserExample1-4fe01b9: TestParseMD\_UserExample1
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1417,7 +1417,7 @@ TestParseMD_UserExample1 reproduces the scenario the user described:
 a container at the same level breaks the requirement chain; requirements
 nest under containers and stay top-level.
 
-### IMP-parser-TestParseMD_DeepNesting-264a679: TestParseMD_DeepNesting
+### IMP-parser-TestParseMD\_DeepNesting-264a679: TestParseMD\_DeepNesting
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1431,7 +1431,7 @@ trace:
 TestParseMD_DeepNesting verifies requirements at arbitrary depth
 (3+ levels) chain correctly when no containers intervene.
 
-### IMP-parser-TestParseMD_ContainerDoesNotBreakDeeperChain-8ed979f: TestParseMD_ContainerDoesNotBreakDeeperChain
+### IMP-parser-TestParseMD\_ContainerDoesNotBreakDeeperChain-8ed979f: TestParseMD\_ContainerDoesNotBreakDeeperChain
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1446,7 +1446,7 @@ TestParseMD_ContainerDoesNotBreakDeeperChain verifies that a container
 heading deeper than the current requirement does NOT break the chain:
 requirements after it still link to the nearest shallower requirement.
 
-### IMP-parser-TestParseMD_LevelGapNoContainer-efe3d45: TestParseMD_LevelGapNoContainer
+### IMP-parser-TestParseMD\_LevelGapNoContainer-efe3d45: TestParseMD\_LevelGapNoContainer
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1460,7 +1460,7 @@ trace:
 TestParseMD_LevelGapNoContainer verifies that a heading gap without a
 container still links children to the nearest shallower requirement.
 
-### IMP-parser-TestParseMD_SiblingContainersBreakChain-c8e8243: TestParseMD_SiblingContainersBreakChain
+### IMP-parser-TestParseMD\_SiblingContainersBreakChain-c8e8243: TestParseMD\_SiblingContainersBreakChain
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1474,7 +1474,7 @@ trace:
 TestParseMD_SiblingContainersBreakChain verifies that multiple containers
 at successive levels produce only top-level requirements.
 
-### IMP-parser-TestParseMD_Preamble-342cd93: TestParseMD_Preamble
+### IMP-parser-TestParseMD\_Preamble-342cd93: TestParseMD\_Preamble
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1489,7 +1489,7 @@ TestParseMD_Preamble verifies that leading prose before the first heading
 is captured as an info node and not dropped, and that an h1 title does not
 become a wrapping container.
 
-### IMP-parser-TestParseMD_RequirementlessFile-04022cd: TestParseMD_RequirementlessFile
+### IMP-parser-TestParseMD\_RequirementlessFile-04022cd: TestParseMD\_RequirementlessFile
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1504,7 +1504,7 @@ TestParseMD_RequirementlessFile verifies that a file with no requirement
 headings at all is captured entirely as info nodes, with the h1 title kept
 out of the content tree.
 
-### IMP-parser-TestParseMD_ChunkedPreamble-5ad1399: TestParseMD_ChunkedPreamble
+### IMP-parser-TestParseMD\_ChunkedPreamble-5ad1399: TestParseMD\_ChunkedPreamble
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1518,7 +1518,7 @@ trace:
 TestParseMD_ChunkedPreamble verifies that the parallel chunked path
 (multiple root requirements) still captures the file preamble and title.
 
-### IMP-parser-TestParseMD_LevelGapUnderContainer-8b98274: TestParseMD_LevelGapUnderContainer
+### IMP-parser-TestParseMD\_LevelGapUnderContainer-8b98274: TestParseMD\_LevelGapUnderContainer
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1533,7 +1533,7 @@ TestParseMD_LevelGapUnderContainer verifies that a requirement inside a
 container under another requirement gets the right ParentID (nearest
 shallower requirement) and container nesting.
 
-### IMP-parser-TestParseLsTreeOutput_Empty-77f5401: TestParseLsTreeOutput_Empty
+### IMP-parser-TestParseLsTreeOutput\_Empty-77f5401: TestParseLsTreeOutput\_Empty
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1544,7 +1544,7 @@ trace:
   - IMP-parser-parseLsTreeOutput-ac82723
 ```
 
-### IMP-parser-TestParseLsTreeOutput_NoSubmodules-4532e94: TestParseLsTreeOutput_NoSubmodules
+### IMP-parser-TestParseLsTreeOutput\_NoSubmodules-4532e94: TestParseLsTreeOutput\_NoSubmodules
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1555,7 +1555,7 @@ trace:
   - IMP-parser-parseLsTreeOutput-ac82723
 ```
 
-### IMP-parser-TestParseLsTreeOutput_OneSubmodule-b8eea82: TestParseLsTreeOutput_OneSubmodule
+### IMP-parser-TestParseLsTreeOutput\_OneSubmodule-b8eea82: TestParseLsTreeOutput\_OneSubmodule
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1566,7 +1566,7 @@ trace:
   - IMP-parser-parseLsTreeOutput-ac82723
 ```
 
-### IMP-parser-TestParseLsTreeOutput_MultipleSubmodules-1076783: TestParseLsTreeOutput_MultipleSubmodules
+### IMP-parser-TestParseLsTreeOutput\_MultipleSubmodules-1076783: TestParseLsTreeOutput\_MultipleSubmodules
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1577,7 +1577,7 @@ trace:
   - IMP-parser-parseLsTreeOutput-ac82723
 ```
 
-### IMP-parser-TestParseLsTreeOutput_Malformed-52b1abd: TestParseLsTreeOutput_Malformed
+### IMP-parser-TestParseLsTreeOutput\_Malformed-52b1abd: TestParseLsTreeOutput\_Malformed
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1616,7 +1616,7 @@ trace: []
 nodeSummary renders a tree into a comparable string so the chunked result can
 be compared with the serial one without walking structs field by field.
 
-### IMP-parser-TestParseMD_ChunkedMatchesSerial-40309b2: TestParseMD_ChunkedMatchesSerial
+### IMP-parser-TestParseMD\_ChunkedMatchesSerial-40309b2: TestParseMD\_ChunkedMatchesSerial
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1631,7 +1631,7 @@ TestParseMD_ChunkedMatchesSerial is the invariant behind the parallel path:
 batching roots into chunks must produce exactly the tree the single-pass
 parser produces, including the preamble (chunk 0 covers [0, first root)).
 
-### IMP-parser-TestParseMD_ChunkedKeepsPreambleAndBoundaries-20ab508: TestParseMD_ChunkedKeepsPreambleAndBoundaries
+### IMP-parser-TestParseMD\_ChunkedKeepsPreambleAndBoundaries-20ab508: TestParseMD\_ChunkedKeepsPreambleAndBoundaries
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1646,7 +1646,7 @@ TestParseMD_ChunkedKeepsPreambleAndBoundaries checks the two properties the
 chunking exists for: leading prose and the container it opens must not be
 dropped, and no requirement may be lost or duplicated at a chunk boundary.
 
-### IMP-parser-TestParseMD_WrappedParagraphKeepsLineBreaks-9fdd92a: TestParseMD_WrappedParagraphKeepsLineBreaks
+### IMP-parser-TestParseMD\_WrappedParagraphKeepsLineBreaks-9fdd92a: TestParseMD\_WrappedParagraphKeepsLineBreaks
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1661,7 +1661,7 @@ TestParseMD_WrappedParagraphKeepsLineBreaks pins that a source-wrapped
 paragraph keeps its line breaks in the stored body. Dropping them glued the
 last word of one line onto the first word of the next in the HTML export.
 
-### IMP-parser-TestParseMD_ListBodyPreserved-976e285: TestParseMD_ListBodyPreserved
+### IMP-parser-TestParseMD\_ListBodyPreserved-976e285: TestParseMD\_ListBodyPreserved
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1678,7 +1678,7 @@ its line breaks, and must be separated from the prose above it. Concatenating
 the AST line segments dropped both, which turned every bullet list into one
 run-on paragraph in the HTML export.
 
-### IMP-parser-TestParseMD_TableBodyPreserved-bad15b3: TestParseMD_TableBodyPreserved
+### IMP-parser-TestParseMD\_TableBodyPreserved-bad15b3: TestParseMD\_TableBodyPreserved
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1692,7 +1692,7 @@ trace:
 TestParseMD_TableBodyPreserved covers the other block that used to be
 flattened: a GFM table must survive as markdown, rows intact.
 
-### IMP-parser-TestParseMD_MermaidFencePreserved-73e98f9: TestParseMD_MermaidFencePreserved
+### IMP-parser-TestParseMD\_MermaidFencePreserved-73e98f9: TestParseMD\_MermaidFencePreserved
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1707,7 +1707,7 @@ TestParseMD_MermaidFencePreserved verifies that a mermaid block survives the
 parser with its delimiters intact. Without them the exporter cannot turn it
 into a diagram and renders the diagram source as prose.
 
-### IMP-parser-TestParseMD_FrontmatterParsed-5dd7032: TestParseMD_FrontmatterParsed
+### IMP-parser-TestParseMD\_FrontmatterParsed-5dd7032: TestParseMD\_FrontmatterParsed
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1722,7 +1722,7 @@ TestParseMD_FrontmatterParsed verifies that a leading YAML frontmatter block
 is parsed into the document's metadata and contributes no content: no node,
 no body prose.
 
-### IMP-parser-TestParseFiles_FrontmatterFirstFileWins-dc22cae: TestParseFiles_FrontmatterFirstFileWins
+### IMP-parser-TestParseFiles\_FrontmatterFirstFileWins-dc22cae: TestParseFiles\_FrontmatterFirstFileWins
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1736,7 +1736,7 @@ trace:
 TestParseFiles_FrontmatterFirstFileWins pins the merge rule across the files
 of one document directory.
 
-### IMP-parser-TestParseMD_ChunkedFrontmatter-46e1b7d: TestParseMD_ChunkedFrontmatter
+### IMP-parser-TestParseMD\_ChunkedFrontmatter-46e1b7d: TestParseMD\_ChunkedFrontmatter
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1751,7 +1751,7 @@ TestParseMD_ChunkedFrontmatter covers the same rule on the parallel path:
 chunk 0 carries the file preamble, so it is the chunk that yields the
 metadata, and the block must not reach any node's body.
 
-### IMP-parser-TestParseMD_FrontmatterUnterminatedIsError-c4c6945: TestParseMD_FrontmatterUnterminatedIsError
+### IMP-parser-TestParseMD\_FrontmatterUnterminatedIsError-c4c6945: TestParseMD\_FrontmatterUnterminatedIsError
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1767,7 +1767,7 @@ content would otherwise vanish without a diagnostic: a file whose first line
 opens a metadata block that is never closed. The extension accepts any run of
 dashes as a separator, so the guard has to as well.
 
-### IMP-parser-TestParseMD_IndentedCodeBlockBecomesFence-d343855: TestParseMD_IndentedCodeBlockBecomesFence
+### IMP-parser-TestParseMD\_IndentedCodeBlockBecomesFence-d343855: TestParseMD\_IndentedCodeBlockBecomesFence
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1782,7 +1782,7 @@ TestParseMD_IndentedCodeBlockBecomesFence verifies the v2 code-block merge:
 an indented block is re-emitted as a fence so the body keeps code semantics
 instead of losing its indentation markers.
 
-### IMP-parser-TestParseMD_FenceInfoPreserved-a762138: TestParseMD_FenceInfoPreserved
+### IMP-parser-TestParseMD\_FenceInfoPreserved-a762138: TestParseMD\_FenceInfoPreserved
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -1796,7 +1796,7 @@ trace:
 TestParseMD_FenceInfoPreserved verifies that everything after the language in
 a fence's info string survives the body round-trip, not just the language.
 
-### IMP-parser-TestParseMD_ChunkedFrontmatterSeparatorRule-db428aa: TestParseMD_ChunkedFrontmatterSeparatorRule
+### IMP-parser-TestParseMD\_ChunkedFrontmatterSeparatorRule-db428aa: TestParseMD\_ChunkedFrontmatterSeparatorRule
 ```attr
 status: approved
 x-reqmd.imported: true

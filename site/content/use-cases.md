@@ -58,12 +58,12 @@ You write requirements the way you already write documentation: in a text editor
 <article class="usecase">
 <h3>Source-code traceability</h3>
 <p>The companion <code>reqmd-code</code> tool walks C, C++, Go, Python, or Rust source with tree-sitter and emits every symbol as a proxy requirement; <code>reqmd-import</code> renders those into per-package <code>.md</code> requirements in your spec tree. Every function and type gets an ID in the same namespace as your spec — the same <code>reqmd check</code> that catches broken upstream refs also catches broken implementation refs.</p>
-<a href="/import/">reqmd-code →</a>
+<a href="/import/reqmd-code/">reqmd-code →</a>
 </article>
 <article class="usecase">
 <h3>Import from DOORS, codeBeamer, or any source</h3>
 <p>Requirements that live in an ALM can be mirrored into the spec tree as generated, diff-reviewed documents. Write a small script (Python, or anything that prints JSON) against the <code>reqmd-import/v1</code> exchange format and <code>reqmd-import</code> renders it; a DOORS/codeBeamer CSV reader ships in <code>python/examples/csv_import.py</code>. The ALM keeps its stable item IDs, so re-imports never churn IDs.</p>
-<a href="/import/">Import →</a>
+<a href="/import/reqmd-import/">Import →</a>
 </article>
 <article class="usecase">
 <h3>Custom schemas per document</h3>
@@ -117,6 +117,6 @@ If your team does this work, reqmd can store the *requirements that result from 
 
 - [Quickstart](/quickstart/) — try the workflow in 10 minutes.
 - [Benchmarks](/benchmarks/) — performance on a real 274-requirement spec and on synthetic 35-doc corpora up to 720k reqs.
-- [reqmd-code](/import/) — the source-code traceability tool that closes the gap from code to spec.
+- [reqmd-code](/import/reqmd-code/) — the source-code traceability tool that closes the gap from code to spec.
 - [Compare](/compare/) — how reqmd stacks up against other requirements tools.
 - [AI &amp; agents](/ai/) — why reqmd's plain-text format is the right substrate for AI-assisted spec workflows.

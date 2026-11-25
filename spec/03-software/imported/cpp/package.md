@@ -169,7 +169,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-## reqmd-code/internal/lang/cpp/cpp_test.go
+## reqmd-code/internal/lang/cpp/cpp\_test.go
 ### IMP-cpp-TestCppLanguageRegisters-b4e1f07: TestCppLanguageRegisters
 ```attr
 status: approved
@@ -191,7 +191,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
 x-reqmd.source-line: 27
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-cpp-Parse-474d5ec
 ```
 
 TestParseSample verifies that Parse correctly identifies and classifies
@@ -207,7 +208,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
 x-reqmd.source-line: 97
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-cpp-Parse-474d5ec
 ```
 
 TestParseTypedefDedup verifies that a `typedef struct Foo { ... } Foo;`
@@ -220,7 +222,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
 x-reqmd.source-line: 117
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-cpp-Parse-474d5ec
 ```
 
 TestParseAliasAndMacro verifies `using` aliases, enums, and macros are
@@ -233,7 +236,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
 x-reqmd.source-line: 144
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-cpp-Parse-474d5ec
 ```
 
 TestParseLocalDeclarationsSkipped verifies that declarations inside
@@ -247,7 +251,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
 x-reqmd.source-line: 179
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-cpp-Parse-474d5ec
 ```
 
 TestParseEmpty handles zero-byte input gracefully.
@@ -273,7 +278,8 @@ x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
 x-reqmd.source-line: 210
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-cpp-BindDoc-1131f80
 ```
 
 TestBindDocIncludesDoc verifies that BindDoc attaches the full comment

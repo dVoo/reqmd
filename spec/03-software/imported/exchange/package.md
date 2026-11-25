@@ -77,6 +77,33 @@ trace: []
 
 statusAdditionPattern matches x-reqmd.additional-status-values entries.
 
+### IMP-exchange-Build-c781f0a: Build
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/build.go
+x-reqmd.source-line: 56
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+Build validates the bundle and renders every document to output files. A
+document without items produces only its schema.yaml; one with items also
+produces its .md file. Items keep the order they were given in, at every
+level — the renderer never reorders, normalizes or drops anything.
+
+### IMP-exchange-BuildWith-bce6596: BuildWith
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/build.go
+x-reqmd.source-line: 61
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+BuildWith is Build with renderer options (status mapping).
+
 ### IMP-exchange-validator-a99a8b0: validator
 ```attr
 status: approved
@@ -337,6 +364,43 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
+### IMP-exchange-Dir-d3c2de4: Dir
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/build.go
+x-reqmd.source-line: 578
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+Dir is the output directory, from x-reqmd.file's sibling config. It defaults
+to the document key so a neutral producer needs no layout knowledge.
+
+### IMP-exchange-FileName-0f9a098: FileName
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/build.go
+x-reqmd.source-line: 586
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+FileName is the .md filename, defaulting to requirements.md.
+
+### IMP-exchange-prefix-d7ae479: prefix
+```attr
+status: approved
+x-reqmd.imported: true
+x-reqmd.source-file: reqmd-import/exchange/build.go
+x-reqmd.source-line: 594
+x-reqmd.symbol-kind: method
+trace: []
+```
+
+prefix is the ID prefix, empty for a document without x-reqmd.
+
 ### IMP-exchange-itemLabel-09da739: itemLabel
 ```attr
 status: approved
@@ -431,7 +495,7 @@ trace: []
 cleanFileName rejects a .md name that is not a plain file name in the
 document directory.
 
-## reqmd-import/exchange/build_test.go
+## reqmd-import/exchange/build\_test.go
 ### IMP-exchange-bundle-0de44b2: bundle
 ```attr
 status: approved
@@ -481,122 +545,132 @@ trace: []
 wantProblems asserts that every fragment appears in the error report, i.e.
 that violations are batched rather than reported one at a time.
 
-### IMP-exchange-TestBuild_RendersDocument-7fc2521: TestBuild_RendersDocument
+### IMP-exchange-TestBuild\_RendersDocument-7fc2521: TestBuild\_RendersDocument
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 54
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
-### IMP-exchange-TestBuild_NestedSectionsAndDepth-c5a4b4e: TestBuild_NestedSectionsAndDepth
+### IMP-exchange-TestBuild\_NestedSectionsAndDepth-c5a4b4e: TestBuild\_NestedSectionsAndDepth
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 115
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
 TestBuild_NestedSectionsAndDepth covers the tree: a section renders a heading
 with children one level deeper, and no attr block.
 
-### IMP-exchange-TestBuild_LinksResolve-10292b4: TestBuild_LinksResolve
+### IMP-exchange-TestBuild\_LinksResolve-10292b4: TestBuild\_LinksResolve
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 162
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
 TestBuild_LinksResolve covers document-local and cross-document links: a link
 becomes a trace ref, qualified by the target document's id when it has one.
 
-### IMP-exchange-TestBuild_CrossDocumentLinkFallsBackToDir-aa509d7: TestBuild_CrossDocumentLinkFallsBackToDir
+### IMP-exchange-TestBuild\_CrossDocumentLinkFallsBackToDir-aa509d7: TestBuild\_CrossDocumentLinkFallsBackToDir
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 192
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
 TestBuild_CrossDocumentLinkFallsBackToDir covers a target document without a
 document-id: reqmd resolves "<dir>/<id>", so the ref must use the dir.
 
-### IMP-exchange-TestBuild_StatusMapping-48d7331: TestBuild_StatusMapping
+### IMP-exchange-TestBuild\_StatusMapping-48d7331: TestBuild\_StatusMapping
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 223
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
 TestBuild_StatusMapping covers the renderer-side status map: a mapped value is
 used and extends the document enum; an unmapped one falls back to the default
 and keeps the original as provenance.
 
-### IMP-exchange-TestBuild_SchemaOnlyDocument-3ae4b47: TestBuild_SchemaOnlyDocument
+### IMP-exchange-TestBuild\_SchemaOnlyDocument-3ae4b47: TestBuild\_SchemaOnlyDocument
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 264
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
 TestBuild_SchemaOnlyDocument covers a document without items.
 
-### IMP-exchange-TestBuild_DecodeRejectsUnknownFields-42e71c2: TestBuild_DecodeRejectsUnknownFields
+### IMP-exchange-TestBuild\_DecodeRejectsUnknownFields-42e71c2: TestBuild\_DecodeRejectsUnknownFields
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 274
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
-### IMP-exchange-TestBuild_ItemTreeKeepsInputOrder-82fb12a: TestBuild_ItemTreeKeepsInputOrder
+### IMP-exchange-TestBuild\_ItemTreeKeepsInputOrder-82fb12a: TestBuild\_ItemTreeKeepsInputOrder
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 282
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
-### IMP-exchange-TestBuild_BatchesViolations-6858d71: TestBuild_BatchesViolations
+### IMP-exchange-TestBuild\_BatchesViolations-6858d71: TestBuild\_BatchesViolations
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 299
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
 TestBuild_BatchesViolations is the core producer-facing guarantee: every
 violation is reported in one run instead of one at a time.
 
-### IMP-exchange-TestBuild_ValidationRules-5c56e6f: TestBuild_ValidationRules
+### IMP-exchange-TestBuild\_ValidationRules-5c56e6f: TestBuild\_ValidationRules
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 321
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
 ### IMP-exchange-nestItems-5ea8ad8: nestItems
@@ -633,20 +707,21 @@ trace:
   - IMP-exchange-Decode-a1934ec
 ```
 
-### IMP-exchange-TestBuild_IsIdempotent-929e54c: TestBuild_IsIdempotent
+### IMP-exchange-TestBuild\_IsIdempotent-929e54c: TestBuild\_IsIdempotent
 ```attr
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/exchange/build_test.go
 x-reqmd.source-line: 489
 x-reqmd.symbol-kind: function
-trace: []
+trace:
+  - IMP-exchange-Build-c781f0a
 ```
 
 TestBuild_IsIdempotent verifies byte-determinism: the same bundle renders the
 same bytes, so re-running an import is a no-op.
 
-### IMP-exchange-TestValidationError_ListsEveryProblem-fbe4c3d: TestValidationError_ListsEveryProblem
+### IMP-exchange-TestValidationError\_ListsEveryProblem-fbe4c3d: TestValidationError\_ListsEveryProblem
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -805,7 +880,7 @@ trace: []
 
 checkNesting rejects a bundle nested deeper than maxDepth.
 
-## reqmd-import/exchange/fixtures_test.go
+## reqmd-import/exchange/fixtures\_test.go
 ### IMP-exchange-schemaPath-fbc19b6: schemaPath
 ```attr
 status: approved
@@ -848,7 +923,7 @@ message, is asserted once in build_test.go: the corpus's job is that the
 published schema and the renderer agree about what is legal, not to restate
 the wording of every error.
 
-### IMP-exchange-TestFixtures_SchemaAcceptsValidBundles-86a7784: TestFixtures_SchemaAcceptsValidBundles
+### IMP-exchange-TestFixtures\_SchemaAcceptsValidBundles-86a7784: TestFixtures\_SchemaAcceptsValidBundles
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -861,7 +936,7 @@ trace: []
 TestFixtures_SchemaAcceptsValidBundles is the neutrality check: the published
 schema alone accepts every well-formed bundle, with no Go-specific knowledge.
 
-### IMP-exchange-TestFixtures_ValidBundlesBuild-54be37a: TestFixtures_ValidBundlesBuild
+### IMP-exchange-TestFixtures\_ValidBundlesBuild-54be37a: TestFixtures\_ValidBundlesBuild
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -873,7 +948,7 @@ trace: []
 
 TestFixtures_ValidBundlesBuild verifies every valid fixture renders.
 
-### IMP-exchange-TestFixtures_InvalidBundlesAreRejected-a84c3e7: TestFixtures_InvalidBundlesAreRejected
+### IMP-exchange-TestFixtures\_InvalidBundlesAreRejected-a84c3e7: TestFixtures\_InvalidBundlesAreRejected
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -899,7 +974,7 @@ trace: []
 
 readFixture loads one fixture from the corpus.
 
-## reqmd-import/exchange/outline_test.go
+## reqmd-import/exchange/outline\_test.go
 ### IMP-exchange-outlineHeading-a41963a: outlineHeading
 ```attr
 status: approved

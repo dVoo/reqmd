@@ -1,6 +1,6 @@
 ---
 title: "Step 0 — Installation"
-description: "Install reqmd in 30 seconds from a prebuilt binary or a source build, then verify the install against the bundled 274-requirement spec."
+description: "Install reqmd in 30 seconds from a prebuilt binary or a source build, then verify the install against the bundled 1,878-requirement spec."
 weight: -1
 ---
 
@@ -49,13 +49,13 @@ Without the tag, `reqmd export graph` prints an error and does nothing. The rest
 ## Verify the install
 
 ```sh
-reqmd check spec/       # validate the bundled dogfooded spec (274 requirements)
+reqmd check spec/       # validate the bundled dogfooded spec (1878 requirements)
 ```
 
 The last line should read:
 
 ```text
-Summary: 274 total, 274 valid, 0 invalid, 0 parse errors, 23 warnings
+Summary: 1878 total, 1878 valid, 0 invalid, 0 parse errors
 ```
 
 The warnings are expected — they come from the external ASPICE base practices in `spec/00-aspice/`, which have no upstream traces.

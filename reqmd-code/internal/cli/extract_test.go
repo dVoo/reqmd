@@ -1046,3 +1046,115 @@ func TestParse() {}
 		t.Errorf("cross-package convention link = %v, want none", links)
 	}
 }
+
+// TestRunExtract_ConventionMethodBareName pins the fallback that links a test
+// to a method when the test names the method without its receiver.
+func TestRunExtract_ConventionMethodBareName(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package clang
+
+type CLanguage struct{}
+
+func (l *CLanguage) Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package clang
+
+func TestParseSample() {}
+`)
+	bundle, _, errOut := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	clang := docByDir(t, bundle, "clang")
+	parse := itemByTitle(t, clang.Items, "Parse")
+	if got := testLinks(t, clang.Items, "TestParseSample"); !slices.Equal(got, []string{parse.Key}) {
+		t.Errorf("links = %v, want the Parse method [%s]", got, parse.Key)
+	}
+	if strings.Contains(errOut, "ambiguous") {
+		t.Errorf("unexpected ambiguity: %s", errOut)
+	}
+}
+
+// TestRunExtract_ConventionFunctionBeatsBareMethod pins the ranking: a real
+// function wins over a bare method name at the same match length.
+func TestRunExtract_ConventionFunctionBeatsBareMethod(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+func Parse() {}
+
+type Parser struct{}
+
+func (p *Parser) Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+func TestParse() {}
+`)
+	bundle, _, errOut := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	alpha := docByDir(t, bundle, "alpha")
+	fn := itemByTitle(t, alpha.Items, "Parse")
+	if got := testLinks(t, alpha.Items, "TestParse"); !slices.Equal(got, []string{fn.Key}) {
+		t.Errorf("links = %v, want the top-level Parse [%s]", got, fn.Key)
+	}
+	if strings.Contains(errOut, "ambiguous") {
+		t.Errorf("unexpected ambiguity: %s", errOut)
+	}
+}
+
+// TestRunExtract_ConventionTwoBareMethodsAmbiguous pins the tie: two methods
+// with the same bare name cannot be chosen between.
+func TestRunExtract_ConventionTwoBareMethodsAmbiguous(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+type A struct{}
+type B struct{}
+
+func (x *A) Parse() {}
+func (x *B) Parse() {}
+`)
+	writeFile(t, src, "a_test.go", `package alpha
+
+func TestParseSample() {}
+`)
+	bundle, _, errOut := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-", linkTests: true})
+	alpha := docByDir(t, bundle, "alpha")
+	if links := testLinks(t, alpha.Items, "TestParseSample"); len(links) != 0 {
+		t.Errorf("ambiguous bare methods produced links %v", links)
+	}
+	if !strings.Contains(errOut, "ambiguous convention match") {
+		t.Errorf("stderr = %q, want an ambiguity warning", errOut)
+	}
+}
+
+// TestRunExtract_MethodInOtherFileKeepsOwnLevel pins that a method whose type
+// is declared in another file is still emitted (at its own file's level)
+// instead of being dropped during nesting.
+func TestRunExtract_MethodInOtherFileKeepsOwnLevel(t *testing.T) {
+	src := t.TempDir()
+	writeFile(t, src, "a.go", `package alpha
+
+type Parser struct{}
+`)
+	writeFile(t, src, "b.go", `package alpha
+
+// Parse parses.
+func (p *Parser) Parse() {}
+`)
+	writeFile(t, src, "b_test.go", `package alpha
+
+// reqmd:trace Parser.Parse
+func TestParse() {}
+`)
+	bundle, _, _ := runTestExtract(t, []string{src}, &extractFlags{idPrefix: "IMP-"})
+	alpha := docByDir(t, bundle, "alpha")
+	method := itemByTitle(t, alpha.Items, "Parse")
+	if method.Key == "" {
+		t.Fatal("method in another file was dropped")
+	}
+	if !strings.Contains(method.Fields["x-reqmd.source-file"].(string), "b.go") {
+		t.Errorf("method provenance = %v, want b.go", method.Fields["x-reqmd.source-file"])
+	}
+	test := itemByTitle(t, alpha.Items, "TestParse")
+	if !slices.Equal(test.Links, []string{method.Key}) {
+		t.Errorf("links = %v, want [%s]", test.Links, method.Key)
+	}
+}

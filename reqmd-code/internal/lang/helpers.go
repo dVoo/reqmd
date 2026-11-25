@@ -75,12 +75,23 @@ func ModuleNameFromFile(file string) string {
 	if file == "" {
 		return ""
 	}
-	base := file
+	dir, base := "", file
 	if i := strings.LastIndexAny(base, "/\\"); i >= 0 {
-		base = base[i+1:]
+		dir, base = base[:i], base[i+1:]
 	}
 	if i := strings.LastIndex(base, "."); i >= 0 {
 		base = base[:i]
+	}
+	// A Python package's `__init__` module is named after its directory, not
+	// "__init__": the parent directory is the importable package name (and the
+	// literal underscores would otherwise need Markdown escaping in headings).
+	if base == "__init__" {
+		if i := strings.LastIndexAny(dir, "/\\"); i >= 0 {
+			dir = dir[i+1:]
+		}
+		if dir != "" && dir != "." {
+			return dir
+		}
 	}
 	return base
 }

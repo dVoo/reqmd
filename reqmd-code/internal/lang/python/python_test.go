@@ -380,3 +380,32 @@ func TestBindDocDocstringOnly(t *testing.T) {
 		t.Errorf("BindDoc = %q, want %q", got, want)
 	}
 }
+
+// TestParseFunctionLocalConstRejected pins that only module-level bindings are
+// constants: an assignment inside a function body is a local, not a symbol.
+func TestParseFunctionLocalConstRejected(t *testing.T) {
+	const src = `MODULE_LEVEL = 1
+
+def f():
+    local = 2
+
+class C:
+    class_attr = 3
+`
+	syms, err := (&PythonLanguage{}).Parse("a.py", []byte(src))
+	if err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	got := map[string]bool{}
+	for _, s := range syms {
+		got[s.Name] = true
+	}
+	if !got["MODULE_LEVEL"] {
+		t.Error("module-level constant was not extracted")
+	}
+	for _, bad := range []string{"local", "class_attr"} {
+		if got[bad] {
+			t.Errorf("%s must not be a symbol", bad)
+		}
+	}
+}

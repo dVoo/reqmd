@@ -34,7 +34,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
         }
 
         // reqmd-code: source-code requirement trace extraction tool
-        extractionTool = softwareSystem "Extraction Tool" "Parses source code with Tree-sitter (C, C++, Go, Python, Rust grammars), extracts symbols and requirement IDs, and emits a reqmd-import/v1 exchange bundle (JSON) for the Import Tool to render as proxy requirements" {
+        extractionTool = softwareSystem "Extraction Tool" "Parses source code with Tree-sitter (C, C++, Go, Python, Rust grammars), extracts symbols, requirement IDs, and explicit or convention-based test links, and emits a reqmd-import/v1 exchange bundle (JSON) for the Import Tool to render as proxy requirements" {
 
             extractCli = container "Extraction CLI" "Walks the source tree, dispatches each file to the plugin claiming its extension, parses in parallel, binds doc comments, groups symbols per package, and writes one reqmd-import/v1 bundle to stdout or -o" "Go / cobra" "CLI"
 
@@ -43,7 +43,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
                 symbolMapper = component "Capture to Symbol Mapper" "Maps language-specific captures to the shared symbol model, populating method receivers from the enclosing type and excluding function-local declarations" "Go / tree-sitter query"
             }
 
-            traceEngine = container "Trace Engine" "Extracts explicit reqmd:trace markers from bound doc comments and, opt-in via --heuristic-traces, bare requirement IDs found in prose" "Go"
+            traceEngine = container "Trace Engine" "Classifies explicit reqmd:trace markers (requirement IDs, symbol references, none) from bound doc comments, resolves symbols exactly, adds opt-in --link-tests conventions, and optionally mines bare requirement IDs from prose via --heuristic-traces" "Go"
 
             symbolModel = container "Symbol Model" "Normalized symbol type plus the stable short hash over package and symbol that makes generated IDs line-independent" "Go"
 
@@ -64,7 +64,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
         // External systems
         vscodeExt        = softwareSystem "VS Code / Editor"         "Author edits *.md and schema.yaml" "External"
         supplier         = softwareSystem "Tier-1 Supplier Tool"     "(Planned) Receives CSV export" "External"
-        sourceRepository = softwareSystem "Source Repository"        "Git repository containing C, C++, Go, Python, Rust, Zig, and other source files with requirement references in comments or docstrings" "External"
+        sourceRepository = softwareSystem "Source Repository"        "Git repository containing C, C++, Go, Python, Rust, and other source files with requirement references in comments or docstrings" "External"
         alm              = softwareSystem "ALM System"              "DOORS / codeBeamer / Polarion: database-backed requirement stores that export CSV or expose REST APIs" "External"
         customImporter   = softwareSystem "Custom Importer"         "A Python (or any language) script using the reqmd-io helper to turn an ALM export, CSV, or API into a reqmd-import/v1 bundle" "External"
         ci               = softwareSystem "CI Pipeline"              "Automated pipeline that runs extraction on changes and publishes trace artifacts" "External"
@@ -113,7 +113,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
 
         // --- Extraction tool internal flow ---
         extractionTool.extractCli -> extractionTool.languages   "Asks for the plugin owning each file extension"
-        extractionTool.extractCli -> extractionTool.traceEngine "Sends bound doc comments for requirement-ID extraction"
+        extractionTool.extractCli -> extractionTool.traceEngine "Sends bound doc comments for trace classification"
         extractionTool.extractCli -> extractionTool.symbolModel "Builds stable item keys from"
         extractionTool.extractCli -> extractionTool.attrSchema  "Projects each document's property set from"
 

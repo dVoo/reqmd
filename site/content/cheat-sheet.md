@@ -522,6 +522,45 @@ no version-pin changes needed
 | `--json` | Output as JSON |
 | `--promote-unpinned` | Also pin trace refs that have no `~N` against a versioned upstream |
 
+## `reqmd-code` and `reqmd-import`
+
+Two companion binaries share the [exchange format](/exchange/v1/):
+`reqmd-code` extracts source symbols (and test links), `reqmd-import` is the
+only writer of `.md` + `schema.yaml`.
+
+| Command | What it does | Key flags |
+|---------|-------------|-----------|
+| `reqmd-code <src>` | Emit an exchange bundle for source symbols | `-o`, `--lang`, `--id-prefix`, `--heuristic-traces`, `--link-tests` |
+| `reqmd-import <bundle>` | Render a bundle into reqmd documents | `-o`, `--check`, `--validate-only`, `--status-map` |
+
+Link a test to the code it tests from the test's doc comment:
+
+```go
+// reqmd:trace Parse
+// reqmd:trace Parser.Parse
+// reqmd:trace clang/Parse
+// reqmd:trace SW-PAR-001~2
+// reqmd:trace none
+func TestParseFromDisk(t *testing.T) {}
+```
+
+`Parse` is a same-package symbol, `Parser.Parse` (`Parser::Parse` also works) a
+receiver method, `clang/Parse` a qualified package, `SW-PAR-001~2` a
+requirement ID validated by `reqmd check`, and `none` an opt-out from
+`--link-tests` conventions. Do not put an inline `//` comment on a directive
+line: it becomes part of the target and is rejected.
+
+- Targets are exact (case-sensitive, no prefix matching). Unknown or ambiguous
+  symbols, or prose on the directive, **fail the extraction** before any bundle
+  is written.
+- `--link-tests` (off by default) links `TestParse`/`test_parse` to the
+  production symbol by longest name; methods are `Type_Method` (or their bare
+  name when unambiguous, with a function of the same name winning). Explicit
+  directives win, ambiguity only warns, and lookup never leaves the package or
+  its base package.
+- Generated IDs look like `IMP-<package>-<Symbol>-<7charhash>` and may appear in
+  `trace:` directly.
+
 ## Filter expressions
 
 `--filter "<expr>"` is available on `check`, `ls`, `stats`, `export csv`, `export html`, `export json`, and `baseline diff`. The expression is evaluated against each requirement's attributes (plus the built-ins `id`, `title`, `status`, `disposition`, `trace`, `version`), and the command runs only on matching requirements. It's the generic primitive behind variant management — the same flag slices by variant, platform, region, priority, or any other attribute.
@@ -565,6 +604,8 @@ no version-pin changes needed
 | `export graph <dir>` | Graph export (ladybug tag) | `-o`, `--results` |
 | `baseline diff <t1> <t2>` | Compare two git tags | `--json`, `--filter`, `--filter-a`, `--filter-b`, `--relaxed-filter` |
 | `repin <dir>` | Update version pins to upstream's current version | `--yes`, `--json`, `--promote-unpinned` |
+| `reqmd-code <src>` | Extract source symbols into an exchange bundle | `-o`, `--lang`, `--id-prefix`, `--heuristic-traces`, `--link-tests` |
+| `reqmd-import <bundle>` | Render an exchange bundle into reqmd documents | `-o`, `--check`, `--validate-only`, `--status-map` |
 
 ## The `schema.yaml` file
 

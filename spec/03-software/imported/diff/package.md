@@ -259,8 +259,8 @@ Submodules compares two maps of submodule path → commit SHA and returns
 a sorted list of SubmoduleChange. Submodules with the same SHA at both
 tags are omitted (no noise). Result is sorted by path for deterministic output.
 
-## internal/diff/diff_test.go
-### IMP-diff-TestDiff_Empty-e01da55: TestDiff_Empty
+## internal/diff/diff\_test.go
+### IMP-diff-TestDiff\_Empty-e01da55: TestDiff\_Empty
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -271,7 +271,7 @@ trace:
   - IMP-diff-Diff-3bcbf07
 ```
 
-### IMP-diff-TestDiff_Added-e11c4ce: TestDiff_Added
+### IMP-diff-TestDiff\_Added-e11c4ce: TestDiff\_Added
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -282,7 +282,7 @@ trace:
   - IMP-diff-Diff-3bcbf07
 ```
 
-### IMP-diff-TestDiff_Removed-4b2a500: TestDiff_Removed
+### IMP-diff-TestDiff\_Removed-4b2a500: TestDiff\_Removed
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -293,7 +293,7 @@ trace:
   - IMP-diff-Diff-3bcbf07
 ```
 
-### IMP-diff-TestDiff_Modified-01c3983: TestDiff_Modified
+### IMP-diff-TestDiff\_Modified-01c3983: TestDiff\_Modified
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -304,7 +304,7 @@ trace:
   - IMP-diff-Diff-3bcbf07
 ```
 
-### IMP-diff-TestDiff_Unchanged-af0c165: TestDiff_Unchanged
+### IMP-diff-TestDiff\_Unchanged-af0c165: TestDiff\_Unchanged
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -315,7 +315,7 @@ trace:
   - IMP-diff-Diff-3bcbf07
 ```
 
-### IMP-diff-TestDiff_Mixed-32f4ddb: TestDiff_Mixed
+### IMP-diff-TestDiff\_Mixed-32f4ddb: TestDiff\_Mixed
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -326,7 +326,7 @@ trace:
   - IMP-diff-Diff-3bcbf07
 ```
 
-### IMP-diff-TestDiff_SectionMove-801595a: TestDiff_SectionMove
+### IMP-diff-TestDiff\_SectionMove-801595a: TestDiff\_SectionMove
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -342,7 +342,7 @@ reported as a modification with a "parent" delta, even though no attribute
 changed: sections are context, and a move changes what the requirement is
 about.
 
-### IMP-diff-TestSchemas_AddedProperty-421be34: TestSchemas_AddedProperty
+### IMP-diff-TestSchemas\_AddedProperty-421be34: TestSchemas\_AddedProperty
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -353,7 +353,7 @@ trace:
   - IMP-diff-Schemas-e4571f8
 ```
 
-### IMP-diff-TestSchemas_RemovedProperty-b9174de: TestSchemas_RemovedProperty
+### IMP-diff-TestSchemas\_RemovedProperty-b9174de: TestSchemas\_RemovedProperty
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -364,7 +364,7 @@ trace:
   - IMP-diff-Schemas-e4571f8
 ```
 
-### IMP-diff-TestSchemas_ChangedRequired-32e188a: TestSchemas_ChangedRequired
+### IMP-diff-TestSchemas\_ChangedRequired-32e188a: TestSchemas\_ChangedRequired
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -375,7 +375,7 @@ trace:
   - IMP-diff-Schemas-e4571f8
 ```
 
-### IMP-diff-TestSchemas_NoChange-f0d8882: TestSchemas_NoChange
+### IMP-diff-TestSchemas\_NoChange-f0d8882: TestSchemas\_NoChange
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -386,7 +386,7 @@ trace:
   - IMP-diff-Schemas-e4571f8
 ```
 
-### IMP-diff-TestSubmodules_Empty-2f1b385: TestSubmodules_Empty
+### IMP-diff-TestSubmodules\_Empty-2f1b385: TestSubmodules\_Empty
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -397,7 +397,7 @@ trace:
   - IMP-diff-Submodules-15c6d17
 ```
 
-### IMP-diff-TestSubmodules_NilMaps-92fcc28: TestSubmodules_NilMaps
+### IMP-diff-TestSubmodules\_NilMaps-92fcc28: TestSubmodules\_NilMaps
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -408,7 +408,7 @@ trace:
   - IMP-diff-Submodules-15c6d17
 ```
 
-### IMP-diff-TestSubmodules_NoChange-e14c5e7: TestSubmodules_NoChange
+### IMP-diff-TestSubmodules\_NoChange-e14c5e7: TestSubmodules\_NoChange
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -419,7 +419,7 @@ trace:
   - IMP-diff-Submodules-15c6d17
 ```
 
-### IMP-diff-TestSubmodules_Added-d05731e: TestSubmodules_Added
+### IMP-diff-TestSubmodules\_Added-d05731e: TestSubmodules\_Added
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -430,7 +430,7 @@ trace:
   - IMP-diff-Submodules-15c6d17
 ```
 
-### IMP-diff-TestSubmodules_Removed-78d4a10: TestSubmodules_Removed
+### IMP-diff-TestSubmodules\_Removed-78d4a10: TestSubmodules\_Removed
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -441,7 +441,7 @@ trace:
   - IMP-diff-Submodules-15c6d17
 ```
 
-### IMP-diff-TestSubmodules_Updated-c244b93: TestSubmodules_Updated
+### IMP-diff-TestSubmodules\_Updated-c244b93: TestSubmodules\_Updated
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -452,7 +452,7 @@ trace:
   - IMP-diff-Submodules-15c6d17
 ```
 
-### IMP-diff-TestSubmodules_Mixed-d9985cb: TestSubmodules_Mixed
+### IMP-diff-TestSubmodules\_Mixed-d9985cb: TestSubmodules\_Mixed
 ```attr
 status: approved
 x-reqmd.imported: true
@@ -463,7 +463,7 @@ trace:
   - IMP-diff-Submodules-15c6d17
 ```
 
-### IMP-diff-TestSubmodules_SortedOutput-1e3d7e8: TestSubmodules_SortedOutput
+### IMP-diff-TestSubmodules\_SortedOutput-1e3d7e8: TestSubmodules\_SortedOutput
 ```attr
 status: approved
 x-reqmd.imported: true
