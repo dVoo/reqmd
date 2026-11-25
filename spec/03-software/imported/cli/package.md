@@ -4,7 +4,7 @@
 
 ## internal/cli/baseline.go
 ### IMP-cli-newBaselineCmd-9148414: newBaselineCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/baseline.go
@@ -14,7 +14,7 @@ trace: []
 ```
 
 ### IMP-cli-newBaselineDiffCmd-65bc3e9: newBaselineDiffCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/baseline.go
@@ -24,7 +24,7 @@ trace: []
 ```
 
 ### IMP-cli-runBaselineDiff-79607c8: runBaselineDiff
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/baseline.go
@@ -34,7 +34,7 @@ trace: []
 ```
 
 ### IMP-cli-runBaselineDiffFilteredViews-a6edaf7: runBaselineDiffFilteredViews
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/baseline.go
@@ -48,7 +48,7 @@ filtered views of it (RFC §3.4 — "what does Premium add over Base" from
 a single commit).
 
 ### IMP-cli-applyFilter-b409837: applyFilter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/baseline.go
@@ -62,7 +62,7 @@ returning the filtered docs. Shared by both baseline diff modes.
 
 ## internal/cli/baseline\_test.go
 ### IMP-cli-TestBaselineDiff\_FlagGroupValidation-57599da: TestBaselineDiff\_FlagGroupValidation
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/baseline_test.go
@@ -77,7 +77,7 @@ mutually exclusive with the two-view mode. These are validated before
 RunE, so no git repo is required.
 
 ### IMP-cli-TestBaselineDiff\_TwoTagFilter-333109c: TestBaselineDiff\_TwoTagFilter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/baseline_test.go
@@ -90,7 +90,7 @@ TestBaselineDiff_TwoTagFilter compares two tags and verifies --filter
 scopes both snapshots (RFC §3.3).
 
 ### IMP-cli-TestBaselineDiff\_FilteredViews-f36004f: TestBaselineDiff\_FilteredViews
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/baseline_test.go
@@ -104,7 +104,7 @@ TestBaselineDiff_FilteredViews verifies the same-commit two-view mode
 
 ## internal/cli/check.go
 ### IMP-cli-newCheckCmd-22608ab: newCheckCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -114,7 +114,7 @@ trace: []
 ```
 
 ### IMP-cli-runValidationPipeline-6e88051: runValidationPipeline
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -137,7 +137,7 @@ requirement are always allowed; anything else outside the declared set is
 reported as a warning instead of aborting the run.
 
 ### IMP-cli-graphResult-18ba9d0: graphResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -153,7 +153,7 @@ errors before graph errors). root is non-empty only for dir mode;
 single-file mode has no graph.
 
 ### IMP-cli-compileResult-866a429: compileResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -169,7 +169,7 @@ Compile is per-doc-dir (independent schemas), validate is per-requirement
 Phase A: compile all schemas in parallel.
 
 ### IMP-cli-valResult-35dc3fb: valResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -183,7 +183,7 @@ that compiled successfully. Each Validate call is independent —
 the Compiled struct is read-only and each req's attrs map is separate.
 
 ### IMP-cli-valJob-fd6fb35: valJob
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -196,7 +196,7 @@ Flatten the work list: (jobIdx, docIdx, reqIdx) triples for docs
 with valid schemas.
 
 ### IMP-cli-demoteOutdatedVersionPins-1f86521: demoteOutdatedVersionPins
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -211,7 +211,7 @@ are left at ERROR — they indicate a downstream pinning a version that
 does not exist on the upstream and are a data integrity issue.
 
 ### IMP-cli-validateDir-140fe1c: validateDir
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -221,7 +221,7 @@ trace: []
 ```
 
 ### IMP-cli-validateSingleFile-de6bca7: validateSingleFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -231,7 +231,7 @@ trace: []
 ```
 
 ### IMP-cli-filterID-fd064a8: filterID
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -244,7 +244,7 @@ filterID reports whether reqID passes the active filter set. A nil set
 means no filter is active — every requirement passes.
 
 ### IMP-cli-formatReport-022f80e: formatReport
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check.go
@@ -257,7 +257,7 @@ formatReport conditionally returns the report in text or JSON format.
 
 ## internal/cli/check\_test.go
 ### IMP-cli-jsonCheckSummary-95c047d: jsonCheckSummary
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -270,7 +270,7 @@ jsonCheckSummary captures the parts of `check --json` output that the
 filter/disjoint tests assert on.
 
 ### IMP-cli-TestCheckCmd\_FilterScopesValidation-01cdba8: TestCheckCmd\_FilterScopesValidation
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -280,7 +280,7 @@ trace: []
 ```
 
 ### IMP-cli-TestCheckCmd\_FilterUnknownAttributeFails-fb8a60d: TestCheckCmd\_FilterUnknownAttributeFails
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -290,7 +290,7 @@ trace: []
 ```
 
 ### IMP-cli-TestCheckCmd\_FilterSyntaxErrorFails-2976cfe: TestCheckCmd\_FilterSyntaxErrorFails
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -300,7 +300,7 @@ trace: []
 ```
 
 ### IMP-cli-TestCheckCmd\_FilterBuiltinTraceVar-b98cd83: TestCheckCmd\_FilterBuiltinTraceVar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -314,7 +314,7 @@ attribute `trace` is accepted by the typo check even though it is not
 declared in the fixture schema.
 
 ### IMP-cli-TestCheckCmd\_DisjointCheckFlag-e752672: TestCheckCmd\_DisjointCheckFlag
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -324,7 +324,7 @@ trace: []
 ```
 
 ### IMP-cli-TestCheckCmd\_DisjointCheckClean-b020839: TestCheckCmd\_DisjointCheckClean
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -337,7 +337,7 @@ TestCheckCmd_DisjointCheckClean verifies the disjoint check is off by
 default and passes when variants overlap.
 
 ### IMP-cli-TestCheckCmd\_DisjointCheckSchemaDecl-3074657: TestCheckCmd\_DisjointCheckSchemaDecl
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -350,7 +350,7 @@ TestCheckCmd_DisjointCheckSchemaDecl verifies the check is enabled via
 x-reqmd.disjoint-check in schema.yaml (RFC §3.5).
 
 ### IMP-cli-TestCheckCmd\_FilterWithResults-44c63c4: TestCheckCmd\_FilterWithResults
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -365,7 +365,7 @@ though the synthesized RESULT node is not itself in the filter set; a
 measure excluded by the filter is not reported.
 
 ### IMP-cli-TestCheckCmd\_RequiresTraceFromDocumentDefault-6e84959: TestCheckCmd\_RequiresTraceFromDocumentDefault
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -379,7 +379,7 @@ x-reqmd.requires-trace-from document default end-to-end through schema.yaml:
 a requirement without its own attribute inherits the default.
 
 ### IMP-cli-writeUnboundResultsDir-2cc8702: writeUnboundResultsDir
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -393,7 +393,7 @@ whose test declares x-reqmd but binds to nothing (case only). Returns the
 results dir path.
 
 ### IMP-cli-TestCheckCmd\_IgnoreUnboundResults-7e63da7: TestCheckCmd\_IgnoreUnboundResults
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -406,7 +406,7 @@ TestCheckCmd_IgnoreUnboundResults verifies unbound-result warnings surface
 by default and are suppressed by --ignore-unbound-results.
 
 ### IMP-cli-TestCheckCmd\_RelaxedFilterAllowsUndeclared-b2dc1a6: TestCheckCmd\_RelaxedFilterAllowsUndeclared
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go
@@ -422,7 +422,7 @@ warning instead of an error — when the flag is set.
 
 ## internal/cli/e2e\_test.go
 ### IMP-cli-bundleFixture-721d374: bundleFixture
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -435,7 +435,7 @@ bundleFixture is a real exchange bundle: sections grouping requirements, an
 internal link, an external ref, a declared schema and x-reqmd metadata.
 
 ### IMP-cli-renderBundle-16e747f: renderBundle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -448,7 +448,7 @@ renderBundle runs a bundle through the renderer and writes the files it
 produces into dir, exactly as `reqmd-import` does.
 
 ### IMP-cli-TestE2E\_ExchangeBundleToCheckAndExports-f638a3c: TestE2E\_ExchangeBundleToCheckAndExports
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -464,7 +464,7 @@ module boundaries (exchange → parser → graph → exporter) instead of inside
 single package, which is where the pipeline actually breaks.
 
 ### IMP-cli-TestE2E\_SectionsSurviveParseAndFilter-ad82110: TestE2E\_SectionsSurviveParseAndFilter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -478,7 +478,7 @@ reqmd core: a real document is parsed into a tree, and a filtered view drops
 a folder whose requirements were all pruned while keeping leaf sections.
 
 ### IMP-cli-TestE2E\_CSVImporterToCheckChain-e38dc5a: TestE2E\_CSVImporterToCheckChain
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -493,7 +493,7 @@ check. It is skipped rather than failed when python3 is missing, the same way
 the client-side JS tests skip without node.
 
 ### IMP-cli-TestE2E\_ExportJSONTables-000a151: TestE2E\_ExportJSONTables
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -508,7 +508,7 @@ CLI boundary: the four tables always exist, results stay empty without
 byte-identical.
 
 ### IMP-cli-TestE2E\_ExportJSONFilter-3b5f786: TestE2E\_ExportJSONFilter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -523,7 +523,7 @@ trace writer, traces.ndjson follows it too. Findings still cover the whole
 graph, so that table is written regardless.
 
 ### IMP-cli-TestE2E\_ExportJSONResults-de998aa: TestE2E\_ExportJSONResults
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -537,7 +537,7 @@ authored measure becomes a verdict row while the requirement and trace
 tables keep the authored tree only.
 
 ### IMP-cli-TestE2E\_ExportJSONDisjointFinding-e09b821: TestE2E\_ExportJSONDisjointFinding
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -550,7 +550,7 @@ TestE2E_ExportJSONDisjointFinding covers --disjoint-check: a trace pair with
 no overlapping attribute value surfaces as an ERROR in findings.ndjson.
 
 ### IMP-cli-ndjsonRows-818dc52: ndjsonRows
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -562,7 +562,7 @@ trace: []
 ndjsonRows reads a JSON-lines table.
 
 ### IMP-cli-keysOf-6e4a82e: keysOf
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -574,7 +574,7 @@ trace: []
 keysOf lists map keys for failure messages.
 
 ### IMP-cli-TestE2E\_ExportHTMLConcurrentPagesDeterministic-ba5414c: TestE2E\_ExportHTMLConcurrentPagesDeterministic
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/e2e_test.go
@@ -589,7 +589,7 @@ depend on which worker finished first.
 
 ## internal/cli/export\_test.go
 ### IMP-cli-TestExportCSV\_Filter-7a4ad02: TestExportCSV\_Filter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export_test.go
@@ -599,7 +599,7 @@ trace: []
 ```
 
 ### IMP-cli-TestExportHTML\_Filter-1df7a3f: TestExportHTML\_Filter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export_test.go
@@ -609,7 +609,7 @@ trace: []
 ```
 
 ### IMP-cli-TestExportHTML\_ProjectIndex-83dbdfa: TestExportHTML\_ProjectIndex
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export_test.go
@@ -622,7 +622,7 @@ TestExportHTML_ProjectIndex verifies that an export writes the project home
 alongside the document pages.
 
 ### IMP-cli-TestExportHTML\_NestedTraceLinks-484a380: TestExportHTML\_NestedTraceLinks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export_test.go
@@ -636,7 +636,7 @@ trace links are relative to each document's own directory.
 
 ## internal/cli/filters.go
 ### IMP-cli-relaxedFilterUsage-25ec00b: relaxedFilterUsage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/filters.go
@@ -649,7 +649,7 @@ relaxedFilterUsage is the shared help text for --relaxed-filter, kept in
 one place so every command that accepts --filter documents it identically.
 
 ### IMP-cli-addRelaxedFilterFlag-119dae1: addRelaxedFilterFlag
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/filters.go
@@ -663,7 +663,7 @@ target. Commands pair it with their --filter flag; see filter.CompileForDocs.
 
 ## internal/cli/init.go
 ### IMP-cli-genericSchemaTmpl-1ab7498: genericSchemaTmpl
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -675,7 +675,7 @@ trace: []
 go:embed init_templates/generic_schema.yaml
 
 ### IMP-cli-genericExampleTmpl-33c3cb1: genericExampleTmpl
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -687,7 +687,7 @@ trace: []
 go:embed init_templates/generic_example.md
 
 ### IMP-cli-aspiceSchemaTmpl-663a33c: aspiceSchemaTmpl
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -699,7 +699,7 @@ trace: []
 go:embed init_templates/aspice_schema.yaml
 
 ### IMP-cli-aspiceExampleTmpl-5c7966d: aspiceExampleTmpl
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -711,7 +711,7 @@ trace: []
 go:embed init_templates/aspice_example.md
 
 ### IMP-cli-resultsSchemaTmpl-5f3dd93: resultsSchemaTmpl
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -723,7 +723,7 @@ trace: []
 go:embed init_templates/results_schema.yaml
 
 ### IMP-cli-resultsExampleTmpl-143d494: resultsExampleTmpl
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -735,7 +735,7 @@ trace: []
 go:embed init_templates/results_example.md
 
 ### IMP-cli-initConfig-35500bf: initConfig
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -745,7 +745,7 @@ trace: []
 ```
 
 ### IMP-cli-newInitCmd-eea24a3: newInitCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -755,7 +755,7 @@ trace: []
 ```
 
 ### IMP-cli-runInit-6cefd16: runInit
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -765,7 +765,7 @@ trace: []
 ```
 
 ### IMP-cli-isDirPath-b958bad: isDirPath
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -779,7 +779,7 @@ isDirPath reports whether the preset string looks like a filesystem path
 named preset like "generic", "aspice", or "results".
 
 ### IMP-cli-loadCustomPreset-d21d1af: loadCustomPreset
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -797,7 +797,7 @@ The example filename (without .tmpl) is used as the output filename.
 If multiple .md files exist, the first one found is used as the example.
 
 ### IMP-cli-writeTemplate-7bb9c58: writeTemplate
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init.go
@@ -808,7 +808,7 @@ trace: []
 
 ## internal/cli/init\_test.go
 ### IMP-cli-TestInit\_GenericPreset-0811774: TestInit\_GenericPreset
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init_test.go
@@ -821,7 +821,7 @@ TestInit_GenericPreset checks the default preset renders a schema and an
 example document with the requested prefix.
 
 ### IMP-cli-TestInit\_ResultsPreset-644594f: TestInit\_ResultsPreset
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init_test.go
@@ -834,7 +834,7 @@ TestInit_ResultsPreset checks the results preset overrides level and prefix
 so the scaffolded directory is a valid manual-results document.
 
 ### IMP-cli-TestInit\_CustomPresetDir-75d28d9: TestInit\_CustomPresetDir
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init_test.go
@@ -847,7 +847,7 @@ TestInit_CustomPresetDir checks a preset directory renders both templates
 with the schema variables.
 
 ### IMP-cli-TestInit\_ExistingFilesNeedForce-cd66359: TestInit\_ExistingFilesNeedForce
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init_test.go
@@ -860,7 +860,7 @@ TestInit_ExistingFilesNeedForce checks an existing document aborts the run
 unless --force is given.
 
 ### IMP-cli-readFileString-e4dc1d4: readFileString
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/init_test.go
@@ -871,7 +871,7 @@ trace: []
 
 ## internal/cli/list.go
 ### IMP-cli-newListCmd-d11e211: newListCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/list.go
@@ -882,7 +882,7 @@ trace: []
 
 ## internal/cli/list\_stats\_test.go
 ### IMP-cli-TestListCmd\_Filter-56e0080: TestListCmd\_Filter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/list_stats_test.go
@@ -892,7 +892,7 @@ trace: []
 ```
 
 ### IMP-cli-TestListCmd\_FilterJSON-907c912: TestListCmd\_FilterJSON
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/list_stats_test.go
@@ -902,7 +902,7 @@ trace: []
 ```
 
 ### IMP-cli-TestStatsCmd\_Filter-d509761: TestStatsCmd\_Filter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/list_stats_test.go
@@ -912,7 +912,7 @@ trace: []
 ```
 
 ### IMP-cli-TestListCmd\_ShowsItems-69d106c: TestListCmd\_ShowsItems
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/list_stats_test.go
@@ -922,7 +922,7 @@ trace: []
 ```
 
 ### IMP-cli-TestListCmd\_ItemsJSON-971a01c: TestListCmd\_ItemsJSON
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/list_stats_test.go
@@ -932,7 +932,7 @@ trace: []
 ```
 
 ### IMP-cli-TestStatsCmd\_ShowsItems-59e04ad: TestStatsCmd\_ShowsItems
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/list_stats_test.go
@@ -943,7 +943,7 @@ trace: []
 
 ## internal/cli/repin.go
 ### IMP-cli-newRepinCmd-9e593b7: newRepinCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/repin.go
@@ -953,7 +953,7 @@ trace: []
 ```
 
 ### IMP-cli-repinOptions-15f9721: repinOptions
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/repin.go
@@ -963,7 +963,7 @@ trace: []
 ```
 
 ### IMP-cli-runRepin-77ec084: runRepin
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/repin.go
@@ -973,7 +973,7 @@ trace: []
 ```
 
 ### IMP-cli-applyRepin-8795bdf: applyRepin
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/repin.go
@@ -983,7 +983,7 @@ trace: []
 ```
 
 ### IMP-cli-writeJSON-771a780: writeJSON
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/repin.go
@@ -993,7 +993,7 @@ trace: []
 ```
 
 ### IMP-cli-isTerminal-ca2655b: isTerminal
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/repin.go
@@ -1003,7 +1003,7 @@ trace: []
 ```
 
 ### IMP-cli-promptYes-935399c: promptYes
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/repin.go
@@ -1014,7 +1014,7 @@ trace: []
 
 ## internal/cli/root.go
 ### IMP-cli-NewRootCmd-c85094d: NewRootCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/root.go
@@ -1028,7 +1028,7 @@ via -ldflags "-X main.version=..."; when empty, --version is omitted.
 
 ## internal/cli/serve.go
 ### IMP-cli-pollInterval-2c853d7: pollInterval
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1040,7 +1040,7 @@ trace: []
 pollInterval is the file polling interval used when fsnotify is unavailable.
 
 ### IMP-cli-newServeCmd-92943ea: newServeCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1050,7 +1050,7 @@ trace: []
 ```
 
 ### IMP-cli-runServe-213a29f: runServe
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1060,7 +1060,7 @@ trace: []
 ```
 
 ### IMP-cli-serveData-5584b92: serveData
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1072,7 +1072,7 @@ trace: []
 serveData holds shared state for the serve command.
 
 #### IMP-cli-rebuild-231437b: rebuild
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1082,7 +1082,7 @@ trace: []
 ```
 
 #### IMP-cli-watchLoop-d8934f5: watchLoop
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1092,7 +1092,7 @@ trace: []
 ```
 
 #### IMP-cli-watchFsnotify-dd68ce1: watchFsnotify
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1102,7 +1102,7 @@ trace: []
 ```
 
 #### IMP-cli-watchPolling-2c0006a: watchPolling
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1112,7 +1112,7 @@ trace: []
 ```
 
 #### IMP-cli-makeRebuildAndNotify-a8e55a7: makeRebuildAndNotify
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1122,7 +1122,7 @@ trace: []
 ```
 
 #### IMP-cli-sseHandler-ebdb35b: sseHandler
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1134,7 +1134,7 @@ trace: []
 sseHandler implements Server-Sent Events for live-reload.
 
 #### IMP-cli-fileHandler-ebc01a2: fileHandler
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1146,7 +1146,7 @@ trace: []
 fileHandler serves the in-memory rendered HTML pages.
 
 ### IMP-cli-discoverAndBuildGraph-bd79c15: discoverAndBuildGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1162,7 +1162,7 @@ Returns the original docs (without synthesized results), the verdicts
 map for badge rendering, and the graph.
 
 ### IMP-cli-exportServePages-7761740: exportServePages
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1176,7 +1176,7 @@ It returns the rendered pages, the total requirement count, and the graph
 check results so the caller can report status.
 
 ### IMP-cli-publishPages-f2a6b3e: publishPages
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1188,7 +1188,7 @@ trace: []
 publishPages atomically swaps the in-memory rendered pages.
 
 ### IMP-cli-errFsnotifyUnavailable-6a13a1a: errFsnotifyUnavailable
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1200,7 +1200,7 @@ trace: []
 errFsnotifyUnavailable is returned when fsnotify cannot be used.
 
 ### IMP-cli-docState-e9b9e58: docState
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1212,7 +1212,7 @@ trace: []
 Track last modification time per doc dir
 
 ### IMP-cli-openBrowser-c535b25: openBrowser
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1224,7 +1224,7 @@ trace: []
 openBrowser opens the given URL in the default system browser.
 
 ### IMP-cli-findDocDirsFlat-854fd15: findDocDirsFlat
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1238,7 +1238,7 @@ Entry-level walk errors are skipped: a watcher that sees the readable part
 of the tree is more useful than none.
 
 ### IMP-cli-findResultWatchDirs-c52a3f8: findResultWatchDirs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve.go
@@ -1255,7 +1255,7 @@ watched (for CTRF files) plus any subdirectories containing a schema.yaml
 
 ## internal/cli/serve\_test.go
 ### IMP-cli-findResult-d74f389: findResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve_test.go
@@ -1267,7 +1267,7 @@ trace: []
 findResult reports whether any check result for reqID mentions substr.
 
 ### IMP-cli-TestServeDiscover\_WholeTree-62ae3f1: TestServeDiscover\_WholeTree
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve_test.go
@@ -1281,7 +1281,7 @@ and exports from the full tree: every requirement is served and coverage
 resolves across documents.
 
 ### IMP-cli-TestServeProjectHome-f425efc: TestServeProjectHome
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/serve_test.go
@@ -1295,7 +1295,7 @@ redirecting to the first document.
 
 ## internal/cli/stats.go
 ### IMP-cli-newStatsCmd-a1a9c0e: newStatsCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/stats.go
@@ -1306,7 +1306,7 @@ trace: []
 
 ## internal/cli/summaries.go
 ### IMP-cli-buildDocSummaries-91fc2d7: buildDocSummaries
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/summaries.go
@@ -1321,7 +1321,7 @@ and information items (containers + info blocks) — in document order.
 
 ## internal/cli/testutil\_test.go
 ### IMP-cli-writeFile-467aec0: writeFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1333,7 +1333,7 @@ trace: []
 writeFile writes content to rel under dir, creating parent directories.
 
 ### IMP-cli-runCmd-d07ae24: runCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1345,7 +1345,7 @@ trace: []
 runCmd executes a cobra command with args, capturing stdout+stderr.
 
 ### IMP-cli-mdReq-02dc542: mdReq
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1357,7 +1357,7 @@ trace: []
 mdReq renders a requirement heading plus its ```reqmd YAML block.
 
 ### IMP-cli-variantSchema-bec263f: variantSchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1371,7 +1371,7 @@ attribute. `status`, `trace`, and `requires-trace-from` are reqmd
 built-ins injected automatically, so they need no declaration.
 
 ### IMP-cli-verifySchema-d624d19: verifySchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1384,7 +1384,7 @@ verifySchema adds the custom `verify` attribute used by measures in the
 --filter + --results test.
 
 ### IMP-cli-writeVariantSpec-296fae0: writeVariantSpec
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1397,7 +1397,7 @@ writeVariantSpec creates a single-document spec with SW-001 (Base) and
 SW-002 (Premium). Returns the spec root.
 
 ### IMP-cli-writeDisjointSpec-f42e401: writeDisjointSpec
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1410,7 +1410,7 @@ writeDisjointSpec creates a two-doc spec whose only trace link (SW-001
 [Base] → SYS-001 [Premium]) has zero variant overlap. Returns the root.
 
 ### IMP-cli-writeDisjointCleanSpec-b19b8f4: writeDisjointCleanSpec
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1424,7 +1424,7 @@ overlaps (SW-001 [Base, Premium] → SYS-001 [Premium]) and the sw
 schema declares `x-reqmd.disjoint-check: variant`.
 
 ### IMP-cli-writeCoverageSpec-23183cf: writeCoverageSpec
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1438,7 +1438,7 @@ coverage from the software level; its only provider SW-001 (Premium)
 traces to it. Returns the root.
 
 ### IMP-cli-writeMeasureSpec-22b61dd: writeMeasureSpec
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1451,7 +1451,7 @@ writeMeasureSpec creates a single-doc spec with one Base measure
 (verify: Test) that a manual result can trace to.
 
 ### IMP-cli-writeManualResult-1d27831: writeManualResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1464,7 +1464,7 @@ writeManualResult creates a manual-results dir with a single result of
 the given outcome tracing to measureID. Returns the results dir.
 
 ### IMP-cli-gitHelper-0ba8471: gitHelper
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/testutil_test.go
@@ -1478,7 +1478,7 @@ hermetic identity, failing the test on any error.
 
 ## reqmd-code/internal/cli/extract.go
 ### IMP-cli-extractFlags-e5f6c43: extractFlags
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1492,7 +1492,7 @@ extractFlags carries the CLI flags for extraction. Using a struct
 self-contained and easy to pass to runExtract.
 
 ### IMP-cli-runExtract-7eb6f35: runExtract
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1509,7 +1509,7 @@ this function is straightforward to call from a test if we ever want
 to exercise the pipeline without going through cobra.
 
 ### IMP-cli-job-b70727a: job
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1523,7 +1523,7 @@ parse in a second pass; this decouples filesystem I/O from tree-
 sitter parsing and keeps the loop body small.
 
 ### IMP-cli-parseResult-520e9af: parseResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1541,7 +1541,7 @@ re-sorted by (file, line) below, so worker completion order never reaches
 the output.
 
 ### IMP-cli-extSet-56e3a56: extSet
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1555,7 +1555,7 @@ plugin's claimed extensions once, then look up by extension in O(1).
 Keeping it local to this file avoids a public utility for one caller.
 
 ### IMP-cli-packagedSymbol-e464227: packagedSymbol
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1568,7 +1568,7 @@ packagedSymbol is a symbol that survived per-package deduplication, with
 its stable native ID.
 
 ### IMP-cli-traceRefError-29ddef1: traceRefError
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1581,7 +1581,7 @@ traceRefError is one explicit `reqmd:trace` failure, addressed to the
 declaring symbol.
 
 ### IMP-cli-formatTraceRefErrors-dde83ed: formatTraceRefErrors
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1593,7 +1593,7 @@ trace: []
 formatTraceRefErrors renders the batched failures deterministically.
 
 ### IMP-cli-sortSymbols-a49eb78: sortSymbols
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1606,7 +1606,7 @@ sortSymbols orders a package's symbols deterministically: by file, then
 start line, then name. Methods therefore follow their parent type.
 
 ### IMP-cli-nativeIDMap-7b60f59: nativeIDMap
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1620,7 +1620,7 @@ is `<Name>-<hash(pkg, nameOrReceiver.Name)>`: line-free, so edits above the
 symbol do not churn IDs.
 
 ### IMP-cli-symbolTarget-59d7a46: symbolTarget
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1632,7 +1632,7 @@ trace: []
 symbolTarget is a resolved explicit reference.
 
 ### IMP-cli-symbolIndex-0917079: symbolIndex
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1646,7 +1646,7 @@ a `reqmd:trace` target can use: the bare name for non-methods, and
 "Type.Name" for methods.
 
 #### IMP-cli-resolve-f30272b: resolve
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1662,7 +1662,7 @@ package (`foo_test` -> `foo`, `test_foo` -> `foo`), then a globally unique
 match. On ambiguity it returns the candidate names.
 
 ### IMP-cli-newSymbolIndex-3bda229: newSymbolIndex
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1672,7 +1672,7 @@ trace: []
 ```
 
 ### IMP-cli-basePackage-a2dd8be: basePackage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1685,7 +1685,7 @@ basePackage returns the non-test package a test package belongs to, or ""
 when the name is not a test package.
 
 ### IMP-cli-conventionTarget-77ece95: conventionTarget
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1697,7 +1697,7 @@ trace: []
 conventionTarget is a symbol a test name may refer to by convention.
 
 ### IMP-cli-buildConventionPool-8b1796c: buildConventionPool
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1712,7 +1712,7 @@ production functions, methods, and types. Constants, variables, and tests
 a test can never link to another test or to a constant.
 
 ### IMP-cli-hasExplicitDirective-39ca6ca: hasExplicitDirective
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1726,7 +1726,7 @@ trace directive. Convention linking only fills the gap when nothing was
 written by hand.
 
 ### IMP-cli-conventionLink-bdbe21c: conventionLink
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1740,7 +1740,7 @@ refers to. Lookup is scoped to the same package, then the base package of a
 test package — never globally, so unrelated packages cannot produce a link.
 
 ### IMP-cli-testStem-a7b827e: testStem
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1754,7 +1754,7 @@ the language uses CamelCase (`TestParse`) or snake_case (`test_parse`).
 Symbol kinds other than functions/methods never yield a stem.
 
 ### IMP-cli-matchConvention-cd50deb: matchConvention
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1768,7 +1768,7 @@ with at a valid boundary. A tie across distinct targets is ambiguous and
 returns the candidate names.
 
 ### IMP-cli-boundaryOK-1e734cf: boundaryOK
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1782,7 +1782,7 @@ word boundary: end of name or an underscore for both styles, and a
 CamelCase boundary for CamelCase names.
 
 ### IMP-cli-isUpperByte-dc15d2b: isUpperByte
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1792,7 +1792,7 @@ trace: []
 ```
 
 ### IMP-cli-isLowerByte-353f0c6: isLowerByte
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1802,7 +1802,7 @@ trace: []
 ```
 
 ### IMP-cli-nativeKey-89f17af: nativeKey
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1816,7 +1816,7 @@ keyed "Receiver.Name" so a method and a same-named top-level function don't
 collapse into one requirement ID; everything else is keyed by name.
 
 ### IMP-cli-countRequirements-fa7b952: countRequirements
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1828,7 +1828,7 @@ trace: []
 countRequirements counts requirement-kind items in a document tree.
 
 ### IMP-cli-withXReqmd-224aa1e: withXReqmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1841,7 +1841,7 @@ withXReqmd returns a copy of doc whose x-reqmd block can be mutated without
 affecting the other documents built from the same template.
 
 ### IMP-cli-nestMethods-5b30e95: nestMethods
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1855,7 +1855,7 @@ A method whose type lives in another file stays at its own file's level: the
 file section is the authoritative grouping.
 
 ### IMP-cli-relPath-0b117f9: relPath
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1869,7 +1869,7 @@ section title is "parser.go" rather than an absolute build path. A file
 outside the root keeps its full path.
 
 ### IMP-cli-docSections-43bde33: docSections
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1887,7 +1887,7 @@ blocks are skipped so a commented-out "#include" or a Markdown example is not
 mistaken for a heading.
 
 ### IMP-cli-atxHeading-2b06ea4: atxHeading
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1899,7 +1899,7 @@ trace: []
 atxHeading parses "## Title" into its level and text.
 
 ### IMP-cli-isRuleLine-1b1c203: isRuleLine
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract.go
@@ -1913,7 +1913,7 @@ same Markdown rule character, nothing else.
 
 ## reqmd-code/internal/cli/extract\_test.go
 ### IMP-cli-runTestExtract-4e9ac61: runTestExtract
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -1926,7 +1926,7 @@ runTestExtract runs an extraction and returns the decoded bundle plus the
 captured stdout/stderr text.
 
 ### IMP-cli-renderTo-67c9ee2: renderTo
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -1940,7 +1940,7 @@ same code the real pipeline runs after the JSON hop — and returns the
 rendered files keyed by slash-separated path.
 
 ### IMP-cli-docByDir-0dbd5c9: docByDir
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -1952,7 +1952,7 @@ trace: []
 docByDir returns the bundle document that renders into the given directory.
 
 ### IMP-cli-allItems-6d195a2: allItems
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -1964,7 +1964,7 @@ trace: []
 allItems flattens a document's item tree in render order.
 
 ### IMP-cli-TestRunExtract\_HappyPath-574371b: TestRunExtract\_HappyPath
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -1975,7 +1975,7 @@ trace:
 ```
 
 ### IMP-cli-TestRunExtract\_RejectsMissingSource-d630987: TestRunExtract\_RejectsMissingSource
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -1986,7 +1986,7 @@ trace:
 ```
 
 ### IMP-cli-TestRunExtract\_RejectsFileAsSource-72cc925: TestRunExtract\_RejectsFileAsSource
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -1997,7 +1997,7 @@ trace:
 ```
 
 ### IMP-cli-TestRunExtract\_RejectsUnknownLang-8dbede0: TestRunExtract\_RejectsUnknownLang
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2008,7 +2008,7 @@ trace:
 ```
 
 ### IMP-cli-TestRunExtract\_SkipsNoiseDirs-918e8cc: TestRunExtract\_SkipsNoiseDirs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2019,7 +2019,7 @@ trace:
 ```
 
 ### IMP-cli-TestRunExtract\_LangFilter-d332500: TestRunExtract\_LangFilter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2030,7 +2030,7 @@ trace:
 ```
 
 ### IMP-cli-TestRunExtract\_Deterministic-9e7d9d0: TestRunExtract\_Deterministic
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2041,7 +2041,7 @@ trace:
 ```
 
 ### IMP-cli-TestExtSet-acc052a: TestExtSet
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2052,7 +2052,7 @@ trace:
 ```
 
 ### IMP-cli-TestRunExtract\_NoSymbolsNotParseFailure-3044ec8: TestRunExtract\_NoSymbolsNotParseFailure
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2067,7 +2067,7 @@ extractable symbols (e.g. a package-doc-only .go file) is not counted
 as a parse failure in the summary.
 
 ### IMP-cli-TestRunExtract\_MultiLanguage-f737d9d: TestRunExtract\_MultiLanguage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2082,7 +2082,7 @@ registered language and verifies that every language plugin self-registers
 and claims its extension.
 
 ### IMP-cli-TestRunExtract\_OutputFile-1921355: TestRunExtract\_OutputFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2096,7 +2096,7 @@ TestRunExtract_OutputFile verifies -o writes the bundle to a file and keeps
 stdout clean.
 
 ### IMP-cli-keys-e9c83db: keys
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2106,7 +2106,7 @@ trace: []
 ```
 
 ### IMP-cli-TestDocSections-235bd2f: TestDocSections
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2121,7 +2121,7 @@ intro becomes an untitled section, every heading becomes a section, and a
 heading inside a fenced block is left alone as prose.
 
 ### IMP-cli-TestRunExtract\_DocCommentBecomesSection-a750dec: TestRunExtract\_DocCommentBecomesSection
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2136,7 +2136,7 @@ symbol keeps the reqmd block and its doc prose moves into a child section, and
 a Markdown heading in the doc does not break the rendered nesting.
 
 ### IMP-cli-TestDocSections\_GodocSeparator-f91f647: TestDocSections\_GodocSeparator
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2151,7 +2151,7 @@ setext heading: "-----" under a text line renders as an h2, which would turn
 a Godoc separator into a section that swallows the symbols after it.
 
 ### IMP-cli-runTestExtractErr-5ee29d8: runTestExtractErr
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2163,7 +2163,7 @@ trace: []
 runTestExtractErr runs an extraction that is expected to fail.
 
 ### IMP-cli-itemByTitle-26f19cd: itemByTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2175,7 +2175,7 @@ trace: []
 itemByTitle finds one item in a document tree by its title.
 
 ### IMP-cli-TestRunExtract\_ExplicitSymbolLink-68e02e2: TestRunExtract\_ExplicitSymbolLink
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2189,7 +2189,7 @@ TestRunExtract_ExplicitSymbolLink covers the explicit marker path: a test
 traces to a same-package function by name, and the link survives rendering.
 
 ### IMP-cli-TestRunExtract\_MethodScopes-cf53ed2: TestRunExtract\_MethodScopes
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2203,7 +2203,7 @@ TestRunExtract_MethodScopes covers receiver-qualified references and the
 C++ `::` spelling.
 
 ### IMP-cli-TestRunExtract\_BasePackageResolution-b90ca57: TestRunExtract\_BasePackageResolution
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2217,7 +2217,7 @@ TestRunExtract_BasePackageResolution covers external test packages, where
 the test lives in a different document from the symbol it tests.
 
 ### IMP-cli-TestRunExtract\_UnresolvedSymbolIsFatal-64918f1: TestRunExtract\_UnresolvedSymbolIsFatal
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2231,7 +2231,7 @@ TestRunExtract_UnresolvedSymbolIsFatal pins the hard-error contract: no
 bundle, no stdout, and an existing -o file is left untouched.
 
 ### IMP-cli-TestRunExtract\_AmbiguousSymbolIsFatal-ac93fec: TestRunExtract\_AmbiguousSymbolIsFatal
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2245,7 +2245,7 @@ TestRunExtract_AmbiguousSymbolIsFatal covers a reference that matches the
 same name in two packages.
 
 ### IMP-cli-TestRunExtract\_MalformedMarkerIsFatal-d3e1009: TestRunExtract\_MalformedMarkerIsFatal
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2258,7 +2258,7 @@ trace:
 TestRunExtract_MalformedMarkerIsFatal covers prose left on the directive.
 
 ### IMP-cli-TestRunExtract\_QualifiedAndOptOut-74add7a: TestRunExtract\_QualifiedAndOptOut
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2272,7 +2272,7 @@ TestRunExtract_QualifiedAndOptOut covers an explicit package qualifier and
 the `none` opt-out, which must not create a link or an error.
 
 ### IMP-cli-TestRunExtract\_PythonTestLinksToModule-29fd858: TestRunExtract\_PythonTestLinksToModule
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2286,7 +2286,7 @@ TestRunExtract_PythonTestLinksToModule covers a test file in its own
 document reaching back to the module it tests.
 
 ### IMP-cli-TestRunExtract\_RequirementIDRefsPassThrough-389c640: TestRunExtract\_RequirementIDRefsPassThrough
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2300,7 +2300,7 @@ TestRunExtract_RequirementIDRefsPassThrough keeps the ID path intact: an
 ID-shaped marker becomes a ref, not a symbol lookup, and renders into trace.
 
 ### IMP-cli-TestRunExtract\_CaseMismatchIsFatal-b652bd8: TestRunExtract\_CaseMismatchIsFatal
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2314,7 +2314,7 @@ TestRunExtract_CaseMismatchIsFatal pins that explicit matching is
 case-sensitive: a near-miss is an error, not a silent skip.
 
 ### IMP-cli-TestRunExtract\_BuildTagDuplicateNotAmbiguous-9263624: TestRunExtract\_BuildTagDuplicateNotAmbiguous
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2328,7 +2328,7 @@ TestRunExtract_BuildTagDuplicateNotAmbiguous pins that build-tag twins are
 deduplicated before indexing, so a reference to them resolves once.
 
 ### IMP-cli-TestRunExtract\_DuplicateLinksDeduped-563ad25: TestRunExtract\_DuplicateLinksDeduped
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2342,7 +2342,7 @@ TestRunExtract_DuplicateLinksDeduped pins that two spellings of the same
 target produce one link.
 
 ### IMP-cli-TestFormatTraceRefErrors-a3aaa11: TestFormatTraceRefErrors
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2355,7 +2355,7 @@ trace:
 TestFormatTraceRefErrors pins deterministic sort order and the cap.
 
 ### IMP-cli-testLinks-90933f8: testLinks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2367,7 +2367,7 @@ trace: []
 testLinks returns an item's links for assertions.
 
 ### IMP-cli-TestRunExtract\_LinkTestsOffByDefault-b997766: TestRunExtract\_LinkTestsOffByDefault
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2380,7 +2380,7 @@ trace:
 TestRunExtract_LinkTestsOffByDefault pins that conventions are opt-in.
 
 ### IMP-cli-TestRunExtract\_ConventionGo-d487a43: TestRunExtract\_ConventionGo
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2395,7 +2395,7 @@ CamelCase boundaries, initial-case folding, methods, types, and the target
 pool exclusions.
 
 ### IMP-cli-TestRunExtract\_ConventionGoExternalTestPackage-6a8f55c: TestRunExtract\_ConventionGoExternalTestPackage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2409,7 +2409,7 @@ TestRunExtract_ConventionGoExternalTestPackage covers the `_test` half of
 basePackage: a test in package alpha_test links to package alpha.
 
 ### IMP-cli-TestRunExtract\_ConventionPython-abc2a7f: TestRunExtract\_ConventionPython
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2422,7 +2422,7 @@ trace:
 TestRunExtract_ConventionPython covers snake_case across test documents.
 
 ### IMP-cli-TestRunExtract\_ConventionRustInline-99d6be6: TestRunExtract\_ConventionRustInline
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2435,7 +2435,7 @@ trace:
 TestRunExtract_ConventionRustInline covers an inline #[test] module.
 
 ### IMP-cli-TestRunExtract\_ConventionExplicitWins-9826cea: TestRunExtract\_ConventionExplicitWins
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2449,7 +2449,7 @@ TestRunExtract_ConventionExplicitWins pins that any explicit directive
 (an ID ref or none) suppresses convention linking.
 
 ### IMP-cli-TestRunExtract\_ConventionAmbiguousWarns-2ddfda4: TestRunExtract\_ConventionAmbiguousWarns
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2462,7 +2462,7 @@ trace:
 TestRunExtract_ConventionAmbiguousWarns pins non-fatal tie handling.
 
 ### IMP-cli-TestRunExtract\_ConventionNoGlobalFallback-b664803: TestRunExtract\_ConventionNoGlobalFallback
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2476,7 +2476,7 @@ TestRunExtract_ConventionNoGlobalFallback pins that a test in one package
 cannot link to a same-named symbol in an unrelated package.
 
 ### IMP-cli-TestRunExtract\_ConventionMethodBareName-f96ed1b: TestRunExtract\_ConventionMethodBareName
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2490,7 +2490,7 @@ TestRunExtract_ConventionMethodBareName pins the fallback that links a test
 to a method when the test names the method without its receiver.
 
 ### IMP-cli-TestRunExtract\_ConventionFunctionBeatsBareMethod-392b2e3: TestRunExtract\_ConventionFunctionBeatsBareMethod
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2504,7 +2504,7 @@ TestRunExtract_ConventionFunctionBeatsBareMethod pins the ranking: a real
 function wins over a bare method name at the same match length.
 
 ### IMP-cli-TestRunExtract\_ConventionTwoBareMethodsAmbiguous-b410187: TestRunExtract\_ConventionTwoBareMethodsAmbiguous
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2518,7 +2518,7 @@ TestRunExtract_ConventionTwoBareMethodsAmbiguous pins the tie: two methods
 with the same bare name cannot be chosen between.
 
 ### IMP-cli-TestRunExtract\_MethodInOtherFileKeepsOwnLevel-d2b2734: TestRunExtract\_MethodInOtherFileKeepsOwnLevel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/cli/extract_test.go
@@ -2534,7 +2534,7 @@ instead of being dropped during nesting.
 
 ## reqmd-import/internal/cli/root.go
 ### IMP-cli-runOptions-7da2fca: runOptions
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root.go
@@ -2546,7 +2546,7 @@ trace: []
 runOptions carries the flags of one invocation.
 
 ### IMP-cli-parseStatusMap-306167e: parseStatusMap
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root.go
@@ -2558,7 +2558,7 @@ trace: []
 parseStatusMap turns "Source=reqmd" pairs into a lookup table.
 
 ### IMP-cli-run-710e194: run
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root.go
@@ -2569,7 +2569,7 @@ trace: []
 
 ## reqmd-import/internal/cli/root\_test.go
 ### IMP-cli-schemaURL-339429d: schemaURL
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root_test.go
@@ -2579,7 +2579,7 @@ trace: []
 ```
 
 ### IMP-cli-bundleJSON-158cd41: bundleJSON
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root_test.go
@@ -2589,7 +2589,7 @@ trace: []
 ```
 
 ### IMP-cli-TestRunFromFile-0822526: TestRunFromFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root_test.go
@@ -2600,7 +2600,7 @@ trace:
 ```
 
 ### IMP-cli-TestRunFromStdin-1dd082a: TestRunFromStdin
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root_test.go
@@ -2611,7 +2611,7 @@ trace:
 ```
 
 ### IMP-cli-TestRunValidateOnly-63cc920: TestRunValidateOnly
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root_test.go
@@ -2625,7 +2625,7 @@ TestRunValidateOnly covers the conformance path for third-party producers:
 report every violation, write nothing.
 
 ### IMP-cli-TestRunStatusMap-4f860ec: TestRunStatusMap
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root_test.go
@@ -2638,7 +2638,7 @@ trace:
 TestRunStatusMap covers the renderer-side status mapping flag.
 
 ### IMP-cli-TestRunRejectsBadBundle-0628673: TestRunRejectsBadBundle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/cli/root_test.go

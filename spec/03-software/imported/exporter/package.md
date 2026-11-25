@@ -4,7 +4,7 @@
 
 ## internal/exporter/analysis.go
 ### IMP-exporter-LinkState-3d8ba67: LinkState
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -18,7 +18,7 @@ human-readable title; Pin/Direction describe the authored version pin and
 its health against the target's current Version.
 
 ### IMP-exporter-NodeState-d58911b: NodeState
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -32,7 +32,7 @@ analysis. Views render these states instead of inferring coverage or
 verification from link presence.
 
 ### IMP-exporter-Analysis-8356668: Analysis
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -46,7 +46,7 @@ verification, and trace link health adapted from the graph so the export
 cannot disagree with reqmd check.
 
 #### IMP-exporter-mirrorDownstream-813dfdb: mirrorDownstream
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -60,7 +60,7 @@ downstream list, keeping the authored pin and its health, then sorts each
 downstream list for deterministic output.
 
 #### IMP-exporter-CoverageOf-79c00d7: CoverageOf
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -72,7 +72,7 @@ trace: []
 CoverageOf summarizes the given requirement states.
 
 #### IMP-exporter-VerdictsOf-41a2273: VerdictsOf
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -84,7 +84,7 @@ trace: []
 VerdictsOf summarizes the verification states of the given requirements.
 
 #### IMP-exporter-LinksOf-ec77cd8: LinksOf
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -97,7 +97,7 @@ LinksOf summarizes the declared outbound trace links of the given
 requirements.
 
 ### IMP-exporter-NewAnalysis-a7d8896: NewAnalysis
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -110,7 +110,7 @@ NewAnalysis adapts graph results into presentation state. titleMap supplies
 link titles; missing entries fall back to the bare ID.
 
 ### IMP-exporter-realRequirementIDs-85a8a31: realRequirementIDs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -124,7 +124,7 @@ realRequirementIDs returns the IDs of authored requirements. Synthetic nodes
 requirements: they have no page and must not appear as trace links.
 
 ### IMP-exporter-nodeState-abdcb3b: nodeState
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -136,7 +136,7 @@ trace: []
 nodeState assembles one requirement's presentation state.
 
 ### IMP-exporter-evidenceItems-1adbdcd: evidenceItems
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -148,7 +148,7 @@ trace: []
 evidenceItems converts graph evidence into the exporter's render type.
 
 ### IMP-exporter-upLinks-e625598: upLinks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -161,7 +161,7 @@ upLinks keeps the authored trace refs that point at a real requirement (or
 are unresolved, so broken links stay visible).
 
 ### IMP-exporter-CoverageSummary-b108d40: CoverageSummary
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -173,7 +173,7 @@ trace: []
 CoverageSummary counts the coverage states of the given requirements.
 
 ### IMP-exporter-VerdictSummary-3236c9d: VerdictSummary
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -187,7 +187,7 @@ given requirements. Unverified eligible measures are counted as NoVerdict,
 so percentages always divide by the eligible total.
 
 ### IMP-exporter-LinkSummary-6938ace: LinkSummary
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -199,7 +199,7 @@ trace: []
 LinkSummary counts trace link health across the given requirements.
 
 ### IMP-exporter-isSyntheticID-c152164: isSyntheticID
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -212,7 +212,7 @@ isSyntheticID reports whether an ID belongs to a synthesized node (result
 pseudo-requirement or test case) rather than an authored requirement.
 
 ### IMP-exporter-idsOf-ae4c59d: idsOf
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/analysis.go
@@ -225,7 +225,7 @@ idsOf returns the given document's requirement IDs in document order.
 
 ## internal/exporter/boundary.go
 ### IMP-exporter-DocBoundary-38d6d1a: DocBoundary
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/boundary.go
@@ -240,7 +240,7 @@ declared external). IsLeaf is true when no other document references
 it as an upstream source.
 
 ### IMP-exporter-ComputeDocBoundaries-625fcd1: ComputeDocBoundaries
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/boundary.go
@@ -256,7 +256,7 @@ referenced as an upstream source by any other document.
 
 ## internal/exporter/boundary\_test.go
 ### IMP-exporter-TestComputeBoundaries\_MixedTopology-c690610: TestComputeBoundaries\_MixedTopology
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/boundary_test.go
@@ -266,7 +266,7 @@ trace: []
 ```
 
 ### IMP-exporter-TestComputeBoundaries\_ExternalOverridesSources-d8fb15c: TestComputeBoundaries\_ExternalOverridesSources
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/boundary_test.go
@@ -276,7 +276,7 @@ trace: []
 ```
 
 ### IMP-exporter-TestComputeBoundaries\_NilXReqmd-f1e8644: TestComputeBoundaries\_NilXReqmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/boundary_test.go
@@ -286,7 +286,7 @@ trace: []
 ```
 
 ### IMP-exporter-TestComputeBoundaries\_EmptySources-eebf857: TestComputeBoundaries\_EmptySources
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/boundary_test.go
@@ -297,7 +297,7 @@ trace: []
 
 ## internal/exporter/browser\_test.go
 ### IMP-exporter-browserFixture-a979123: browserFixture
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -311,7 +311,7 @@ covered, missing coverage, a failing verdict, and a draft requirement that
 the default status filter hides.
 
 ### IMP-exporter-exportBrowserFixture-7f72731: exportBrowserFixture
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -323,7 +323,7 @@ trace: []
 exportBrowserFixture writes the fixture page and returns its path.
 
 ### IMP-exporter-browserHarness-8506996: browserHarness
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -336,7 +336,7 @@ browserHarness drives the exported page and reports results through the
 document title, which --dump-dom prints.
 
 ### IMP-exporter-deepLinkHarness-092fda4: deepLinkHarness
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -346,7 +346,7 @@ trace: []
 ```
 
 ### IMP-exporter-restoredStateHarness-8e71cdf: restoredStateHarness
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -356,7 +356,7 @@ trace: []
 ```
 
 ### IMP-exporter-findChrome-ba3a8cb: findChrome
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -368,7 +368,7 @@ trace: []
 findChrome returns the first usable headless-capable browser.
 
 ### IMP-exporter-runHeadless-9b7fc94: runHeadless
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -381,7 +381,7 @@ runHeadless loads one exported page through file:// with the given harness
 appended and returns the decoded RESULT payload.
 
 ### IMP-exporter-stringSet-f736881: stringSet
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -393,7 +393,7 @@ trace: []
 stringSet converts a decoded JSON array of strings into a set.
 
 ### IMP-exporter-assertNoJSErrors-521bcf3: assertNoJSErrors
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -403,7 +403,7 @@ trace: []
 ```
 
 ### IMP-exporter-TestHTMLExportBrowserSmoke-39a9a50: TestHTMLExportBrowserSmoke
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -418,7 +418,7 @@ exist in the client: offline load, filtering, sorting, the on-demand views,
 the bounded matrix, and keyboard operation.
 
 ### IMP-exporter-TestHTMLExportBrowserDeepLink-0c47a85: TestHTMLExportBrowserDeepLink
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -432,7 +432,7 @@ TestHTMLExportBrowserDeepLink verifies a #REQ-ID deep link opens Document
 mode and reveals the target.
 
 ### IMP-exporter-TestHTMLExportBrowserRestoresURLState-6a90c76: TestHTMLExportBrowserRestoresURLState
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -446,7 +446,7 @@ TestHTMLExportBrowserRestoresURLState verifies a shared URL reproduces the
 exact filtered view, including values with commas and colons.
 
 ### IMP-exporter-TestHTMLExportBrowserExplicitEmptyFilters-7a5ba17: TestHTMLExportBrowserExplicitEmptyFilters
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -460,7 +460,7 @@ TestHTMLExportBrowserExplicitEmptyFilters verifies `?f=` keeps the document
 default status filter cleared after reload.
 
 ### IMP-exporter-TestHTMLExportBrowserOutlineResize-a3bc093: TestHTMLExportBrowserOutlineResize
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -475,7 +475,7 @@ keys change the one width variable the grid consumes, and double-click
 restores the default.
 
 ### IMP-exporter-TestHTMLExportBrowserMobileOutline-e7e2291: TestHTMLExportBrowserMobileOutline
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -489,7 +489,7 @@ TestHTMLExportBrowserMobileOutline verifies the outline becomes a drawer at
 mobile width and the toolbar stops sticking when vertical space is tight.
 
 ### IMP-exporter-exportNestedFilterFixture-bf5116a: exportNestedFilterFixture
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -503,7 +503,7 @@ requirement with an approved child, so the default status filter hides the
 parent but not the child.
 
 ### IMP-exporter-TestHTMLExportBrowserFilteredParentKeepsVisibleChild-072f90e: TestHTMLExportBrowserFilteredParentKeepsVisibleChild
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -518,7 +518,7 @@ parent card does not hide its visible children in the outline, and that a
 jump reopens a collapsed section folder.
 
 ### IMP-exporter-TestHTMLExportBrowserPopoverAndDetail-e6e0e18: TestHTMLExportBrowserPopoverAndDetail
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -533,7 +533,7 @@ only exist in the client: filter menus close like popovers (outside click,
 Escape), and an expanded table row shows its detail block already open.
 
 ### IMP-exporter-TestHTMLExportBrowserMatrixBound-dc99342: TestHTMLExportBrowserMatrixBound
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -547,7 +547,7 @@ TestHTMLExportBrowserMatrixBound verifies the full matrix refuses to draw
 beyond its cell limit and points the reviewer at the trace neighbourhood.
 
 ### IMP-exporter-TestHTMLExportBrowserLinkSemantics-e6d4d20: TestHTMLExportBrowserLinkSemantics
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -562,7 +562,7 @@ trace nodes are links, requirement references inside analytical views open
 the Document view, and the shortcuts dialog receives focus.
 
 ### IMP-exporter-TestHTMLExportBrowserContextJumps-61d6857: TestHTMLExportBrowserContextJumps
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -577,7 +577,7 @@ queue keeps the reviewer's filters and that the result count names the
 reason requirements are hidden.
 
 ### IMP-exporter-TestHTMLExportBrowserOutlineSelectsRequirement-9f7b2f3: TestHTMLExportBrowserOutlineSelectsRequirement
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -592,7 +592,7 @@ driven by the outline (the requirement list the reader already has) instead
 of a separate picker, and that an outline click keeps filters and state.
 
 ### IMP-exporter-TestHTMLExportBrowserSelectionPersistence-4d61dfe: TestHTMLExportBrowserSelectionPersistence
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -608,7 +608,7 @@ selection (not the scroll position), and a Table outline click stays in the
 table instead of reopening the reading view.
 
 ### IMP-exporter-TestHTMLExportBrowserDocumentJumpScrollsToSelection-24f22f9: TestHTMLExportBrowserDocumentJumpScrollsToSelection
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -623,7 +623,7 @@ reading view lands on the selected requirement (not the top of the
 document), and that the outline's position highlight agrees with it.
 
 ### IMP-exporter-TestHTMLExportBrowserJumpClearsStickyChrome-46305f0: TestHTMLExportBrowserJumpClearsStickyChrome
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -638,7 +638,7 @@ deep link, or view switch) leaves the requirement heading below the sticky
 app bar and toolbar instead of hidden underneath them.
 
 ### IMP-exporter-TestHTMLExportBrowserSparseColumnsHidden-4576236: TestHTMLExportBrowserSparseColumnsHidden
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -653,7 +653,7 @@ are blank or nearly blank across the rows are dropped (an empty column reads
 as a bug) while the column chooser still offers them.
 
 ### IMP-exporter-TestHTMLExportModHintIsPlatformCorrect-e618d41: TestHTMLExportModHintIsPlatformCorrect
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -667,7 +667,7 @@ TestHTMLExportModHintIsPlatformCorrect verifies the palette shortcut is
 spelled for the reader's platform instead of always claiming ⌘K.
 
 ### IMP-exporter-TestHTMLExportBrowserPaletteNavigation-b07a5cc: TestHTMLExportBrowserPaletteNavigation
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -683,7 +683,7 @@ the keyboard, typing keeps the focus in the input, and Enter runs the
 highlighted row.
 
 ### IMP-exporter-TestHTMLExportBrowserPaletteFuzzy-c785d42: TestHTMLExportBrowserPaletteFuzzy
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/browser_test.go
@@ -699,7 +699,7 @@ query skips part of, and ids are ranked ahead of incidental title hits.
 
 ## internal/exporter/csv.go
 ### IMP-exporter-CSV-4877f3a: CSV
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/csv.go
@@ -713,7 +713,7 @@ are set via SetVerdicts, extra columns (Verdict, Verdict Source, Verdict
 Cases) are appended per row.
 
 #### IMP-exporter-SetVerdicts-5a7abe8: SetVerdicts
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/csv.go
@@ -727,7 +727,7 @@ extra columns (Verdict, Verdict Source, Verdict Cases) are appended to
 the output.
 
 #### IMP-exporter-Export-e9edde0: Export
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/csv.go
@@ -738,7 +738,7 @@ trace: []
 
 ## internal/exporter/docchain.go
 ### IMP-exporter-BuildTitleMap-9c92b3a: BuildTitleMap
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -751,7 +751,7 @@ BuildTitleMap builds a reqID → title map across all documents, for use as
 trace-link labels. Requirements with an empty title are omitted.
 
 ### IMP-exporter-RenderContext-58b5069: RenderContext
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -764,7 +764,7 @@ RenderContext holds precomputed document chain and link resolution data
 for cross-document HTML traceability. It is shared by the export and serve commands.
 
 #### IMP-exporter-ResolveLink-6286435: ResolveLink
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -781,7 +781,7 @@ file is detected by comparing basenames so absolute vs relative path
 mismatches don't cause false negatives.
 
 #### IMP-exporter-BuildChainGraph-f460196: BuildChainGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -805,7 +805,7 @@ other already-reached downstream doc).
 Self-references and visited nodes are tracked globally to terminate cycles.
 
 ### IMP-exporter-docLinkInfo-538ca38: docLinkInfo
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -815,7 +815,7 @@ trace: []
 ```
 
 ### IMP-exporter-absDocInfo-50f98bc: absDocInfo
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -825,7 +825,7 @@ trace: []
 ```
 
 ### IMP-exporter-NewRenderContext-cf49397: NewRenderContext
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -837,7 +837,7 @@ trace: []
 NewRenderContext precomputes the cross-document link map and trace chain data.
 
 ### IMP-exporter-ChainCard-7c51781: ChainCard
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -849,7 +849,7 @@ trace: []
 ChainCard represents a single document in the chain graph visualization.
 
 ### IMP-exporter-ChainTier-41d8237: ChainTier
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -861,7 +861,7 @@ trace: []
 ChainTier is a horizontal row of docs at the same trace distance.
 
 ### IMP-exporter-DocChainGraph-229e95f: DocChainGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -874,7 +874,7 @@ DocChainGraph is the full tiered document graph for a single current doc.
 It is the source of truth for the Confluence-Flow visualization.
 
 #### IMP-exporter-HasContent-031093e: HasContent
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -886,7 +886,7 @@ trace: []
 HasContent reports whether the graph has any tier that should be rendered.
 
 ### IMP-exporter-upstreamTierLabel-257c99f: upstreamTierLabel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -896,7 +896,7 @@ trace: []
 ```
 
 ### IMP-exporter-downstreamTierLabel-46dba48: downstreamTierLabel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -906,7 +906,7 @@ trace: []
 ```
 
 ### IMP-exporter-tierLabel-1fa0b78: tierLabel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -919,7 +919,7 @@ tierLabel formats a chain tier header: the bare noun at one level of
 distance, otherwise "<noun> · N levels <direction>".
 
 ### IMP-exporter-eachChainCard-9f44252: eachChainCard
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -933,7 +933,7 @@ downstream tiers (never the current card). Shared by the three card
 path-rewriting functions below.
 
 ### IMP-exporter-ResolveChainOutputs-b4bf6ab: ResolveChainOutputs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -951,7 +951,7 @@ dir), so they supply the mapping. Relative card paths are then produced
 by RelativizeChainGraph.
 
 ### IMP-exporter-RelativizeChainGraph-fd140dc: RelativizeChainGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -966,7 +966,7 @@ in other packages can use it without exposing the unexported fields
 of DocChainGraph.
 
 ### IMP-exporter-BasenameChainGraph-c3014af: BasenameChainGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain.go
@@ -981,7 +981,7 @@ basename. Useful when all HTML files are served at a single URL root
 
 ## internal/exporter/docchain\_test.go
 ### IMP-exporter-makeDoc-967426e: makeDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
@@ -995,7 +995,7 @@ optional x-reqmd block. Requirements are empty (the chain graph doesn't need
 any) and schema is the bare map containing the title.
 
 ### IMP-exporter-makeXReqmd-f261749: makeXReqmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
@@ -1007,7 +1007,7 @@ trace: []
 makeXReqmd is a tiny constructor for XReqmd pointer values.
 
 ### IMP-exporter-TestBuildChainGraphSimpleLinear-fdb374a: TestBuildChainGraphSimpleLinear
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
@@ -1018,7 +1018,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildChainGraphParallelBranches-fec9442: TestBuildChainGraphParallelBranches
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
@@ -1029,7 +1029,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildChainGraphExternalFlag-b8a454c: TestBuildChainGraphExternalFlag
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
@@ -1040,7 +1040,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildChainGraphCycle-0f31159: TestBuildChainGraphCycle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
@@ -1051,7 +1051,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildChainGraphDeeperLevels-ca5d1c3: TestBuildChainGraphDeeperLevels
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
@@ -1062,7 +1062,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildChainGraphNoUpstream-8342a2f: TestBuildChainGraphNoUpstream
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
@@ -1073,7 +1073,7 @@ trace:
 ```
 
 ### IMP-exporter-TestResolveAndRelativizeChainOutputs-012d207: TestResolveAndRelativizeChainOutputs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/docchain_test.go
@@ -1084,7 +1084,7 @@ trace: []
 
 ## internal/exporter/exporter\_test.go
 ### IMP-exporter-schemaWithTitle-be55a35: schemaWithTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1094,7 +1094,7 @@ trace: []
 ```
 
 ### IMP-exporter-TestCSVExport-2cda038: TestCSVExport
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1105,7 +1105,7 @@ trace:
 ```
 
 ### IMP-exporter-TestCSVExportSpecialTypes-8b79af8: TestCSVExportSpecialTypes
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1116,7 +1116,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExportDocChain-b22f386: TestHTMLExportDocChain
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1127,7 +1127,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExportDocChainExternal-6ed6705: TestHTMLExportDocChainExternal
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1138,7 +1138,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExportDocChainDeep-aebe84c: TestHTMLExportDocChainDeep
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1149,7 +1149,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExportDocChainCrowded-470a28a: TestHTMLExportDocChainCrowded
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1160,7 +1160,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExportNoDocLinks-dbc8d25: TestHTMLExportNoDocLinks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1171,7 +1171,7 @@ trace:
 ```
 
 ### IMP-exporter-TestCSVExportItems-db45cdc: TestCSVExportItems
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1182,7 +1182,7 @@ trace:
 ```
 
 ### IMP-exporter-TestCSVExportVerdicts-e321c76: TestCSVExportVerdicts
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/exporter_test.go
@@ -1194,7 +1194,7 @@ trace:
 
 ## internal/exporter/graph.go
 ### IMP-exporter-ExportGraph-394530c: ExportGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/graph.go
@@ -1211,7 +1211,7 @@ The resulting database is at <outDir>/reqmd-graph.lbug/ and can be queried
 with the ladybug CLI or SQL ODBC driver.
 
 ### IMP-exporter-escapeCypherString-a245d4b: escapeCypherString
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/graph.go
@@ -1225,7 +1225,7 @@ Cypher string literals.
 
 ## internal/exporter/html.go
 ### IMP-exporter-staticFS-5a7bdab: staticFS
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1237,7 +1237,7 @@ trace: []
 go:embed static
 
 ### IMP-exporter-mustReadStatic-35352d1: mustReadStatic
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1247,7 +1247,7 @@ trace: []
 ```
 
 ### IMP-exporter-EvidenceItem-24b28ec: EvidenceItem
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1260,7 +1260,7 @@ EvidenceItem is one verification result contributing to a measure's
 rolled-up evidence set, ready for rendering in exports.
 
 ### IMP-exporter-VerdictInfo-3d839d7: VerdictInfo
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1274,7 +1274,7 @@ measure: the outcome, a representative source file, the case keys that
 contributed (for CSV), and the full evidence list (for HTML).
 
 ### IMP-exporter-HTML-1ac7457: HTML
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1287,7 +1287,7 @@ HTML exports requirements as standalone HTML: a server-rendered Document
 view plus on-demand analytical views driven by one shared view model.
 
 #### IMP-exporter-SetAnalysis-5f0cad9: SetAnalysis
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1301,7 +1301,7 @@ state every view renders. A nil analysis renders requirements without
 semantic status (still valid output, just less information).
 
 #### IMP-exporter-SetResolveLink-abfe895: SetResolveLink
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1314,7 +1314,7 @@ SetResolveLink supplies the cross-document href resolver. A nil resolver
 produces same-page fragments.
 
 #### IMP-exporter-SetDocChainGraph-b72256c: SetDocChainGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1327,7 +1327,7 @@ SetDocChainGraph configures the tiered document graph used by the
 document-chain navigation. Pass a zero-value graph to disable the chain.
 
 #### IMP-exporter-SetBoundary-be634e9: SetBoundary
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1340,7 +1340,7 @@ SetBoundary configures the document-level boundary flags (root/leaf
 position in the V-model chain) used by the header badges.
 
 #### IMP-exporter-Export-9012d07: Export
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1354,7 +1354,7 @@ server-rendered and fully visible without JavaScript; Table, Trace, and
 Coverage render on demand from the embedded view model.
 
 ### IMP-exporter-schemaTitle-9cb6a59: schemaTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1367,7 +1367,7 @@ schemaTitle safely extracts the title field from a document's parsed
 schema. Returns "" when Schema is nil, not a map, or has no string title.
 
 ### IMP-exporter-docTitle-4498ba2: docTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1380,7 +1380,7 @@ docTitle returns the title used for rendering a document page or card:
 the parsed file h1 (document title), falling back to the schema title.
 
 ### IMP-exporter-faviconSVG-fbc5520: faviconSVG
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1394,7 +1394,7 @@ page carries an icon without a second file or a network request. The CSS
 media query keeps it legible on dark tab bars.
 
 ### IMP-exporter-favicon-31df4ba: favicon
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1406,7 +1406,7 @@ trace: []
 favicon is the data URI written into every exported page's <head>.
 
 ### IMP-exporter-mermaidCDN-02784fc: mermaidCDN
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1422,7 +1422,7 @@ file://, and an exported tree must open offline. Keep the version in step
 with the documentation site's pin.
 
 ### IMP-exporter-bodyParser-cc1ffb9: bodyParser
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1437,7 +1437,7 @@ rendered with the presentation extensions: GitHub alerts, emoji shortcodes,
 chroma highlighting, and client-side Mermaid diagrams.
 
 ### IMP-exporter-bodyRenderer-d0402f5: bodyRenderer
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1447,7 +1447,7 @@ trace: []
 ```
 
 ### IMP-exporter-mermaidInitThemed-86e4c20: mermaidInitThemed
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1468,7 +1468,7 @@ loads its own runtime again in the light palette, which is what
 TestHTMLExportMermaidDiagram guards against.
 
 ### IMP-exporter-mermaidInitUpstream-40da68e: mermaidInitUpstream
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1489,7 +1489,7 @@ loads its own runtime again in the light palette, which is what
 TestHTMLExportMermaidDiagram guards against.
 
 ### IMP-exporter-mermaidRuntimeOnce-a0a50a6: mermaidRuntimeOnce
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1510,7 +1510,7 @@ loads its own runtime again in the light palette, which is what
 TestHTMLExportMermaidDiagram guards against.
 
 ### IMP-exporter-mermaidRuntimeUpstream-e9195a6: mermaidRuntimeUpstream
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1531,7 +1531,7 @@ loads its own runtime again in the light palette, which is what
 TestHTMLExportMermaidDiagram guards against.
 
 ### IMP-exporter-renderMarkdown-c4860fb: renderMarkdown
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1543,7 +1543,7 @@ trace: []
 renderMarkdown renders markdown content to safe HTML.
 
 ### IMP-exporter-hasDiagram-68b1023: hasDiagram
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1556,7 +1556,7 @@ hasDiagram reports whether a document body carries a mermaid fence, which is
 what makes the page load the pinned runtime.
 
 ### IMP-exporter-nodesHaveDiagram-1832692: nodesHaveDiagram
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1566,7 +1566,7 @@ trace: []
 ```
 
 ### IMP-exporter-pageBufferSize-7c8ec5e: pageBufferSize
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1578,7 +1578,7 @@ trace: []
 pageBufferSize is the buffered-writer size for one exported page.
 
 ### IMP-exporter-renderModelJSON-0b90809: renderModelJSON
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1590,7 +1590,7 @@ trace: []
 renderModelJSON writes the shared view model the client renders from.
 
 ### IMP-exporter-renderScript-f1c838d: renderScript
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1600,7 +1600,7 @@ trace: []
 ```
 
 ### IMP-exporter-formatAttrLabel-8be58cc: formatAttrLabel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1613,7 +1613,7 @@ formatAttrLabel converts a snake_case or kebab-case attribute name to
 a human-readable title-case label (e.g. "disposition-reason" → "Disposition Reason").
 
 ### IMP-exporter-formatAttrHTML-1cde9fb: formatAttrHTML
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1627,7 +1627,7 @@ Arrays become inline pill tags. Nested maps become a compact <pre> JSON block.
 All output is already HTML-escaped where needed by the caller.
 
 ### IMP-exporter-renderChainGraph-ec41759: renderChainGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1640,7 +1640,7 @@ renderChainGraph writes the Document Stack chain as HTML to b.
 The output is pure HTML/CSS — no JavaScript.
 
 ### IMP-exporter-renderChainZone-347b221: renderChainZone
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1653,7 +1653,7 @@ renderChainZone writes one horizontal zone (upstream or downstream)
 with its header and stacked tiers.
 
 ### IMP-exporter-renderChainSeparator-dfd1416: renderChainSeparator
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1665,7 +1665,7 @@ trace: []
 renderChainSeparator writes the chevron rule between chain zones.
 
 ### IMP-exporter-renderChainCard-92666bd: renderChainCard
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html.go
@@ -1678,7 +1678,7 @@ renderChainCard writes one <a> (or <span> for the current doc) card.
 
 ## internal/exporter/html\_test.go
 ### IMP-exporter-analysisFor-931d377: analysisFor
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1690,7 +1690,7 @@ trace: []
 analysisFor builds the presentation analysis from a document set.
 
 ### IMP-exporter-exportPage-753db53: exportPage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1702,7 +1702,7 @@ trace: []
 exportPage renders one document and returns the HTML.
 
 ### IMP-exporter-pageModelOf-5578d77: pageModelOf
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1714,7 +1714,7 @@ trace: []
 pageModelOf extracts and decodes the embedded page model.
 
 ### IMP-exporter-basicDoc-20af48e: basicDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1724,7 +1724,7 @@ trace: []
 ```
 
 ### IMP-exporter-TestHTMLExport-ea186e5: TestHTMLExport
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1735,7 +1735,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExportSectionFolderWrapsChildren-7b2c3da: TestHTMLExportSectionFolderWrapsChildren
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1750,7 +1750,7 @@ with children is a collapsible details block that actually contains them, so
 clicking the summary folds the content.
 
 ### IMP-exporter-TestHTMLExportRequirementChildrenGrouped-cdfe3af: TestHTMLExportRequirementChildrenGrouped
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1765,7 +1765,7 @@ TestHTMLExportRequirementChildrenGrouped pins that a requirement's children
 the content frame shows the same hierarchy as the outline.
 
 ### IMP-exporter-TestHTMLExportHeaderEyebrow-fadd28b: TestHTMLExportHeaderEyebrow
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1778,7 +1778,7 @@ trace:
 TestHTMLExportHeaderEyebrow pins the document identity line above the title.
 
 ### IMP-exporter-TestHTMLExportOfflineContent-8b4836d: TestHTMLExportOfflineContent
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1792,7 +1792,7 @@ TestHTMLExportOfflineContent is the Phase 0/1 regression guard: primary
 content is visible by default, and nothing loads from a CDN.
 
 ### IMP-exporter-TestHTMLExportHTMLEscaping-3a09054: TestHTMLExportHTMLEscaping
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1803,7 +1803,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExportModelIsHTMLSafe-a5d99de: TestHTMLExportModelIsHTMLSafe
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1817,7 +1817,7 @@ TestHTMLExportModelIsHTMLSafe pins that author-controlled values in the
 embedded JSON cannot break out of the script element.
 
 ### IMP-exporter-TestHTMLExportModelOmitsBodies-42a84a0: TestHTMLExportModelOmitsBodies
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1831,7 +1831,7 @@ TestHTMLExportModelOmitsBodies verifies the duplicate-data fix: the reading
 view is the only representation of requirement prose.
 
 ### IMP-exporter-TestHTMLExportTraceAttributeNotInGrid-76c925c: TestHTMLExportTraceAttributeNotInGrid
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1842,7 +1842,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExportArrayPillsAndNestedObjects-145c708: TestHTMLExportArrayPillsAndNestedObjects
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1853,7 +1853,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExportItems-820ff8f: TestHTMLExportItems
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1864,7 +1864,7 @@ trace:
 ```
 
 ### IMP-exporter-TestHTMLExport\_UndeclaredAttributeRendered-7cd4750: TestHTMLExport\_UndeclaredAttributeRendered
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1878,7 +1878,7 @@ TestHTMLExport_UndeclaredAttributeRendered verifies undeclared attributes
 still render (flagged) and feed the filter menu.
 
 ### IMP-exporter-TestHTMLExportTraceLinkState-864d49b: TestHTMLExportTraceLinkState
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1892,7 +1892,7 @@ TestHTMLExportTraceLinkState checks pins, versions, and link health in the
 shared model and the server-rendered links.
 
 ### IMP-exporter-TestHTMLExportDownstreamLinkDirection-1c8effe: TestHTMLExportDownstreamLinkDirection
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1906,7 +1906,7 @@ TestHTMLExportDownstreamLinkDirection pins that a requirement's inbound
 links appear as Down (who traces to it), never as Up.
 
 ### IMP-exporter-TestMatrixTooltipDirection-ff8c0eb: TestMatrixTooltipDirection
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1919,7 +1919,7 @@ TestMatrixTooltipDirection pins the client's direction-specific matrix
 tooltip, the regression from the old downstream matrix.
 
 ### IMP-exporter-TestHTMLExportCoverageStates-20de61d: TestHTMLExportCoverageStates
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1933,7 +1933,7 @@ TestHTMLExportCoverageStates checks that coverage comes from graph
 semantics, not link presence: a draft downstream does not cover.
 
 ### IMP-exporter-TestHTMLExportNoVerdictIsFirstClass-5de0635: TestHTMLExportNoVerdictIsFirstClass
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1948,7 +1948,7 @@ show a no-verdict chip and are marked eligible in the model, so the client
 denominator includes them.
 
 ### IMP-exporter-TestHTMLExportEvidenceList-248536c: TestHTMLExportEvidenceList
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1961,7 +1961,7 @@ trace:
 TestHTMLExportEvidenceList keeps the rolled-up evidence rendering.
 
 ### IMP-exporter-TestHTMLExportLargeDocumentBound-184d97b: TestHTMLExportLargeDocumentBound
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1975,7 +1975,7 @@ TestHTMLExportLargeDocumentBound guards against quadratic hidden markup:
 a large document's output grows linearly and emits no matrix/table DOM.
 
 ### IMP-exporter-TestProjectIndex-5f32171: TestProjectIndex
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -1988,7 +1988,7 @@ trace:
 TestProjectIndex checks the project home page content and queues.
 
 ### IMP-exporter-TestHTMLExportMermaidDiagram-1448465: TestHTMLExportMermaidDiagram
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -2007,7 +2007,7 @@ client bundle carries the click-to-enlarge wiring, which clones the rendered
 svg into an overlay instead of re-rendering or moving it.
 
 ### IMP-exporter-TestHTMLExportAlert-1fcb599: TestHTMLExportAlert
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/html_test.go
@@ -2023,7 +2023,7 @@ class, not as a plain blockquote.
 
 ## internal/exporter/json.go
 ### IMP-exporter-JSON-210eb34: JSON
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2038,7 +2038,7 @@ Export* methods is the single source of truth for trace edges,
 verdicts, and findings.
 
 #### IMP-exporter-SetVerdicts-7642e8a: SetVerdicts
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2050,7 +2050,7 @@ trace: []
 SetVerdicts stores verification verdicts for JSON export, mirroring CSV.
 
 #### IMP-exporter-ExportRequirements-0cdaae2: ExportRequirements
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2072,7 +2072,7 @@ unfiltered document order, so a --filtered export keeps the authored
 numbering instead of renumbering the surviving rows.
 
 #### IMP-exporter-ExportTraces-87ecca4: ExportTraces
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2087,7 +2087,7 @@ Both are needed: the attribute carries the declared intent (including
 dangling refs), the graph carries resolution.
 
 #### IMP-exporter-ExportResults-d7ba418: ExportResults
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2102,7 +2102,7 @@ measure's own results and its approved downstream test cases, so the
 value matches what HTML badges and CSV columns show.
 
 #### IMP-exporter-ExportFindings-1e3ee58: ExportFindings
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2116,7 +2116,7 @@ results the text and JSON reporters print). Rows are ordered by
 requirement, then code, then message so repeated exports are identical.
 
 ### IMP-exporter-promotedAttrs-6e2ebea: promotedAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2130,7 +2130,7 @@ NDJSON key it is promoted to, so warehouse SQL can read it directly
 instead of digging into the attrs envelope.
 
 ### IMP-exporter-jsonRequirement-5e44e8f: jsonRequirement
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2149,7 +2149,7 @@ regardless of which row it samples. String fields are "" when unset;
 collections, pin, version, and Attrs are null when unset.
 
 ### IMP-exporter-jsonTrace-7a728a5: jsonTrace
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2165,7 +2165,7 @@ as written. Resolved is false for a dangling reference; such a ref also
 appears in findings.ndjson, so consumers can count or filter it themselves.
 
 ### IMP-exporter-jsonCase-0ceebc8: jsonCase
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2178,7 +2178,7 @@ jsonCase is one contributing verification result in a measure's
 evidence set.
 
 ### IMP-exporter-jsonResult-21d5a0d: jsonResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2190,7 +2190,7 @@ trace: []
 jsonResult is one row of results.ndjson: one rolled-up measure verdict.
 
 ### IMP-exporter-jsonFinding-13fc831: jsonFinding
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2203,7 +2203,7 @@ jsonFinding is one row of findings.ndjson, mirroring the reporter's
 CheckResult fields. ERROR and WARNING both appear; consumers filter.
 
 ### IMP-exporter-remainingAttrs-dbbe94e: remainingAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2216,7 +2216,7 @@ remainingAttrs returns a copy of attrs without the promoted built-in
 keys, so a value never appears both top-level and in the envelope.
 
 ### IMP-exporter-jsonVersion-ca75da8: jsonVersion
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json.go
@@ -2230,7 +2230,7 @@ column has one type regardless of the YAML scalar, or null when absent.
 
 ## internal/exporter/json\_test.go
 ### IMP-exporter-jsonDocs-2b7e0bb: jsonDocs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2244,7 +2244,7 @@ one downstream that traces to it with a pin and a dangling ref. Enough to
 exercise every table.
 
 ### IMP-exporter-jsonOrdinals-4072e66: jsonOrdinals
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2257,7 +2257,7 @@ jsonOrdinals mirrors the unfiltered ordinal map the CLI builds: every
 requirement ID maps to its 1-based position in authored document order.
 
 ### IMP-exporter-encodeRows-d3b8475: encodeRows
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2267,7 +2267,7 @@ trace: []
 ```
 
 ### IMP-exporter-TestJSONExportRequirements-57bc282: TestJSONExportRequirements
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2278,7 +2278,7 @@ trace:
 ```
 
 ### IMP-exporter-TestJSONExportTraces-5ab6144: TestJSONExportTraces
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2289,7 +2289,7 @@ trace:
 ```
 
 ### IMP-exporter-TestJSONExportFindings-e5864f8: TestJSONExportFindings
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2300,7 +2300,7 @@ trace:
 ```
 
 ### IMP-exporter-TestJSONExportOrdinalStableUnderFilter-5d17068: TestJSONExportOrdinalStableUnderFilter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2311,7 +2311,7 @@ trace:
 ```
 
 ### IMP-exporter-TestJSONExportDeterministic-4e5c108: TestJSONExportDeterministic
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2322,7 +2322,7 @@ trace:
 ```
 
 ### IMP-exporter-TestJSONExportStableColumns-7e6119c: TestJSONExportStableColumns
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2333,7 +2333,7 @@ trace:
 ```
 
 ### IMP-exporter-TestJSONExportResults-8dd3038: TestJSONExportResults
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2344,7 +2344,7 @@ trace:
 ```
 
 ### IMP-exporter-TestJSONExportResultsWithoutResults-dde095a: TestJSONExportResultsWithoutResults
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/json_test.go
@@ -2356,7 +2356,7 @@ trace:
 
 ## internal/exporter/model.go
 ### IMP-exporter-filterSet-116d20c: filterSet
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2369,7 +2369,7 @@ filterSet is the per-attribute sorted unique values collected across
 all requirements, used to populate the search toolbar filter menus.
 
 ### IMP-exporter-pageLink-3b6e905: pageLink
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2382,7 +2382,7 @@ pageLink is one trace link in the client model. Href is resolved for the
 page that embeds the model; Unresolved links carry the authored Ref only.
 
 ### IMP-exporter-pageNode-1d781d9: pageNode
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2396,7 +2396,7 @@ are deliberately absent: the server-rendered Document view is their single
 representation and analytical views read them from the DOM.
 
 ### IMP-exporter-pageDocMeta-f12c074: pageDocMeta
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2408,7 +2408,7 @@ trace: []
 pageDocMeta carries the document facts the client toolbar and views show.
 
 ### IMP-exporter-pageModel-86c2446: pageModel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2422,7 +2422,7 @@ analytical view, count, aggregate, and outline is derived from it, and the
 filters are the only filtering input.
 
 ### IMP-exporter-renderData-77ae77e: renderData
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2435,7 +2435,7 @@ renderData is the single O(n) intermediate produced by buildRenderData: it
 powers the server-rendered TOC, the filter menus, and the view model.
 
 ### IMP-exporter-buildRenderData-e6e8856: buildRenderData
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2454,7 +2454,7 @@ order sequence). The same anchors are used by the TOC and by the rendered
 DOM so scroll-spy stays consistent.
 
 ### IMP-exporter-buildPageModel-c285b4e: buildPageModel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2469,7 +2469,7 @@ nil resolver yields same-page fragments. propOrder is the schema property
 order used to order the table's attribute columns.
 
 ### IMP-exporter-sectionSlug-a859f7e: sectionSlug
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2483,7 +2483,7 @@ letters and digits, runs of anything else collapsed to a single hyphen. An
 untitled section (the document preamble) becomes "sec-preamble".
 
 ### IMP-exporter-pageMeta-17405bc: pageMeta
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2495,7 +2495,7 @@ trace: []
 pageMeta fills the document-level model fields.
 
 ### IMP-exporter-modelHref-9521b8a: modelHref
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2508,7 +2508,7 @@ modelHref resolves cross-document links for the model, falling back to an
 empty href (the client uses the same-page anchor).
 
 ### IMP-exporter-pageNodeFor-04547bc: pageNodeFor
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2521,7 +2521,7 @@ pageNodeFor converts one content node, attaching graph-derived state for
 requirement nodes.
 
 ### IMP-exporter-attributeColumns-0320a2d: attributeColumns
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2536,7 +2536,7 @@ requirement, in schema property order followed by undeclared extras A→Z.
 (trace link columns and the status chip/column).
 
 ### IMP-exporter-attrsForModel-78c252a: attrsForModel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2549,7 +2549,7 @@ attrsForModel copies a requirement's attributes for the client model,
 dropping `trace` (represented by the Up links).
 
 ### IMP-exporter-pageLinks-fceb382: pageLinks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2563,7 +2563,7 @@ pageLinks converts analysis links for JSON. Same-page links resolve to
 their page-relative target so the client can navigate to them.
 
 ### IMP-exporter-sortedKeys-081ec53: sortedKeys
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/model.go
@@ -2576,7 +2576,7 @@ sortedKeys returns the keys of a string-keyed map in sorted order.
 
 ## internal/exporter/project.go
 ### IMP-exporter-ProjectDoc-975307f: ProjectDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2588,7 +2588,7 @@ trace: []
 ProjectDoc is one document row on the project home page.
 
 ### IMP-exporter-ProjectIndex-cbf0bb1: ProjectIndex
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2601,7 +2601,7 @@ ProjectIndex is the project-level home page: document discovery,
 project-wide health, actionable queues, and cross-document search.
 
 #### IMP-exporter-Export-8c71d4d: Export
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2613,7 +2613,7 @@ trace: []
 Export writes the project home page.
 
 #### IMP-exporter-renderTiles-72bbbbc: renderTiles
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2625,7 +2625,7 @@ trace: []
 renderTiles writes the project-wide summary tiles.
 
 #### IMP-exporter-renderSearch-057694b: renderSearch
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2637,7 +2637,7 @@ trace: []
 renderSearch writes the cross-document search input and result list.
 
 #### IMP-exporter-queue-bbc3f76: queue
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2650,7 +2650,7 @@ queue builds one queue across every document, capped to keep the page
 bounded. The full count is returned so the section can say what was cut.
 
 #### IMP-exporter-renderQueues-c87e993: renderQueues
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2662,7 +2662,7 @@ trace: []
 renderQueues writes the actionable exception lists.
 
 #### IMP-exporter-renderQueue-081c8d2: renderQueue
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2674,7 +2674,7 @@ trace: []
 renderQueue writes one queue section, capped so the page stays bounded.
 
 #### IMP-exporter-renderCatalog-ada131e: renderCatalog
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2686,7 +2686,7 @@ trace: []
 renderCatalog writes the document catalog table.
 
 ### IMP-exporter-NewProjectIndex-0ea572f: NewProjectIndex
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2699,7 +2699,7 @@ NewProjectIndex builds the project home model. hrefFor maps a document
 directory path to the exported page href.
 
 ### IMP-exporter-queueItem-d6f06de: queueItem
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2711,7 +2711,7 @@ trace: []
 queueItem is one actionable finding on the project page.
 
 ### IMP-exporter-filepathBase-39a8116: filepathBase
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2723,7 +2723,7 @@ trace: []
 filepathBase returns the last path element, tolerating URL separators.
 
 ### IMP-exporter-queueSpec-2b56656: queueSpec
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2736,7 +2736,7 @@ queueSpec is one actionable queue: a title, an explanation, and the matcher
 that decides which requirement states belong to it.
 
 ### IMP-exporter-projectQueueSpecs-bd0367a: projectQueueSpecs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2748,7 +2748,7 @@ trace: []
 projectQueueSpecs is the fixed set of exception queues on the project home.
 
 ### IMP-exporter-missingCoverageNote-db9d580: missingCoverageNote
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2761,7 +2761,7 @@ missingCoverageNote matches requirements whose coverage expectation is not
 met by an approved downstream requirement.
 
 ### IMP-exporter-unresolvedCoverageNote-d270f27: unresolvedCoverageNote
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2774,7 +2774,7 @@ unresolvedCoverageNote matches requirements expecting coverage from an
 unknown document-id or level.
 
 ### IMP-exporter-missingVerdictNote-8a68a5f: missingVerdictNote
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2786,7 +2786,7 @@ trace: []
 missingVerdictNote matches eligible measures with no result.
 
 ### IMP-exporter-failingVerdictNote-c6db047: failingVerdictNote
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2798,7 +2798,7 @@ trace: []
 failingVerdictNote matches measures whose rolled-up verdict is fail.
 
 ### IMP-exporter-brokenTraceNote-bbf7d9c: brokenTraceNote
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2811,7 +2811,7 @@ brokenTraceNote matches requirements with unresolved, outdated, or predated
 outbound trace links.
 
 ### IMP-exporter-attentionClass-2201240: attentionClass
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2823,7 +2823,7 @@ trace: []
 attentionClass returns a modifier class when a count should stand out.
 
 ### IMP-exporter-projectIndexCapacity-973368d: projectIndexCapacity
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2835,7 +2835,7 @@ trace: []
 projectIndexCapacity pre-sizes the cross-document search index.
 
 ### IMP-exporter-renderProjectJSON-4c8539d: renderProjectJSON
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2848,7 +2848,7 @@ renderProjectJSON writes the cross-document requirement index used by the
 project search.
 
 ### IMP-exporter-entry-4a2c802: entry
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/project.go
@@ -2859,7 +2859,7 @@ trace: []
 
 ## internal/exporter/render.go
 ### IMP-exporter-normalizeAttrValue-cf3603f: normalizeAttrValue
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -2882,7 +2882,7 @@ normalizeAttrValue collapses []any / []string / scalar attribute
 values into a uniform []string, dropping nil entries and nested maps.
 
 ### IMP-exporter-buildFilters-67a8eed: buildFilters
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -2896,7 +2896,7 @@ into a filterSet. Attributes with fewer than two distinct values are omitted
 (single-value filters are not useful).
 
 ### IMP-exporter-collectFilterValues-5487f74: collectFilterValues
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -2910,7 +2910,7 @@ attribute. The trace attribute never becomes a filter; status values are
 skipped when the document opts out of the status lifecycle.
 
 ### IMP-exporter-orderFilterValues-0a26312: orderFilterValues
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -2924,7 +2924,7 @@ canonical (draft, approved, declared additions, then A→Z); everything else
 is sorted A→Z.
 
 ### IMP-exporter-sortedStatusValues-bd62ea3: sortedStatusValues
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -2938,7 +2938,7 @@ built-ins [draft, approved] first, then declared additions A→Z, then any
 unrecognized values A→Z.
 
 ### IMP-exporter-orderStatusFilterValues-449bd14: orderStatusFilterValues
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -2951,7 +2951,7 @@ orderStatusFilterValues pulls the declared additions from doc.XReqmd
 (nil-safe) and returns the values in canonical order.
 
 ### IMP-exporter-statusBreakdownItem-a3f0268: statusBreakdownItem
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -2963,7 +2963,7 @@ trace: []
 statusBreakdownItem describes one status value and its count.
 
 ### IMP-exporter-countStatusBreakdown-fe5005e: countStatusBreakdown
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -2977,7 +2977,7 @@ document, in display order: built-in (draft, approved) first, then
 additions A→Z. Values not declared are treated as StatusDefault.
 
 ### IMP-exporter-statusColor-1a3f7db: statusColor
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -2990,7 +2990,7 @@ statusColor returns the CSS color expression for a status value. Built-ins
 return a CSS variable so the active theme selects the right value.
 
 ### IMP-exporter-effectiveStatus-bbda605: effectiveStatus
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3002,7 +3002,7 @@ trace: []
 effectiveStatus returns the requirement's status, defaulting to approved.
 
 ### IMP-exporter-countItems-fd559eb: countItems
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3014,7 +3014,7 @@ trace: []
 countItems tallies non-requirement nodes (containers + info items).
 
 ### IMP-exporter-maxHeadingLevel-cb1ef80: maxHeadingLevel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3026,7 +3026,7 @@ trace: []
 Content headings start at h2 (h1 is the document title) and stop at h6.
 
 ### IMP-exporter-minHeadingLevel-55c9a36: minHeadingLevel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3038,7 +3038,7 @@ trace: []
 Content headings start at h2 (h1 is the document title) and stop at h6.
 
 ### IMP-exporter-itemHeadingTag-bed1fcf: itemHeadingTag
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3052,7 +3052,7 @@ level. Top-level items start at h2 (h1 is the document title); nested items
 keep their native depth, floored one level below their parent.
 
 ### IMP-exporter-linkHref-8d73c6f: linkHref
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3065,7 +3065,7 @@ linkHref resolves a requirement ID to an href for this page: the
 cross-document resolver when available, else a same-page fragment.
 
 ### IMP-exporter-renderDocHead-c2c6172: renderDocHead
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3082,7 +3082,7 @@ a diagram-bearing body, which the Mermaid extender annotates with its own
 pinned runtime script (see SW-EXP-004).
 
 ### IMP-exporter-brandMark-a3bdb12: brandMark
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3096,7 +3096,7 @@ joined by traces. currentColor lets it inherit the export accent in both
 themes, so no second brand colour is introduced.
 
 ### IMP-exporter-renderBodyOpen-5d442da: renderBodyOpen
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3110,7 +3110,7 @@ server-rendered outline. The view switcher lives in the app bar so the
 sticky toolbar is exactly one search-and-filter row.
 
 ### IMP-exporter-renderTOC-5664c60: renderTOC
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3123,7 +3123,7 @@ renderTOC writes the server-rendered outline. It works without JavaScript;
 the client hides items that fall outside the filtered requirement set.
 
 ### IMP-exporter-renderDocHeader-f617d05: renderDocHeader
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3137,7 +3137,7 @@ distribution, boundary badges, and the frontmatter description. The trace
 chain lives at the top of the reading view, below the toolbar.
 
 ### IMP-exporter-renderStatusBar-47f95f5: renderStatusBar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3150,7 +3150,7 @@ renderStatusBar writes the proportional status distribution and its legend,
 so the mix is readable at a glance without a chart library.
 
 ### IMP-exporter-docEyebrow-9600d47: docEyebrow
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3163,7 +3163,7 @@ docEyebrow identifies the document's position in the spec tree above the
 title: the declared level and document-id when present.
 
 ### IMP-exporter-renderDocChain-0bf4359: renderDocChain
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3175,7 +3175,7 @@ trace: []
 renderDocChain writes the optional document chain navigation block.
 
 ### IMP-exporter-renderToolbar-c1616bd: renderToolbar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3189,7 +3189,7 @@ chips placeholder, and the per-attribute filter menus. The view switcher
 lives in the app bar, so this is a single sticky row.
 
 ### IMP-exporter-renderDocumentView-5d5c146: renderDocumentView
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3206,7 +3206,7 @@ blocks. Contents are visible by default (no x-cloak), so the reading view
 survives a JavaScript failure or an offline file:// open.
 
 ### IMP-exporter-renderEmptyState-6c308e4: renderEmptyState
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3218,7 +3218,7 @@ trace: []
 renderEmptyState writes a consistent empty-state block.
 
 ### IMP-exporter-renderSectionOpen-fda944d: renderSectionOpen
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3234,7 +3234,7 @@ a section without children is a plain prose block, heading optional — an
 untitled section is the document preamble.
 
 ### IMP-exporter-renderSectionClose-0f0772f: renderSectionClose
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3246,7 +3246,7 @@ trace: []
 renderSectionClose closes what renderSectionOpen started.
 
 ### IMP-exporter-sectionIsFolder-da1fa6d: sectionIsFolder
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3260,7 +3260,7 @@ folder. An untitled section has no summary to click, so its children render
 directly instead of inside a details element nobody can open.
 
 ### IMP-exporter-renderCard-4292b6c: renderCard
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3274,7 +3274,7 @@ attributes (used by CSS and the client) plus at most a few state chips, so
 the reading view stays quiet.
 
 ### IMP-exporter-detailMeta-b4d21c6: detailMeta
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3287,7 +3287,7 @@ detailMeta summarises what the collapsed detail block holds, so a reader
 can tell whether opening it is worth the click.
 
 ### IMP-exporter-plural-66ff5c4: plural
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3297,7 +3297,7 @@ trace: []
 ```
 
 ### IMP-exporter-renderCardHeader-8577c39: renderCardHeader
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3309,7 +3309,7 @@ trace: []
 renderCardHeader writes the ID/title heading and the anchor link.
 
 ### IMP-exporter-renderCardFlags-979ca3f: renderCardFlags
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3323,7 +3323,7 @@ relevant states are shown: draft/custom status, coverage problems, and any
 verdict. A covered requirement with an approved status adds no chrome.
 
 ### IMP-exporter-statusChip-b95da2e: statusChip
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3336,7 +3336,7 @@ statusChip renders a chip only for non-approved statuses: an approved
 requirement adds no chrome.
 
 ### IMP-exporter-coverageChip-f82b232: coverageChip
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3349,7 +3349,7 @@ coverageChip renders coverage problems only (missing or unresolved); a
 covered or not-required requirement adds no chrome.
 
 ### IMP-exporter-verdictChip-0cf63a9: verdictChip
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3362,7 +3362,7 @@ verdictChip renders the rolled-up verdict, or an explicit no-verdict chip
 for an eligible measure when results were loaded.
 
 ### IMP-exporter-attrRow-18a99f7: attrRow
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3374,7 +3374,7 @@ trace: []
 attrRow is one rendered attribute cell in a requirement card.
 
 ### IMP-exporter-attrRows-e82db4c: attrRows
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3388,7 +3388,7 @@ schema property order first, then any remaining attributes actually present
 on the requirement sorted A→Z. The trace attribute is skipped.
 
 ### IMP-exporter-renderAttrGrid-23c9b19: renderAttrGrid
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3400,7 +3400,7 @@ trace: []
 renderAttrGrid writes the attribute definition list.
 
 ### IMP-exporter-renderRationale-e48ec03: renderRationale
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3412,7 +3412,7 @@ trace: []
 renderRationale writes the rationale block when present.
 
 ### IMP-exporter-renderEvidenceList-38ef797: renderEvidenceList
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3424,7 +3424,7 @@ trace: []
 renderEvidenceList writes the rolled-up verification evidence.
 
 ### IMP-exporter-renderTraceLinks-c0549dc: renderTraceLinks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3437,7 +3437,7 @@ renderTraceLinks writes the upstream/downstream trace columns with the
 authored reference, title, pin, and resolution state.
 
 ### IMP-exporter-renderTraceColumn-7b51849: renderTraceColumn
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3449,7 +3449,7 @@ trace: []
 renderTraceColumn writes one direction column.
 
 ### IMP-exporter-renderTraceLink-7ef88c7: renderTraceLink
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3461,7 +3461,7 @@ trace: []
 renderTraceLink writes one link with its pin/version state.
 
 ### IMP-exporter-renderPalette-8a06c99: renderPalette
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3474,7 +3474,7 @@ renderPalette writes the command-palette overlay. Overlays are the only
 content hidden until the client boots.
 
 ### IMP-exporter-renderShortcuts-c47e1b1: renderShortcuts
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3486,7 +3486,7 @@ trace: []
 renderShortcuts writes the keyboard-shortcut dialog.
 
 ### IMP-exporter-renderBodyClose-a5a946e: renderBodyClose
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render.go
@@ -3499,7 +3499,7 @@ renderBodyClose writes the end of the shell and document.
 
 ## internal/exporter/render\_test.go
 ### IMP-exporter-testDoc-f9ee094: testDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3512,7 +3512,7 @@ testDoc builds a document with a container, requirement children, and an
 info item so the render data covers every node kind.
 
 ### IMP-exporter-TestBuildRenderData\_SlugAnchors-58f3692: TestBuildRenderData\_SlugAnchors
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3527,7 +3527,7 @@ the title, a deterministic suffix on collisions, and a fixed anchor for the
 untitled preamble.
 
 ### IMP-exporter-TestBuildRenderData\_SlugNeverShadowsRequirementID-431feb7: TestBuildRenderData\_SlugNeverShadowsRequirementID
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3542,7 +3542,7 @@ a requirement whose ID happens to look like a section slug keeps its own
 anchor, and the section takes the next free suffix.
 
 ### IMP-exporter-TestBuildRenderData-2b68936: TestBuildRenderData
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3553,7 +3553,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildRenderDataIgnoreStatus-d03e1fa: TestBuildRenderDataIgnoreStatus
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3564,7 +3564,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildFiltersOmitsSingleValueAttrs-16c43f2: TestBuildFiltersOmitsSingleValueAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3575,7 +3575,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildFiltersStatusOrdering-cdfe9f7: TestBuildFiltersStatusOrdering
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3586,7 +3586,7 @@ trace:
 ```
 
 ### IMP-exporter-TestNormalizeAttrValue-232c71f: TestNormalizeAttrValue
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3597,7 +3597,7 @@ trace:
 ```
 
 ### IMP-exporter-TestSortedStatusValues-363fa83: TestSortedStatusValues
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3608,7 +3608,7 @@ trace:
 ```
 
 ### IMP-exporter-TestItemHeadingTagNativeLevels-6d0fc83: TestItemHeadingTagNativeLevels
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3619,7 +3619,7 @@ trace:
 ```
 
 ### IMP-exporter-TestDocTitleFallback-43206a0: TestDocTitleFallback
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3630,7 +3630,7 @@ trace:
 ```
 
 ### IMP-exporter-TestAttributeColumns-7fd3a4d: TestAttributeColumns
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3641,7 +3641,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildPageModel-d7d6eae: TestBuildPageModel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3652,7 +3652,7 @@ trace:
 ```
 
 ### IMP-exporter-TestBuildPageModelResolveLink-35121e6: TestBuildPageModelResolveLink
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3663,7 +3663,7 @@ trace:
 ```
 
 ### IMP-exporter-TestDocTitleFallsBackToPathInExport-fc54ff0: TestDocTitleFallsBackToPathInExport
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/render_test.go
@@ -3675,7 +3675,7 @@ trace:
 
 ## internal/exporter/verdict.go
 ### IMP-exporter-VerdictInfoFromGraph-4e7e699: VerdictInfoFromGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/exporter/verdict.go

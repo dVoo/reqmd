@@ -4,7 +4,7 @@
 
 ## internal/diff/diff.go
 ### IMP-diff-Category-246a6d8: Category
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -16,7 +16,7 @@ trace: []
 Category describes what happened to a requirement between baselines.
 
 ### IMP-diff-Added-d5adc62: Added
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -28,7 +28,7 @@ trace: []
 Requirement diff categories.
 
 ### IMP-diff-Modified-0e57aff: Modified
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -40,7 +40,7 @@ trace: []
 Requirement diff categories.
 
 ### IMP-diff-Removed-f1267a4: Removed
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -52,7 +52,7 @@ trace: []
 Requirement diff categories.
 
 ### IMP-diff-Unchanged-a14e729: Unchanged
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -64,7 +64,7 @@ trace: []
 Requirement diff categories.
 
 ### IMP-diff-AttrChange-3bd6b27: AttrChange
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -76,7 +76,7 @@ trace: []
 AttrChange records a single attribute change within a requirement.
 
 ### IMP-diff-ReqDiff-2a5fcbf: ReqDiff
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -88,7 +88,7 @@ trace: []
 ReqDiff is the diff result for a single requirement.
 
 ### IMP-diff-DocDiff-91669bd: DocDiff
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -100,7 +100,7 @@ trace: []
 DocDiff is the diff result for a single document directory.
 
 ### IMP-diff-SchemaChange-72ec63f: SchemaChange
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -112,7 +112,7 @@ trace: []
 SchemaChange describes a single property change in a schema.
 
 ### IMP-diff-SchemaDiff-04372e8: SchemaDiff
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -124,7 +124,7 @@ trace: []
 SchemaDiff is the diff result for a single document's schema.
 
 ### IMP-diff-SubmoduleChange-4b899ca: SubmoduleChange
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -136,7 +136,7 @@ trace: []
 SubmoduleChange describes a submodule's pinned-commit change between two baselines.
 
 ### IMP-diff-Result-8016ed9: Result
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -148,7 +148,7 @@ trace: []
 Result is the top-level diff result between two baselines.
 
 ### IMP-diff-Diff-3bcbf07: Diff
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -161,7 +161,7 @@ Diff compares two sets of parsed documents and returns structured diff results.
 docs1 is the older baseline (tag1), docs2 is the newer baseline (tag2).
 
 ### IMP-diff-Schemas-e4571f8: Schemas
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -173,7 +173,7 @@ trace: []
 Schemas compares two sets of schemas and returns per-document schema diffs.
 
 ### IMP-diff-SchemasWithDiffer-a5b6a4c: SchemasWithDiffer
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -185,7 +185,7 @@ trace: []
 SchemasWithDiffer compares two sets of schemas using the provided differ.
 
 ### IMP-diff-topLevelKeys-e882203: topLevelKeys
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -195,7 +195,7 @@ trace: []
 ```
 
 ### IMP-diff-buildReqMap-300da3e: buildReqMap
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -207,7 +207,7 @@ trace: []
 buildReqMap groups requirements by document path.
 
 ### IMP-diff-buildSectionPaths-e1bf1c9: buildSectionPaths
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -222,7 +222,7 @@ between chapters is a real review event even though no attribute changed, so
 the diff reports it as a "parent" delta on the requirement.
 
 ### IMP-diff-diffAttrs-785aac9: diffAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -234,7 +234,7 @@ trace: []
 diffAttrs compares two attribute maps using r3labs/diff and returns changes.
 
 ### IMP-diff-diffAttrsManual-d6fb6e7: diffAttrsManual
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -246,7 +246,7 @@ trace: []
 diffAttrsManual is a fallback for when r3labs can't handle the types.
 
 ### IMP-diff-Submodules-15c6d17: Submodules
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff.go
@@ -261,7 +261,7 @@ tags are omitted (no noise). Result is sorted by path for deterministic output.
 
 ## internal/diff/diff\_test.go
 ### IMP-diff-TestDiff\_Empty-e01da55: TestDiff\_Empty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -272,7 +272,7 @@ trace:
 ```
 
 ### IMP-diff-TestDiff\_Added-e11c4ce: TestDiff\_Added
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -283,7 +283,7 @@ trace:
 ```
 
 ### IMP-diff-TestDiff\_Removed-4b2a500: TestDiff\_Removed
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -294,7 +294,7 @@ trace:
 ```
 
 ### IMP-diff-TestDiff\_Modified-01c3983: TestDiff\_Modified
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -305,7 +305,7 @@ trace:
 ```
 
 ### IMP-diff-TestDiff\_Unchanged-af0c165: TestDiff\_Unchanged
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -316,7 +316,7 @@ trace:
 ```
 
 ### IMP-diff-TestDiff\_Mixed-32f4ddb: TestDiff\_Mixed
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -327,7 +327,7 @@ trace:
 ```
 
 ### IMP-diff-TestDiff\_SectionMove-801595a: TestDiff\_SectionMove
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -343,7 +343,7 @@ changed: sections are context, and a move changes what the requirement is
 about.
 
 ### IMP-diff-TestSchemas\_AddedProperty-421be34: TestSchemas\_AddedProperty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -354,7 +354,7 @@ trace:
 ```
 
 ### IMP-diff-TestSchemas\_RemovedProperty-b9174de: TestSchemas\_RemovedProperty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -365,7 +365,7 @@ trace:
 ```
 
 ### IMP-diff-TestSchemas\_ChangedRequired-32e188a: TestSchemas\_ChangedRequired
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -376,7 +376,7 @@ trace:
 ```
 
 ### IMP-diff-TestSchemas\_NoChange-f0d8882: TestSchemas\_NoChange
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -387,7 +387,7 @@ trace:
 ```
 
 ### IMP-diff-TestSubmodules\_Empty-2f1b385: TestSubmodules\_Empty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -398,7 +398,7 @@ trace:
 ```
 
 ### IMP-diff-TestSubmodules\_NilMaps-92fcc28: TestSubmodules\_NilMaps
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -409,7 +409,7 @@ trace:
 ```
 
 ### IMP-diff-TestSubmodules\_NoChange-e14c5e7: TestSubmodules\_NoChange
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -420,7 +420,7 @@ trace:
 ```
 
 ### IMP-diff-TestSubmodules\_Added-d05731e: TestSubmodules\_Added
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -431,7 +431,7 @@ trace:
 ```
 
 ### IMP-diff-TestSubmodules\_Removed-78d4a10: TestSubmodules\_Removed
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -442,7 +442,7 @@ trace:
 ```
 
 ### IMP-diff-TestSubmodules\_Updated-c244b93: TestSubmodules\_Updated
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -453,7 +453,7 @@ trace:
 ```
 
 ### IMP-diff-TestSubmodules\_Mixed-d9985cb: TestSubmodules\_Mixed
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go
@@ -464,7 +464,7 @@ trace:
 ```
 
 ### IMP-diff-TestSubmodules\_SortedOutput-1e3d7e8: TestSubmodules\_SortedOutput
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/diff/diff_test.go

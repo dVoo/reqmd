@@ -4,7 +4,7 @@
 
 ## internal/filter/filter.go
 ### IMP-filter-builtInVars-7de697e: builtInVars
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -21,7 +21,7 @@ check even when no schema in the tree declares them; at evaluation time
 a requirement lacking the attribute sees nil (see AllowUndefinedVariables).
 
 ### IMP-filter-exprBuiltins-d2b10a6: exprBuiltins
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -35,7 +35,7 @@ variable references. We exclude them from attribute validation so that
 `id startsWith "SYS-"` or `len(variant) > 0` don't trip the typo check.
 
 ### IMP-filter-Filter-fe786ff: Filter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -49,7 +49,7 @@ concurrent use after construction — the underlying vm.Program is
 read-only.
 
 #### IMP-filter-Expr-2023150: Expr
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -61,7 +61,7 @@ trace: []
 Expr returns the original expression string.
 
 #### IMP-filter-Refs-477c375: Refs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -74,7 +74,7 @@ Refs returns the sorted, deduplicated list of variable names
 referenced in the expression (excluding expr built-in functions).
 
 #### IMP-filter-Match-57b6e5c: Match
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -88,7 +88,7 @@ Returns (true, nil) if the requirement matches, (false, nil) if not,
 and (false, err) if evaluation fails (e.g. type mismatch).
 
 #### IMP-filter-FilterDocs-2f82f12: FilterDocs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -105,7 +105,7 @@ only items) so document-level structure is preserved for list/stats/
 export output.
 
 #### IMP-filter-FilterDocsAndIDs-97e9fb7: FilterDocsAndIDs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -120,7 +120,7 @@ requirement. Used by the exports and serve, which need both views of the
 same filtered tree.
 
 #### IMP-filter-MatchingIDs-7e11246: MatchingIDs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -134,7 +134,7 @@ Used by check for filter-aware graph checks — the graph is
 built from the full tree, but only matching reqs are checked/reported.
 
 #### IMP-filter-pruneNodes-5c73a8e: pruneNodes
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -163,7 +163,7 @@ Every matching requirement's ID is added to ids, so one walk yields both the
 pruned tree and the MatchingIDs set.
 
 ### IMP-filter-Compile-a260df6: Compile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -188,7 +188,7 @@ evaluates that variable to nil (the req is excluded unless the
 expression handles absence, e.g. `variant == null`).
 
 ### IMP-filter-CompileRelaxed-1eadd2d: CompileRelaxed
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -207,7 +207,7 @@ error, so undeclared-but-present attributes become filterable while true
 typos no longer abort the run.
 
 ### IMP-filter-compile-d149656: compile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -222,7 +222,7 @@ strict=true returns an error for any referenced name outside validAttrs
 instead every name outside declaredAttrs is collected as a warning.
 
 ### IMP-filter-buildEnv-76a4b5e: buildEnv
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -236,7 +236,7 @@ the req's Attrs map plus `id` and `title` injected as top-level vars.
 We copy into a new map to avoid mutating the original Attrs.
 
 ### IMP-filter-BuildValidAttrs-4f190c9: BuildValidAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -250,7 +250,7 @@ every document plus the built-in variable names. The result is used by
 Compile for strict attribute validation.
 
 ### IMP-filter-BuildFoundAttrs-157302b: BuildFoundAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -265,7 +265,7 @@ in a schema.yaml. Relaxed filtering unions this with BuildValidAttrs so
 undeclared-but-present attributes can be filtered.
 
 ### IMP-filter-WriteWarnings-d60a791: WriteWarnings
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -279,7 +279,7 @@ prefixed with "reqmd: warning: ". It is a no-op when warnings is empty
 so callers can invoke it unconditionally.
 
 ### IMP-filter-CompileForDocs-787afca: CompileForDocs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -299,7 +299,7 @@ When true, references to attributes found on any requirement are allowed
 a warning instead of an error. Returns (nil, nil, nil) when expr is empty.
 
 ### IMP-filter-refCollector-b8d7be1: refCollector
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -313,7 +313,7 @@ values from the expression AST. These are cross-referenced against
 validAttrs to catch typos.
 
 #### IMP-filter-Visit-a17ddac: Visit
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter.go
@@ -324,7 +324,7 @@ trace: []
 
 ## internal/filter/filter\_test.go
 ### IMP-filter-testReq-328520b: testReq
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -334,7 +334,7 @@ trace: []
 ```
 
 ### IMP-filter-testDocs-202d8ea: testDocs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -344,7 +344,7 @@ trace: []
 ```
 
 ### IMP-filter-validAttrsFor-d5cca1a: validAttrsFor
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -354,7 +354,7 @@ trace: []
 ```
 
 ### IMP-filter-TestCompileAndMatch\_Equality-8fffca1: TestCompileAndMatch\_Equality
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -365,7 +365,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompileAndMatch\_ArrayIn-1c93a59: TestCompileAndMatch\_ArrayIn
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -376,7 +376,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompileAndMatch\_NilAttribute-6d118bc: TestCompileAndMatch\_NilAttribute
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -387,7 +387,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompileAndMatch\_NilCoalescing-1f25f20: TestCompileAndMatch\_NilCoalescing
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -398,7 +398,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompileAndMatch\_NumericComparison-12893e9: TestCompileAndMatch\_NumericComparison
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -409,7 +409,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompileAndMatch\_BuiltInIDAndTitle-d27bc68: TestCompileAndMatch\_BuiltInIDAndTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -420,7 +420,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompileAndMatch\_BooleanComposition-3fe2287: TestCompileAndMatch\_BooleanComposition
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -431,7 +431,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompile\_SyntaxError-8019356: TestCompile\_SyntaxError
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -442,7 +442,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompile\_UnknownAttribute-407e2d1: TestCompile\_UnknownAttribute
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -453,7 +453,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompile\_EmptyExpression-1ae7b0a: TestCompile\_EmptyExpression
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -464,7 +464,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompile\_AllowsExprBuiltins-71f36c6: TestCompile\_AllowsExprBuiltins
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -475,7 +475,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompile\_AllowsCrossSchemaAttribute-185a5b4: TestCompile\_AllowsCrossSchemaAttribute
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -486,7 +486,7 @@ trace:
 ```
 
 ### IMP-filter-TestFilterDocs-d2134a8: TestFilterDocs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -497,7 +497,7 @@ trace:
 ```
 
 ### IMP-filter-TestFilterDocs\_PreservesDocStructure-0485295: TestFilterDocs\_PreservesDocStructure
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -508,7 +508,7 @@ trace:
 ```
 
 ### IMP-filter-TestFilterDocs\_DoesNotMutateOriginal-6641d5c: TestFilterDocs\_DoesNotMutateOriginal
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -519,7 +519,7 @@ trace:
 ```
 
 ### IMP-filter-TestFilterDocs\_KeepsSectionsThatStillLeadSomewhere-295da3b: TestFilterDocs\_KeepsSectionsThatStillLeadSomewhere
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -530,7 +530,7 @@ trace:
 ```
 
 ### IMP-filter-TestFilterDocs\_DropsSectionThatLostAllChildren-5424ce1: TestFilterDocs\_DropsSectionThatLostAllChildren
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -544,7 +544,7 @@ A section that had children but lost them all to the filter is context for
 content that is gone: it is dropped even when it carries prose.
 
 ### IMP-filter-TestFilterDocs\_KeepsLeafSectionsAndPreamble-8746b1e: TestFilterDocs\_KeepsLeafSectionsAndPreamble
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -558,7 +558,7 @@ A leaf section is content: it survives a filter even with no requirements in
 sight. A rationale-only section counts as content too.
 
 ### IMP-filter-titles-4cf1316: titles
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -570,7 +570,7 @@ trace: []
 titles is a debug helper for prune assertions.
 
 ### IMP-filter-TestFilterDocs\_ReattachesChildrenOfPrunedReq-c822721: TestFilterDocs\_ReattachesChildrenOfPrunedReq
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -581,7 +581,7 @@ trace:
 ```
 
 ### IMP-filter-TestFilterDocsAndIDs\_MatchesSeparateCalls-5a8d517: TestFilterDocsAndIDs\_MatchesSeparateCalls
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -597,7 +597,7 @@ partly matches, a pruned requirement whose child survives) and the same ID
 set, from a single evaluation pass.
 
 ### IMP-filter-TestMatchingIDs-1de58f4: TestMatchingIDs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -608,7 +608,7 @@ trace:
 ```
 
 ### IMP-filter-TestExprAndRefs-3707609: TestExprAndRefs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -619,7 +619,7 @@ trace:
 ```
 
 ### IMP-filter-TestBuildValidAttrs-d411a09: TestBuildValidAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -630,7 +630,7 @@ trace:
 ```
 
 ### IMP-filter-undeclaredDocs-e3bdc27: undeclaredDocs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -643,7 +643,7 @@ undeclaredDocs is testDocs plus a requirement carrying an attribute that
 no schema declares (`owner`), the relaxed-filtering scenario.
 
 ### IMP-filter-TestBuildFoundAttrs-57b7a6b: TestBuildFoundAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -654,7 +654,7 @@ trace:
 ```
 
 ### IMP-filter-TestCompileForDocs\_StrictRejectsUndeclared-ae86a23: TestCompileForDocs\_StrictRejectsUndeclared
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -668,7 +668,7 @@ TestCompileForDocs_StrictRejectsUndeclared pins the default behavior: the
 global typo check rejects attributes that no schema declares.
 
 ### IMP-filter-TestCompileForDocs\_RelaxedAllowsFoundAttr-6e25897: TestCompileForDocs\_RelaxedAllowsFoundAttr
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -683,7 +683,7 @@ an attribute present on a requirement becomes filterable even though no
 schema.yaml declares it, and the deviation is reported as a warning.
 
 ### IMP-filter-TestCompileForDocs\_RelaxedWarnsOnTrulyUnknown-d916b6a: TestCompileForDocs\_RelaxedWarnsOnTrulyUnknown
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -697,7 +697,7 @@ TestCompileForDocs_RelaxedWarnsOnTrulyUnknown verifies relaxed mode turns
 a genuine typo into a warning instead of aborting the run.
 
 ### IMP-filter-TestCompileForDocs\_RelaxedDeclaredAttrNoWarning-256c7a0: TestCompileForDocs\_RelaxedDeclaredAttrNoWarning
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go
@@ -711,7 +711,7 @@ TestCompileForDocs_RelaxedDeclaredAttrNoWarning keeps relaxed mode quiet
 for expressions that only use declared attributes.
 
 ### IMP-filter-TestCompileForDocs\_EmptyExpression-61baade: TestCompileForDocs\_EmptyExpression
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/filter/filter_test.go

@@ -4,7 +4,7 @@
 
 ## internal/verify/ctrf.go
 ### IMP-verify-ctrfResults-4b03cf5: ctrfResults
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -22,7 +22,7 @@ large) test list more than once.
 Reference: https://ctrf.io/docs/full-schema
 
 ### IMP-verify-ctrfTest-27e8525: ctrfTest
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -32,7 +32,7 @@ trace: []
 ```
 
 ### IMP-verify-loadCTRFFile-83b6483: loadCTRFFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -44,7 +44,7 @@ trace: []
 loadCTRFFile parses one CTRF JSON file into Results.
 
 ### IMP-verify-loadCTRFData-8b29165: loadCTRFData
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -66,7 +66,7 @@ Binding (extra.x-reqmd):
    - no x-reqmd block → skipped silently.
 
 ### IMP-verify-xreqmdFields-938045a: xreqmdFields
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -79,7 +79,7 @@ xreqmdFields holds the reqmd binding fields from a CTRF test's
 extra.x-reqmd block. present is true when the block exists.
 
 ### IMP-verify-extractXReqmd-8f9db16: extractXReqmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -92,7 +92,7 @@ extractXReqmd reads the reqmd binding fields from a CTRF test's `extra`
 object. Returns present=false when there is no x-reqmd block.
 
 ### IMP-verify-implicitCaseKey-7a20044: implicitCaseKey
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -106,7 +106,7 @@ name for verifies-only bindings (pattern E): suite + "/" + name, or the
 bare name when the report has no suite.
 
 ### IMP-verify-ctrfStatusToOutcome-a91839e: ctrfStatusToOutcome
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -119,7 +119,7 @@ ctrfStatusToOutcome maps CTRF status to reqmd outcome. A flaky test is
 inconclusive regardless of its (passing) final status.
 
 ### IMP-verify-msEpochToTime-ef9cf53: msEpochToTime
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -132,7 +132,7 @@ msEpochToTime converts a CTRF millisecond epoch to time.Time, falling
 back to start when stop is 0, then to the zero value.
 
 ### IMP-verify-isCTRFFileData-cdbc327: isCTRFFileData
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -146,7 +146,7 @@ Used by the dir walker to distinguish CTRF `.json` from other
 `.json` (coverage reports, etc.) without reading the file twice.
 
 ### IMP-verify-looksLikeCTRF-9aaacf6: looksLikeCTRF
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -161,7 +161,7 @@ keeps `results` as raw bytes — the potentially huge test list is NOT
 decoded into Go values here (that happens once, in loadCTRFData).
 
 ### IMP-verify-isCTRFResultsObject-6fca12e: isCTRFResultsObject
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/ctrf.go
@@ -176,7 +176,7 @@ This is a byte-level check — no JSON decode of the contents.
 
 ## internal/verify/results.go
 ### IMP-verify-Outcome-a06c25a: Outcome
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -188,7 +188,7 @@ trace: []
 Outcome is the reqmd verdict axis derived from a verification result.
 
 ### IMP-verify-OutcomeFail-79e569a: OutcomeFail
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -200,7 +200,7 @@ trace: []
 Verification result outcomes.
 
 ### IMP-verify-OutcomeInconclusive-35998ae: OutcomeInconclusive
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -212,7 +212,7 @@ trace: []
 Verification result outcomes.
 
 ### IMP-verify-OutcomePass-adb528b: OutcomePass
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -224,7 +224,7 @@ trace: []
 Verification result outcomes.
 
 ### IMP-verify-OutcomeSkipped-5962702: OutcomeSkipped
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -236,7 +236,7 @@ trace: []
 Verification result outcomes.
 
 ### IMP-verify-Verdict-63c679f: Verdict
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -251,7 +251,7 @@ between verify (which loads results) and exporter (which renders
 them), avoiding a direct dependency from exporter on verify.
 
 ### IMP-verify-Result-d685357: Result
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -271,7 +271,7 @@ are the v2 fields parsed in the binding phase that introduces synthesized
 test cases.
 
 ### IMP-verify-ResultKey-6769bce: ResultKey
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -287,7 +287,7 @@ model (patterns A/B/F); two results sharing a key collapse into one via
 latest-wins merging.
 
 ### IMP-verify-resultKeyFor-e5f7a05: resultKeyFor
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -299,7 +299,7 @@ trace: []
 resultKeyFor computes the merge key for a result.
 
 ### IMP-verify-MergeLatest-79e3025: MergeLatest
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -315,7 +315,7 @@ different versions of the same measure collapse to one entry (the pin is
 preserved on the synthesized trace edge, not the result identity).
 
 ### IMP-verify-LoadMerged-bff839e: LoadMerged
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -331,7 +331,7 @@ is empty/nil, returns (nil, nil, nil) — callers should check for
 nil before calling Synthesize.
 
 ### IMP-verify-LoadVerdicts-8fd7b04: LoadVerdicts
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -349,7 +349,7 @@ shared results-loading path for check, serve, and export csv/html/graph.
 Returns all nil when paths is empty.
 
 ### IMP-verify-latestVerdict-52bcba6: latestVerdict
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -359,7 +359,7 @@ trace: []
 ```
 
 ### IMP-verify-LoadResults-e444d2c: LoadResults
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -380,7 +380,7 @@ tests). Warnings are returned as CheckResult-shaped messages via the
 returned warning slice; errors abort loading.
 
 ### IMP-verify-readInRoot-a08ae61: readInRoot
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -393,7 +393,7 @@ readInRoot reads one file from the walked results tree through the walk
 root, refusing paths that escape it.
 
 ### IMP-verify-loadDir-5073ff5: loadDir
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -414,7 +414,7 @@ the double-read that occurred when isCTRFFile and loadCTRFFile
 each opened the file independently.
 
 ### IMP-verify-ctrfPending-e93263c: ctrfPending
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -428,7 +428,7 @@ already read during the walk for the shape check, so we pass
 it to loadCTRFData to avoid a second read.
 
 ### IMP-verify-loadManualDir-d23cee7: loadManualDir
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -441,7 +441,7 @@ loadManualDir parses a manual-results document dir via the standard
 parser pipeline and extracts result attrs from each requirement.
 
 ### IMP-verify-resultFromReq-660ae11: resultFromReq
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -455,7 +455,7 @@ Returns ok=false if the requirement has no `x-reqmd.outcome` attr (not a
 result). Result attributes are tool-owned and namespaced under x-reqmd.*.
 
 ### IMP-verify-parseVerifiedAt-7024f14: parseVerifiedAt
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results.go
@@ -470,7 +470,7 @@ the zero time.
 
 ## internal/verify/results\_internal\_test.go
 ### IMP-verify-TestLoadManualDir\_ResultFields-28467e0: TestLoadManualDir\_ResultFields
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
@@ -487,7 +487,7 @@ verifier, evidence, verified-at), then asserts loadManualDir returns one
 Result with every field populated correctly.
 
 ### IMP-verify-TestResultFromReq\_HappyPath-e8440e3: TestResultFromReq\_HappyPath
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
@@ -500,7 +500,7 @@ trace:
 resultFromReq — direct construction tests
 
 ### IMP-verify-TestResultFromReq\_VerifiedAtFormats-15c7a91: TestResultFromReq\_VerifiedAtFormats
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
@@ -511,7 +511,7 @@ trace:
 ```
 
 ### IMP-verify-TestResultFromReq\_NoOutcomeNotAResult-7a130a2: TestResultFromReq\_NoOutcomeNotAResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
@@ -522,7 +522,7 @@ trace:
 ```
 
 ### IMP-verify-TestResultFromReq\_EmptyTraceFallsBackToReqID-3e4e555: TestResultFromReq\_EmptyTraceFallsBackToReqID
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/results_internal_test.go
@@ -534,7 +534,7 @@ trace:
 
 ## internal/verify/synth.go
 ### IMP-verify-resultDocLevel-7e4b4f3: resultDocLevel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -549,7 +549,7 @@ boundaries; results are the bottom of the V (leaves), so they must not
 be treated as roots.
 
 ### IMP-verify-testCasePrefix-eb83fce: testCasePrefix
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -564,7 +564,7 @@ such node per case; it carries the `verifies` trace edges to the
 requirements it exercises and the Markdown description body.
 
 ### IMP-verify-Synthesize-d4769b6: Synthesize
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -589,7 +589,7 @@ all existing graph machinery (broken-ref, circular, version-pin) works on
 result→measure and case→requirement edges with no new traversal code.
 
 ### IMP-verify-synthesizeTestCase-6f1bfc2: synthesizeTestCase
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -604,7 +604,7 @@ exercises (extra.x-reqmd.verifies, pins allowed); its body is the
 Markdown description taken from the winning run.
 
 ### IMP-verify-synthesizeResult-703c47f: synthesizeResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -619,7 +619,7 @@ results) becomes the trace target; a case-keyed result gets a distinct
 node ID so several cases can attach to the same authored measure.
 
 ### IMP-verify-resultNodeID-3c86e9a: resultNodeID
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -633,7 +633,7 @@ RESULT:<target> for the single-result model, RESULT:<target>#<case> when
 the run is case-keyed.
 
 ### IMP-verify-outcomeTitle-63d650c: outcomeTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -645,7 +645,7 @@ trace: []
 outcomeTitle returns a short human-readable title for the pseudo-req.
 
 ### IMP-verify-toAny-7409ad3: toAny
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -657,7 +657,7 @@ trace: []
 toAny converts a []string into a []any for attribute maps.
 
 ### IMP-verify-IsResultNode-1bd2c9b: IsResultNode
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -671,7 +671,7 @@ verification-result pseudo-requirement (i.e. produced by Synthesize).
 Used by graph checks to distinguish result nodes from authored ones.
 
 ### IMP-verify-IsTestCaseNode-5f32cca: IsTestCaseNode
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go
@@ -685,7 +685,7 @@ test case ("TC:..."). Used to recognize case nodes independently of the
 RESULT prefix.
 
 ### IMP-verify-ResultOutcome-43be5fd: ResultOutcome
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/synth.go

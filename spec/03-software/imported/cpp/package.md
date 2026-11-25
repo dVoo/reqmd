@@ -4,7 +4,7 @@
 
 ## reqmd-code/internal/lang/cpp/cpp.go
 ### IMP-cpp-queriesFS-d04d9fb: queriesFS
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -16,7 +16,7 @@ trace: []
 go:embed queries/*.scm
 
 ### IMP-cpp-CppLanguage-a5123ff: CppLanguage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -28,7 +28,7 @@ trace: []
 CppLanguage is the C++ language plugin. Implements lang.Language.
 
 #### IMP-cpp-Name-c083e66: Name
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -40,7 +40,7 @@ trace: []
 Name returns the canonical language identifier.
 
 #### IMP-cpp-Extensions-a3b1a4b: Extensions
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -54,7 +54,7 @@ header extension is intentionally left to the C plugin; C++ headers
 use .hpp/.hh/.hxx so extension dispatch is unambiguous.
 
 #### IMP-cpp-Grammar-bada57e: Grammar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -66,7 +66,7 @@ trace: []
 Grammar returns the tree-sitter-cpp grammar language.
 
 #### IMP-cpp-Query-6c4c423: Query
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -80,7 +80,7 @@ If the query file is missing (a packaging error), it returns an empty
 query rather than panicking; Parse will then emit zero symbols.
 
 #### IMP-cpp-BindDoc-1131f80: BindDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -96,7 +96,7 @@ and strips comment markers. Returns the empty string when no
 preceding comment is present.
 
 #### IMP-cpp-Parse-474d5ec: Parse
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -112,7 +112,7 @@ declarations, and drops type specifiers that are merely the inner
 half of a typedef (those are emitted once, via the typedef itself).
 
 ### IMP-cpp-cleanComment-42f5382: cleanComment
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -129,7 +129,7 @@ conventional single space after the marker (`// foo` → `foo`) is
 dropped, as is per-line indentation inside block comments.
 
 ### IMP-cpp-symbolFromMatch-1cfbb4d: symbolFromMatch
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -144,7 +144,7 @@ when the match has no usable captures or refers to a function-local
 declaration.
 
 ### IMP-cpp-enclosingTypeName-d4884d9: enclosingTypeName
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -160,7 +160,7 @@ Returns "" when the method has no enclosing type (e.g. an out-of-line
 member definition at namespace scope).
 
 ### IMP-cpp-init-302f5ca: init
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp.go
@@ -171,7 +171,7 @@ trace: []
 
 ## reqmd-code/internal/lang/cpp/cpp\_test.go
 ### IMP-cpp-TestCppLanguageRegisters-b4e1f07: TestCppLanguageRegisters
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
@@ -185,7 +185,7 @@ TestCppLanguageRegisters verifies that CppLanguage self-registered
 itself with the global lang.Registry on package init.
 
 ### IMP-cpp-TestParseSample-d121fe1: TestParseSample
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
@@ -202,7 +202,7 @@ inline method must not be double-counted as a free function, and the
 method Receiver must carry the enclosing class name.
 
 ### IMP-cpp-TestParseTypedefDedup-6a60476: TestParseTypedefDedup
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
@@ -216,7 +216,7 @@ TestParseTypedefDedup verifies that a `typedef struct Foo { ... } Foo;`
 emits exactly one type symbol (the typedef alias), not two.
 
 ### IMP-cpp-TestParseAliasAndMacro-ea9f73a: TestParseAliasAndMacro
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
@@ -230,7 +230,7 @@ TestParseAliasAndMacro verifies `using` aliases, enums, and macros are
 classified as type/const symbols.
 
 ### IMP-cpp-TestParseLocalDeclarationsSkipped-a02d761: TestParseLocalDeclarationsSkipped
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
@@ -245,7 +245,7 @@ function bodies (local structs, local variables) are not emitted as
 top-level symbols.
 
 ### IMP-cpp-TestParseEmpty-70d0368: TestParseEmpty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
@@ -258,7 +258,7 @@ trace:
 TestParseEmpty handles zero-byte input gracefully.
 
 ### IMP-cpp-TestCleanComment-16cd52e: TestCleanComment
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go
@@ -272,7 +272,7 @@ TestCleanComment covers both `//` line comments and `/* ... */` block
 comments, including multi-line blocks.
 
 ### IMP-cpp-TestBindDocIncludesDoc-6cb546c: TestBindDocIncludesDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/cpp/cpp_test.go

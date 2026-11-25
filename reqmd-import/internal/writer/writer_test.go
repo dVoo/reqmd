@@ -54,7 +54,7 @@ func TestRenderDocument(t *testing.T) {
 		"x-reqmd.source-line: 12",
 		"status: approved",
 		"trace: []",
-		"```reqmd",
+		"```yaml reqmd",
 		"StructA description.",
 	}
 	for _, want := range checks {
@@ -223,7 +223,7 @@ func TestRenderSection(t *testing.T) {
 	if titled != want {
 		t.Errorf("titled section = %q, want %q", titled, want)
 	}
-	if strings.Contains(titled, "```reqmd") {
+	if strings.Contains(titled, "```reqmd") || strings.Contains(titled, "```yaml reqmd") {
 		t.Error("a section must never render a reqmd block")
 	}
 

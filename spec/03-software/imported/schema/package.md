@@ -4,7 +4,7 @@
 
 ## internal/schema/builtin.go
 ### IMP-schema-BuiltinAttr-335448c: BuiltinAttr
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
@@ -16,7 +16,7 @@ trace: []
 BuiltinAttr describes a single reqmd built-in attribute.
 
 ### IMP-schema-builtinDefs-c113c63: builtinDefs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
@@ -31,7 +31,7 @@ Order defines the display order: trace first (most common), then the
 remaining attributes in the order they were added to the tool.
 
 ### IMP-schema-builtinSet-7d54e71: builtinSet
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
@@ -43,7 +43,7 @@ trace: []
 builtinSet is a name → true map for fast lookup.
 
 ### IMP-schema-init-60f7e1e: init
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
@@ -53,7 +53,7 @@ trace: []
 ```
 
 ### IMP-schema-IsBuiltin-11dd61b: IsBuiltin
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
@@ -65,7 +65,7 @@ trace: []
 IsBuiltin returns true if name is a reserved reqmd built-in attribute.
 
 ### IMP-schema-RejectBuiltinRedefinition-4335d76: RejectBuiltinRedefinition
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
@@ -79,7 +79,7 @@ attribute names that are reserved by reqmd. Returns an error listing
 all redefined names, or nil if the schema is clean.
 
 ### IMP-schema-BuiltinPropertyDefs-06f06a6: BuiltinPropertyDefs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
@@ -93,7 +93,7 @@ all built-in attribute definitions. The returned map can be merged
 into a schema's "properties" field.
 
 ### IMP-schema-BuiltinNames-55fc6b1: BuiltinNames
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
@@ -105,7 +105,7 @@ trace: []
 BuiltinNames returns the sorted list of built-in attribute names.
 
 ### IMP-schema-InjectBuiltins-a14f691: InjectBuiltins
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin.go
@@ -123,7 +123,7 @@ Must be called after Normalize and before Compile (JSON marshal).
 
 ## internal/schema/builtin\_test.go
 ### IMP-schema-TestIsBuiltin-fb6a98f: TestIsBuiltin
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -134,7 +134,7 @@ trace:
 ```
 
 ### IMP-schema-TestRejectBuiltinRedefinition\_Empty-9f4ed04: TestRejectBuiltinRedefinition\_Empty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -145,7 +145,7 @@ trace:
 ```
 
 ### IMP-schema-TestRejectBuiltinRedefinition\_Clean-0f42f8c: TestRejectBuiltinRedefinition\_Clean
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -156,7 +156,7 @@ trace:
 ```
 
 ### IMP-schema-TestRejectBuiltinRedefinition\_RejectsBuiltins-f038a39: TestRejectBuiltinRedefinition\_RejectsBuiltins
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -167,7 +167,7 @@ trace:
 ```
 
 ### IMP-schema-TestBuiltinPropertyDefs-2f44e2a: TestBuiltinPropertyDefs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -178,7 +178,7 @@ trace:
 ```
 
 ### IMP-schema-TestBuiltinNames-9684d55: TestBuiltinNames
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -189,7 +189,7 @@ trace:
 ```
 
 ### IMP-schema-TestInjectBuiltins\_EmptySchema-8a82c34: TestInjectBuiltins\_EmptySchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -200,7 +200,7 @@ trace:
 ```
 
 ### IMP-schema-TestInjectBuiltins\_ExistingProps-9e6cff3: TestInjectBuiltins\_ExistingProps
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -211,7 +211,7 @@ trace:
 ```
 
 ### IMP-schema-TestRejectBuiltinRedefinition\_JSONSchema-0525396: TestRejectBuiltinRedefinition\_JSONSchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -222,7 +222,7 @@ trace:
 ```
 
 ### IMP-schema-TestBuiltinNames\_IncludesStatus-b611ee1: TestBuiltinNames\_IncludesStatus
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -235,7 +235,7 @@ trace:
 T1: BuiltinNames must include "status".
 
 ### IMP-schema-TestStatus\_BuiltInInjectedWithEnum-028e347: TestStatus\_BuiltInInjectedWithEnum
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -249,7 +249,7 @@ enum [draft, approved] into an empty schema. A subsequent validate
 accepts both values and rejects everything else.
 
 ### IMP-schema-TestTrace\_BuiltInPattern-9876d61: TestTrace\_BuiltInPattern
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -263,7 +263,7 @@ strict (a lowercase typo is a validation error), while source-proxy IDs
 (`IMP-<pkg>-<Symbol>-<7hex>`) are accepted so a test can trace to one.
 
 ### IMP-schema-contains-eebd9c5: contains
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -273,7 +273,7 @@ trace: []
 ```
 
 ### IMP-schema-containsStr-6eb2fb0: containsStr
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/builtin_test.go
@@ -284,7 +284,7 @@ trace: []
 
 ## internal/schema/schema.go
 ### IMP-schema-Compiled-e02bd77: Compiled
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -296,7 +296,7 @@ trace: []
 Compiled holds a compiled schema ready for validation and property introspection.
 
 #### IMP-schema-PropertyNames-1706eb4: PropertyNames
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -310,7 +310,7 @@ required fields first (in schema order), then optional fields
 alphabetically, then built-in attributes at the end.
 
 #### IMP-schema-Validate-dc2b0c7: Validate
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -322,7 +322,7 @@ trace: []
 Validate checks a requirement's attrs against the compiled schema.
 
 ### IMP-schema-Compile-cf14b49: Compile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -336,7 +336,7 @@ against JSON Schema 2020-12. schemaPath is the directory containing the
 schema file.
 
 ### IMP-schema-statusAdditionPattern-9bc9ec4: statusAdditionPattern
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -350,7 +350,7 @@ x-reqmd.additional-status-values entries: starts with a lowercase letter,
 then lowercase letters, digits, hyphen, or underscore.
 
 ### IMP-schema-requiresTraceFromTokenPattern-04bb454: requiresTraceFromTokenPattern
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -364,7 +364,7 @@ item pattern: lowercase letters, digits, hyphen, or underscore. Document
 defaults name document-ids or levels, which follow the same shape.
 
 ### IMP-schema-collectRequiresTraceFromDefault-9bf7ba8: collectRequiresTraceFromDefault
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -381,7 +381,7 @@ means every requirement in the document opts out of downstream coverage).
 Returns nil (no error) when the key is absent.
 
 ### IMP-schema-collectStatusAdditions-f44c619: collectStatusAdditions
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -397,7 +397,7 @@ Returns nil (no error) when the field is absent or empty — empty
 additions are a no-op.
 
 ### IMP-schema-applyStatusAdditions-c04654b: applyStatusAdditions
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -411,7 +411,7 @@ built-in `status` enum in the schema's properties. Called after
 InjectBuiltins so the built-in definition is already present.
 
 ### IMP-schema-orderedPropertyNames-3c943f8: orderedPropertyNames
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -427,7 +427,7 @@ listed. Shared by PropertyNames (compiled schema) and ExtractProperties
 (raw schema map) so the ordering rule lives in one place.
 
 ### IMP-schema-propertyKeySet-9047e5c: propertyKeySet
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -441,7 +441,7 @@ orderedPropertyNames. The compiled schema uses *jsonschema.Schema
 values, the raw map uses any.
 
 ### IMP-schema-Normalize-45f2527: Normalize
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -455,7 +455,7 @@ The schema must be valid JSON Schema 2020-12 (in YAML map form).
 It is returned as-is; built-in attrs are injected later by Compile.
 
 ### IMP-schema-ExtractProperties-cf4b9c4: ExtractProperties
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -470,7 +470,7 @@ Required fields first (in schema's required order), then optional
 fields alphabetically, then built-in attributes at the end.
 
 ### IMP-schema-Title-85fc48a: Title
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -483,7 +483,7 @@ Title extracts a human-readable title from a parsed schema.
 Uses "$id — title", "$id", or "title" from the JSON Schema.
 
 ### IMP-schema-ExtractXReqmd-ba67a24: ExtractXReqmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema.go
@@ -497,7 +497,7 @@ Returns nil if the key is absent. All fields are optional.
 
 ## internal/schema/schema\_test.go
 ### IMP-schema-validSchema-2914ec9: validSchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -509,7 +509,7 @@ trace: []
 validSchema is a valid JSON Schema 2020-12 in YAML map form.
 
 ### IMP-schema-TestCompile\_HappyPath-33e4447: TestCompile\_HappyPath
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -520,7 +520,7 @@ trace:
 ```
 
 ### IMP-schema-TestCompile\_BadSchema-b42fe2a: TestCompile\_BadSchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -531,7 +531,7 @@ trace:
 ```
 
 ### IMP-schema-TestValidate\_ValidAttrs-90b6e61: TestValidate\_ValidAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -542,7 +542,7 @@ trace:
 ```
 
 ### IMP-schema-TestValidate\_MissingRequired-eec25ac: TestValidate\_MissingRequired
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -553,7 +553,7 @@ trace:
 ```
 
 ### IMP-schema-TestValidate\_WrongEnum-326c419: TestValidate\_WrongEnum
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -564,7 +564,7 @@ trace:
 ```
 
 ### IMP-schema-TestValidate\_NilAttrs-6bcbc16: TestValidate\_NilAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -575,7 +575,7 @@ trace:
 ```
 
 ### IMP-schema-TestProperties\_NilSchema-309dfbe: TestProperties\_NilSchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -585,7 +585,7 @@ trace: []
 ```
 
 ### IMP-schema-TestProperties\_EmptySchema-2e9908c: TestProperties\_EmptySchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -595,7 +595,7 @@ trace: []
 ```
 
 ### IMP-schema-TestProperties\_Ordering-b2905a2: TestProperties\_Ordering
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -605,7 +605,7 @@ trace: []
 ```
 
 ### IMP-schema-TestProperties\_OnlyRequired-34bcd49: TestProperties\_OnlyRequired
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -615,7 +615,7 @@ trace: []
 ```
 
 ### IMP-schema-TestProperties\_NoRequired-4f78a40: TestProperties\_NoRequired
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -625,7 +625,7 @@ trace: []
 ```
 
 ### IMP-schema-TestCompile\_StatusAdditionsAccepted-70f42ac: TestCompile\_StatusAdditionsAccepted
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -641,7 +641,7 @@ T8 / T17: additional-status-values accepted and applied to the built-in
 (T8) so the validator accepts them.
 
 ### IMP-schema-TestCompile\_StatusAdditionsEmptyIsNoop-4cd6cc2: TestCompile\_StatusAdditionsEmptyIsNoop
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -652,7 +652,7 @@ trace:
 ```
 
 ### IMP-schema-TestCompile\_StatusAdditionsRejectsBuiltins-6a05643: TestCompile\_StatusAdditionsRejectsBuiltins
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -665,7 +665,7 @@ trace:
 T9: built-in collision rejected as config-error.
 
 ### IMP-schema-TestCompile\_StatusAdditionsRejectsCapitalized-cf7278f: TestCompile\_StatusAdditionsRejectsCapitalized
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -678,7 +678,7 @@ trace:
 T10: capitalized additions rejected (lowercase-only is config-error).
 
 ### IMP-schema-TestCompile\_StatusAdditionsRejectsDuplicates-e40694d: TestCompile\_StatusAdditionsRejectsDuplicates
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -691,7 +691,7 @@ trace:
 T18: duplicate additions rejected.
 
 ### IMP-schema-TestCompile\_StatusBuiltInIsInjectedAndRedefinitionRejected-787195e: TestCompile\_StatusBuiltInIsInjectedAndRedefinitionRejected
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -705,7 +705,7 @@ T12: user schema with `properties: {status: ...}` triggers the
 built-in redefinition check.
 
 ### IMP-schema-TestCompile\_AdditionalPropertiesFalseAcceptsBuiltInStatus-19061c7: TestCompile\_AdditionalPropertiesFalseAcceptsBuiltInStatus
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -721,7 +721,7 @@ The built-in is injected before the additionalProperties check runs,
 so it's not flagged as an "additional" property.
 
 ### IMP-schema-compileWithRTF-989abb7: compileWithRTF
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -733,7 +733,7 @@ trace: []
 x-reqmd.requires-trace-from document default
 
 ### IMP-schema-TestCompile\_RequiresTraceFromDefaultAccepted-d9d1299: TestCompile\_RequiresTraceFromDefaultAccepted
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -744,7 +744,7 @@ trace:
 ```
 
 ### IMP-schema-TestCompile\_RequiresTraceFromDefaultRejected-2a1d672: TestCompile\_RequiresTraceFromDefaultRejected
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -755,7 +755,7 @@ trace:
 ```
 
 ### IMP-schema-TestExtractXReqmd\_RequiresTraceFromScalarNormalized-27d851f: TestExtractXReqmd\_RequiresTraceFromScalarNormalized
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -766,7 +766,7 @@ trace:
 ```
 
 ### IMP-schema-TestExtractXReqmd\_RequiresTraceFromEmptyStaysDistinct-4a6082b: TestExtractXReqmd\_RequiresTraceFromEmptyStaysDistinct
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -777,7 +777,7 @@ trace:
 ```
 
 ### IMP-schema-TestExtractXReqmd\_RequiresTraceFromAbsentIsNil-1ce84e6: TestExtractXReqmd\_RequiresTraceFromAbsentIsNil
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -788,7 +788,7 @@ trace:
 ```
 
 ### IMP-schema-TestExtractXReqmd\_MalformedDefaultDoesNotDropBlock-cf54ac7: TestExtractXReqmd\_MalformedDefaultDoesNotDropBlock
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/schema/schema_test.go
@@ -800,7 +800,7 @@ trace:
 
 ## reqmd-code/internal/schema/template.go
 ### IMP-schema-standardSchema-982fa22: standardSchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/schema/template.go
@@ -812,7 +812,7 @@ trace: []
 go:embed standard_schema.yaml
 
 ### IMP-schema-Document-6ec321d: Document
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/schema/template.go
@@ -826,7 +826,7 @@ x-reqmd block — read from standard_schema.yaml. Callers override Key, Dir,
 File, Title and the ID prefix per document.
 
 ### IMP-schema-asString-30a00ad: asString
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/schema/template.go
@@ -836,7 +836,7 @@ trace: []
 ```
 
 ### IMP-schema-asStrings-9ff793a: asStrings
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/schema/template.go

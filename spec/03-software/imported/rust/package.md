@@ -4,7 +4,7 @@
 
 ## reqmd-code/internal/lang/rust/rust.go
 ### IMP-rust-queriesFS-0116fdc: queriesFS
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -16,7 +16,7 @@ trace: []
 go:embed queries/*.scm
 
 ### IMP-rust-RustLanguage-34e24e1: RustLanguage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -28,7 +28,7 @@ trace: []
 RustLanguage is the Rust language plugin. Implements lang.Language.
 
 #### IMP-rust-Name-226a996: Name
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -40,7 +40,7 @@ trace: []
 Name returns the canonical language identifier.
 
 #### IMP-rust-Extensions-cb2e0fb: Extensions
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -52,7 +52,7 @@ trace: []
 Extensions returns the file extensions this plugin handles.
 
 #### IMP-rust-Grammar-51e70ce: Grammar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -64,7 +64,7 @@ trace: []
 Grammar returns the tree-sitter-rust grammar language.
 
 #### IMP-rust-Query-ee356f3: Query
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -78,7 +78,7 @@ If the query file is missing (a packaging error), it returns an empty
 query rather than panicking; Parse will then emit zero symbols.
 
 #### IMP-rust-BindDoc-c2956d0: BindDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -94,7 +94,7 @@ and strips comment markers (including `///` and `//!` doc-comment
 forms). Returns the empty string when no preceding comment is present.
 
 #### IMP-rust-Parse-569329c: Parse
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -119,7 +119,7 @@ we track emitted method decl nodes by `*sitter.Node` identity, then
 skip the bare @func.decl match that points at the same node.
 
 ### IMP-rust-cleanComment-9cb394b: cleanComment
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -135,7 +135,7 @@ and `/*!`) comments. The conventional single space after the marker
 (`// foo` → `foo`) is dropped.
 
 ### IMP-rust-testAttrRe-54f98b7: testAttrRe
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -148,7 +148,7 @@ testAttrRe matches a test attribute, including common paths such as
 `#[tokio::test]`; it deliberately does not match `#[cfg(test)]`.
 
 ### IMP-rust-hasTestAttribute-4807e65: hasTestAttribute
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -163,7 +163,7 @@ between the item and the attribute, while an inner attribute or inner doc
 comment ends the run.
 
 ### IMP-rust-declNode-87c33dd: declNode
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -175,7 +175,7 @@ trace: []
 declNode returns the primary declaration node for a match, if any.
 
 ### IMP-rust-symbolFromMatch-b138cba: symbolFromMatch
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -190,7 +190,7 @@ when the match has no usable captures or refers to a function-local
 item.
 
 ### IMP-rust-enclosingTypeName-9e3106a: enclosingTypeName
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -208,7 +208,7 @@ type identifier so the receiver matches the parent type's name.
 Returns "" when the method has no enclosing impl/trait.
 
 ### IMP-rust-init-d1988fb: init
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust.go
@@ -219,7 +219,7 @@ trace: []
 
 ## reqmd-code/internal/lang/rust/rust\_test.go
 ### IMP-rust-TestRustLanguageRegisters-ae8e5ad: TestRustLanguageRegisters
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -233,7 +233,7 @@ TestRustLanguageRegisters verifies that RustLanguage self-registered
 itself with the global lang.Registry on package init.
 
 ### IMP-rust-TestBindDocAboveTestAttribute-1ffbc53: TestBindDocAboveTestAttribute
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -248,7 +248,7 @@ TestBindDocAboveTestAttribute verifies that a doc comment above a
 between the comment and the item.
 
 ### IMP-rust-TestBindDocStopsAtInnerAttribute-a057f04: TestBindDocStopsAtInnerAttribute
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -262,7 +262,7 @@ TestBindDocStopsAtInnerAttribute verifies that a module-level inner
 attribute does not let the crate doc bind to the first item.
 
 ### IMP-rust-TestBindDocStopsAtModuleDoc-e011a42: TestBindDocStopsAtModuleDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -276,7 +276,7 @@ TestBindDocStopsAtModuleDoc verifies that an inner doc comment (`//!`)
 does not bind to the first item: module docs are not item docs.
 
 ### IMP-rust-TestParseSample-051aa5e: TestParseSample
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -293,7 +293,7 @@ and an impl block method. The impl method must not be double-counted as
 a free function, and its Receiver must be the impl'd type.
 
 ### IMP-rust-TestParseTraitDefaultMethod-3c13c58: TestParseTraitDefaultMethod
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -307,7 +307,7 @@ TestParseTraitDefaultMethod verifies that a trait method with a default
 body (function_item, not function_signature_item) is still a method.
 
 ### IMP-rust-TestParseGenericImpl-b6bc2bb: TestParseGenericImpl
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -321,7 +321,7 @@ TestParseGenericImpl verifies that the receiver of a method on a generic
 impl (`impl Point<T>`) resolves to the base type identifier.
 
 ### IMP-rust-TestParseLocalItemsSkipped-b7af57b: TestParseLocalItemsSkipped
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -336,7 +336,7 @@ function bodies (local consts, local structs) are not emitted as
 top-level symbols.
 
 ### IMP-rust-TestParseEmpty-c20edd5: TestParseEmpty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -349,7 +349,7 @@ trace:
 TestParseEmpty handles zero-byte input gracefully.
 
 ### IMP-rust-TestCleanComment-bbd700b: TestCleanComment
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -363,7 +363,7 @@ TestCleanComment covers `//`, `///`, `//!`, `/* */`, `/** */` and
 `/*! */` comment forms.
 
 ### IMP-rust-TestBindDocIncludesDoc-094039d: TestBindDocIncludesDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go
@@ -377,7 +377,7 @@ TestBindDocIncludesDoc verifies that BindDoc attaches the full doc
 comment block (including a reqmd:trace marker) to the following item.
 
 ### IMP-rust-TestParseMarksTestAttributes-4330cef: TestParseMarksTestAttributes
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/rust/rust_test.go

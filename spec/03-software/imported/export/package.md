@@ -4,7 +4,7 @@
 
 ## internal/cli/export/csv.go
 ### IMP-export-newCsvCmd-b7e44bd: newCsvCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/csv.go
@@ -15,7 +15,7 @@ trace: []
 
 ## internal/cli/export/export.go
 ### IMP-export-NewExportCmd-44591a9: NewExportCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/export.go
@@ -28,7 +28,7 @@ NewExportCmd builds the `reqmd export` command with its subcommands.
 
 ## internal/cli/export/graph.go
 ### IMP-export-newGraphCmd-34aaec5: newGraphCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/graph.go
@@ -39,7 +39,7 @@ trace: []
 
 ## internal/cli/export/html.go
 ### IMP-export-outputDirPerm-499f0e1: outputDirPerm
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -52,7 +52,7 @@ outputDirPerm keeps output directories readable by the exporting user's
 group, following the CLI's 0750 convention.
 
 ### IMP-export-newHTMLCmd-d5201e8: newHTMLCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -62,7 +62,7 @@ trace: []
 ```
 
 ### IMP-export-runExportHTML-0d522f9: runExportHTML
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -74,7 +74,7 @@ trace: []
 runExportHTML writes one page per document plus the project home.
 
 ### IMP-export-discoverHTMLDocs-d84b278: discoverHTMLDocs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -88,7 +88,7 @@ matching requirement IDs for graph scoping plus the pruned export set. The
 graph is still built from the full docs so trace links resolve.
 
 ### IMP-export-analyzeHTMLGraph-e1968e2: analyzeHTMLGraph
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -102,7 +102,7 @@ analysis every HTML view renders from. Ephemeral verification results are
 synthesized into pseudo-requirements before the graph is built.
 
 ### IMP-export-htmlOutput-19b55b1: htmlOutput
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -115,7 +115,7 @@ htmlOutput resolves output paths once for a document set and writes the
 document pages and the project home.
 
 #### IMP-export-resolveFor-2baaf0e: resolveFor
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -128,7 +128,7 @@ resolveFor maps a requirement ID to an href relative to current's
 directory, so trace links work in both output layouts.
 
 #### IMP-export-writeDocumentPages-589104f: writeDocumentPages
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -146,7 +146,7 @@ exporter.HTML, which carries the per-page state (boundary, document chain,
 link resolver).
 
 #### IMP-export-writeDocumentPage-c42d086: writeDocumentPage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -160,7 +160,7 @@ document chain, and per-page trace link resolver. It returns the output path
 so the caller can report it in document order.
 
 #### IMP-export-writeProjectIndex-65ab62f: writeProjectIndex
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -172,7 +172,7 @@ trace: []
 writeProjectIndex writes the project home page.
 
 ### IMP-export-newHTMLOutput-781a8ad: newHTMLOutput
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -185,7 +185,7 @@ newHTMLOutput computes the output layout: flat files in outputDir when set,
 otherwise one page inside each document directory.
 
 ### IMP-export-writeHTMLFile-7e55c53: writeHTMLFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/html.go
@@ -199,7 +199,7 @@ error so a truncated export is never reported as written.
 
 ## internal/cli/export/json.go
 ### IMP-export-tableFindings-91b72c1: tableFindings
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/json.go
@@ -211,7 +211,7 @@ trace: []
 jsonTable names the four NDJSON files written by `export json`.
 
 ### IMP-export-tableRequirements-0aa7d47: tableRequirements
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/json.go
@@ -223,7 +223,7 @@ trace: []
 jsonTable names the four NDJSON files written by `export json`.
 
 ### IMP-export-tableResults-a3efb1b: tableResults
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/json.go
@@ -235,7 +235,7 @@ trace: []
 jsonTable names the four NDJSON files written by `export json`.
 
 ### IMP-export-tableTraces-ff7b141: tableTraces
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/json.go
@@ -247,7 +247,7 @@ trace: []
 jsonTable names the four NDJSON files written by `export json`.
 
 ### IMP-export-newJSONCmd-bb9f639: newJSONCmd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/export/json.go

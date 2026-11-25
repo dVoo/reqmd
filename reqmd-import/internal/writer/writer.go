@@ -122,11 +122,14 @@ func RenderDocument(title, preamble string, items []Item) (string, error) {
 	return b.String(), nil
 }
 
-// RenderItem renders one item: heading, then (for a requirement) the attr
+// RenderItem renders one item: heading, then (for a requirement) the reqmd
 // block, then the body. Depth is the nesting level: 0 renders "##", 1 renders
 // "###", and so on (reqmd accepts any heading level from h2 down). An item
 // without a title renders as a plain prose block, which is how the headingless
 // document preamble and untitled sections are represented.
+//
+// The block opens with ```yaml reqmd so editors and GitHub highlight the YAML;
+// the parser accepts that variant and the bare ```reqmd alike.
 // headingEscaper escapes the characters that would start inline Markdown
 // inside a generated heading. A symbol or package named `__init__` would
 // otherwise parse as emphasis and vanish from the ID (`IMP-init-…`), breaking
@@ -160,7 +163,7 @@ func RenderItem(it Item) (string, error) {
 		}
 	}
 	if it.IsRequirement() {
-		b.WriteString("```reqmd\n")
+		b.WriteString("```yaml reqmd\n")
 		if err := writeAttr(&b, it); err != nil {
 			return "", fmt.Errorf("requirement %s: %w", it.ID, err)
 		}

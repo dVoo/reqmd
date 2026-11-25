@@ -161,9 +161,10 @@ numbered step for every feature.
 ### 1. Requirement files
 
 Each requirement is a Markdown heading followed by a fenced `reqmd` block with
-YAML attributes, then free-form prose. The fence also accepts the form
-```` ```yaml reqmd ```` for YAML syntax highlighting in editors and on GitHub —
-` ```reqmd ` stays the master form, and it is what every reqmd renderer emits. The heading text **is** the requirement ID.
+YAML attributes, then free-form prose. The fence is tagged ` ```yaml reqmd ` —
+the leading `yaml` gives the block syntax highlighting in editors and on GitHub.
+A bare ` ```reqmd ` fence without the language tag is accepted too; `reqmd-import`
+always writes the highlighted form. The heading text **is** the requirement ID.
 An optional title can follow the ID after a colon and space:
 
 ````markdown

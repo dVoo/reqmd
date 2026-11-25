@@ -4,7 +4,7 @@
 
 ## internal/parser/attrscan.go
 ### IMP-parser-errUnsupported-5dd0116: errUnsupported
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan.go
@@ -20,7 +20,7 @@ integers). decodeAttrs then re-parses the whole block with yaml.v3, so the
 result never depends on which path produced it.
 
 ### IMP-parser-decodeAttrs-639cc16: decodeAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan.go
@@ -34,7 +34,7 @@ fast line scanner first and falls back to yaml.v3 for anything the scanner
 cannot reproduce byte-for-byte (see errUnsupported).
 
 ### IMP-parser-decodeAttrYAML-b0e14ba: decodeAttrYAML
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan.go
@@ -71,7 +71,7 @@ function directly.
 
 ## internal/parser/attrscan\_test.go
 ### IMP-parser-TestDecodeAttrYAML\_Scalars-c181e5c: TestDecodeAttrYAML\_Scalars
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -82,7 +82,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_QuotedStrings-552fc27: TestDecodeAttrYAML\_QuotedStrings
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -93,7 +93,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_BlockList-691e48c: TestDecodeAttrYAML\_BlockList
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -104,7 +104,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_FlowSeq-e8e0bbe: TestDecodeAttrYAML\_FlowSeq
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -115,7 +115,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_EmptyValue-6e824d9: TestDecodeAttrYAML\_EmptyValue
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -126,7 +126,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_Comments-b820f3d: TestDecodeAttrYAML\_Comments
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -137,7 +137,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_BlankLines-e425642: TestDecodeAttrYAML\_BlankLines
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -148,7 +148,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_EmptyKey-279d177: TestDecodeAttrYAML\_EmptyKey
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -159,7 +159,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_BadYAML-92dd0bd: TestDecodeAttrYAML\_BadYAML
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -170,7 +170,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_MixedTypes-54633eb: TestDecodeAttrYAML\_MixedTypes
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -181,7 +181,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrYAML\_ParityWithYAMLv3-fe54232: TestDecodeAttrYAML\_ParityWithYAMLv3
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -192,7 +192,7 @@ trace:
 ```
 
 ### IMP-parser-TestDecodeAttrs\_DuplicateKey-ac3785f: TestDecodeAttrs\_DuplicateKey
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -206,7 +206,7 @@ TestDecodeAttrs_DuplicateKey rejects a repeated key instead of silently
 keeping the last value (yaml.v3 rejects it too, with a line number).
 
 ### IMP-parser-TestDecodeAttrYAML\_UnsupportedScalarIsReported-6da2475: TestDecodeAttrYAML\_UnsupportedScalarIsReported
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -221,7 +221,7 @@ scalar it cannot type must be reported as errUnsupported so decodeAttrs
 falls back, never silently stringified.
 
 ### IMP-parser-TestParseScalar-c3f7acf: TestParseScalar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -236,7 +236,7 @@ exactly; anything it cannot type is rejected so the block re-parses with
 yaml.v3 instead of silently becoming a string.
 
 ### IMP-parser-TestIsPlainStringStart-e9d2853: TestIsPlainStringStart
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -247,7 +247,7 @@ trace:
 ```
 
 ### IMP-parser-TestIsIntegerString-0ff5297: TestIsIntegerString
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -258,7 +258,7 @@ trace:
 ```
 
 ### IMP-parser-TestUnquoteYAML-6bee43a: TestUnquoteYAML
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -273,7 +273,7 @@ literal quote, double quotes carry YAML escapes, and an unterminated quote
 is an error (which send the block to yaml.v3).
 
 ### IMP-parser-TestUnescapeYAMLDouble-ba46c0a: TestUnescapeYAMLDouble
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -284,7 +284,7 @@ trace:
 ```
 
 ### IMP-parser-TestLeadingSpaces-662b141: TestLeadingSpaces
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -295,7 +295,7 @@ trace:
 ```
 
 ### IMP-parser-TestParseFlowSeq-ee2b166: TestParseFlowSeq
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -309,7 +309,7 @@ TestParseFlowSeq covers flow sequences, including quoted items with commas
 (which a naive string split would break) and invalid input.
 
 ### IMP-parser-TestSplitFlowItems-f1aac68: TestSplitFlowItems
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrscan_test.go
@@ -323,7 +323,7 @@ TestSplitFlowItems covers the quote- and bracket-aware comma split.
 
 ## internal/parser/attrvalue.go
 ### IMP-parser-parseScalar-0fec6c3: parseScalar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrvalue.go
@@ -340,7 +340,7 @@ so decodeAttrs re-parses the block with yaml.v3 instead of silently
 turning them into strings.
 
 ### IMP-parser-isPlainStringStart-c2e4d67: isPlainStringStart
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrvalue.go
@@ -353,7 +353,7 @@ isPlainStringStart reports whether c can begin a plain YAML scalar that
 yaml.v3 resolves as a string.
 
 ### IMP-parser-isIntegerString-264690b: isIntegerString
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrvalue.go
@@ -366,7 +366,7 @@ isIntegerString reports whether s is a plain integer literal (optional
 sign followed by digits). Used as the gate before strconv.Atoi.
 
 ### IMP-parser-unquoteYAML-4ed7ece: unquoteYAML
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrvalue.go
@@ -378,7 +378,7 @@ trace: []
 unquoteYAML strips single or double quotes from a YAML scalar.
 
 ### IMP-parser-unescapeYAMLDouble-9b443ee: unescapeYAMLDouble
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrvalue.go
@@ -388,7 +388,7 @@ trace: []
 ```
 
 ### IMP-parser-leadingSpaces-223b365: leadingSpaces
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrvalue.go
@@ -398,7 +398,7 @@ trace: []
 ```
 
 ### IMP-parser-parseFlowSeq-f6009f2: parseFlowSeq
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrvalue.go
@@ -412,7 +412,7 @@ Items are parsed as scalars (same rules as parseScalar). Quoted items
 are supported.
 
 ### IMP-parser-splitFlowItems-277c16c: splitFlowItems
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/attrvalue.go
@@ -425,7 +425,7 @@ splitFlowItems splits a flow sequence body on commas, respecting quotes.
 
 ## internal/parser/bench\_test.go
 ### IMP-parser-benchAttr-94dfd1d: benchAttr
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/bench_test.go
@@ -441,7 +441,7 @@ allocs) and that is why the fast path exists at all. If the gap ever closes,
 delete the scanner and keep yaml.v3.
 
 ### IMP-parser-BenchmarkDecodeAttrs-26d49bf: BenchmarkDecodeAttrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/bench_test.go
@@ -451,7 +451,7 @@ trace: []
 ```
 
 ### IMP-parser-BenchmarkDecodeAttrsYAMLv3-a71c0c3: BenchmarkDecodeAttrsYAMLv3
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/bench_test.go
@@ -461,7 +461,7 @@ trace: []
 ```
 
 ### IMP-parser-BenchmarkParseMD-2a9f1cb: BenchmarkParseMD
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/bench_test.go
@@ -474,7 +474,7 @@ BenchmarkParseMD measures the whole file→content-tree path, which is what
 `reqmd check`/`ls` spend nearly all their time in.
 
 ### IMP-parser-syntheticDoc-ccb009f: syntheticDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/bench_test.go
@@ -490,7 +490,7 @@ parallel parse.
 
 ## internal/parser/git.go
 ### IMP-parser-DiscoverAtTagWithSchemas-5d84f4e: DiscoverAtTagWithSchemas
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/git.go
@@ -504,7 +504,7 @@ directory, runs the standard Discover pipeline, and returns the parsed
 documents plus the raw schema.yaml content for each document directory.
 
 ### IMP-parser-discoverAtTag-a32da82: discoverAtTag
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/git.go
@@ -517,7 +517,7 @@ discoverAtTag extracts the repo at the given git tag and returns both the
 parsed documents and the raw schema maps per document path.
 
 ### IMP-parser-rewriteNodeSources-3e563ee: rewriteNodeSources
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/git.go
@@ -529,7 +529,7 @@ trace: []
 rewriteNodeSources applies fn to the Source of every node in the tree.
 
 ### IMP-parser-relToTmpDir-abe620e: relToTmpDir
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/git.go
@@ -541,7 +541,7 @@ trace: []
 relToTmpDir returns path relative to the temp extraction directory.
 
 ### IMP-parser-ListSubmodulesAtTag-f8e2142: ListSubmodulesAtTag
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/git.go
@@ -557,7 +557,7 @@ if the tag has no submodules. Returns an error if the tag is invalid
 or the git command fails.
 
 ### IMP-parser-parseLsTreeOutput-ac82723: parseLsTreeOutput
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/git.go
@@ -581,7 +581,7 @@ Example:
 
 ## internal/parser/parser.go
 ### IMP-parser-attrFenceInfo-2495c08: attrFenceInfo
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -591,7 +591,7 @@ trace: []
 ```
 
 ### IMP-parser-mdParser-069e9b6: mdParser
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -611,7 +611,7 @@ highlighting, alerts, diagrams) live on the exporter's renderer instead: the
 body is stored as Markdown, so they apply when that Markdown is rendered.
 
 ### IMP-parser-Discover-cc87d2f: Discover
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -626,7 +626,7 @@ Returns one Document per document directory.
 Document directories are loaded in parallel for performance.
 
 ### IMP-parser-findDocDirs-d29d277: findDocDirs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -638,7 +638,7 @@ trace: []
 findDocDirs walks root and collects all directories containing schema.yaml.
 
 ### IMP-parser-LoadSchema-cb5dcb7: LoadSchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -651,7 +651,7 @@ LoadSchema reads and parses the schema.yaml file from a document directory.
 It returns the raw schema map before any x-reqmd extraction.
 
 ### IMP-parser-loadDocument-aad11cd: loadDocument
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -661,7 +661,7 @@ trace: []
 ```
 
 ### IMP-parser-parseFiles-1d993d6: parseFiles
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -678,7 +678,7 @@ results are collected by file index so the returned order never depends
 on goroutine completion order.
 
 ### IMP-parser-result-426f339: result
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -688,7 +688,7 @@ trace: []
 ```
 
 ### IMP-parser-parseParallelThreshold-93b90ab: parseParallelThreshold
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -705,7 +705,7 @@ well under a millisecond so chunking cannot help. Cross-file parallelism
 (the worker pool in parseFiles) still applies.
 
 ### IMP-parser-parseMD-626e5e6: parseMD
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -733,7 +733,7 @@ points is a cheap line scan that replicates the stack logic without
 building a goldmark AST.
 
 ### IMP-parser-chunkResult-928de6c: chunkResult
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -748,7 +748,7 @@ leading containers and prose (including the h1 title) are never
 dropped.
 
 ### IMP-parser-parseMDChunk-5dc2f33: parseMDChunk
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -766,7 +766,7 @@ callers must assemble the concatenated streams so nesting across chunk
 boundaries is preserved.
 
 ### IMP-parser-assembleTree-d304ba8: assembleTree
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -785,7 +785,7 @@ they end up with children or not: folder-ness is derived from Children, so
 adding a subsection never changes a node's kind.
 
 ### IMP-parser-popByLevel-b6b3780: popByLevel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -799,7 +799,7 @@ the heading-nesting rule: a heading at level L closes everything at
 level L or deeper.
 
 ### IMP-parser-reqStackEntry-c41a8b4: reqStackEntry
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -812,7 +812,7 @@ reqStackEntry tracks an open requirement at a heading level during the
 root-split pre-scan.
 
 ### IMP-parser-popStackToLevel-0f8087e: popStackToLevel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -825,7 +825,7 @@ popStackToLevel removes entries whose level is >= targetLevel.
 Used by the root-split pre-scan to replicate requirement nesting.
 
 ### IMP-parser-findRootSplits-2059702: findRootSplits
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -846,7 +846,7 @@ line) and any YAML frontmatter parsed from the file header.
 If only 0 or 1 roots are found, the caller parses the whole file serially.
 
 ### IMP-parser-frontmatterEnd-c0380eb: frontmatterEnd
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -860,7 +860,7 @@ or 0 when the file does not start with one. ok is false when the block is
 opened on the first line and never closed.
 
 ### IMP-parser-isDashLine-05eacd6: isDashLine
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -875,7 +875,7 @@ the split scan and the parser agree on where a metadata block starts and ends
 (the extension accepts "--", "----", and any longer run, not just "---").
 
 ### IMP-parser-nextLine-3ad066b: nextLine
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -889,7 +889,7 @@ and whether there was a newline. The returned slice references src —
 no allocation.
 
 ### IMP-parser-headingLevelBytes-c6b847f: headingLevelBytes
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -903,7 +903,7 @@ is a markdown heading (e.g. "## Title"). Returns 0, false otherwise.
 Works on []byte to avoid string allocation.
 
 ### IMP-parser-nextNonBlankIsAttrBytes-b179628: nextNonBlankIsAttrBytes
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -916,7 +916,7 @@ nextNonBlankIsAttrBytes checks if the next non-blank line after byte
 offset pos is a ```reqmd fence. Scans src directly — no allocation.
 
 ### IMP-parser-isNextAttrBlock-2901c53: isNextAttrBlock
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -930,7 +930,7 @@ Blank lines between heading and fence are consumed by goldmark and don't
 create AST nodes, so they don't affect this check.
 
 ### IMP-parser-splitHeadingID-bf6d963: splitHeadingID
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -944,7 +944,7 @@ into ("REQ-001", "This is a title"). If there's no colon+space,
 returns (heading, "").
 
 ### IMP-parser-collectInlineText-88fd5e8: collectInlineText
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -956,7 +956,7 @@ trace: []
 --- text extraction helpers ---
 
 ### IMP-parser-codeInfo-ca47cb5: codeInfo
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -970,7 +970,7 @@ just its language token: the body keeps its Markdown, so anything after the
 language must survive the round-trip.
 
 ### IMP-parser-appendBodyBlock-1bd723d: appendBodyBlock
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -985,7 +985,7 @@ a thematic break glues onto the paragraph above it, and the fence stops being
 a fence once the body Markdown is rendered again.
 
 ### IMP-parser-renderFence-4f29349: renderFence
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -998,7 +998,7 @@ renderFence re-emits a code block as a fenced block, so the stored body keeps
 the delimiters the exporter needs to render it again.
 
 ### IMP-parser-paragraphText-2c38d4d: paragraphText
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -1008,7 +1008,7 @@ trace: []
 ```
 
 ### IMP-parser-renderBlock-1867761: renderBlock
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -1024,7 +1024,7 @@ concatenating the line segments instead would drop the list markers and the
 line breaks between items, turning a list into one run-on paragraph.
 
 ### IMP-parser-ParseSingleFile-250a119: ParseSingleFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -1036,7 +1036,7 @@ trace: []
 ParseSingleFile is used by `reqmd check <file> --schema <schema>`.
 
 ### IMP-parser-generatedMarker-3ef3883: generatedMarker
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -1050,7 +1050,7 @@ Its pre-rename spelling is still recognized so trees generated before the
 renderer moved to reqmd-import keep parsing cleanly.
 
 ### IMP-parser-legacyGeneratedMarker-640e6be: legacyGeneratedMarker
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -1064,7 +1064,7 @@ Its pre-rename spelling is still recognized so trees generated before the
 renderer moved to reqmd-import keep parsing cleanly.
 
 ### IMP-parser-isGeneratedMarker-22d244b: isGeneratedMarker
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser.go
@@ -1079,7 +1079,7 @@ open a phantom headingless content node in every generated document.
 
 ## internal/parser/parser\_test.go
 ### IMP-parser-parseReqTree-07a3a65: parseReqTree
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1092,7 +1092,7 @@ parseReqTree is a test helper: parses src and returns the assembled
 content tree roots.
 
 ### IMP-parser-reqsOf-4fb7484: reqsOf
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1104,7 +1104,7 @@ trace: []
 reqsOf returns the flat requirement list of an assembled tree.
 
 ### IMP-parser-TestParseMD\_Full-9d1bcca: TestParseMD\_Full
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1118,7 +1118,7 @@ TestParseMD_Full verifies a normal requirement with heading, reqmd block,
 prose body, and *Rationale: line.
 
 ### IMP-parser-TestParseMD\_NoRationale-a066ea1: TestParseMD\_NoRationale
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1132,7 +1132,7 @@ TestParseMD_NoRationale verifies that a requirement without *Rationale:*
 has an empty Rational field.
 
 ### IMP-parser-TestParseMD\_MultipleRequirements-af22eff: TestParseMD\_MultipleRequirements
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1146,7 +1146,7 @@ TestParseMD_MultipleRequirements verifies that multiple requirements
 in one document are each parsed correctly.
 
 ### IMP-parser-TestParseMD\_HeadingWithoutAttrIsInfo-c482966: TestParseMD\_HeadingWithoutAttrIsInfo
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1160,7 +1160,7 @@ TestParseMD_HeadingWithoutAttrIsInfo verifies that a heading without an
 reqmd block produces an info item instead of a requirement.
 
 ### IMP-parser-TestParseMD\_BadYAML-b6e68d1: TestParseMD\_BadYAML
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1174,7 +1174,7 @@ TestParseMD_BadYAML verifies that invalid YAML inside an ```reqmd``` block
 returns an error.
 
 ### IMP-parser-TestParseMD\_NonAttrCodeBlock-81dc505: TestParseMD\_NonAttrCodeBlock
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1188,7 +1188,7 @@ TestParseMD_NonAttrCodeBlock verifies that a fenced code block with a
 non-attr info string (e.g. ```json) inside a requirement body is preserved.
 
 ### IMP-parser-TestParseMD\_EmptyFile-1ed701a: TestParseMD\_EmptyFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1202,7 +1202,7 @@ TestParseMD_EmptyFile verifies that parsing an empty source returns
 no nodes and no error.
 
 ### IMP-parser-TestParseMD\_ThematicBreak-858144f: TestParseMD\_ThematicBreak
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1216,7 +1216,7 @@ TestParseMD_ThematicBreak verifies that thematic breaks (---) inside
 a requirement body are preserved and don't disrupt body accumulation.
 
 ### IMP-parser-TestParseMD\_ArrayAttr-3b2533f: TestParseMD\_ArrayAttr
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1230,7 +1230,7 @@ TestParseMD_ArrayAttr verifies that an attribute with a YAML array value
 is parsed into []interface{} with the correct elements.
 
 ### IMP-parser-TestParseMD\_SubReqUnderParent-8cbf9e9: TestParseMD\_SubReqUnderParent
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1244,7 +1244,7 @@ TestParseMD_SubReqUnderParent verifies that a ### heading with a reqmd block
 immediately following a ## heading creates a sub-requirement with ParentID set.
 
 ### IMP-parser-TestParseMD\_MultipleSubReqs-1879aa2: TestParseMD\_MultipleSubReqs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1258,7 +1258,7 @@ TestParseMD_MultipleSubReqs verifies that multiple ### sub-requirements
 under the same ## parent all get the correct ParentID.
 
 ### IMP-parser-TestParseMD\_SubReqDynamicLevel-0a560b0: TestParseMD\_SubReqDynamicLevel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1272,7 +1272,7 @@ TestParseMD_SubReqDynamicLevel verifies that a ### heading with reqmd block
 as the FIRST requirement is a top-level requirement, not an orphan child.
 
 ### IMP-parser-TestParseMD\_SubHeadingBecomesInfo-345b983: TestParseMD\_SubHeadingBecomesInfo
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1286,7 +1286,7 @@ TestParseMD_SubHeadingBecomesInfo verifies that a ### heading without an
 reqmd block under a requirement becomes an info item child, not body text.
 
 ### IMP-parser-TestParseMD\_DynamicReqLevel-7f422c2: TestParseMD\_DynamicReqLevel
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1301,7 +1301,7 @@ level when the content tree starts at level 2 (h1 is reserved for the
 document title).
 
 ### IMP-parser-TestParseMD\_H1IsDocumentTitle-9cbe059: TestParseMD\_H1IsDocumentTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1317,7 +1317,7 @@ must be level 2+), and a plain h1 is captured as the title and never
 becomes a content node.
 
 ### IMP-parser-TestParseMD\_SecondH1Rejected-1c7406e: TestParseMD\_SecondH1Rejected
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1333,7 +1333,7 @@ the first h1 became the title, and the second one's prose was re-attached
 to a fresh headingless node.
 
 ### IMP-parser-TestParseSingleFile-541ac55: TestParseSingleFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1347,7 +1347,7 @@ TestParseSingleFile verifies ParseSingleFile reads a real file from disk
 and produces the correct results. Uses t.TempDir() for the temp file.
 
 ### IMP-parser-TestParseMD\_Title-adb89a7: TestParseMD\_Title
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1361,7 +1361,7 @@ TestParseMD_Title verifies that a heading with "ID: Title" format
 splits the ID and Title correctly.
 
 ### IMP-parser-TestParseMD\_NoTitle-57898c2: TestParseMD\_NoTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1374,7 +1374,7 @@ trace:
 TestParseMD_NoTitle verifies that a heading without ": " has empty Title.
 
 ### IMP-parser-TestParseMD\_TitleWithColonInTitle-a90e081: TestParseMD\_TitleWithColonInTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1388,7 +1388,7 @@ TestParseMD_TitleWithColonInTitle verifies that only the first ": " splits
 (IDs can't contain colons per the ID pattern, but titles may).
 
 ### IMP-parser-TestParseMD\_ContainerHoldsRequirements-c119338: TestParseMD\_ContainerHoldsRequirements
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1403,7 +1403,7 @@ TestParseMD_ContainerHoldsRequirements verifies that a container heading
 nested under it, which stay top-level (no requirement parent).
 
 ### IMP-parser-TestParseMD\_UserExample1-4fe01b9: TestParseMD\_UserExample1
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1418,7 +1418,7 @@ a container at the same level breaks the requirement chain; requirements
 nest under containers and stay top-level.
 
 ### IMP-parser-TestParseMD\_DeepNesting-264a679: TestParseMD\_DeepNesting
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1432,7 +1432,7 @@ TestParseMD_DeepNesting verifies requirements at arbitrary depth
 (3+ levels) chain correctly when no containers intervene.
 
 ### IMP-parser-TestParseMD\_ContainerDoesNotBreakDeeperChain-8ed979f: TestParseMD\_ContainerDoesNotBreakDeeperChain
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1447,7 +1447,7 @@ heading deeper than the current requirement does NOT break the chain:
 requirements after it still link to the nearest shallower requirement.
 
 ### IMP-parser-TestParseMD\_LevelGapNoContainer-efe3d45: TestParseMD\_LevelGapNoContainer
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1461,7 +1461,7 @@ TestParseMD_LevelGapNoContainer verifies that a heading gap without a
 container still links children to the nearest shallower requirement.
 
 ### IMP-parser-TestParseMD\_SiblingContainersBreakChain-c8e8243: TestParseMD\_SiblingContainersBreakChain
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1475,7 +1475,7 @@ TestParseMD_SiblingContainersBreakChain verifies that multiple containers
 at successive levels produce only top-level requirements.
 
 ### IMP-parser-TestParseMD\_Preamble-342cd93: TestParseMD\_Preamble
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1490,7 +1490,7 @@ is captured as an info node and not dropped, and that an h1 title does not
 become a wrapping container.
 
 ### IMP-parser-TestParseMD\_RequirementlessFile-04022cd: TestParseMD\_RequirementlessFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1505,7 +1505,7 @@ headings at all is captured entirely as info nodes, with the h1 title kept
 out of the content tree.
 
 ### IMP-parser-TestParseMD\_ChunkedPreamble-5ad1399: TestParseMD\_ChunkedPreamble
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1519,7 +1519,7 @@ TestParseMD_ChunkedPreamble verifies that the parallel chunked path
 (multiple root requirements) still captures the file preamble and title.
 
 ### IMP-parser-TestParseMD\_LevelGapUnderContainer-8b98274: TestParseMD\_LevelGapUnderContainer
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1534,7 +1534,7 @@ container under another requirement gets the right ParentID (nearest
 shallower requirement) and container nesting.
 
 ### IMP-parser-TestParseLsTreeOutput\_Empty-77f5401: TestParseLsTreeOutput\_Empty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1545,7 +1545,7 @@ trace:
 ```
 
 ### IMP-parser-TestParseLsTreeOutput\_NoSubmodules-4532e94: TestParseLsTreeOutput\_NoSubmodules
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1556,7 +1556,7 @@ trace:
 ```
 
 ### IMP-parser-TestParseLsTreeOutput\_OneSubmodule-b8eea82: TestParseLsTreeOutput\_OneSubmodule
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1567,7 +1567,7 @@ trace:
 ```
 
 ### IMP-parser-TestParseLsTreeOutput\_MultipleSubmodules-1076783: TestParseLsTreeOutput\_MultipleSubmodules
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1578,7 +1578,7 @@ trace:
 ```
 
 ### IMP-parser-TestParseLsTreeOutput\_Malformed-52b1abd: TestParseLsTreeOutput\_Malformed
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1589,7 +1589,7 @@ trace:
 ```
 
 ### IMP-parser-bigDoc-6733460: bigDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1604,7 +1604,7 @@ requirements. Its size matters — parseMD only splits above
 parseParallelThreshold.
 
 ### IMP-parser-nodeSummary-15b10d4: nodeSummary
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1617,7 +1617,7 @@ nodeSummary renders a tree into a comparable string so the chunked result can
 be compared with the serial one without walking structs field by field.
 
 ### IMP-parser-TestParseMD\_ChunkedMatchesSerial-40309b2: TestParseMD\_ChunkedMatchesSerial
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1632,7 +1632,7 @@ batching roots into chunks must produce exactly the tree the single-pass
 parser produces, including the preamble (chunk 0 covers [0, first root)).
 
 ### IMP-parser-TestParseMD\_ChunkedKeepsPreambleAndBoundaries-20ab508: TestParseMD\_ChunkedKeepsPreambleAndBoundaries
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1647,7 +1647,7 @@ chunking exists for: leading prose and the container it opens must not be
 dropped, and no requirement may be lost or duplicated at a chunk boundary.
 
 ### IMP-parser-TestParseMD\_WrappedParagraphKeepsLineBreaks-9fdd92a: TestParseMD\_WrappedParagraphKeepsLineBreaks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1662,7 +1662,7 @@ paragraph keeps its line breaks in the stored body. Dropping them glued the
 last word of one line onto the first word of the next in the HTML export.
 
 ### IMP-parser-TestParseMD\_ListBodyPreserved-976e285: TestParseMD\_ListBodyPreserved
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1679,7 +1679,7 @@ the AST line segments dropped both, which turned every bullet list into one
 run-on paragraph in the HTML export.
 
 ### IMP-parser-TestParseMD\_TableBodyPreserved-bad15b3: TestParseMD\_TableBodyPreserved
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1693,7 +1693,7 @@ TestParseMD_TableBodyPreserved covers the other block that used to be
 flattened: a GFM table must survive as markdown, rows intact.
 
 ### IMP-parser-TestParseMD\_MermaidFencePreserved-73e98f9: TestParseMD\_MermaidFencePreserved
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1708,7 +1708,7 @@ parser with its delimiters intact. Without them the exporter cannot turn it
 into a diagram and renders the diagram source as prose.
 
 ### IMP-parser-TestParseMD\_FrontmatterParsed-5dd7032: TestParseMD\_FrontmatterParsed
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1723,7 +1723,7 @@ is parsed into the document's metadata and contributes no content: no node,
 no body prose.
 
 ### IMP-parser-TestParseFiles\_FrontmatterFirstFileWins-dc22cae: TestParseFiles\_FrontmatterFirstFileWins
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1737,7 +1737,7 @@ TestParseFiles_FrontmatterFirstFileWins pins the merge rule across the files
 of one document directory.
 
 ### IMP-parser-TestParseMD\_ChunkedFrontmatter-46e1b7d: TestParseMD\_ChunkedFrontmatter
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1752,7 +1752,7 @@ chunk 0 carries the file preamble, so it is the chunk that yields the
 metadata, and the block must not reach any node's body.
 
 ### IMP-parser-TestParseMD\_FrontmatterUnterminatedIsError-c4c6945: TestParseMD\_FrontmatterUnterminatedIsError
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1768,7 +1768,7 @@ opens a metadata block that is never closed. The extension accepts any run of
 dashes as a separator, so the guard has to as well.
 
 ### IMP-parser-TestParseMD\_IndentedCodeBlockBecomesFence-d343855: TestParseMD\_IndentedCodeBlockBecomesFence
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1783,7 +1783,7 @@ an indented block is re-emitted as a fence so the body keeps code semantics
 instead of losing its indentation markers.
 
 ### IMP-parser-TestParseMD\_FenceInfoPreserved-a762138: TestParseMD\_FenceInfoPreserved
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go
@@ -1797,7 +1797,7 @@ TestParseMD_FenceInfoPreserved verifies that everything after the language in
 a fence's info string survives the body round-trip, not just the language.
 
 ### IMP-parser-TestParseMD\_ChunkedFrontmatterSeparatorRule-db428aa: TestParseMD\_ChunkedFrontmatterSeparatorRule
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/parser/parser_test.go

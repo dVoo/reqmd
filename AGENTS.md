@@ -68,9 +68,9 @@ be level 2 or higher (a level-1 heading with a `reqmd` block is a parse
 error):
 
 - `KindRequirement` — heading (h2+) followed by a `reqmd` block (the zero
-  value). The fence info string is `reqmd`; `yaml reqmd` is accepted as the
-  opt-in YAML-highlighting variant and everything else is body content. Only these participate in validation, trace checks, coverage,
-  filtering.
+  value). The fence info string is `yaml reqmd`, which adds YAML highlighting;
+  the bare `reqmd` is accepted too and everything else is body content. Only
+  these participate in validation, trace checks, coverage, filtering.
 - `KindSection` — every other node: a heading without a `reqmd` block, or
   the headingless prose that precedes the first heading (Level 0). Whether
   it behaves like a folder (children) or a leaf prose block is derived from

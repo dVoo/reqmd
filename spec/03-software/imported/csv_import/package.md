@@ -4,7 +4,7 @@
 
 ## python/examples/csv\_import.py
 ### IMP-csv\_import-REQMD\_ID-40a56fc: REQMD\_ID
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/examples/csv_import.py
@@ -19,7 +19,7 @@ as written by hand in the spec tree. Anything else in a link column is treated
 as a native id of another item in this import.
 
 ### IMP-csv\_import-parse\_args-36b2a1a: parse\_args
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/examples/csv_import.py
@@ -29,7 +29,7 @@ trace: []
 ```
 
 ### IMP-csv\_import-parse\_attrs-7bd4b71: parse\_attrs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/examples/csv_import.py
@@ -39,7 +39,7 @@ trace: []
 ```
 
 ### IMP-csv\_import-split\_links-cff609f: split\_links
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/examples/csv_import.py
@@ -49,7 +49,7 @@ trace: []
 ```
 
 ### IMP-csv\_import-main-e03c6a6: main
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/examples/csv_import.py
@@ -59,7 +59,7 @@ trace: []
 ```
 
 ### IMP-csv\_import-\_walk-0223149: \_walk
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/examples/csv_import.py

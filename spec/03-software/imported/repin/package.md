@@ -4,7 +4,7 @@
 
 ## internal/repin/repin.go
 ### IMP-repin-Result-e706624: Result
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -21,7 +21,7 @@ The JSON field names form the stable contract for the
 `reqmd repin --json` interface.
 
 ### IMP-repin-ApplyReport-fe50f25: ApplyReport
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -38,7 +38,7 @@ never auto-fixes. Files is the number of distinct spec files
 actually rewritten.
 
 ### IMP-repin-Build-e76efe3: Build
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -56,7 +56,7 @@ a pin against a versioned upstream are also proposed for pinning
 The returned Result is sorted (delegated to graph.RepinDeltas).
 
 ### IMP-repin-Apply-5d0fd9b: Apply
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -84,7 +84,7 @@ function returns the error; the apply report lists every delta that was
 successfully applied.
 
 ### IMP-repin-applyToFile-396fcb0: applyToFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -110,7 +110,7 @@ substring match from corrupting an already-pinned ref like
 `UP-001~3` when the same ref is being promoted from unpinned.
 
 ### IMP-repin-refPair-3f3a0d2: refPair
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -124,7 +124,7 @@ matching. oldRef and newRef are []byte (not strings) to avoid
 repeated []byte() conversions inside the hot scan loop.
 
 ### IMP-repin-buildPairs-b1a95f0: buildPairs
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -137,7 +137,7 @@ buildPairs projects a slice of RepinDelta into refPairs, dropping
 any delta whose old ref already equals the new ref (no-op).
 
 ### IMP-repin-applyPairsToBlock-d1dd176: applyPairsToBlock
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -160,7 +160,7 @@ an Aho-Corasick automaton would be the single-pass alternative but
 is overkill here.
 
 ### IMP-repin-isRefBoundary-7978e98: isRefBoundary
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -183,7 +183,7 @@ checked:
      must never be rewritten.
 
 ### IMP-repin-newRefFrom-b432132: newRefFrom
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -200,7 +200,7 @@ The transform is:
    - "ID"         + newPin=3 → "ID~3"          (unpinned promote)
 
 ### IMP-repin-attrRange-a27fc5f: attrRange
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -213,7 +213,7 @@ attrRange is an inclusive [start, end) byte range covering the
 inner YAML of a reqmd block (NOT including the ``` fences).
 
 ### IMP-repin-locateAttrBlocks-482068e: locateAttrBlocks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -233,7 +233,7 @@ by an optional space/info segment. This matches the parser's
 attrFenceInfo convention exactly.
 
 ### IMP-repin-bytesSliceReplace-0712eaa: bytesSliceReplace
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -246,7 +246,7 @@ bytesSliceReplace returns a new []byte with src[start:end]
 replaced by replacement. Single allocation via nested appends.
 
 ### IMP-repin-stripPinForDisplay-6fee437: stripPinForDisplay
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -259,7 +259,7 @@ stripPinForDisplay removes a trailing ~N from a ref so the dry-run
 diff reads naturally. Delegates to model.StripPin.
 
 ### IMP-repin-FormatText-ef8de19: FormatText
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -276,7 +276,7 @@ shown by `reqmd repin` in dry-run mode. The format is:
 	N outdated + M unpinned + P predated refs across K files.
 
 ### IMP-repin-FormatTextApplied-c2e84fe: FormatTextApplied
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -290,7 +290,7 @@ Used after a successful --yes run.
 
 ## internal/repin/repin\_test.go
 ### IMP-repin-writeFile-e36944a: writeFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -304,7 +304,7 @@ writeFile creates a temp dir, writes content, and returns the dir path
 (caller is responsible for cleanup via t.TempDir()).
 
 ### IMP-repin-minimalSchema-67f296b: minimalSchema
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -318,7 +318,7 @@ only need the schema to exist (parser requires it); they don't
 validate the attrs strictly.
 
 ### IMP-repin-makeTree-1cd1113: makeTree
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -334,7 +334,7 @@ line is rendered exactly as supplied so we can assert byte-level
 edits in Apply.
 
 ### IMP-repin-TestBuild\_Outdated-1e31778: TestBuild\_Outdated
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -347,7 +347,7 @@ trace:
 Build
 
 ### IMP-repin-TestBuild\_PromoteUnpinned-9dcb605: TestBuild\_PromoteUnpinned
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -358,7 +358,7 @@ trace:
 ```
 
 ### IMP-repin-TestBuild\_NoPromoteUnpinned-0171e10: TestBuild\_NoPromoteUnpinned
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -369,7 +369,7 @@ trace:
 ```
 
 ### IMP-repin-TestBuild\_CurrentIsNoOp-e4931f1: TestBuild\_CurrentIsNoOp
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -380,7 +380,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_RewritesAttrBlockOnly-7f89609: TestApply\_RewritesAttrBlockOnly
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -393,7 +393,7 @@ trace:
 Apply: file rewrite semantics
 
 ### IMP-repin-TestApply\_PromoteAddsPin-026610f: TestApply\_PromoteAddsPin
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -404,7 +404,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_PreservesProseWithTilde-cc05272: TestApply\_PreservesProseWithTilde
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -415,7 +415,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_Idempotent-be9805f: TestApply\_Idempotent
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -426,7 +426,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_UnpinnedPromoteDoesNotCorruptPinnedSiblings-c1fd101: TestApply\_UnpinnedPromoteDoesNotCorruptPinnedSiblings
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -444,7 +444,7 @@ must use whole-ref matching so an unpinned ref never corrupts a
 pinned sibling.
 
 ### IMP-repin-TestApply\_SkipsPredated-6633c33: TestApply\_SkipsPredated
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -455,7 +455,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_MultipleDeltasSameFile-33d073f: TestApply\_MultipleDeltasSameFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -466,7 +466,7 @@ trace:
 ```
 
 ### IMP-repin-TestNewRefFrom-124c532: TestNewRefFrom
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -479,7 +479,7 @@ trace:
 newRefFrom
 
 ### IMP-repin-TestLocateAttrBlocks-c978a8e: TestLocateAttrBlocks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -492,7 +492,7 @@ trace:
 locateAttrBlocks
 
 ### IMP-repin-TestLocateAttrBlocks\_NoBlocks-ce0a15e: TestLocateAttrBlocks\_NoBlocks
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -503,7 +503,7 @@ trace:
 ```
 
 ### IMP-repin-TestLocateAttrBlocks\_IgnoresFencedButNotAttr-4a508d6: TestLocateAttrBlocks\_IgnoresFencedButNotAttr
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -514,7 +514,7 @@ trace:
 ```
 
 ### IMP-repin-TestFormatText\_Empty-aedec57: TestFormatText\_Empty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -527,7 +527,7 @@ trace:
 FormatText
 
 ### IMP-repin-TestFormatText\_Outdated-6b59b62: TestFormatText\_Outdated
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -538,7 +538,7 @@ trace:
 ```
 
 ### IMP-repin-TestResultJSON\_Roundtrip-82619ce: TestResultJSON\_Roundtrip
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -551,7 +551,7 @@ trace:
 JSON output
 
 ### IMP-repin-TestBuild\_SortedByFile-d604ba6: TestBuild\_SortedByFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -565,7 +565,7 @@ Sort order — repin reuses graph's sort; this is a regression test
 to ensure Build preserves it.
 
 ### IMP-repin-TestApply\_PreservesFileMode-ff4fcfc: TestApply\_PreservesFileMode
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go

@@ -54,7 +54,7 @@ Three parts make up each requirement:
 | Part | How it's written | Purpose |
 |------|------------------|---------|
 | **Heading** | `## REQ-001` — the ID, optionally followed by `: Title` | Gives the requirement its identity; reqmd reads the ID from the heading |
-| **Attributes** | A fenced code block tagged ```reqmd``` containing YAML (` ```yaml reqmd ` is accepted too, for YAML highlighting) | Structured data: `status`, `owner`, `trace`, and anything else your schema declares |
+| **Attributes** | A fenced code block tagged ```yaml reqmd``` containing YAML — the `yaml` tag gives highlighting (bare ```reqmd``` works too) | Structured data: `status`, `owner`, `trace`, and anything else your schema declares |
 | **Body** | Free-form Markdown prose after the `reqmd` block | The human-readable requirement statement |
 
 The *Rationale:* paragraph is optional but encouraged — it shows up in the HTML export and gives reviewers the *why*.

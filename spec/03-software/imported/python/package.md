@@ -4,7 +4,7 @@
 
 ## reqmd-code/internal/lang/python/python.go
 ### IMP-python-queriesFS-c8ef16c: queriesFS
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -16,7 +16,7 @@ trace: []
 go:embed queries/*.scm
 
 ### IMP-python-PythonLanguage-78bcb41: PythonLanguage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -28,7 +28,7 @@ trace: []
 PythonLanguage is the Python language plugin. Implements lang.Language.
 
 #### IMP-python-Name-c97ec76: Name
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -40,7 +40,7 @@ trace: []
 Name returns the canonical language identifier.
 
 #### IMP-python-Extensions-0f80cdb: Extensions
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -52,7 +52,7 @@ trace: []
 Extensions returns the file extensions this plugin handles.
 
 #### IMP-python-Grammar-9f8e02e: Grammar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -64,7 +64,7 @@ trace: []
 Grammar returns the tree-sitter-python grammar language.
 
 #### IMP-python-Query-cba0153: Query
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -78,7 +78,7 @@ If the query file is missing (a packaging error), it returns an empty
 query rather than panicking; Parse will then emit zero symbols.
 
 #### IMP-python-BindDoc-d920b70: BindDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -94,7 +94,7 @@ extractor regex is line-based, so the order of the two halves is
 immaterial. Returns the empty string when neither is present.
 
 #### IMP-python-Parse-3dc8efc: Parse
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -122,7 +122,7 @@ so that @method.decl wins over @func.decl when both point at the
 same node (methods take precedence over plain functions).
 
 ### IMP-python-cleanPythonComment-49cc265: cleanPythonComment
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -136,7 +136,7 @@ whitespace per line. Python's comment grammar produces a single
 node spanning one line (`# foo`), so this is a thin per-line pass.
 
 ### IMP-python-extractDocstring-598a161: extractDocstring
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -160,7 +160,7 @@ the prefix and delimiters, then trim each line. Any unexpected AST
 shape returns "" rather than panicking.
 
 ### IMP-python-stripDocstringDelimiters-335b922: stripDocstringDelimiters
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -176,7 +176,7 @@ docstring literal, then trims each line. Returns "" if the input
 is too short to contain the delimiters.
 
 ### IMP-python-symbolFromMatch-36ab32a: symbolFromMatch
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -190,7 +190,7 @@ The map keys are the @-names from queries/symbols.scm. Returns false
 when the match has no usable captures.
 
 ### IMP-python-primaryDeclNode-17bcd09: primaryDeclNode
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -203,7 +203,7 @@ primaryDeclNode returns the captured "decl" node for the match's
 dispatch category, or nil when the match carries no primary decl.
 
 ### IMP-python-enclosingClassName-d0cc098: enclosingClassName
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -221,7 +221,7 @@ produce such a match) or when the class has no name field (also
 defensive).
 
 ### IMP-python-init-c358feb: init
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python.go
@@ -232,7 +232,7 @@ trace: []
 
 ## reqmd-code/internal/lang/python/python\_test.go
 ### IMP-python-TestPythonLanguageRegisters-a4c10ad: TestPythonLanguageRegisters
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -247,7 +247,7 @@ itself with the global lang.Registry on package init, and that its
 Name/Extensions surface the expected values.
 
 ### IMP-python-TestPythonGrammarLoads-b58999d: TestPythonGrammarLoads
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -262,7 +262,7 @@ the binding is cgo and a nil return would indicate a broken FFI
 link or a missing grammar dynamic library.
 
 ### IMP-python-TestPythonQuery-f454545: TestPythonQuery
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -277,7 +277,7 @@ contribution); the skeleton ships a placeholder so this may pass
 with a one-line comment.
 
 ### IMP-python-TestCleanPythonComment-15afc45: TestCleanPythonComment
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -291,7 +291,7 @@ TestCleanPythonComment verifies the per-line # prefix stripping
 used by BindDoc for module-level # comments.
 
 ### IMP-python-TestBindDocNilNode-8a79417: TestBindDocNilNode
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -305,7 +305,7 @@ TestBindDocNilNode is a defensive guard: passing a nil node must
 return the empty string rather than panicking.
 
 ### IMP-python-TestParseSimple-9fec2e6: TestParseSimple
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -321,7 +321,7 @@ method. Verifies symbol count, kinds, and the method's Receiver
 (populated from the enclosing class_definition's name).
 
 ### IMP-python-TestParseClassLevelConstRejected-b350f83: TestParseClassLevelConstRejected
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -338,7 +338,7 @@ matches the expression_statement regardless of lexical context; the
 Go-side parent-chain walk must drop class-body matches.
 
 ### IMP-python-TestBindDocAboveDecorator-165622a: TestBindDocAboveDecorator
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -353,7 +353,7 @@ binds to the decorated function (the query captures the inner node, so
 the walk must start at the decorated_definition wrapper).
 
 ### IMP-python-TestParseDecoratedClassDedup-5790775: TestParseDecoratedClassDedup
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -370,7 +370,7 @@ and the `decorated_definition` unwrap; the node-identity dedup must
 collapse them.
 
 ### IMP-python-parseFirstFuncDef-50667f3: parseFirstFuncDef
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -386,7 +386,7 @@ Tests need direct AST access to call extractDocstring/BindDoc on
 a specific node; the public Parse path is exercised elsewhere.
 
 ### IMP-python-TestExtractDocstringTripleQuote-a0d35e3: TestExtractDocstringTripleQuote
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -401,7 +401,7 @@ TestExtractDocstringTripleQuote verifies that a single-line
 per-line whitespace trimmed.
 
 ### IMP-python-TestExtractDocstringMultiLine-26cf0ac: TestExtractDocstringMultiLine
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -416,7 +416,7 @@ TestExtractDocstringMultiLine verifies that a multi-line
 leading newline trimmed, and per-line whitespace trimmed.
 
 ### IMP-python-TestExtractDocstringSingleTripleQuote-ceec747: TestExtractDocstringSingleTripleQuote
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -430,7 +430,7 @@ TestExtractDocstringSingleTripleQuote verifies that `”'...”'`
 (single-quote triple) docstrings are also captured.
 
 ### IMP-python-TestExtractDocstringNoDocstring-ffb7811: TestExtractDocstringNoDocstring
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -444,7 +444,7 @@ TestExtractDocstringNoDocstring verifies that a function with no
 docstring returns the empty string.
 
 ### IMP-python-TestExtractDocstringRawPrefix-cfae201: TestExtractDocstringRawPrefix
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -460,7 +460,7 @@ source buffer includes the prefix, and our scanner must skip it
 before locating the triple-quote delimiters.
 
 ### IMP-python-TestBindDocIncludesDocstring-7d92880: TestBindDocIncludesDocstring
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -477,7 +477,7 @@ line. The trace extractor regex is line-based, so explicit
 references in the docstring are both picked up.
 
 ### IMP-python-TestBindDocDocstringOnly-2afde69: TestBindDocDocstringOnly
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go
@@ -493,7 +493,7 @@ case that previously returned "" and caused the `multiply`
 heuristic-trace test to fail.
 
 ### IMP-python-TestParseFunctionLocalConstRejected-3d5a3d0: TestParseFunctionLocalConstRejected
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/python/python_test.go

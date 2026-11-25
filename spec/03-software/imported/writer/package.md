@@ -4,7 +4,7 @@
 
 ## reqmd-import/internal/writer/writer.go
 ### IMP-writer-GeneratedMarker-c980113: GeneratedMarker
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -18,7 +18,7 @@ every generated file. The idempotent write path uses it to distinguish
 generated content from hand-authored content in the same tree.
 
 ### IMP-writer-legacyMarker-4a7dcdd: legacyMarker
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -33,7 +33,7 @@ overwrites an existing generated tree instead of mistaking it for
 hand-authored content.
 
 ### IMP-writer-KindRequirement-b12f9b5: KindRequirement
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -46,7 +46,7 @@ Kind discriminates a rendered item. A requirement gets a reqmd block; a
 section never does, which is the only difference reqmd cares about.
 
 ### IMP-writer-KindSection-c5fd98d: KindSection
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -59,7 +59,7 @@ Kind discriminates a rendered item. A requirement gets a reqmd block; a
 section never does, which is the only difference reqmd cares about.
 
 ### IMP-writer-Item-c445e3f: Item
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -73,7 +73,7 @@ reqmd ID (requirements only), the trace refs, and the remaining reqmd-block
 entries.
 
 #### IMP-writer-IsRequirement-440dc92: IsRequirement
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -87,7 +87,7 @@ explicit KindSection makes a section: the zero value is a requirement, so an
 item built without a kind can never silently lose its reqmd block.
 
 ### IMP-writer-File-24cd9e6: File
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -99,7 +99,7 @@ trace: []
 File is one rendered output file, relative to the output root.
 
 ### IMP-writer-IsGenerated-a943579: IsGenerated
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -111,7 +111,7 @@ trace: []
 IsGenerated reports whether content carries the generated marker.
 
 ### IMP-writer-Write-44afbbf: Write
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -126,7 +126,7 @@ the generated marker is left untouched so hand-authored files are never
 clobbered.
 
 ### IMP-writer-writeIfChanged-a5c5088: writeIfChanged
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -136,7 +136,7 @@ trace: []
 ```
 
 ### IMP-writer-RenderDocument-9c37809: RenderDocument
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -152,7 +152,7 @@ preamble prose, then the items in the order given. Depth is carried per item,
 so a section's children must follow it in the slice.
 
 ### IMP-writer-headingEscaper-3d460e9: headingEscaper
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -174,7 +174,7 @@ is a CommonMark escape, so the parsed heading text is identical to the
 authored one.
 
 ### IMP-writer-escapeHeading-6d2f897: escapeHeading
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -184,7 +184,7 @@ trace: []
 ```
 
 ### IMP-writer-RenderItem-136994f: RenderItem
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -194,7 +194,7 @@ trace: []
 ```
 
 ### IMP-writer-writeAttr-19d41f8: writeAttr
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -207,7 +207,7 @@ writeAttr writes the reqmd-block body: status first, then the remaining
 attributes in sorted key order (deterministic output), then the trace list.
 
 ### IMP-writer-writeAttrValue-844e649: writeAttrValue
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -217,7 +217,7 @@ trace: []
 ```
 
 ### IMP-writer-writeList-54a61a7: writeList
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -227,7 +227,7 @@ trace: []
 ```
 
 ### IMP-writer-scalar-57c235c: scalar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -237,7 +237,7 @@ trace: []
 ```
 
 ### IMP-writer-writeRefList-c76c778: writeRefList
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -249,7 +249,7 @@ trace: []
 writeRefList writes a YAML block list, or `key: []` when empty.
 
 ### IMP-writer-quoteIfNeeded-5d24016: quoteIfNeeded
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -267,7 +267,7 @@ scanner understands. Over-quoting is harmless; under-quoting silently
 changes the value's type.
 
 ### IMP-writer-plainScalarSafe-aada755: plainScalarSafe
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer.go
@@ -284,7 +284,7 @@ calls safe becomes corrupt.
 
 ## reqmd-import/internal/writer/writer\_test.go
 ### IMP-writer-firstLine-5d9de94: firstLine
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -294,7 +294,7 @@ trace: []
 ```
 
 ### IMP-writer-TestRenderDocument-13d0035: TestRenderDocument
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -305,7 +305,7 @@ trace:
 ```
 
 ### IMP-writer-TestRenderItemHeadingDepth-c23dda8: TestRenderItemHeadingDepth
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -316,7 +316,7 @@ trace:
 ```
 
 ### IMP-writer-TestRenderItemFieldsDeterministic-dfa5678: TestRenderItemFieldsDeterministic
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -327,7 +327,7 @@ trace:
 ```
 
 ### IMP-writer-TestRenderItemUnsupportedFieldType-6cb9e56: TestRenderItemUnsupportedFieldType
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -338,7 +338,7 @@ trace:
 ```
 
 ### IMP-writer-TestIsGenerated-7b1177d: TestIsGenerated
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -349,7 +349,7 @@ trace:
 ```
 
 ### IMP-writer-TestWriteIdempotent-90fb814: TestWriteIdempotent
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -362,7 +362,7 @@ trace:
 TestWriteIdempotent verifies a second Write produces byte-identical files.
 
 ### IMP-writer-TestWriteDoesNotClobberHandAuthored-44e4a21: TestWriteDoesNotClobberHandAuthored
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -376,7 +376,7 @@ TestWriteDoesNotClobberHandAuthored verifies a hand-authored file (no
 generated marker) is left untouched.
 
 ### IMP-writer-readAll-288c5bf: readAll
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -386,7 +386,7 @@ trace: []
 ```
 
 ### IMP-writer-TestRenderSection-3b14bb3: TestRenderSection
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -400,7 +400,7 @@ heading with no reqmd block, and an untitled section renders as a plain prose
 block (the document preamble and untitled sections use the same form).
 
 ### IMP-writer-TestQuoteIfNeeded-3ed73fa: TestQuoteIfNeeded
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -411,7 +411,7 @@ trace:
 ```
 
 ### IMP-writer-TestQuoteIfNeededRoundTrip-bf7ce49: TestQuoteIfNeededRoundTrip
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -422,7 +422,7 @@ trace:
 ```
 
 ### IMP-writer-TestRenderItemEscapesHeadingMarkdown-88484c4: TestRenderItemEscapesHeadingMarkdown
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go
@@ -437,7 +437,7 @@ Markdown metacharacters stays literal, so a package or symbol named
 `__init__` keeps its underscores in the parsed ID and title.
 
 ### IMP-writer-TestRenderDocumentEscapesTitle-7a45697: TestRenderDocumentEscapesTitle
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-import/internal/writer/writer_test.go

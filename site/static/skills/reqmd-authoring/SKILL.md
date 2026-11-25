@@ -85,8 +85,9 @@ The system shall complete the boot sequence within 2 seconds of ignition on.
 ````
 
 - The heading text is the ID plus optional title.
-- The `reqmd` fence language must be `reqmd` or `yaml reqmd` — the parser looks
-  for those two forms and nothing else.
+- The reqmd fence language is `yaml reqmd` (which adds YAML highlighting) or the
+  bare `reqmd` — the parser looks for those two forms and nothing else.
+  `reqmd-import` always writes the `yaml reqmd` form.
 - `*Rationale:*` is extracted and rendered separately; body prose is everything
   else.
 - Sub-requirements nest under the nearest shallower requirement heading.

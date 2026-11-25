@@ -4,7 +4,7 @@
 
 ## reqmd-code/internal/lang/helpers.go
 ### IMP-lang-IsTestFile-68ae539: IsTestFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
@@ -26,7 +26,7 @@ A new language adds its convention here, and can still mark inline tests
 through model.Symbol.IsTest.
 
 ### IMP-lang-HasAncestorKind-4f7ba1a: HasAncestorKind
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
@@ -42,7 +42,7 @@ some languages spell the same scope several ways (Go's function, method
 and func-literal).
 
 ### IMP-lang-CapturesByName-4d94612: CapturesByName
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
@@ -56,7 +56,7 @@ Capture names are resolved through the query's CaptureNames() slice, so
 the caller fetches that once per query and passes it in.
 
 ### IMP-lang-ModuleNameFromFile-8851a86: ModuleNameFromFile
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
@@ -69,7 +69,7 @@ ModuleNameFromFile returns the file's basename without its extension,
 the default package/module name for languages whose package is the file.
 
 ### IMP-lang-CaptureContent-447b610: CaptureContent
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
@@ -85,7 +85,7 @@ tree-sitter node text; previously each plugin reimplemented this
 3-liner.
 
 ### IMP-lang-SortByStartLine-a1bbfc8: SortByStartLine
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
@@ -99,7 +99,7 @@ Hoisted because every plugin's Parse returns symbols in source
 order but wants a defensive re-sort as the last step.
 
 ### IMP-lang-SymbolAt-2492232: SymbolAt
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers.go
@@ -116,7 +116,7 @@ of the Language contract.
 
 ## reqmd-code/internal/lang/registry.go
 ### IMP-lang-Language-a0504b1: Language
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/registry.go
@@ -132,7 +132,7 @@ registry caches a single instance per language and the extractor
 dispatches jobs to language plugins in parallel.
 
 ### IMP-lang-registry-70620c8: registry
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/registry.go
@@ -146,7 +146,7 @@ It is safe for concurrent reads after the init() phase; concurrent
 Register calls during init() are protected by a mutex.
 
 ### IMP-lang-globalRegistry-011cf43: globalRegistry
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/registry.go
@@ -156,7 +156,7 @@ trace: []
 ```
 
 ### IMP-lang-Register-dd7e002: Register
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/registry.go
@@ -170,7 +170,7 @@ a plugin's init() function. Duplicate registrations panic — they
 indicate a programming error (two packages claiming the same language).
 
 ### IMP-lang-Get-795ebc9: Get
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/registry.go
@@ -183,7 +183,7 @@ Get fetches a registered Language by name. Returns (nil, false) if
 the language is not registered.
 
 ### IMP-lang-All-37b991a: All
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/registry.go
@@ -197,7 +197,7 @@ output. Used by the --lang flag validation and by the
 extractor's language auto-detection pass.
 
 ### IMP-lang-ForExtension-6733a2b: ForExtension
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/registry.go

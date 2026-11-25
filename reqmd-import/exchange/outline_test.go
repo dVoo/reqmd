@@ -21,7 +21,7 @@ type outlineHeading struct {
 }
 
 // outline parses a rendered document into its headings. It only understands the
-// shape the renderer produces (ATX headings, opaque ```reqmd blocks), which is
+// shape the renderer produces (ATX headings, opaque ```yaml reqmd blocks), which is
 // exactly what the assertions need.
 func outline(t *testing.T, md string) []outlineHeading {
 	t.Helper()
@@ -40,7 +40,7 @@ func outline(t *testing.T, md string) []outlineHeading {
 			if next == "" {
 				continue
 			}
-			if next != "```reqmd" {
+			if next != "```yaml reqmd" {
 				break
 			}
 			var block []string

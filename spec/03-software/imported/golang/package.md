@@ -4,7 +4,7 @@
 
 ## reqmd-code/internal/lang/go/go.go
 ### IMP-golang-queriesFS-7964ef0: queriesFS
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -16,7 +16,7 @@ trace: []
 go:embed queries/*.scm
 
 ### IMP-golang-GoLanguage-74f4861: GoLanguage
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -28,7 +28,7 @@ trace: []
 GoLanguage is the Go language plugin. Implements lang.Language.
 
 #### IMP-golang-Name-ec0c08e: Name
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -40,7 +40,7 @@ trace: []
 Name returns the canonical language identifier.
 
 #### IMP-golang-Extensions-5856f63: Extensions
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -52,7 +52,7 @@ trace: []
 Extensions returns the file extensions this plugin handles.
 
 #### IMP-golang-Grammar-21e98b6: Grammar
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -64,7 +64,7 @@ trace: []
 Grammar returns the tree-sitter-go grammar language.
 
 #### IMP-golang-Query-6dfeccb: Query
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -78,7 +78,7 @@ If the query file is missing (a packaging error), it returns an empty
 query rather than panicking; Parse will then emit zero symbols.
 
 #### IMP-golang-BindDoc-6672a28: BindDoc
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -94,7 +94,7 @@ and strips comment markers. Returns the empty string when no
 preceding comment is present.
 
 #### IMP-golang-Parse-494f364: Parse
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -114,7 +114,7 @@ detectable package get Package = "" — callers can fall back to the
 file's parent directory if needed.
 
 ### IMP-golang-cleanComment-43de13f: cleanComment
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -128,7 +128,7 @@ whitespace. `///` godoc lines are reduced to `//` form so callers
 don't need to know about that distinction.
 
 ### IMP-golang-symbolFromMatch-e334dce: symbolFromMatch
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -142,7 +142,7 @@ The map keys are the @-names from queries/symbols.scm. Returns false
 when the match has no usable captures.
 
 ### IMP-golang-receiverType-f900c3c: receiverType
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -157,7 +157,7 @@ whose first `parameter_declaration` holds `<name> <type>`; we surface
 the type text (e.g. `*Foo` or `Foo`).
 
 ### IMP-golang-init-1865057: init
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go.go
@@ -168,7 +168,7 @@ trace: []
 
 ## reqmd-code/internal/lang/go/go\_test.go
 ### IMP-golang-TestCleanCommentMarkerSpacing-01e8b2e: TestCleanCommentMarkerSpacing
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
@@ -188,7 +188,7 @@ TestCleanCommentMarkerSpacing pins the space handling that makes
 doc code blocks intact.
 
 ### IMP-golang-TestParseSample-0f1d96a: TestParseSample
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
@@ -199,7 +199,7 @@ trace:
 ```
 
 ### IMP-golang-TestParseLocalConstVarSkipped-cd0e041: TestParseLocalConstVarSkipped
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
@@ -216,7 +216,7 @@ collide on the same requirement ID (the ID hashes package + name only).
 The package-level blank identifier `var _ T = ...` is also skipped.
 
 ### IMP-golang-TestParseEmpty-a722689: TestParseEmpty
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
@@ -229,7 +229,7 @@ trace:
 TestParseEmpty handles zero-byte and unparseable input gracefully.
 
 ### IMP-golang-TestParseNoSymbols-6f116a4: TestParseNoSymbols
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
@@ -244,7 +244,7 @@ TestParseNoSymbols handles a file with no top-level declarations
 symbols.
 
 ### IMP-golang-TestParseFromDisk-5238d95: TestParseFromDisk
-```reqmd
+```yaml reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/go/go_test.go
