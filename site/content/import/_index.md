@@ -17,10 +17,25 @@ Both are handled the same way: a small producer emits one JSON bundle in the
 the actual reqmd documents. Nobody but the renderer writes `attr` blocks or
 `schema.yaml`.
 
-```
-DOORS / codeBeamer / CSV ──▶ your script ──▶ exchange JSON ──┐
-                                                             ├─▶ reqmd-import ──▶ .md + schema.yaml ──▶ reqmd check
-source code (tree-sitter) ─▶ reqmd-code ────▶ exchange JSON ─┘
+```mermaid
+flowchart TD
+  ALM["DOORS · codeBeamer<br/>CSV · your script"]:::external
+  CODE["tree-sitter source<br/>reqmd-code"]:::tool
+  BUNDLE(["Exchange bundle v1<br/>JSON contract"]):::hero
+  IMP[["reqmd-import<br/>sole MD/YAML writer"]]:::tool
+  OUT[".md + schema.yaml"]:::artifact
+  CHK("reqmd check"):::tool
+
+  ALM -->|JSON| BUNDLE
+  CODE -->|JSON| BUNDLE
+  BUNDLE -->|single renderer| IMP
+  IMP ==>|writes| OUT
+  OUT -.->|validates| CHK
+
+  classDef hero fill:#4f46e5,stroke:#3730a3,stroke-width:2px,color:#ffffff
+  classDef tool fill:#eef2ff,stroke:#4f46e5,stroke-width:2px,color:#18181b
+  classDef external fill:#f4f4f5,stroke:#71717a,stroke-width:1.5px,color:#18181b
+  classDef artifact fill:#ecfdf5,stroke:#16a34a,stroke-width:1.5px,color:#18181b
 ```
 
 Why one renderer: a second Markdown writer in Python (or Java, or DXL) would
@@ -100,14 +115,29 @@ The agent — and the human — can then answer questions like:
 
 ## Architecture
 
-```
-  walkdir (per-file)                    JSON bundle (exchange v1)
-    → language plugin (tree-sitter)            │
-      → symbols, test links                    ▼
-        → JSON bundle  ────────────────▶  reqmd-import
-                                           ├─ schema.yaml per document
-                                           ├─ .md per document (hierarchical headings)
-                                           └─ idempotent write-if-changed, marker-guarded
+```mermaid
+flowchart TD
+  subgraph SG_CODE["1 · extract — reqmd-code"]
+    W["walkdir<br/>per file"]:::external
+    P["tree-sitter<br/>language plugin"]:::tool
+    S["symbols + test links"]:::tool
+    W --> P --> S
+  end
+
+  subgraph SG_IMP["2 · render — reqmd-import"]
+    V["decode + validate<br/>one pass · all<br/>violations"]:::tool
+    D["schema.yaml<br/>+ .md per document"]:::artifact
+    I["write if changed<br/>marker-guarded"]:::artifact
+    V --> D --> I
+  end
+
+  S -->|exchange v1<br/>bundle| V
+
+  style SG_CODE fill:transparent,stroke:#71717a,stroke-dasharray:4 3
+  style SG_IMP fill:transparent,stroke:#71717a,stroke-dasharray:4 3
+  classDef tool fill:#eef2ff,stroke:#4f46e5,stroke-width:2px,color:#18181b
+  classDef external fill:#f4f4f5,stroke:#71717a,stroke-width:1.5px,color:#18181b
+  classDef artifact fill:#ecfdf5,stroke:#16a34a,stroke-width:1.5px,color:#18181b
 ```
 
 Each stage is independently testable. The renderer's idempotency guarantee

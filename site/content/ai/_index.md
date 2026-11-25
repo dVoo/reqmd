@@ -12,15 +12,22 @@ This page is written for two audiences. **If you're building an agent**, you'll 
 
 A spec-writing agent drives a tight four-step loop. Each step is fast enough to sit in the same tool call budget as reading a file:
 
-```
-   ┌─────────────────────────────────────────────────────┐
-   │  1. READ  cat spec/02-system/features.md           │
-   │  2. EDIT  write the new SYS-007 heading + attr     │
-   │  3. CHECK reqmd check spec/  (16 ms, exits 0/1/2)  │
-   │  4. JSON  reqmd check --json spec/  (parse verdict)│
-   └─────────────────────────────────────────────────────┘
-                            ↓
-                     iterate on ❌ findings
+```mermaid
+flowchart TD
+  R["1 · Read<br/>the spec +<br/>schema.yaml"]:::external
+  E["2 · Edit<br/>heading + attr block"]:::external
+  C["3 · Check<br/>reqmd check spec/<br/>16 ms"]:::tool
+  D(["Done"]):::artifact
+  J["4 · Parse verdict<br/>reqmd check --json"]:::tool
+
+  R --> E --> C
+  C -->|exit 0 · clean| D
+  C -->|exit 1 or 2| J
+  J -->|iterate on the findings| E
+
+  classDef tool fill:#eef2ff,stroke:#4f46e5,stroke-width:2px,color:#18181b
+  classDef external fill:#f4f4f5,stroke:#71717a,stroke-width:1.5px,color:#18181b
+  classDef artifact fill:#ecfdf5,stroke:#16a34a,stroke-width:1.5px,color:#18181b
 ```
 
 The check is the contract. The agent doesn't read the spec to "understand" it — it reads the JSON verdict, sees the failed checks, and fixes them. The same loop works for:

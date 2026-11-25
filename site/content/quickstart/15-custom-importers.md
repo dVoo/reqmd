@@ -13,9 +13,25 @@ Nobody should have to hand-write `attr` blocks, `schema.yaml`, or heading
 levels. Instead, every producer emits **one JSON exchange format**, and a single
 renderer turns it into reqmd documents:
 
-```text
-DOORS / codeBeamer / CSV ──▶ your script ──▶ exchange bundle ──▶ reqmd-import ──▶ .md + schema.yaml
-source code (tree-sitter) ─▶ reqmd-code ────────────────────────┘
+```mermaid
+flowchart TD
+  ALM["DOORS · codeBeamer<br/>CSV · your script"]:::external
+  CODE["tree-sitter source<br/>reqmd-code"]:::tool
+  BUNDLE(["Exchange bundle v1<br/>JSON contract"]):::hero
+  IMP[["reqmd-import<br/>sole MD/YAML writer"]]:::tool
+  OUT[".md + schema.yaml"]:::artifact
+  CHK("reqmd check"):::tool
+
+  ALM -->|JSON| BUNDLE
+  CODE -->|JSON| BUNDLE
+  BUNDLE -->|single renderer| IMP
+  IMP ==>|writes| OUT
+  OUT -.->|validates| CHK
+
+  classDef hero fill:#4f46e5,stroke:#3730a3,stroke-width:2px,color:#ffffff
+  classDef tool fill:#eef2ff,stroke:#4f46e5,stroke-width:2px,color:#18181b
+  classDef external fill:#f4f4f5,stroke:#71717a,stroke-width:1.5px,color:#18181b
+  classDef artifact fill:#ecfdf5,stroke:#16a34a,stroke-width:1.5px,color:#18181b
 ```
 
 The format is the extension point. There is only one renderer (Go), so a Python

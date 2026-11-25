@@ -179,14 +179,32 @@ conventions live in one place (`lang.IsTestFile`).
 
 ## Architecture
 
-```
-walkdir (per-file)
-  → language plugin (tree-sitter)
-    → symbols (+ IsTest)
-      → doc-comment binding
-        → trace classification (IDs / symbols / none / malformed)
-          → exact symbol resolution + optional --link-tests conventions
-            → exchange bundle (JSON)
+```mermaid
+flowchart TD
+  subgraph SG_EXT["1 · extract"]
+    direction TB
+    C1["walkdir<br/>per file"]:::external
+    C2["tree-sitter<br/>language plugin"]:::tool
+    C3["symbols<br/>(+ IsTest)"]:::tool
+    C1 --> C2 --> C3
+  end
+
+  subgraph SG_RES["2 · bind & resolve"]
+    direction TB
+    C4["doc-comment<br/>binding"]:::tool
+    C5["trace classification<br/>IDs · symbols ·<br/>none · malformed"]:::tool
+    C6["exact symbol<br/>resolution<br/>+ --link-tests"]:::tool
+    C4 --> C5 --> C6
+  end
+
+  C3 -->|per-package dedup| C4
+  C6 ==> C7(["exchange bundle (JSON)"]):::hero
+
+  style SG_EXT fill:transparent,stroke:#71717a,stroke-dasharray:4 3
+  style SG_RES fill:transparent,stroke:#71717a,stroke-dasharray:4 3
+  classDef hero fill:#4f46e5,stroke:#3730a3,stroke-width:2px,color:#ffffff
+  classDef tool fill:#eef2ff,stroke:#4f46e5,stroke-width:2px,color:#18181b
+  classDef external fill:#f4f4f5,stroke:#71717a,stroke-width:1.5px,color:#18181b
 ```
 
 Per-package deduplication happens before the symbol index is built, so

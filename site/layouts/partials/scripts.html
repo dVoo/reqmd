@@ -16,7 +16,7 @@
         "url"     .RelPermalink
         "section" ($section | humanize | title)
         "summary" (.Description | default (.Summary | plainify))
-        "content" (.Plain | plainify)
+        "content" (partial "page-text.gotmpl" .)
     -}}
     {{- $idx = $idx | append $entry -}}
   {{- end -}}

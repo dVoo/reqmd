@@ -1,0 +1,5 @@
+{{- /* Plain text of a page for the search index, minus diagram source: the mermaid
+       render hook keeps the diagram's markup in .Content, and its source text
+       would otherwise pollute search results. */ -}}
+{{- $html := .Content | replaceRE `(?s)<div class="mermaid"[^>]*>.*?</div>` "" -}}
+{{- return (plainify $html) -}}

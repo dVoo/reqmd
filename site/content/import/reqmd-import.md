@@ -114,13 +114,24 @@ Full field reference, every rule and two complete examples:
 
 ## Architecture
 
-```
-JSON bundle (exchange v1)
-  → decode + validate (one pass, all violations, item paths)
-    → resolve keys, links, IDs and status mapping
-      → schema.yaml per document
-        → .md per document (hierarchical headings)
-          → idempotent write-if-changed, marker-guarded
+```mermaid
+flowchart TD
+  IN(["exchange bundle v1"]):::hero
+  V["decode + validate<br/>one pass · all<br/>violations · item paths"]:::tool
+  R["keys, links → IDs<br/>+ status mapping"]:::tool
+  SCH["schema.yaml<br/>per document"]:::artifact
+  MD[".md headings<br/>per document"]:::artifact
+  W[["write if changed<br/>marker-guarded"]]:::tool
+
+  IN --> V --> R
+  R --> SCH
+  R --> MD
+  SCH ==> W
+  MD ==> W
+
+  classDef hero fill:#4f46e5,stroke:#3730a3,stroke-width:2px,color:#ffffff
+  classDef tool fill:#eef2ff,stroke:#4f46e5,stroke-width:2px,color:#18181b
+  classDef artifact fill:#ecfdf5,stroke:#16a34a,stroke-width:1.5px,color:#18181b
 ```
 
 Validation happens before any file is written, and re-running unchanged input

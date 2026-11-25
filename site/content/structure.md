@@ -40,15 +40,25 @@ Two questions pick the mechanism: *same or separate repo?* and *temporary or per
 - **Fork** (separate repo, permanent) — a permanently independent repo with its own release cadence and review. See [Forks](#forks).
 - **Wrong tool** (separate repo, temporary) — the empty cell. A branch that never merges and never dies is a fork or a variant, not a branch.
 
-The decision flow, as questions:
+The decision flow:
 
-```
-Will the two things reconcile (merge or die)?
-  yes → branch
-  no → Do they release and review independently
-       (separate cadence, no shared check)?
-    yes → fork (separate repo)
-    no  → variant attribute (one tree, one check, one review)
+```mermaid
+flowchart TD
+  Q1{"Reconcile?<br/>merge or die"}:::decision
+  BR["Branch<br/>same repo · temporary"]:::branch
+  Q2{"Release &amp; review<br/>independently?"}:::decision
+  FK["Fork<br/>separate repo · own check"]:::fork
+  VR["Variant attribute<br/>one tree · one check"]:::variant
+
+  Q1 -->|yes| BR
+  Q1 -->|no| Q2
+  Q2 -->|yes| FK
+  Q2 -->|no| VR
+
+  classDef decision fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#18181b
+  classDef branch fill:#fce8e6,stroke:#ea4335,stroke-width:2px,color:#18181b
+  classDef fork fill:#f3e8fd,stroke:#9c27b0,stroke-width:2px,color:#18181b
+  classDef variant fill:#fef3e8,stroke:#fbbc04,stroke-width:2px,color:#18181b
 ```
 
 **Primary discriminator — the independence test.** If the two things release and review independently (separate cadence, no shared `check`), they're a fork. If they must ship together from one commit and share one review, they're variants. **The validation test** is the reqmd-native corollary: variants must pass `check` against each other in one tree ("A adds over B" must be answerable from one commit); forks are validated separately.

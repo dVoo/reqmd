@@ -339,13 +339,23 @@ No — that's the point. Variant differences live in the `variant` attribute of 
 {{< details summary="How do I choose between branches, variant attributes, forks, submodules, and subtrees?" card="true" >}}
 Three axes of divergence, one decision flow:
 
-```
-Will the two things reconcile (merge or die)?
-  yes → branch
-  no → Do they release and review independently
-       (separate cadence, no shared check)?
-    yes → fork (separate repo)
-    no  → variant attribute (one tree, one check, one review)
+```mermaid
+flowchart TD
+  Q1{"Reconcile?<br/>merge or die"}:::decision
+  BR["Branch<br/>same repo · temporary"]:::branch
+  Q2{"Release &amp; review<br/>independently?"}:::decision
+  FK["Fork<br/>separate repo · own check"]:::fork
+  VR["Variant attribute<br/>one tree · one check"]:::variant
+
+  Q1 -->|yes| BR
+  Q1 -->|no| Q2
+  Q2 -->|yes| FK
+  Q2 -->|no| VR
+
+  classDef decision fill:#fffbeb,stroke:#b45309,stroke-width:1.5px,color:#18181b
+  classDef branch fill:#fce8e6,stroke:#ea4335,stroke-width:2px,color:#18181b
+  classDef fork fill:#f3e8fd,stroke:#9c27b0,stroke-width:2px,color:#18181b
+  classDef variant fill:#fef3e8,stroke:#fbbc04,stroke-width:2px,color:#18181b
 ```
 
 The primary discriminator is the **independence test**: if the two things release and review independently (separate cadence, no shared `check`), they're a fork; if they must ship together from one commit and share one review, they're variants. The reqmd-native corollary is the **validation test**: if they must pass `check` against each other in one tree, they're variants. **Submodules and subtrees** are orthogonal — ownership/assembly mechanisms that compose with all three, not a fourth axis.
