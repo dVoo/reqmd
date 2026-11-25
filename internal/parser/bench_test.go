@@ -6,7 +6,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-// benchAttr is a representative minimal attr block: two scalars, one int, one
+// benchAttr is a representative minimal reqmd block: two scalars, one int, one
 // list with pins. Both benchmarks decode it so the scanner's advantage stays
 // measurable — it is ~15x faster than yaml.v3 (1784 vs 27608 ns/op, 14 vs 140
 // allocs) and that is why the fast path exists at all. If the gap ever closes,
@@ -57,14 +57,14 @@ func BenchmarkParseMD(b *testing.B) {
 }
 
 // syntheticDoc builds a document of roughly n bytes made of root-level
-// requirements with attr blocks — the shape that exercises both the
+// requirements with reqmd blocks — the shape that exercises both the
 // root-split pre-scan (above parseParallelThreshold) and the chunked
 // parallel parse.
 func syntheticDoc(n int) []byte {
 	var b []byte
 	b = append(b, "# Bench document\n\n"...)
 	for i := len(b); i < n; i = len(b) {
-		b = append(b, "## BENCH-000: A requirement heading used for benchmarking\n```attr\nstatus: approved\nversion: 1\ntrace:\n  - STK-001\n```\n\nShort prose body for the requirement.\n\n"...)
+		b = append(b, "## BENCH-000: A requirement heading used for benchmarking\n```reqmd\nstatus: approved\nversion: 1\ntrace:\n  - STK-001\n```\n\nShort prose body for the requirement.\n\n"...)
 	}
 	return b
 }

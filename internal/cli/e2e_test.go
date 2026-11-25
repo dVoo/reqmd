@@ -56,7 +56,7 @@ func TestE2E_ExchangeBundleToCheckAndExports(t *testing.T) {
 		t.Fatalf("check reported invalid requirements:\n%s", out)
 	}
 
-	// 2. A section is structure, an attr-block heading is content: the same
+	// 2. A section is structure, a reqmd-block heading is content: the same
 	//    split must hold in the parsed tree.
 	docs, err := parser.Discover(root)
 	if err != nil {
@@ -159,17 +159,17 @@ Chapter intro.
 
 ### SYS-001: Braking
 
-`+"```attr\nstatus: approved\nvariant: [Base]\n```\n"+`
+`+"```reqmd\nstatus: approved\nvariant: [Base]\n```\n"+`
 ### SYS-002: Pressure
 
-`+"```attr\nstatus: approved\nvariant: [Premium]\n```\n"+`
+`+"```reqmd\nstatus: approved\nvariant: [Premium]\n```\n"+`
 ## Legacy
 
 Superseded chapter.
 
 ### SYS-003: Old behaviour
 
-`+"```attr\nstatus: approved\nvariant: [Base]\n```\n"+`
+`+"```reqmd\nstatus: approved\nvariant: [Base]\n```\n"+`
 ## Notes
 
 A leaf information item with no requirements.

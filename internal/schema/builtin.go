@@ -2,7 +2,7 @@
 //
 // reqmd reserves a set of attribute names that have tool-level meaning:
 // trace, disposition, disposition-reason, requires-trace-from, version, status.
-// These attributes are always valid in any attr block — they are injected
+// These attributes are always valid in any reqmd block — they are injected
 // into every schema before JSON Schema validation runs. Users must not
 // redefine them in schema.yaml.
 package schema

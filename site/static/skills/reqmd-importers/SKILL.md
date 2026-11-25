@@ -51,7 +51,7 @@ doc = Document(
         "external": True,              # a mirror of content authored elsewhere
         "dir": "brakes",               # output directory; omit to use the key
     },
-    properties={"priority": {"type": "string"}},   # attr-block JSON Schema
+    properties={"priority": {"type": "string"}},   # reqmd-block JSON Schema
     required=["priority"],
 )
 ```

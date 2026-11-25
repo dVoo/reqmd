@@ -35,9 +35,9 @@ func runCmd(t *testing.T, cmd *cobra.Command, args ...string) (string, error) {
 	return buf.String(), err
 }
 
-// mdReq renders a requirement heading plus its ```attr YAML block.
+// mdReq renders a requirement heading plus its ```reqmd YAML block.
 func mdReq(id, title, attrs string) string {
-	return fmt.Sprintf("## %s: %s\n```attr\n%s```\n\n", id, title, attrs)
+	return fmt.Sprintf("## %s: %s\n```reqmd\n%s```\n\n", id, title, attrs)
 }
 
 // variantSchema is a minimal schema declaring the custom `variant`

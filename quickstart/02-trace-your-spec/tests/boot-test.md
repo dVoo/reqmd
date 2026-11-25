@@ -1,7 +1,7 @@
 # Boot Tests
 
 ## TEST-001: Boot Time Measurement
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -11,7 +11,7 @@ trace: [software/SW-001, system/SYS-001]
 The test shall measure boot time on reference hardware and assert it is ≤ 5 s.
 
 ## TEST-002: Boot Sequence Design Review
-```attr
+```reqmd
 status: approved
 verify: Review
 test-type: unit

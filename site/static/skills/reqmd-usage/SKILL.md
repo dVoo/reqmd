@@ -62,7 +62,7 @@ schemas, use the `reqmd-authoring` skill instead.
    shows the attribute-value breakdown per document.
 2. **Baseline.** `reqmd check <root>` — note existing warnings before you
    change anything, so you only fix what you touched.
-3. **Edit** the requirement's heading or `attr` block (see `reqmd-authoring`).
+3. **Edit** the requirement's heading or `reqmd` block (see `reqmd-authoring`).
 4. **Re-check.** `reqmd check <root>`. Fix ERROR-level findings before continuing. Then scan
    warnings introduced by your edit.
 5. **Report** using `--json` when a machine consumes the result.
@@ -86,7 +86,7 @@ To add or repair a trace:
      `x-reqmd.document-id`. Prefer this when prefixes may collide, when
      documents move, or when assembling git submodules.
    - `trace: [SYS-001~3]` — pin the upstream version you verified against.
-3. **Edit only the `attr` block** of the downstream requirement.
+3. **Edit only the `reqmd` block** of the downstream requirement.
 4. **Re-check.** An unqualified ref that matches IDs in two documents is an
    ERROR (`ambiguous reference`) — qualify it.
 

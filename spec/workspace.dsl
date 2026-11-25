@@ -12,12 +12,12 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
         reqmd = softwareSystem "ReqMD Toolchain" "Text-first authoring, validation, export" {
 
             specRepo = container "Specification Repository" "Git repo holding *.md and schema.yaml" "Git / plain text" "Repository" {
-                mdFiles    = component "*.md Spec Files"   "Requirement prose + attr blocks + YAML frontmatter per subsystem" "Markdown"
+                mdFiles    = component "*.md Spec Files"   "Requirement prose + reqmd blocks + YAML frontmatter per subsystem" "Markdown"
                 schemaFile = component "schema.yaml"   "JSON Schema 2020-12 in YAML + x-reqmd upstream" "YAML"
             }
 
             reqmdCli = container "reqmd CLI" "Go binary: check, ls, stats, export (CSV/HTML/NDJSON/graph), serve (live-reload), baseline diff, repin (version-pin updates), init — all with --json and --filter output" "Go 1.27" "CLI" {
-                parser       = component "Markdown Parser"  "Discovers schema.yaml per dir and parses .md via goldmark AST with GFM and parallel worker pool; assembles the full content tree (every heading is a node except the level-1 document title: requirement, or section when it has no attr block; h1 is the title and only h2+ can be requirements) with nothing dropped and deterministic file-order merging" "Go / goldmark"
+                parser       = component "Markdown Parser"  "Discovers schema.yaml per dir and parses .md via goldmark AST with GFM and parallel worker pool; assembles the full content tree (every heading is a node except the level-1 document title: requirement, or section when it has no reqmd block; h1 is the title and only h2+ can be requirements) with nothing dropped and deterministic file-order merging" "Go / goldmark"
                 validator    = component "Schema Validator" "Injects built-in attrs (including the status lifecycle and additional-status-values), rejects reserved-name redefinition, validates attr maps against JSON Schema 2020-12, and accepts reqmd-suppress per requirement" "Go / google/jsonschema-go"
                 graphBuilder = component "Graph Builder"    "Builds in-memory adjacency from parsed requirements, resolves doc-id-qualified traces, indexes x-reqmd.level for level-typed requires-trace-from coverage, and resolves each requirement's effective requires-trace-from (own attribute or inherited x-reqmd.requires-trace-from document default)" "Go"
                 traceChecker = component "Trace Checker"   "Runs the graph check catalog against the in-memory node cache: structural integrity, boundary-aware coverage, disjoint attributes, version pins, and outcome-gated verdicts with the strict evidence roll-up; honors per-requirement reqmd-suppress" "Go"
@@ -29,7 +29,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
                 reporter     = component "Reporter"        "Aggregates Pass 1 and graph check results, groups result-attributed findings into a verification section, emits formatted or JSON output, sets exit code" "Go"
                 differ       = component "Baseline Differ" "Compares requirements and schemas between two git tags via git archive, using r3labs/diff for attribute-level changes" "Go / r3labs-diff"
                 verifyLoader = component "Verify Loader"   "Loads ephemeral verification results (CTRF JSON + manual markdown), binds entries via x-reqmd id/case/verifies, synthesizes RESULT: pseudo-requirements and TC:<case> test-case nodes (marked Synthetic), feeds them to the graph for rolled-up outcome-gated checks" "Go / stdlib"
-                repinner     = component "Repinner"        "Computes version-pin deltas from the graph and rewrites ```attr blocks in place to update ~N pins to the upstream's current version" "Go / stdlib"
+                repinner     = component "Repinner"        "Computes version-pin deltas from the graph and rewrites ```reqmd blocks in place to update ~N pins to the upstream's current version" "Go / stdlib"
             }
         }
 
@@ -55,7 +55,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
 
             exchangeFormat = container "Exchange Format" "reqmd-import/v1 JSON contract: a $schema URL, documents carrying a stable key, title, per-document properties/required and an optional x-reqmd block (id-prefix, level, document-id, upstream, requires-trace-from, external, dir, file), plus a nested item tree whose kind is requirement (key, title, status, fields) or section. Building a bundle rejects a wrong $schema, empty document lists, duplicate or malformed document and item keys, a missing title or kind, fields on a section, undeclared or nested attr values, unresolved links, links to sections, escaping directories, nesting deeper than six heading levels, and duplicate output paths" "JSON"
 
-            renderer = container "Document Renderer" "Resolves item keys to reqmd IDs, renders the nested item tree in the order given with heading depth from nesting level, renders attr blocks with correct YAML quoting, emits each document's schema.yaml, and writes files idempotently behind a generated marker" "Go" "CLI" {
+            renderer = container "Document Renderer" "Resolves item keys to reqmd IDs, renders the nested item tree in the order given with heading depth from nesting level, renders reqmd blocks with correct YAML quoting, emits each document's schema.yaml, and writes files idempotently behind a generated marker" "Go" "CLI" {
                 idResolver   = component "ID & Reference Resolver"   "Stamps <id-prefix><key>, rewrites links to the referenced requirement's full ID (qualifying a cross-document link with its document), passes refs through verbatim, and rejects duplicate keys, unresolved links, links to sections, reserved attrs, and escaping paths" "Go"
                 schemaWriter = component "Schema Writer"             "Emits a document's schema.yaml from its properties/required plus the x-reqmd block (level, document-id, id-prefix, upstream, external)" "Go / yaml.v3"
             }
@@ -104,7 +104,7 @@ workspace "ReqMD" "Specification authoring, validation, export, source-code and 
         verifyLoader -> graphBuilder  "Synthesizes RESULT: pseudo-requirements and appends to doc slice before graph build"
         verifyLoader -> parser        "Reuses parser.Discover for manual-results markdown dirs"
         repinner     -> graphBuilder "Reads OutboundPins and OutboundRefs from graph to compute version-pin deltas"
-        repinner     -> specRepo     "Rewrites ```attr blocks in .md files to update ~N pins"
+        repinner     -> specRepo     "Rewrites ```reqmd blocks in .md files to update ~N pins"
         traceChecker -> verifyLoader  "Runs missing-verdict / failing-verdict checks against result nodes"
         filter       -> parser        "Validates filter attribute names against all parsed schemas"
         filter       -> graphBuilder  "Scopes per-requirement checks and coverage to matching requirements"

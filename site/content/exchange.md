@@ -99,7 +99,7 @@ way to declare a tree level or a shared id-prefix.
 | `key` | string | requirements | Stable identity, unique within the document, no whitespace. |
 | `title` | string | no | Heading text (a single line). An untitled section renders as plain prose with no heading. |
 | `body` | string | no | Markdown prose. **Must not contain headings** (see §6). |
-| `fields` | object | no | Attributes of the generated attr block. Requirements only. |
+| `fields` | object | no | Attributes of the generated reqmd block. Requirements only. |
 | `status` | string | no | Free-form status; the renderer maps it (see §8). |
 | `links` | array of strings | no | Keys of other items. Must resolve. |
 | `refs` | array of strings | no | External requirement IDs, passed through verbatim. |
@@ -107,14 +107,14 @@ way to declare a tree level or a shared id-prefix.
 
 ### `kind`
 
-- **`requirement`** — content. Renders as a heading with an `attr` block, takes
+- **`requirement`** — content. Renders as a heading with a `reqmd` block, takes
   part in validation, tracing, coverage and every export. Requires `key`.
 - **`section`** — structure. Renders as a heading with prose and children, and
-  gets no `attr` block. Never validated, never traced to, never counted as
+  gets no `reqmd` block. Never validated, never traced to, never counted as
   coverage. Rejects `fields` and `status`.
 
 That is the whole difference. `kind` answers exactly one question — *does this
-item get an attr block* — and nothing else. Whether a section contains children
+item get a reqmd block* — and nothing else. Whether a section contains children
 or is a leaf is derived, never declared.
 
 An empty section is meaningful (a placeholder chapter) and is rendered as-is.

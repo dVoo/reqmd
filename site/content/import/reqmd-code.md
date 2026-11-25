@@ -35,7 +35,7 @@ Requirements are rendered one `.md` file per package (`package.md`), under an
 
 ## internal/cli/check_test.go
 ### IMP-cli-BenchmarkRunValidationPipeline-80e6286: BenchmarkRunValidationPipeline
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/cli/check_test.go

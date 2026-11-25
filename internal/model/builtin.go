@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-// Built-in attribute keys used in requirement attr blocks. They are
+// Built-in attribute keys used in requirement reqmd blocks. They are
 // injected into every schema by internal/schema.Compile and accessed by
 // graph checks and HTML export.
 const (

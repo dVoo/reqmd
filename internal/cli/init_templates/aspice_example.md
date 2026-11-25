@@ -5,7 +5,7 @@ This is a sample ASPICE-flavored requirements document. The `status`, `id`,
 `owner` are declared in the schema.
 
 ## SAFE-001
-```attr
+```reqmd
 status: draft
 asil: C
 safety-goal: SG-001
@@ -16,7 +16,7 @@ The system shall detect a lane departure within 200 ms.
 *Rationale: Required for functional safety compliance per ISO 26262.*
 
 ## SAFE-002
-```attr
+```reqmd
 status: draft
 asil: B
 safety-goal: SG-002

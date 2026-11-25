@@ -54,7 +54,7 @@ reqmd check spec/
 
 Key points:
 
-- `kind` separates content from structure: `Requirement` gets an attr block and
+- `kind` separates content from structure: `Requirement` gets a reqmd block and
   is validated, traced and counted; `Section` is a heading with prose and
   children. Both are the same wire `kind` — folder-versus-leaf is derived from
   whether a section has children, so adding a subsection never changes a type.
@@ -67,7 +67,7 @@ Key points:
   and are passed through verbatim.
 - `doc.add(item, parent=key)` nests by key, so a flat source table stays a flat
   loop. The parent must already have been added.
-- `fields` are the attr-block entries (sections never carry them). Values take
+- `fields` are the reqmd-block entries (sections never carry them). Values take
   strings, numbers, booleans or flat lists of those; a string stays a string
   even when it looks like a number or `null`, so pass a real number or boolean
   when you mean one. Names may only contain letters, digits, `_`, `-` and `.`.
@@ -76,7 +76,7 @@ Key points:
 - `status` is your own vocabulary. `reqmd-import --status-map "In Review=review"`
   translates it; an unmapped value falls back to reqmd's default and is kept as
   `x-reqmd.source-status`.
-- `properties` declares the attr-block JSON Schema; a new attribute means
+- `properties` declares the reqmd-block JSON Schema; a new attribute means
   adding it there.
 
 A complete, runnable importer is in [`examples/csv_import.py`](examples/csv_import.py)

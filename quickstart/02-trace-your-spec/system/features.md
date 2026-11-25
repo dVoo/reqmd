@@ -1,7 +1,7 @@
 # System Features
 
 ## SYS-001: Boot Sequence
-```attr
+```reqmd
 status: approved
 trace: [stakeholder/STK-GOAL-001]
 ```

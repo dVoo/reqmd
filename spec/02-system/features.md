@@ -6,7 +6,7 @@
 How a requirement document is written and what a parse yields.
 
 ### SYS-FMT-001: Markdown requirement format
-```attr
+```reqmd
 status: approved
 priority: Critical
 trace:
@@ -15,14 +15,14 @@ trace:
   - ASP-SR-003
   - ASP-SR-020
 ```
-Each requirement shall be authored as a Markdown heading of level 2 or deeper followed immediately by a fenced ` ```attr ``` ` YAML block, then free-form prose. The heading text is the requirement ID; an optional human-readable title may follow the ID after a colon and space (e.g., `## REQ-001: Login requirement`). A heading is a requirement exactly when its next AST sibling is an attr fence — requirement depth is not fixed, so any h2+ heading with an adjacent attr block is a requirement and its parent is the nearest enclosing requirement (SYS-CON-001 defines the headings that are not requirements). An optional `*Rationale:*` paragraph may follow the prose statement and is extracted from the body.
+Each requirement shall be authored as a Markdown heading of level 2 or deeper followed immediately by a fenced ` ```reqmd ``` ` YAML block, then free-form prose. The fence info string shall be `reqmd`, with `yaml reqmd` also accepted as an opt-in variant that gives the block YAML syntax highlighting in editors; every renderer shall emit the bare `reqmd` form. The heading text is the requirement ID; an optional human-readable title may follow the ID after a colon and space (e.g., `## REQ-001: Login requirement`). A heading is a requirement exactly when its next AST sibling is a ` ```reqmd ``` ` fence — requirement depth is not fixed, so any h2+ heading with an adjacent reqmd block is a requirement and its parent is the nearest enclosing requirement (SYS-CON-001 defines the headings that are not requirements). An optional `*Rationale:*` paragraph may follow the prose statement and is extracted from the body.
 
-A level-1 heading is the document title and can never be a requirement: an `attr` block under a level-1 heading is a parse error.
+A level-1 heading is the document title and can never be a requirement: a `reqmd` block under a level-1 heading is a parse error.
 
 *Rationale:* Detecting requirements by AST adjacency instead of a configured heading depth means documents may mix section headings and requirements at any depth, and a generated document needs no level convention. Nesting follows Markdown's native hierarchy, so sub-requirements express V-model decomposition without an explicit parent attribute.
 
 ### SYS-FMT-002: Built-in attribute system
-```attr
+```reqmd
 status: approved
 priority: Critical
 trace:
@@ -30,12 +30,12 @@ trace:
   - ASP-SR-007
   - ASP-SR-013
 ```
-The `attr` block shall support six built-in attributes — `trace`, `status`, `disposition`, `disposition-reason`, `version`, and `requires-trace-from` — that carry tool-level semantics in Pass 2 validation. Built-in attributes are injected automatically and must not be declared in `schema.yaml`. The parent-child relationship between requirements is structural (derived from the heading hierarchy in the parser), not an attribute — no `parent` built-in is needed. A document may additionally declare a project-defined `verify` attribute naming the verification method; an approved requirement carrying it is treated as a verification measure by the verdict checks (SYS-VAL-002).
+The `reqmd` block shall support six built-in attributes — `trace`, `status`, `disposition`, `disposition-reason`, `version`, and `requires-trace-from` — that carry tool-level semantics in Pass 2 validation. Built-in attributes are injected automatically and must not be declared in `schema.yaml`. The parent-child relationship between requirements is structural (derived from the heading hierarchy in the parser), not an attribute — no `parent` built-in is needed. A document may additionally declare a project-defined `verify` attribute naming the verification method; an approved requirement carrying it is treated as a verification measure by the verdict checks (SYS-VAL-002).
 
 *Rationale:* Separation of concerns: project-specific attributes go in `schema.yaml`; tool-level attributes are always available without schema boilerplate. Blocking redefinition prevents ambiguity. Keeping the parent relationship structural avoids redundant data — the heading hierarchy is the source of truth.
 
 ### SYS-FMT-003: Schema.yaml document configuration
-```attr
+```reqmd
 status: approved
 priority: Critical
 trace:
@@ -55,7 +55,7 @@ Export output filenames follow the convention `<dirname>-requirements.<ext>`, wr
 *Rationale:* JSON Schema 2020-12 is a widely-supported standard with validators in every language. The `x-reqmd` block keeps reqmd-specific configuration in the same file without breaking standard JSON Schema validators.
 
 ### SYS-FMT-004: YAML frontmatter support
-```attr
+```reqmd
 status: approved
 priority: High
 trace:
@@ -66,7 +66,7 @@ A `.md` file MAY begin with a YAML frontmatter block delimited by `---`. It SHAL
 *Rationale:* YAML frontmatter is the convention every Markdown toolchain uses (Jekyll, Hugo, GitHub Pages), so authors arrive expecting it to work; a document can then carry an abstract or a navigation hint without a separate file. Metadata is deliberately content-free: it never becomes a requirement, so it can never be traced, counted, or filtered. Document *configuration* stays in `schema.yaml`, the one manifest per directory that is validated at compile time (SYS-FMT-001).
 
 ### SYS-CON-001: Content tree — nothing dropped
-```attr
+```reqmd
 status: approved
 priority: High
 trace:
@@ -74,12 +74,12 @@ trace:
   - STK-GOAL-005
   - ASP-SR-008
 ```
-The parser shall capture the full document content as a content tree in which every heading is a node except the level-1 document title, and every node is exactly one of two kinds: a heading followed by an `attr` block is a requirement; every other heading, and prose preceding the first heading, is a section. Whether a section behaves as a folder (has children) or as a leaf prose block shall be derived from its children at render time and never stored, so adding a subsection cannot change a node's kind. A level-1 heading shall be treated as the document title, not content: it is captured as the document title, is never a content node, and must not carry an `attr` block — requirement headings shall be level 2 or higher, a level-1 heading with an `attr` block is a parse error, and a level-1 heading that is not the first heading of its file is a parse error as well (only the first h1 names the document; a later one would have its text silently dropped). Prose, code blocks, and thematic breaks shall attach to the nearest open node's body. No content shall be dropped: leading prose, requirement-less files, and headings without attributes are all preserved as nodes.
+The parser shall capture the full document content as a content tree in which every heading is a node except the level-1 document title, and every node is exactly one of two kinds: a heading followed by a `reqmd` block is a requirement; every other heading, and prose preceding the first heading, is a section. Whether a section behaves as a folder (has children) or as a leaf prose block shall be derived from its children at render time and never stored, so adding a subsection cannot change a node's kind. A level-1 heading shall be treated as the document title, not content: it is captured as the document title, is never a content node, and must not carry a `reqmd` block — requirement headings shall be level 2 or higher, a level-1 heading with a `reqmd` block is a parse error, and a level-1 heading that is not the first heading of its file is a parse error as well (only the first h1 names the document; a later one would have its text silently dropped). Prose, code blocks, and thematic breaks shall attach to the nearest open node's body. No content shall be dropped: leading prose, requirement-less files, and headings without attributes are all preserved as nodes.
 
 *Rationale:* Requirements documents carry structure and narrative beyond requirement records. Dropping non-requirement content (as early prototypes did) made exported pages silently incomplete. The tree keeps document order and hierarchy faithful to the source so `ls`, `stats`, CSV, and HTML can render the document as written, not just its requirement subset.
 
 ### SYS-CON-002: Items in output commands
-```attr
+```reqmd
 status: approved
 priority: Medium
 trace:
@@ -94,7 +94,7 @@ Sections shall be visible in `ls` (a leading `Type` column — `req`/`section` �
 What is validated, which checks run over the tree, and how findings are scoped and suppressed.
 
 ### SYS-VAL-001: Multi-pass validation pipeline
-```attr
+```reqmd
 status: approved
 priority: Critical
 trace:
@@ -163,7 +163,7 @@ flowchart TD
 *Rationale:* The pass order ensures each stage has complete information. Parse must finish before validation; the graph must be built before trace checks; all results are collected before reporting. Because graph construction only reads the parsed tree, it may overlap Pass 1 validation without changing what either stage sees; its result is consumed afterwards, which preserves report order and error precedence (parse and schema errors first). Three sub-passes within graph construction guarantee deterministic node initialization before edges are wired.
 
 ### SYS-VAL-002: Verification result ingestion and outcome-gated checks
-```attr
+```reqmd
 status: approved
 priority: High
 trace:
@@ -183,7 +183,7 @@ A measure whose evidence set is non-empty additionally emits an INFO `verdict` r
 *Rationale:* reqmd traces the left side of the V-model (stakeholder → system → software → test specs) but could not represent the right side: verification *results*. Every ASPICE BP that says "record the verification results including pass/fail status and evaluate" was unrepresentable. The `status: draft|approved` axis is a lifecycle gate, not a verdict — an approved, implemented test can still fail. Ephemeral results keep CI run-to-run churn out of git and `baseline diff`, while the outcome-gated checks close the V-model right side by enforcing that every approved measure has a passing latest verdict.
 
 ### SYS-CHK-003: Disjoint-attribute consistency check
-```attr
+```reqmd
 status: approved
 priority: Medium
 trace:
@@ -196,7 +196,7 @@ The `check` command shall accept a repeatable `--disjoint-check <attr>` flag (an
 *Rationale:* Attribute-consistency gates capture cross-cutting invariants that pure trace-structure checks miss — e.g. "a trace link may only connect two requirements that share a product variant or a safety level". They turn a manual review convention into an enforceable CI check with a single flag, without adding a new built-in attribute.
 
 ### SYS-STS-001: Requirement status lifecycle
-```attr
+```reqmd
 status: approved
 priority: Medium
 trace:
@@ -210,7 +210,7 @@ trace:
 *Rationale:* A lifecycle axis distinct from `disposition` lets teams keep in-progress requirements in the spec without letting them (falsely) satisfy coverage. Draft requirements remain traceable and validated, but cannot close a coverage expectation until promoted to `approved`.
 
 ### SYS-SUP-001: Check suppression
-```attr
+```reqmd
 status: approved
 priority: Medium
 trace:
@@ -222,7 +222,7 @@ Any requirement may declare a `reqmd-suppress: [<check-code>]` attribute listing
 *Rationale:* Not every check applies to every requirement; a deliberate, documented exception should not fail CI. Suppression is per-requirement and opt-in, so the default remains strict — an exception is visible in the source and auditable in review.
 
 ### SYS-FIL-001: Generic attribute filtering
-```attr
+```reqmd
 status: approved
 priority: Medium
 trace:
@@ -234,7 +234,7 @@ trace:
 ```
 The `check`, `ls`, `stats`, `export csv`, `export html`, `export json`, and `baseline diff` commands shall accept a `--filter "<expr>"` flag that scopes the operation to requirements matching an expression evaluated against the requirement's attributes plus the built-in `id`, `title`, `status`, `disposition`, `trace`, and `version` variables. `serve` shall take no filtering flag: the live preview always contains the whole tree and the HTML viewer scopes itself from URL state. Expressions shall be compiled once at startup into bytecode, and compile-time validation shall reject expressions referencing attributes not declared in any `schema.yaml` (global typo check). Per-document attribute absence shall evaluate to nil rather than erroring.
 
-Those commands and `baseline diff` shall also accept `--relaxed-filter`, which shall downgrade the typo check to a warning and admit any attribute actually present on a requirement even when no schema declares it, so an attribute set used in attr blocks without a schema change remains filterable.
+Those commands and `baseline diff` shall also accept `--relaxed-filter`, which shall downgrade the typo check to a warning and admit any attribute actually present on a requirement even when no schema declares it, so an attribute set used in reqmd blocks without a schema change remains filterable.
 
 Coverage checking shall be filter-aware: a filtered-out requirement cannot satisfy the `requires-trace-from` expectation of a filtered-in requirement, so filtered-out requirements do not cause false coverage failures. The graph is always built from the full tree so trace refs to filtered-out requirements still resolve; only per-requirement checks and coverage are scoped. `baseline diff` shall additionally accept `--filter-a` and `--filter-b` to compare two filtered views of a single commit (e.g. "what does Premium add over Base").
 
@@ -245,7 +245,7 @@ Coverage checking shall be filter-aware: a filtered-out requirement cannot satis
 The trace model itself and the coverage expectations derived from it.
 
 ### SYS-TRC-001: Upstream-only trace model
-```attr
+```reqmd
 status: approved
 priority: Critical
 trace:
@@ -267,7 +267,7 @@ When multiple documents share the same ID prefix (e.g., two teams both use `STK-
 *Rationale:* Upstream-only declarations avoid redundancy — if every child names its parent, the full chain is determined without any requirement also listing its children. Version pinning lets PR reviewers detect upstream changes since the trace was last validated. Auto-edges for sub-requirements ensure decomposition hierarchy is always present without manual attribute maintenance. V-model boundaries are inferred from directory topology (upstream.sources), eliminating per-requirement boilerplate.
 
 ### SYS-FMT-005: Level-typed trace coverage
-```attr
+```reqmd
 status: approved
 priority: High
 trace:
@@ -284,7 +284,7 @@ A `requires-trace-from` token shall name either a `document-id` or an `x-reqmd.l
 The artefacts reqmd produces for reviewers and for reporting platforms.
 
 ### SYS-HTM-001: Standalone HTML export
-```attr
+```reqmd
 status: approved
 priority: High
 trace:
@@ -307,7 +307,7 @@ The page SHALL provide a keyboard-driven command palette (⌘K / Ctrl+K) with fo
 *Rationale:* The HTML export is the primary human-reviewable output for non-technical stakeholders. A fully self-contained, offline-capable page eliminates server dependencies for distribution, and one truthful analysis layer keeps the export consistent with `reqmd check`.
 
 ### SYS-EXP-001: NDJSON tables for reporting platforms
-```attr
+```reqmd
 status: approved
 priority: Medium
 trace:
@@ -327,7 +327,7 @@ The export shall be a pure function of the parsed tree plus results, so repeated
 *Rationale:* CSV serves suppliers and HTML serves reviewers; neither is joinable in a warehouse without preprocessing. Fixed-shape one-row-per-line tables let a dashboard SQL-join requirements, traces, verdicts, and findings without a parser, and byte-determinism makes the export diffable in CI.
 
 ### SYS-GRA-001: Graph database export
-```attr
+```reqmd
 status: approved
 priority: Medium
 trace:
@@ -340,7 +340,7 @@ trace:
 *Rationale:* Impact analysis ("which requirements become suspect if this system requirement changes?") is a graph query, and re-implementing it as a bespoke command would duplicate what Cypher already does. The build tag keeps the storage dependency out of the default binary.
 
 ### SYS-BAS-001: Baseline comparison via git tags
-```attr
+```reqmd
 status: approved
 priority: High
 trace:
@@ -355,7 +355,7 @@ The tool shall provide a `reqmd baseline diff <tag1> <tag2>` subcommand that com
 The command surface and the workflows built on top of the validation pipeline.
 
 ### SYS-CLI-001: CLI subcommands
-```attr
+```reqmd
 status: approved
 priority: Critical
 trace:
@@ -370,7 +370,7 @@ The `reqmd` binary shall provide CLI subcommands: `check` (validate), `ls` (list
 *Rationale:* A single binary that walks the directory tree and handles all document directories in one pass minimizes CI complexity. Distinct exit codes enable pipeline branching (fail build on errors, warn on warnings).
 
 ### SYS-INI-001: Project scaffolding with presets
-```attr
+```reqmd
 status: approved
 priority: Medium
 trace:
@@ -383,14 +383,14 @@ trace:
 *Rationale:* A zero-setup start is what makes adoption cheap, and the `results` preset gives `check --results` a valid manual-results directory shape without the author reading the result schema first. Template-based custom presets let a team encode its house attributes once and scaffold consistently thereafter.
 
 ### SYS-REPIN-001: Bulk version-pin update via `reqmd repin`
-```attr
+```reqmd
 status: approved
 priority: High
 requires-trace-from: [software-requirements]
 trace:
   - STK-GOAL-002
 ```
-The tool shall provide a `reqmd repin <root>` subcommand that scans the spec tree for trace refs whose `~N` version pin is below the upstream's current `version` and either lists the proposed changes (dry-run, default) or rewrites the affected ` ```attr ` blocks in place (`--yes`). Predated findings (pin ahead of upstream) shall be surfaced in the change list but never auto-fixed, because they are data-integrity errors. The subcommand shall accept a `--promote-unpinned` flag that additionally proposes pins for trace refs without any `~N` against a versioned upstream, and a `--json` flag that emits a stable JSON contract (`deltas[]` with `kind` ∈ {`outdated`, `unpinned`, `predated`}, `req_id`, `file`, `target_id`, `source_ref`, `old_pin`, `new_pin`, `new_version`; plus `outdated`/`unpinned`/`predated` counts and a `by_file` map). Without `--yes`, the command shall run by default in dry-run mode; in an interactive TTY it shall prompt for confirmation before applying. The rewrite shall be scoped to ` ```attr ` blocks only, leaving surrounding Markdown prose verbatim.
+The tool shall provide a `reqmd repin <root>` subcommand that scans the spec tree for trace refs whose `~N` version pin is below the upstream's current `version` and either lists the proposed changes (dry-run, default) or rewrites the affected ` ```reqmd ` blocks in place (`--yes`). Predated findings (pin ahead of upstream) shall be surfaced in the change list but never auto-fixed, because they are data-integrity errors. The subcommand shall accept a `--promote-unpinned` flag that additionally proposes pins for trace refs without any `~N` against a versioned upstream, and a `--json` flag that emits a stable JSON contract (`deltas[]` with `kind` ∈ {`outdated`, `unpinned`, `predated`}, `req_id`, `file`, `target_id`, `source_ref`, `old_pin`, `new_pin`, `new_version`; plus `outdated`/`unpinned`/`predated` counts and a `by_file` map). Without `--yes`, the command shall run by default in dry-run mode; in an interactive TTY it shall prompt for confirmation before applying. The rewrite shall be scoped to ` ```reqmd ` blocks only, leaving surrounding Markdown prose verbatim.
 
 *Rationale:* The version-pin check (SYS-VAL-001) reports every outdated pin individually; without an apply path users have to hand-edit each `trace:` line. `repin` is the bulk-update counterpart to the check, with a mandatory dry-run/confirm step so the change set is reviewable before files are written. Whole-ref matching (not substring) prevents an unpinned promote from corrupting an already-pinned sibling, e.g. rewriting `UP-001` inside `UP-001~3` to `UP-001~3~3`. Predated findings are excluded from the apply set because they indicate that the upstream itself needs attention (a newer version was rolled back, or the pin is wrong), not that the pin should be lowered.
 
@@ -399,7 +399,7 @@ The tool shall provide a `reqmd repin <root>` subcommand that scans the spec tre
 Turning content authored elsewhere into validated reqmd documents.
 
 ### SYS-IMP-001: Source-code requirement extraction
-```attr
+```reqmd
 status: approved
 priority: High
 trace:
@@ -420,7 +420,7 @@ Generated requirements shall be first-class spec documents once rendered: `statu
 *Rationale:* Software requirements trace down to tests (ASP-SR-006) but not to the implementation that satisfies them. Automatic extraction turns source symbols into requirements in the same ID namespace, so a broken spec→code trace is caught by the same `reqmd check` that catches broken spec refs — and re-running the extractor keeps the code-side of the V-model current without hand-maintained mapping tables.
 
 ### SYS-IMP-002: External requirement import via an exchange format
-```attr
+```reqmd
 status: approved
 priority: High
 trace:
@@ -431,12 +431,12 @@ trace:
 ```
 The toolchain shall include `reqmd-import`, a renderer that turns an exchange-format JSON bundle into reqmd documents (`schema.yaml` plus `.md`). The exchange format shall be a versioned, documented contract that any producer can emit — the source-code extractor, a Python script, or a direct exporter from a database-backed ALM tool (DOORS, codeBeamer) — and `reqmd-import` shall be the only component that writes Markdown or YAML, so quoting, heading, and schema rules exist in exactly one place.
 
-The format shall be neutral: nothing reqmd-specific shall be required of a producer. A bundle declares its version as a `$schema` URL, each document carries a stable `key` and `title`, and content is a nested tree of items whose `kind` is either `requirement` (content, rendered with an attr block) or `section` (structure only, never validated, traced or counted). Nesting shall be structural rather than referential, so a cycle, an out-of-order child, or a dangling parent is unrepresentable. Requirements carry the producer's own stable `key`, which is unique per document and becomes `<x-reqmd.id-prefix><key>`; `links` name other items by key within the document or as `<document-key>/<key>` across documents and are rewritten to full requirement IDs; `refs` carry external requirement IDs verbatim and are never resolved. Every reqmd-specific decision (ID prefix, level, document-id, upstream, coverage expectation, external, output file) shall live in the document's optional `x-reqmd` block, which a producer that is not reqmd-aware omits. Attr-block properties and required fields shall be declarable per document so the generated `schema.yaml` accepts exactly the attributes the producer emits, and imported documents shall be renderable as `external: true` mirrors of content authored elsewhere.
+The format shall be neutral: nothing reqmd-specific shall be required of a producer. A bundle declares its version as a `$schema` URL, each document carries a stable `key` and `title`, and content is a nested tree of items whose `kind` is either `requirement` (content, rendered with a reqmd block) or `section` (structure only, never validated, traced or counted). Nesting shall be structural rather than referential, so a cycle, an out-of-order child, or a dangling parent is unrepresentable. Requirements carry the producer's own stable `key`, which is unique per document and becomes `<x-reqmd.id-prefix><key>`; `links` name other items by key within the document or as `<document-key>/<key>` across documents and are rewritten to full requirement IDs; `refs` carry external requirement IDs verbatim and are never resolved. Every reqmd-specific decision (ID prefix, level, document-id, upstream, coverage expectation, external, output file) shall live in the document's optional `x-reqmd` block, which a producer that is not reqmd-aware omits. Attr-block properties and required fields shall be declarable per document so the generated `schema.yaml` accepts exactly the attributes the producer emits, and imported documents shall be renderable as `external: true` mirrors of content authored elsewhere.
 
 *Rationale:* The per-tool mechanics of pulling requirements out of an ALM are a script's job (credentials, pagination, field mapping), not the spec tool's. Fixing one JSON contract and one renderer keeps every importer small, keeps the file syntax rules authoritative in a single implementation, and lets a new ALM be supported by a few dozen lines of Python rather than a new Markdown writer.
 
 ### SYS-IMP-003: Producer-facing validation and status mapping
-```attr
+```reqmd
 status: approved
 priority: Medium
 trace:

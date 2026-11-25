@@ -4,7 +4,7 @@
 // The package separates computation from application: Build parses
 // the tree and produces a sorted list of RepinDelta values; Apply
 // takes those deltas and rewrites the source files in place, scoped
-// to ```attr blocks only so surrounding Markdown prose is left
+// to ```reqmd blocks only so surrounding Markdown prose is left
 // untouched.
 package repin
 
@@ -38,7 +38,7 @@ type Result struct {
 
 // ApplyReport describes the outcome of a repin apply step. Applied
 // is the number of ref replacements actually written to disk (a
-// delta whose SourceRef wasn't found in any attr block is a no-op
+// delta whose SourceRef wasn't found in any reqmd block is a no-op
 // and not counted). Skipped holds the predated deltas, which repin
 // never auto-fixes. Files is the number of distinct spec files
 // actually rewritten.
@@ -89,7 +89,7 @@ func Build(root string, promoteUnpinned bool) (Result, error) {
 // slice and never applied — they are data-integrity errors that
 // require manual review.
 //
-// The rewrite is scoped to ```attr blocks: each block's contents
+// The rewrite is scoped to ```reqmd blocks: each block's contents
 // are scanned for the SourceRef substring, which is replaced with
 // the new ref form (REF~newPin, or REF~newPin if the ref was
 // previously unpinned). All other bytes of the file are preserved
@@ -156,14 +156,14 @@ func Apply(root string, deltas []graph.RepinDelta) (ApplyReport, error) {
 	return report, nil
 }
 
-// applyToFile rewrites the attr-block portions of src so that each
+// applyToFile rewrites the reqmd-block portions of src so that each
 // delta's SourceRef is replaced with the new ref form. A delta is
-// considered a no-op if its SourceRef isn't found in any attr block
+// considered a no-op if its SourceRef isn't found in any reqmd block
 // (or every match is at a non-boundary position); in that case the
 // file is returned unchanged.
 //
 // Returns the (possibly rewritten) bytes and the total number of
-// ref replacements actually made across all attr blocks.
+// ref replacements actually made across all reqmd blocks.
 //
 // Matching is whole-ref: SourceRef "UP-001" only matches when the
 // ref is at a list-element boundary (followed by `,`, `]`, or
@@ -229,7 +229,7 @@ func buildPairs(deltas []graph.RepinDelta) []refPair {
 //
 // Cost note: this is N sub-scans into one output buffer, where N is
 // len(pairs) — not a true single pass. For the typical repin
-// workload (a handful of deltas, small attr blocks) this is fine;
+// workload (a handful of deltas, small reqmd blocks) this is fine;
 // an Aho-Corasick automaton would be the single-pass alternative but
 // is overkill here.
 func applyPairsToBlock(block []byte, pairs []refPair) ([]byte, int) {
@@ -327,24 +327,22 @@ func newRefFrom(d graph.RepinDelta) string {
 }
 
 // attrRange is an inclusive [start, end) byte range covering the
-// inner YAML of an attr block (NOT including the ``` fences).
+// inner YAML of a reqmd block (NOT including the ``` fences).
 type attrRange struct{ start, end int }
 
-// locateAttrBlocks scans src for ```attr\n ... \n``` fences and
+// locateAttrBlocks scans src for reqmd blocks (```reqmd or ```yaml reqmd) and
 // returns the inner-YAML byte ranges. Blank lines between the
 // opening fence and the first YAML line are skipped over by the
 // parser; the same applies here: we treat the byte immediately
 // after the opening fence's newline as the range start.
 //
-// The match is anchored to the literal string "```attr" followed
-// by an optional space/info segment. This matches the parser's
-// attrFenceInfo = "attr" convention exactly.
+// The opening fence is accepted by the parser's own predicate, so the rewrite
+// can never drift from what the parser treats as a reqmd block.
 func locateAttrBlocks(src []byte) []attrRange {
-	const open = "```attr"
 	const close = "```"
 	var ranges []attrRange
-	for i := 0; i+len(open) <= len(src); {
-		idx := bytes.Index(src[i:], []byte(open))
+	for i := 0; i+len(close) <= len(src); {
+		idx := bytes.Index(src[i:], []byte(close))
 		if idx < 0 {
 			break
 		}
@@ -359,6 +357,12 @@ func locateAttrBlocks(src []byte) []attrRange {
 		eol := bytes.IndexByte(src[openStart:], '\n')
 		if eol < 0 {
 			break
+		}
+		info := strings.TrimSpace(string(src[openStart+len(close) : openStart+eol]))
+		if !parser.IsAttrFenceInfo(info) {
+			// Not a reqmd block: skip this line and keep scanning.
+			i = openStart + eol + 1
+			continue
 		}
 		contentStart := openStart + eol + 1
 		// Find the closing fence. The closing fence is a line that

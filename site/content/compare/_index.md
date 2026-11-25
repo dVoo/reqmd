@@ -29,7 +29,7 @@ Both are git-native, text-first, no-database tools for spec authoring with trace
 
 | | reqmd | sphinx-needs |
 |---|---|---|
-| **Format** | Plain Markdown + YAML `attr` block | reStructuredText with `.. req::` directives |
+| **Format** | Plain Markdown + YAML `reqmd` block | reStructuredText with `.. req::` directives |
 | **Schema** | JSON Schema 2020-12 in YAML | Sphinx-config-driven type system, per-type schema |
 | **Storage** | Files on disk | Sphinx doctree pickle (`.doctree/`) + JSON |
 | **Runtime** | Single Go binary, no dependencies | Python 3 + Sphinx + a dozen plugins |
@@ -42,7 +42,7 @@ Both are git-native, text-first, no-database tools for spec authoring with trace
 | **Custom types** | Edit `schema.yaml`, add an enum | Write a Python Sphinx extension, register a directive |
 | **AI agent readability** | One `cat`, plain text | Sphinx doctree pickle is opaque; `cat` shows the RST but tracing requires a build |
 | **Lock-in** | None | Sphinx version, plugin set |
-| **Learning curve** | One `attr` block syntax; 30 seconds to first check | Sphinx + RST + the `needs` directive set; half a day |
+| **Learning curve** | One `reqmd` block syntax; 30 seconds to first check | Sphinx + RST + the `needs` directive set; half a day |
 | **Best fit** | Spec is a standalone repo, lives next to code, agent-driven | Spec is a docs site (Sphinx-based) that needs rendering, search, theming |
 
 **Pick reqmd when** the spec is a standalone repo next to the code, you want the agent to read/write/validate specs in the same tool call budget as code, and you don't want a Python runtime in the loop. **Pick sphinx-needs when** the spec is part of a larger Sphinx docs site (the same source tree renders the user manual, the API reference, and the requirements), you need Sphinx's theming and search, or you already have a Sphinx build pipeline and the cost of adding a third tool is higher than the cost of working inside Sphinx.

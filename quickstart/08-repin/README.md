@@ -39,7 +39,7 @@ reqmd repin 02-trace-your-spec/
 # applied 1 changes across 1 files
 ```
 
-`repin` rewrites only the ` ```attr ` blocks in the affected files;
+`repin` rewrites only the ` ```reqmd ` blocks in the affected files;
 surrounding Markdown prose is preserved verbatim. The change is
 idempotent — a second `repin` run after the first reports no changes.
 

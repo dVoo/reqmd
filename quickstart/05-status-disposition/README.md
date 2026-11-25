@@ -10,7 +10,7 @@ omitted). Only `approved` requirements count as upstream coverage providers.
 
 ```markdown
 ## REQ-001: System boot
-```attr
+```reqmd
 status: approved
 trace: [STK-001]
 ```
@@ -42,7 +42,7 @@ When a requirement can't be immediately implemented, use `disposition` +
 
 ```markdown
 ## STAKE-007
-```attr
+```reqmd
 status: approved
 disposition: deferred
 disposition-reason: "Deferred to Phase 2 per steering committee 2025-03-14"

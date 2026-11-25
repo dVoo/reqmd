@@ -54,7 +54,7 @@ func TestRenderDocument(t *testing.T) {
 		"x-reqmd.source-line: 12",
 		"status: approved",
 		"trace: []",
-		"```attr",
+		"```reqmd",
 		"StructA description.",
 	}
 	for _, want := range checks {
@@ -212,7 +212,7 @@ func readAll(t *testing.T, dir string) []byte {
 }
 
 // TestRenderSection covers the two section shapes: a titled section renders a
-// heading with no attr block, and an untitled section renders as a plain prose
+// heading with no reqmd block, and an untitled section renders as a plain prose
 // block (the document preamble and untitled sections use the same form).
 func TestRenderSection(t *testing.T) {
 	titled, err := RenderItem(Item{Kind: KindSection, Title: "Hydraulics", Body: "Prose."})
@@ -223,8 +223,8 @@ func TestRenderSection(t *testing.T) {
 	if titled != want {
 		t.Errorf("titled section = %q, want %q", titled, want)
 	}
-	if strings.Contains(titled, "```attr") {
-		t.Error("a section must never render an attr block")
+	if strings.Contains(titled, "```reqmd") {
+		t.Error("a section must never render a reqmd block")
 	}
 
 	untitled, err := RenderItem(Item{Kind: KindSection, Body: "Preamble."})

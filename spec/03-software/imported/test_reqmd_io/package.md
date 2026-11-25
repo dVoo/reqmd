@@ -4,7 +4,7 @@
 
 ## python/tests/test\_reqmd\_io.py
 ### IMP-test\_reqmd\_io-SCHEMA\_PATH-ae8e619: SCHEMA\_PATH
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -14,7 +14,7 @@ trace: []
 ```
 
 ### IMP-test\_reqmd\_io-ItemTest-8b1f235: ItemTest
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -24,7 +24,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_omits\_empty\_fields-f7053c2: test\_omits\_empty\_fields
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -34,7 +34,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_kind\_distinguishes\_content\_from\_structure-7f258df: test\_kind\_distinguishes\_content\_from\_structure
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -44,7 +44,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_keeps\_numbers\_and\_false\_fields-271abf9: test\_keeps\_numbers\_and\_false\_fields
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -54,7 +54,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_maps\_to\_kebab\_case-85a4432: test\_maps\_to\_kebab\_case
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -64,7 +64,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_nested\_children\_render-68d6f9e: test\_nested\_children\_render
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -74,7 +74,7 @@ trace: []
 ```
 
 ### IMP-test\_reqmd\_io-DocumentTest-0a3d39f: DocumentTest
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -84,7 +84,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_requires\_key\_and\_title-4f23e9b: test\_requires\_key\_and\_title
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -94,7 +94,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_x\_reqmd\_is\_namespaced-8bc23a5: test\_x\_reqmd\_is\_namespaced
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -104,7 +104,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_add\_is\_chainable-ec20116: test\_add\_is\_chainable
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -114,7 +114,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_add\_nests\_under\_parent\_key-1a76b4b: test\_add\_nests\_under\_parent\_key
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -124,7 +124,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_add\_unknown\_parent\_raises-a2b867d: test\_add\_unknown\_parent\_raises
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -134,7 +134,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_add\_nests\_below\_the\_top\_level-1f95468: test\_add\_nests\_below\_the\_top\_level
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -146,7 +146,7 @@ trace: []
 Parent lookup walks the whole tree, not just the top level.
 
 ### IMP-test\_reqmd\_io-BundleTest-cbd7c3e: BundleTest
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -156,7 +156,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_declares\_the\_schema\_url-e1adc4a: test\_declares\_the\_schema\_url
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -166,7 +166,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_to\_json\_is\_valid\_json-8b31360: test\_to\_json\_is\_valid\_json
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -177,7 +177,7 @@ trace:
 ```
 
 #### IMP-test\_reqmd\_io-test\_write\_to\_file-d666727: test\_write\_to\_file
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -188,7 +188,7 @@ trace:
 ```
 
 #### IMP-test\_reqmd\_io-test\_write\_to\_stdout-6fb2a8a: test\_write\_to\_stdout
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -199,7 +199,7 @@ trace:
 ```
 
 ### IMP-test\_reqmd\_io-SchemaConformanceTest-1650d66: SchemaConformanceTest
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -213,7 +213,7 @@ schema without any Go tooling. Skipped when `jsonschema` is not installed,
 the same way the client JS tests skip without node.
 
 #### IMP-test\_reqmd\_io-setUp-5d89b25: setUp
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py
@@ -223,7 +223,7 @@ trace: []
 ```
 
 #### IMP-test\_reqmd\_io-test\_generated\_bundle\_matches\_schema-5974e3d: test\_generated\_bundle\_matches\_schema
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: python/tests/test_reqmd_io.py

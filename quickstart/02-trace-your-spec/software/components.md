@@ -1,7 +1,7 @@
 # Software Components
 
 ## SW-001: Boot Manager
-```attr
+```reqmd
 status: draft
 trace: [system/SYS-001]
 ```

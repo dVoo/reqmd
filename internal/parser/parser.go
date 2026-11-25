@@ -24,13 +24,26 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const attrFenceInfo = "attr"
+const attrFenceInfo = "reqmd"
+
+// attrFenceInfoAlt is the opt-in fence variant: the leading `yaml` gives the
+// block YAML syntax highlighting in editors and on GitHub. Renderers always
+// emit attrFenceInfo, so the bare fence stays the master form.
+const attrFenceInfoAlt = "yaml " + attrFenceInfo
 
 // Package-level patterns reused in the hot per-line scan helpers. Hoisted
 // so the hot paths don't allocate a []byte pattern on every call.
 var (
-	attrFenceBytes = []byte("```attr")
+	attrFenceBytes    = []byte("```" + attrFenceInfo)
+	attrFenceAltBytes = []byte("```" + attrFenceInfoAlt)
 )
+
+// IsAttrFenceInfo reports whether a code block's info string opens a reqmd
+// block. Callers that need the exact fence the writer emits compare against
+// attrFenceInfo instead.
+func IsAttrFenceInfo(info string) bool {
+	return info == attrFenceInfo || info == attrFenceInfoAlt
+}
 
 // mdParser is the shared goldmark parser used by parseMD. It only parses: the
 // content tree is built by walking the AST, so no renderer is attached.
@@ -415,14 +428,14 @@ func parseMDChunk(src []byte, sourcePath string) ([]*model.Node, string, map[str
 
 		case *ast.CodeBlock:
 			// v2 merges fenced and indented code blocks into one node kind.
-			// An indented block is never an attr fence; store it as a fence so
+			// An indented block is never a reqmd fence; store it as a fence so
 			// the body keeps its code semantics without its indentation.
 			if v.CodeBlockKind != ast.CodeBlockKindFenced {
 				ensureOpenNode()
 				appendBodyBlock(&bodyBuf, renderFence("", v, src))
 				continue
 			}
-			if cur != nil && waitingForAttr && codeInfo(v, src) == attrFenceInfo {
+			if cur != nil && waitingForAttr && IsAttrFenceInfo(codeInfo(v, src)) {
 				attrs, err := decodeAttrs(string(v.Value.Bytes(src)))
 				if err != nil {
 					return nil, "", frontmatter, fmt.Errorf("%s: req %s: invalid attr YAML: %w", sourcePath, cur.ID, err)
@@ -662,7 +675,8 @@ func headingLevelBytes(line []byte) (int, bool) {
 }
 
 // nextNonBlankIsAttrBytes checks if the next non-blank line after byte
-// offset pos is a ```attr fence. Scans src directly — no allocation.
+// offset pos opens a reqmd block (either fence variant). Scans src directly —
+// no allocation.
 func nextNonBlankIsAttrBytes(src []byte, pos int) bool {
 	for pos < len(src) {
 		line, hasNL := nextLine(src, pos)
@@ -674,12 +688,12 @@ func nextNonBlankIsAttrBytes(src []byte, pos int) bool {
 			}
 			continue
 		}
-		return bytes.HasPrefix(trimmed, attrFenceBytes)
+		return bytes.HasPrefix(trimmed, attrFenceBytes) || bytes.HasPrefix(trimmed, attrFenceAltBytes)
 	}
 	return false
 }
 
-// isNextAttrBlock returns true if n's next sibling is a ```attr fence.
+// isNextAttrBlock returns true if n's next sibling opens a reqmd block.
 // Blank lines between heading and fence are consumed by goldmark and don't
 // create AST nodes, so they don't affect this check.
 func isNextAttrBlock(n ast.Node, src []byte) bool {
@@ -691,7 +705,7 @@ func isNextAttrBlock(n ast.Node, src []byte) bool {
 	if !ok || fence.CodeBlockKind != ast.CodeBlockKindFenced {
 		return false
 	}
-	return codeInfo(fence, src) == attrFenceInfo
+	return IsAttrFenceInfo(codeInfo(fence, src))
 }
 
 // splitHeadingID splits a heading like "REQ-001: This is a title"

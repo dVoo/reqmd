@@ -124,7 +124,7 @@
             "requirement",
             "section"
           ],
-          "description": "requirement renders a heading plus an attr block; section renders structure only."
+          "description": "requirement renders a heading plus a reqmd block; section renders structure only."
         },
         "key": {
           "type": "string",

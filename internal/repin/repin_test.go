@@ -29,7 +29,7 @@ func writeFile(t *testing.T, dir, rel, content string) {
 	}
 }
 
-// minimalSchema is a permissive JSON Schema for attr blocks. Tests
+// minimalSchema is a permissive JSON Schema for reqmd blocks. Tests
 // only need the schema to exist (parser requires it); they don't
 // validate the attrs strictly.
 const minimalSchema = `type: object
@@ -45,11 +45,11 @@ func makeTree(t *testing.T, upVersion int, downTrace string) string {
 	root := t.TempDir()
 	// Upstream doc
 	writeFile(t, root, "upstream/schema.yaml", minimalSchema)
-	writeFile(t, root, "upstream/up.md", "## UP-001\n```attr\ntitle: Up\nversion: "+
+	writeFile(t, root, "upstream/up.md", "## UP-001\n```reqmd\ntitle: Up\nversion: "+
 		strconv.Itoa(upVersion)+"\n```\nThe upstream.\n")
 	// Downstream doc
 	writeFile(t, root, "downstream/schema.yaml", minimalSchema)
-	writeFile(t, root, "downstream/dn.md", "## DN-001\n```attr\ntitle: Down\ntrace: ["+downTrace+"]\n```\nThe downstream.\n")
+	writeFile(t, root, "downstream/dn.md", "## DN-001\n```reqmd\ntitle: Down\ntrace: ["+downTrace+"]\n```\nThe downstream.\n")
 	return root
 }
 
@@ -170,14 +170,14 @@ func TestApply_PromoteAddsPin(t *testing.T) {
 func TestApply_PreservesProseWithTilde(t *testing.T) {
 	// Defensive: ensure strings like "in case ~0 cases" in prose are
 	// NOT touched. We put a tilde-bearing phrase in the prose body
-	// outside the attr block; Apply must not corrupt it.
+	// outside the reqmd block; Apply must not corrupt it.
 	root := t.TempDir()
 	writeFile(t, root, "upstream/schema.yaml", minimalSchema)
-	writeFile(t, root, "upstream/up.md", "## UP-001\n```attr\ntitle: Up\nversion: 3\n```\n")
+	writeFile(t, root, "upstream/up.md", "## UP-001\n```reqmd\ntitle: Up\nversion: 3\n```\n")
 	writeFile(t, root, "downstream/schema.yaml", minimalSchema)
 	writeFile(t, root, "downstream/dn.md", strings.Join([]string{
 		"## DN-001",
-		"```attr",
+		"```reqmd",
 		"title: Down",
 		"trace: [UP-001~1]",
 		"```",
@@ -205,7 +205,7 @@ func TestApply_PreservesProseWithTilde(t *testing.T) {
 		t.Errorf("prose '~0 is the safe default' was modified; got:\n%s", s)
 	}
 	if !strings.Contains(s, "trace: [UP-001~3]") {
-		t.Errorf("attr block trace not updated, got:\n%s", s)
+		t.Errorf("reqmd block trace not updated, got:\n%s", s)
 	}
 }
 
@@ -237,22 +237,22 @@ func TestApply_Idempotent(t *testing.T) {
 func TestApply_UnpinnedPromoteDoesNotCorruptPinnedSiblings(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "upstream/schema.yaml", minimalSchema)
-	writeFile(t, root, "upstream/up.md", "## UP-001\n```attr\nversion: 3\n```\n")
+	writeFile(t, root, "upstream/up.md", "## UP-001\n```reqmd\nversion: 3\n```\n")
 	writeFile(t, root, "downstream/schema.yaml", minimalSchema)
 	writeFile(t, root, "downstream/dn.md", strings.Join([]string{
 		"## DN-001",
-		"```attr",
+		"```reqmd",
 		"title: Already pinned",
 		"trace: [UP-001~3, UP-002~9]",
 		"```",
 		"## DN-002",
-		"```attr",
+		"```reqmd",
 		"title: Unpinned",
 		"trace: [UP-001, UP-002]",
 		"```",
 	}, "\n"))
 	// Add a second upstream to give the unpinned refs a real target.
-	writeFile(t, root, "upstream/up2.md", "## UP-002\n```attr\nversion: 9\n```\n")
+	writeFile(t, root, "upstream/up2.md", "## UP-002\n```reqmd\nversion: 9\n```\n")
 
 	// Without --promote, no changes (everything is current or pinned).
 	res, err := Build(root, false)
@@ -323,16 +323,16 @@ func TestApply_MultipleDeltasSameFile(t *testing.T) {
 	// same upstream at version 5.
 	root := t.TempDir()
 	writeFile(t, root, "upstream/schema.yaml", minimalSchema)
-	writeFile(t, root, "upstream/up.md", "## UP-001\n```attr\ntitle: Up\nversion: 5\n```\n")
+	writeFile(t, root, "upstream/up.md", "## UP-001\n```reqmd\ntitle: Up\nversion: 5\n```\n")
 	writeFile(t, root, "downstream/schema.yaml", minimalSchema)
 	writeFile(t, root, "downstream/dn.md", strings.Join([]string{
 		"## DN-001",
-		"```attr",
+		"```reqmd",
 		"title: First",
 		"trace: [UP-001~1]",
 		"```",
 		"## DN-002",
-		"```attr",
+		"```reqmd",
 		"title: Second",
 		"trace: [UP-001~2]",
 		"```",
@@ -396,12 +396,12 @@ func TestNewRefFrom(t *testing.T) {
 func TestLocateAttrBlocks(t *testing.T) {
 	src := []byte(strings.Join([]string{
 		"# preamble",
-		"```attr",
+		"```reqmd",
 		"a: 1",
 		"```",
 		"prose",
 		"## heading",
-		"```attr",
+		"```reqmd",
 		"b: 2",
 		"```",
 		"more prose",
@@ -434,7 +434,7 @@ func TestLocateAttrBlocks_IgnoresFencedButNotAttr(t *testing.T) {
 	src := []byte("```python\nprint('hi')\n```\n")
 	ranges := locateAttrBlocks(src)
 	if len(ranges) != 0 {
-		t.Errorf("locateAttrBlocks picked up non-attr fence: %d ranges", len(ranges))
+		t.Errorf("locateAttrBlocks picked up non-reqmd fence: %d ranges", len(ranges))
 	}
 }
 
@@ -507,12 +507,12 @@ func TestResultJSON_Roundtrip(t *testing.T) {
 func TestBuild_SortedByFile(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "upstream/schema.yaml", minimalSchema)
-	writeFile(t, root, "upstream/up.md", "## UP-001\n```attr\nversion: 5\n```\n")
+	writeFile(t, root, "upstream/up.md", "## UP-001\n```reqmd\nversion: 5\n```\n")
 	// Two downstream docs in non-alphabetical order to verify sort.
 	writeFile(t, root, "z/schema.yaml", minimalSchema)
-	writeFile(t, root, "z/zz.md", "## Z-1\n```attr\ntrace: [UP-001~1]\n```\n")
+	writeFile(t, root, "z/zz.md", "## Z-1\n```reqmd\ntrace: [UP-001~1]\n```\n")
 	writeFile(t, root, "a/schema.yaml", minimalSchema)
-	writeFile(t, root, "a/aa.md", "## A-1\n```attr\ntrace: [UP-001~2]\n```\n")
+	writeFile(t, root, "a/aa.md", "## A-1\n```reqmd\ntrace: [UP-001~2]\n```\n")
 
 	res, err := Build(root, false)
 	if err != nil {
@@ -552,5 +552,18 @@ func TestApply_PreservesFileMode(t *testing.T) {
 	}
 	if got, want := info.Mode().Perm(), os.FileMode(0o640); got != want {
 		t.Errorf("file mode = %o, want %o", got, want)
+	}
+}
+
+func TestLocateAttrBlocks_YAMLReqmdVariant(t *testing.T) {
+	// The yaml-prefixed fence is a reqmd block too, and a plain ```yaml fence
+	// is not: the rewrite scope must follow the parser, not the prefix.
+	src := []byte("## REQ\n```yaml reqmd\nversion: 3\n```\n\n```yaml\nnot: a block\n```\n")
+	ranges := locateAttrBlocks([]byte(src))
+	if len(ranges) != 1 {
+		t.Fatalf("locateAttrBlocks = %d, want 1", len(ranges))
+	}
+	if got := string(src[ranges[0].start:ranges[0].end]); !strings.Contains(got, "version: 3") {
+		t.Errorf("block content = %q, want contains 'version: 3'", got)
 	}
 }

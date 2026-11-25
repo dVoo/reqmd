@@ -11,7 +11,7 @@ High-level business and technical objectives that the reqmd tool must satisfy. A
 Goals about how requirements are written and how they are checked.
 
 ### STK-GOAL-001: Text-first Git-native authoring
-```attr
+```reqmd
 priority: Critical
 source: Product
 category: Authoring
@@ -21,7 +21,7 @@ The requirement management tool shall enable text-first, Git-native authoring of
 *Rationale:* Engineers work in IDEs and version control daily. A plain-text format that diffs cleanly and reviews in standard pull requests minimizes tool-switching friction. A scaffolded starting point removes the blank-page cost of adopting a schema-driven format.
 
 ### STK-GOAL-002: Human-readable machine-parsable specs
-```attr
+```reqmd
 priority: Critical
 source: Engineering
 category: Authoring
@@ -31,7 +31,7 @@ Requirement documents shall be human-readable in any Markdown renderer and simul
 *Rationale:* Non-technical stakeholders review requirements in rendered form (GitHub, GitLab, docs sites). Automated tooling needs structured data for validation and export. Both modes must coexist in the same file.
 
 ### STK-GOAL-003: Schema-driven validation
-```attr
+```reqmd
 priority: Critical
 source: Quality
 category: Validation
@@ -41,7 +41,7 @@ The tool shall validate requirements against a project-defined schema, rejecting
 *Rationale:* Manual review alone does not scale. Schema-driven validation catches missing fields, invalid values, and broken trace chains automatically in CI. Scoping keeps incremental CI affordable on large trees.
 
 ### STK-GOAL-004: Multi-format export for review and analytics
-```attr
+```reqmd
 priority: High
 source: Product
 category: Export
@@ -55,7 +55,7 @@ The tool shall export requirement specifications to standard interchange formats
 Goals about what the toolchain produces and how it is evidenced.
 
 ### STK-GOAL-005: V-model traceability
-```attr
+```reqmd
 priority: High
 source: Safety
 category: Traceability
@@ -65,7 +65,7 @@ The tool shall support V-model traceability patterns conformant with ASPICE and 
 *Rationale:* Functional safety standards mandate bidirectional traceability from stakeholder needs through system requirements, software requirements, and test specifications. Heading-level hierarchy lets authors decompose requirements naturally while the tool auto-links child-to-parent traces.
 
 ### STK-GOAL-006: Verification results close the V-model
-```attr
+```reqmd
 priority: High
 source: Quality
 category: Verification
@@ -75,7 +75,7 @@ The tool shall consume verification and validation results produced by automated
 *Rationale:* A trace to a test specification proves that verification was *planned*, not that it *passed*. ASPICE requires recording and evaluating verification results. Loading results per invocation (CTRF reports and review documents) keeps run-to-run churn out of git while still failing CI on a failing or missing verdict.
 
 ### STK-GOAL-007: Interoperable requirement ingestion
-```attr
+```reqmd
 priority: High
 source: Engineering
 category: Interoperability

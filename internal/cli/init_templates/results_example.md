@@ -8,7 +8,7 @@ The built-in `status` and `trace` attributes are injected automatically; `x-reqm
 and `x-reqmd.verified-at` are tool-owned attributes declared in the schema.
 
 ## {{ .IDPrefix }}-001: Example Review Result
-```attr
+```reqmd
 status: approved
 x-reqmd.outcome: pass
 x-reqmd.verifier: "A. Reviewer"

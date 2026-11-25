@@ -13,7 +13,7 @@ This step shows the full workflow on the `14-variant-management/` tree: three co
 ## The pattern in 60 seconds
 
 1. **Declare** the attribute in `schema.yaml` — a plain JSON Schema array with an `enum`:
-2. **Tag** each requirement in its `attr` block.
+2. **Tag** each requirement in its `reqmd` block.
 3. **Scope** any command with `--filter "<expr>"`.
 
 ## 1. Declare the variant attribute
@@ -37,7 +37,7 @@ The `enum` gives you free validation: a typo like `variant: [Premuim]` fails `re
 
 ````markdown
 ## SYS-001: Launch Control
-```attr
+```reqmd
 status: approved
 variant: [Sport]
 ```

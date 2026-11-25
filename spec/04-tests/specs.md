@@ -6,7 +6,7 @@
 The gate every change has to pass before anything else is asserted.
 
 ### TST-FIX-001: Build and test gate
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: build
@@ -23,7 +23,7 @@ The project shall build cleanly with `go build ./... ./reqmd-code/... ./reqmd-im
 Tests pinned at one package or one format contract, where a failure names the broken rule.
 
 ### TST-UNT-001: Core package unit tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -39,7 +39,7 @@ Unit tests shall cover the parser, schema, and graph packages with inline fixtur
 *Rationale:* Inline fixtures keep tests self-contained and fast. These packages constitute the core validation pipeline and require the highest confidence; each check has distinct branches exercised independently.
 
 ### TST-UNT-002: Frontmatter, rendering, and client interaction tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -53,7 +53,7 @@ Unit tests SHALL verify frontmatter extraction into `Document.Meta` on both the 
 *Rationale:* These features have distinct logic paths requiring dedicated coverage. Frontmatter touches the parser AST pipeline; the outline and filter are client-side behaviours verified through rendered HTML.
 
 ### TST-UNT-003: Content-tree and item tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -62,12 +62,12 @@ trace:
   - SW-PAR-002
   - SW-EXP-002
 ```
-Unit tests shall cover the content tree: preamble prose captured as a headingless section node, requirement-less files fully preserved, a heading without an `attr` block remaining `KindSection` whether or not it has children, mid-file headings becoming nodes instead of body text, `ParentID` pointing at the nearest ancestor requirement (never a section), thematic breaks kept in bodies, a level-1 heading with an attr block rejected as a parse error, a second level-1 heading rejected as a parse error, deterministic multi-file merge order, and the chunked parallel path retaining the file preamble. Tests shall also cover item-aware output: `ls`/`stats` Type columns and counts, CSV rows in document order for all node kinds, HTML folder sections and leaf-section blocks, `pageModel` entries carrying `type`/`parentId`/`children`, and `--filter` applying the section prune rule (folders whose children were all pruned are dropped, leaf sections with prose survive, bare headings are dropped).
+Unit tests shall cover the content tree: preamble prose captured as a headingless section node, requirement-less files fully preserved, a heading without a `reqmd` block remaining `KindSection` whether or not it has children, mid-file headings becoming nodes instead of body text, `ParentID` pointing at the nearest ancestor requirement (never a section), thematic breaks kept in bodies, a level-1 heading with a reqmd block rejected as a parse error, a second level-1 heading rejected as a parse error, deterministic multi-file merge order, and the chunked parallel path retaining the file preamble. Tests shall also cover item-aware output: `ls`/`stats` Type columns and counts, CSV rows in document order for all node kinds, HTML folder sections and leaf-section blocks, `pageModel` entries carrying `type`/`parentId`/`children`, and `--filter` applying the section prune rule (folders whose children were all pruned are dropped, leaf sections with prose survive, bare headings are dropped).
 
 *Rationale:* The content tree is the parser's core contract — content must never be dropped and nesting must stay faithful to the source. Item-aware output crosses the parser, reporter, and exporter packages, so it needs dedicated end-to-end coverage.
 
 ### TST-EXP-001: NDJSON table export tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -80,7 +80,7 @@ Unit tests shall cover the four NDJSON tables: the requirements table containing
 *Rationale:* Warehouse consumers depend on a stable column set and on deterministic output; both are properties of the writer alone, so they are pinned at the writer level rather than through a warehouse round-trip.
 
 ### TST-INI-001: Scaffolding preset tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -93,7 +93,7 @@ Unit tests shall cover `init`: the generic preset rendering schema and example w
 *Rationale:* The scaffold is the first thing a new user runs and the templates are user-facing text, so a broken template or a wrong default is immediately visible; the custom-preset path shares the same renderer and must be exercised alongside the built-ins.
 
 ### TST-REP-001: Version-pin repin tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -101,12 +101,12 @@ disposition: implemented
 trace:
   - SW-REPIN-001
 ```
-Unit tests shall cover version-pin delta computation and application: outdated refs proposed and rewritten in place, predated refs reported but never rewritten, `--promote-unpinned` adding unpinned refs only against a versioned upstream, whole-ref matching so a promote cannot rewrite the bare ID inside an already-pinned sibling, JSON delta shape and counts, and rewrite scope limited to ` ```attr ` blocks so surrounding prose is preserved byte-for-byte.
+Unit tests shall cover version-pin delta computation and application: outdated refs proposed and rewritten in place, predated refs reported but never rewritten, `--promote-unpinned` adding unpinned refs only against a versioned upstream, whole-ref matching so a promote cannot rewrite the bare ID inside an already-pinned sibling, JSON delta shape and counts, and rewrite scope limited to ` ```reqmd ` blocks so surrounding prose is preserved byte-for-byte.
 
-*Rationale:* `repin` writes to source files, so a matching bug silently corrupts spec content. The whole-ref and attr-block-scope guarantees are the safety properties that must be regression-tested.
+*Rationale:* `repin` writes to source files, so a matching bug silently corrupts spec content. The whole-ref and reqmd-block-scope guarantees are the safety properties that must be regression-tested.
 
 ### TST-FIL-001: Filter package tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -119,7 +119,7 @@ Unit tests shall cover the `internal/filter` package: expression compilation (in
 *Rationale:* The filter engine is the gate for scoping `check`, exports, and diffs. Compile-time typo rejection and filter-aware coverage semantics are load-bearing and must be pinned by tests.
 
 ### TST-DIS-001: Disjoint-attribute check tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -133,7 +133,7 @@ Unit tests shall cover the `disjoint-attribute` graph check: zero intersection p
 *Rationale:* The check gates cross-cutting attribute consistency (variants, safety levels) that other trace checks do not; both the intersection logic and the exemption/suppression paths need coverage.
 
 ### TST-STS-001: Status lifecycle tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -146,7 +146,7 @@ Unit tests shall cover the status lifecycle: missing status defaults to approved
 *Rationale:* The lifecycle is enforced across schema, graph, and exporter; the coverage-provider gate changes validation outcomes and must be regression-tested.
 
 ### TST-LEV-001: Level-typed coverage tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -161,7 +161,7 @@ Unit tests shall also cover the `x-reqmd.requires-trace-from` document default (
 *Rationale:* Level resolution changes coverage semantics for multi-document layers; the expansion, inheritance, and fallback paths must be verified independently.
 
 ### TST-VER-001: Verify package tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -176,7 +176,7 @@ Unit tests shall cover the `internal/verify` package: CTRF JSON parsing (status�
 *Rationale:* The verify package is the entry point for the V&V results feature. Each parsing path (CTRF, manual, auto-detection) has distinct logic that must be exercised independently; the merge semantics (latest-wins, pin stripping) are load-bearing for correctness.
 
 ### TST-VER-002: Outcome-gated graph checks tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -191,7 +191,7 @@ Unit tests shall also cover case-keyed binding and evidence roll-up: `extra.x-re
 *Rationale:* The outcome-gated checks are the core of the V-model right-side closure. Each check has status-gated and outcome-gated branches that must be independently verified to prevent false positives and false negatives. Case-keyed binding and roll-up change the merge, synthesis, and check semantics together, so they need dedicated coverage.
 
 ### TST-IMP-001: reqmd-code extraction tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -206,7 +206,7 @@ Unit tests shall cover the `reqmd-code` pipeline: language plugin parse/classifi
 *Rationale:* reqmd-code closes the code side of the V-model; each language plugin has a distinct tree-sitter query and mapping that must be pinned, and the bundle's determinism is what makes re-running the extractor a safe no-op in CI.
 
 ### TST-IMP-002: Exchange format and renderer tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -217,12 +217,12 @@ trace:
   - SW-IMP-006
   - SW-IMP-008
 ```
-Tests shall enforce the format's invariants rather than any particular rendering. Every rejection rule stated in the exchange format document shall have a test that fails when the rule is removed, and every rejection shall be reported through one batched error naming the item path. Every valid bundle in the shared fixture corpus shall render without error and shall also satisfy the published JSON Schema, so the schema and the renderer cannot diverge. Rendering shall be asserted structurally — the heading outline (level, heading text, parsed attr block) and the item tree — never as matched substrings of generated Markdown, so formatting changes do not break a test that is about structure. Idempotency, quoting round-trip through a YAML parser, and the guarantee that hand-authored files are never rewritten shall be pinned.
+Tests shall enforce the format's invariants rather than any particular rendering. Every rejection rule stated in the exchange format document shall have a test that fails when the rule is removed, and every rejection shall be reported through one batched error naming the item path. Every valid bundle in the shared fixture corpus shall render without error and shall also satisfy the published JSON Schema, so the schema and the renderer cannot diverge. Rendering shall be asserted structurally — the heading outline (level, heading text, parsed reqmd block) and the item tree — never as matched substrings of generated Markdown, so formatting changes do not break a test that is about structure. Idempotency, quoting round-trip through a YAML parser, and the guarantee that hand-authored files are never rewritten shall be pinned.
 
 *Rationale:* The renderer is the correctness boundary for every importer, including the ones not written in this repository. Pinning the rules instead of their wording means a new rule adds a test without rewriting the specification, and asserting structure instead of text means a formatting change cannot mask a nesting bug.
 
 ### TST-IMP-003: Python exchange helper tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: unit
@@ -239,7 +239,7 @@ Tests shall pin the Python helper's contract with the format rather than its int
 Tests that cross package and module boundaries, or drive the produced artefacts.
 
 ### TST-INT-001: End-to-end integration tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: integration
@@ -274,7 +274,7 @@ flowchart TD
 *Rationale:* Integration tests catch cross-package contract violations that unit tests miss. Using the project's own specification as the fixture keeps that specification executable and current.
 
 ### TST-INT-002: Import pipeline end-to-end
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: integration
@@ -290,7 +290,7 @@ An end-to-end test shall exercise the pipeline across module boundaries, because
 *Rationale:* The pieces are individually tested but the seams are not, and the defects found while writing these tests were seam defects — a phantom content node in every generated file, and a wrong expectation about what filtering keeps — which unit tests with hand-built fixtures cannot see.
 
 ### TST-HTM-001: HTML export, project home, and browser tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: integration
@@ -305,7 +305,7 @@ Tests shall cover the HTML export: server-rendered Document view with requiremen
 *Rationale:* The HTML export is the primary review surface, and most of its behaviour only exists after the embedded client script runs. Splitting DOM-level assertions from browser assertions keeps the fast suite meaningful while still pinning the interactive contract.
 
 ### TST-CLI-001: Command wiring and exit codes
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: integration
@@ -319,7 +319,7 @@ Tests shall cover command wiring through cobra: `check`, `ls`, `stats`, `export 
 *Rationale:* Flag wiring is the glue between the CLI surface and the packages; a dropped flag silently disables a check in CI, which no package-level test would catch.
 
 ### TST-SRV-001: Serve with results integration tests
-```attr
+```reqmd
 status: approved
 verify: Test
 test-type: integration

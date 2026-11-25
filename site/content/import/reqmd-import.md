@@ -57,7 +57,7 @@ grouping two requirements:
 
 The format deliberately keeps the *source tool's* stable IDs:
 
-- `kind` is `requirement` (content: an attr block, validated, traced, counted)
+- `kind` is `requirement` (content: a reqmd block, validated, traced, counted)
   or `section` (structure only: a heading, its prose, its children). A section
   with children renders as a folder; one without renders as a prose block.
 - `key` is the DOORS object number or codeBeamer item ID, unique per document.
@@ -70,7 +70,7 @@ The format deliberately keeps the *source tool's* stable IDs:
   are passed through verbatim. `reqmd-code` uses `links` for resolved
   `reqmd:trace <symbol>` targets and convention test links, and `refs` for
   requirement IDs written in source comments.
-- `fields` are the attr-block entries (sections never carry them). A JSON
+- `fields` are the reqmd-block entries (sections never carry them). A JSON
   string stays a string even when it reads like a number, `null` or `true`, so
   send a real number or boolean when you mean one.
 - `body` is Markdown and **must not contain headings** — structure belongs in
@@ -79,7 +79,7 @@ The format deliberately keeps the *source tool's* stable IDs:
 - `status` is your own vocabulary. `--status-map "In Review=review"` translates
   it; an unmapped value falls back to reqmd's default and is kept as
   `x-reqmd.source-status`.
-- `properties` / `required` describe the attr block's JSON Schema, which the
+- `properties` / `required` describe the reqmd block's JSON Schema, which the
   renderer writes into the document's `schema.yaml`.
 - `x-reqmd.external: true` marks the document a proxy for content authored
   elsewhere.

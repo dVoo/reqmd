@@ -15,7 +15,7 @@ A spec-writing agent drives a tight four-step loop. Each step is fast enough to 
 ```mermaid
 flowchart TD
   R["1 · Read<br/>the spec +<br/>schema.yaml"]:::external
-  E["2 · Edit<br/>heading + attr block"]:::external
+  E["2 · Edit<br/>heading + reqmd block"]:::external
   C["3 · Check<br/>reqmd check spec/<br/>16 ms"]:::tool
   D(["Done"]):::artifact
   J["4 · Parse verdict<br/>reqmd check --json"]:::tool
@@ -47,7 +47,7 @@ UI-based ALM tools — Jama, Polarion, Siemens Teamcenter, IBM DOORS, codeBeamer
 2. **The trace graph is opaque.** "Where does SYS-007 trace to?" requires either a UI session or a paginated REST call that returns IDs but not context. The agent has to follow references by hand, across multiple round-trips, to recover what reqmd makes a single 16 ms read.
 3. **Review is impossible.** When the agent writes a new requirement through the API, the change shows up in the UI but the diff is unreadable. A reviewer looking at the agent's PR sees a JSON blob in the audit log, not a Markdown paragraph they can mark up in GitHub.
 
-reqmd's model is the opposite. A requirement is a heading, a YAML `attr` block, and free-form prose; headings without an `attr` block are sections — structure that is rendered and listed but never validated. The agent edits text. The diff is text. The review is text. The check is a binary that returns text. The whole pipeline is in text.
+reqmd's model is the opposite. A requirement is a heading, a YAML `reqmd` block, and free-form prose; headings without a `reqmd` block are sections — structure that is rendered and listed but never validated. The agent edits text. The diff is text. The review is text. The check is a binary that returns text. The whole pipeline is in text.
 
 ## The format is the API
 
@@ -130,7 +130,7 @@ any requirement and must not appear in a `schema.yaml` `properties` block:
 `external` is not an attribute at all but the document-level `x-reqmd.external`
 setting.
 
-`reqmd-suppress: [code, ...]` in an `attr` block is stripped by the parser before
+`reqmd-suppress: [code, ...]` in a `reqmd` block is stripped by the parser before
 schema validation (it is not a schema property) and silences the named checks.
 The complete code list: `broken-ref`, `circular`, `untraced`, `no-downstream`,
 `disposition-reason`, `mandatory-disposition`, `id-prefix`, `version-pin`,
@@ -140,8 +140,8 @@ The complete code list: `broken-ref`, `circular`, `untraced`, `no-downstream`,
 ### Content model — nothing is dropped
 
 Every heading is a content-tree node, and there are exactly two kinds: `req`
-(heading + `attr` block — validated, traced, filtered) and `section` (every
-other node: a heading without an `attr` block, or the headingless prose before
+(heading + `reqmd` block — validated, traced, filtered) and `section` (every
+other node: a heading without a `reqmd` block, or the headingless prose before
 the first heading). A section renders as a folder or a prose block depending on
 whether it has children — that is derived, never stored. Sections carry no
 attributes and are never validated, traced, or counted. Under `--filter` a
@@ -166,8 +166,8 @@ JSON Schema (YAML) with bidirectional trace checks. Exit codes: 0 (clean),
 1 (validation errors), 2 (parse error). See <https://reqmd.dev/llms.txt>
 for a machine-readable index of the docs.
 
-Every heading is a node: a requirement (heading + `attr` block) validates,
-traces, and filters; a heading without an `attr` block is a section —
+Every heading is a node: a requirement (heading + `reqmd` block) validates,
+traces, and filters; a heading without a `reqmd` block is a section —
 structure that renders in `ls`/CSV/HTML but is never validated, traced, or
 counted (it survives `--filter` only while a matching requirement is
 beneath it). Level-1 headings are the document
@@ -256,7 +256,7 @@ if the change is non-substantive.
 
 - Don't introduce a new field in `attr` without checking
   `<doc>/schema.yaml` first. Rejected schemas are config errors.
-- Don't drop the YAML fence language (`attr`) — it's how the parser
+- Don't drop the YAML fence language (`reqmd`) — it's how the parser
   finds the attribute block.
 - Don't add a `trace:` without confirming the target ID exists in
   some document. Use `reqmd ls spec/ | grep ID` to verify.

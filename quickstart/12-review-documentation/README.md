@@ -13,7 +13,7 @@ recorded as markdown with a user-supplied schema.
 
 ## Manual results format
 
-Manual results are markdown files with `attr` blocks, just like requirements —
+Manual results are markdown files with `reqmd` blocks, just like requirements —
 but the schema declares result-specific attributes:
 
 ```yaml
@@ -33,12 +33,12 @@ properties:
     type: string
 ```
 
-Each result is a heading with an `attr` block. Result attributes are
+Each result is a heading with a `reqmd` block. Result attributes are
 tool-owned and namespaced under `x-reqmd.*`:
 
 ````markdown
 ## VR-001: Boot Sequence Design Review Result
-```attr
+```reqmd
 status: approved
 x-reqmd.outcome: pass
 x-reqmd.verifier: "A. Reviewer"

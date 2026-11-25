@@ -622,7 +622,7 @@ func cutDocRef(link string) (string, string, bool) {
 
 // checkSingleLine rejects a producer string that would break the one-line
 // structure of a heading or document title: a line break injects extra Markdown
-// lines and can steal the attr block of the next item.
+// lines and can steal the reqmd block of the next item.
 func checkSingleLine(field, value string) error {
 	if strings.ContainsAny(value, "\n\r") {
 		return fmt.Errorf("%s must not contain a line break", field)
@@ -652,7 +652,7 @@ func checkAttrKey(name string) error {
 }
 
 // checkScalarValue rejects an attribute value the renderer cannot write: reqmd
-// attr blocks hold scalars and flat lists of scalars, never nested structures.
+// reqmd blocks hold scalars and flat lists of scalars, never nested structures.
 func checkScalarValue(name string, v any) error {
 	switch val := v.(type) {
 	case nil, string, bool, int, int64, float64, json.Number:

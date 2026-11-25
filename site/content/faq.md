@@ -116,11 +116,11 @@ There is no separate web UI; the HTML export *is* the web UI. Run `reqmd serve s
 The HTML export includes requirement cards, collapsible parent sections, a sidebar TOC with folder nesting, upstream/downstream trace links, a document chain tab strip for V-model navigation, status filters, theme toggle, and (with `--results`) color-coded verdict badges on measure cards.
 {{< /details >}}
 
-{{< details summary="What happens to headings without an `attr` block?" card="true" >}}
+{{< details summary="What happens to headings without a `reqmd` block?" card="true" >}}
 They are never dropped. Every heading becomes a node in the document's content tree:
 
-- **Requirements** — headings followed by an `attr` block. The only nodes that validate, trace, filter, and count toward coverage.
-- **Sections** — every other node: a heading without an `attr` block (plus prose before the first heading of a file). Whether a section behaves like a folder (it has children) or a leaf prose block is derived from its children and never stored.
+- **Requirements** — headings followed by a `reqmd` block. The only nodes that validate, trace, filter, and count toward coverage.
+- **Sections** — every other node: a heading without a `reqmd` block (plus prose before the first heading of a file). Whether a section behaves like a folder (it has children) or a leaf prose block is derived from its children and never stored.
 
 Sections carry no attributes and take no part in validation, trace checks, or coverage — `reqmd check` is requirement-scoped. `--filter` prunes requirements and then drops sections left empty: a folder section keeps its place while at least one matching requirement is beneath it, and a prose-only leaf section survives. Sections exist so `ls`, `stats`, CSV, and the HTML export (including the sidebar TOC) stay faithful to the document as authored. In `ls` and CSV they appear with a leading `Type` column set to `section`; in HTML they render as collapsible folder sections and plain blocks.
 {{< /details >}}
@@ -225,7 +225,7 @@ See the [cheat sheet `x-reqmd` options](/cheat-sheet/#x-reqmd-options) for the f
 {{< /details >}}
 
 {{< details summary="Can reqmd import or export Excel, Word, or ReqIF?" card="true" >}}
-Not built in (yet). The data model — plain Markdown with a YAML `attr` block per requirement — is simple enough that a one-time script can convert from or to any of these formats. For imports, write a script that emits the [`reqmd-import/v1` exchange format](/exchange/v1/) and let `reqmd-import` render it (a DOORS/codeBeamer CSV reader ships in `python/examples/csv_import.py`); for exports, `reqmd ls --json` gives you a flat JSON list you can reshape into a spreadsheet or document.
+Not built in (yet). The data model — plain Markdown with a YAML `reqmd` block per requirement — is simple enough that a one-time script can convert from or to any of these formats. For imports, write a script that emits the [`reqmd-import/v1` exchange format](/exchange/v1/) and let `reqmd-import` render it (a DOORS/codeBeamer CSV reader ships in `python/examples/csv_import.py`); for exports, `reqmd ls --json` gives you a flat JSON list you can reshape into a spreadsheet or document.
 
 The companion [`reqmd-code`](/import/reqmd-code/) tool handles C, C++, Go, Python, and Rust source via tree-sitter. A ReqIF reader that produces the same exchange format is the most likely path for native ReqIF support.
 {{< /details >}}

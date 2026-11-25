@@ -3,7 +3,7 @@
 //
 // A filter expression is compiled once at startup into bytecode, then
 // evaluated against each requirement's attribute map. The evaluation
-// context exposes every attribute from the req's attr block plus the
+// context exposes every attribute from the req's reqmd block plus the
 // built-in variables `id` and `title` (and the RFC built-in attributes
 // `status`, `disposition`, `trace`, `version`, which resolve to nil when
 // a requirement does not declare them).

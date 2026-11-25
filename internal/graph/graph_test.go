@@ -1988,7 +1988,7 @@ func TestStatus_IgnoreAndAdditionsCombination(t *testing.T) {
 }
 
 // T7: schema-level reject of capitalized status. Compile fails when
-// user puts `status: Implemented` in an attr block that doesn't match
+// user puts `status: Implemented` in a reqmd block that doesn't match
 // the new built-in enum. (The validator catches it; we mirror the test
 // here on the graph side: an uppercase status attr in the data is
 // treated as a non-coverage provider because it's not "approved".)

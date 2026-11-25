@@ -16,7 +16,7 @@ Load manual verification results (review, inspection, analysis, demonstration) r
 
 ## Manual results format
 
-Manual results are markdown files with `attr` blocks, just like requirements — but the schema declares result-specific attributes:
+Manual results are markdown files with `reqmd` blocks, just like requirements — but the schema declares result-specific attributes:
 
 ```yaml
 # schema.yaml
@@ -35,12 +35,12 @@ properties:
     type: string
 ```
 
-Each result is a heading with an `attr` block. Result attributes are
+Each result is a heading with a `reqmd` block. Result attributes are
 tool-owned and namespaced under `x-reqmd.*`:
 
 ````markdown
 ## VR-001: Boot Sequence Design Review Result
-```attr
+```reqmd
 status: approved
 x-reqmd.outcome: pass
 x-reqmd.verifier: "A. Reviewer"

@@ -4,7 +4,7 @@
 
 ## reqmd-code/internal/lang/c/c.go
 ### IMP-clang-queriesFS-49744cf: queriesFS
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -16,7 +16,7 @@ trace: []
 go:embed queries/*.scm
 
 ### IMP-clang-CLanguage-fc60bcb: CLanguage
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -28,7 +28,7 @@ trace: []
 CLanguage is the C language plugin. Implements lang.Language.
 
 #### IMP-clang-Name-0bd1552: Name
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -40,7 +40,7 @@ trace: []
 Name returns the canonical language identifier.
 
 #### IMP-clang-Extensions-f9f3def: Extensions
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -52,7 +52,7 @@ trace: []
 Extensions returns the file extensions this plugin handles.
 
 #### IMP-clang-Grammar-ebf7af2: Grammar
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -64,7 +64,7 @@ trace: []
 Grammar returns the tree-sitter-c grammar language.
 
 #### IMP-clang-Query-d4cfcef: Query
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -78,7 +78,7 @@ If the query file is missing (a packaging error), it returns an empty
 query rather than panicking; Parse will then emit zero symbols.
 
 #### IMP-clang-BindDoc-6a7679c: BindDoc
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -94,7 +94,7 @@ and strips comment markers. Returns the empty string when no
 preceding comment is present.
 
 #### IMP-clang-Parse-479c6b0: Parse
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -110,7 +110,7 @@ drops type specifiers that are merely the inner half of a typedef
 (those are emitted once, via the typedef itself).
 
 ### IMP-clang-cleanComment-2cbe326: cleanComment
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -127,7 +127,7 @@ single space after the marker (`// foo` → `foo`) is dropped, as is
 per-line indentation inside block comments.
 
 ### IMP-clang-symbolFromMatch-b9ebaa1: symbolFromMatch
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -142,7 +142,7 @@ when the match has no usable captures or refers to a function-local
 declaration.
 
 ### IMP-clang-init-831d7f6: init
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c.go
@@ -153,7 +153,7 @@ trace: []
 
 ## reqmd-code/internal/lang/c/c\_test.go
 ### IMP-clang-TestCLanguageRegisters-ed99033: TestCLanguageRegisters
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
@@ -167,7 +167,7 @@ TestCLanguageRegisters verifies that CLanguage self-registered itself
 with the global lang.Registry on package init.
 
 ### IMP-clang-TestParseSample-91ac5ed: TestParseSample
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
@@ -183,7 +183,7 @@ struct, a standalone struct, an enum, a global variable, and two
 functions. Doc comments must be attached to the right symbol.
 
 ### IMP-clang-TestParseTypedefDedup-08c6c42: TestParseTypedefDedup
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
@@ -198,7 +198,7 @@ emits exactly one type symbol (the typedef alias), not two: both the
 inner struct_specifier and the outer type_definition match the query.
 
 ### IMP-clang-TestParseMultiDeclarator-001e95f: TestParseMultiDeclarator
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
@@ -212,7 +212,7 @@ TestParseMultiDeclarator verifies that `int a, b;` emits one symbol per
 declarator, not one per declaration.
 
 ### IMP-clang-TestParsePrototypeSkipped-08e07e9: TestParsePrototypeSkipped
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
@@ -227,7 +227,7 @@ body (`int foo(int);`) is not emitted as a symbol. The definition
 (with a body) is emitted exactly once.
 
 ### IMP-clang-TestParseLocalDeclarationsSkipped-31ed8fd: TestParseLocalDeclarationsSkipped
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
@@ -243,7 +243,7 @@ top-level symbols. Two same-named locals in different functions would
 otherwise collide on the same requirement ID.
 
 ### IMP-clang-TestParseEmpty-258d6dc: TestParseEmpty
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
@@ -256,7 +256,7 @@ trace:
 TestParseEmpty handles zero-byte input gracefully.
 
 ### IMP-clang-TestCleanComment-9815a7a: TestCleanComment
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
@@ -270,7 +270,7 @@ TestCleanComment covers both `//` line comments and `/* ... */` block
 comments, including multi-line blocks.
 
 ### IMP-clang-TestBindDocIncludesDoc-99fa9e8: TestBindDocIncludesDoc
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go
@@ -284,7 +284,7 @@ TestBindDocIncludesDoc verifies that BindDoc attaches the full comment
 block (including a reqmd:trace marker) to the following declaration.
 
 ### IMP-clang-TestParseFromDisk-67e380a: TestParseFromDisk
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/c/c_test.go

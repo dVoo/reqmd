@@ -48,7 +48,7 @@ additionalProperties: false
 	md := `# Manual Verification Results
 
 ## RES-001: Review result
-` + "```attr" + `
+` + "```reqmd" + `
 x-reqmd.outcome: pass
 x-reqmd.verifier: Jane
 x-reqmd.evidence: report.md

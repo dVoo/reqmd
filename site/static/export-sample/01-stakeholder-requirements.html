@@ -4,62 +4,103 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>reqmd Stakeholder Goals</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjU2M2ViIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHN0eWxlPkBtZWRpYSAocHJlZmVycy1jb2xvci1zY2hlbWU6ZGFyayl7cGF0aHtzdHJva2U6IzYwYTVmYX19PC9zdHlsZT48cGF0aCBkPSJNNCA0aDZ2Nkg0eiIvPjxwYXRoIGQ9Ik0xNCA0aDZ2NmgtNnoiLz48cGF0aCBkPSJNNCAxNGg2djZINHoiLz48cGF0aCBkPSJNMTQgMTRoNnY2aC02eiIvPjxwYXRoIGQ9Ik0xMCA3aDQiLz48cGF0aCBkPSJNNyAxMHY0Ii8+PHBhdGggZD0iTTE0IDE3aDQiLz48cGF0aCBkPSJNMTcgMTR2NCIvPjwvc3ZnPg==">
 <script>(function(){try{var t=localStorage.getItem('reqmd-theme');var d=t?t==='dark':window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();</script>
 <style>
 
-/* reqmd HTML export — quiet, typography-led, semantic colour only for state. */
+/* reqmd HTML export — one embedded stylesheet, no build step.
+   Zinc neutrals carry the surface hierarchy; cobalt marks interaction; the
+   semantic palette is reserved for state (status, coverage, verdict). */
 
 :root {
-  --bg: #fbfbfa;
+  color-scheme: light;
+
+  /* surfaces */
+  --bg: #fafafa;
   --surface: #ffffff;
-  --surface-2: #f4f4f1;
-  --surface-3: #ecece8;
-  --border: #e4e4df;
-  --border-strong: #cbcbc4;
-  --fg: #1d1d1b;
-  --fg-muted: #6b6b65;
-  --accent: #33557f;
-  --accent-soft: #e8eef7;
+  --surface-2: #f4f4f5;
+  --surface-3: #ececee;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
 
-  --status-draft: #a86a00;
-  --status-approved: #2f7d4f;
-  --pass: #2f7d4f;
-  --fail: #b3382c;
-  --skipped: #6b6b65;
-  --inconclusive: #a06a00;
-  --missing: #b3382c;
-  --unresolved: #8b4a9c;
-  --attention: #b3382c;
-  --pending: #a06a00;
+  /* text */
+  --fg: #18181b;
+  --fg-strong: #09090b;
+  --fg-muted: #71717a;
+  --fg-subtle: #a1a1aa;
 
-  --radius: 6px;
-  --appbar-h: 48px;
-  --toc-w: 300px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  /* interaction */
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #eff4ff;
+  --accent-weak: #fff7d6;
+  --accent-contrast: #ffffff;
+
+  /* semantic state */
+  --status-draft: #b45309;
+  --status-approved: #15803d;
+  --pass: #15803d;
+  --fail: #dc2626;
+  --skipped: #71717a;
+  --inconclusive: #b45309;
+  --missing: #dc2626;
+  --unresolved: #7c3aed;
+  --attention: #dc2626;
+  --pending: #b45309;
+
+  /* shape & elevation */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --shadow-xs: 0 1px 2px rgb(24 24 27 / 5%);
+  --shadow-sm: 0 1px 2px rgb(24 24 27 / 6%), 0 2px 6px -2px rgb(24 24 27 / 8%);
+  --shadow-md: 0 8px 24px -6px rgb(24 24 27 / 14%), 0 2px 6px -2px rgb(24 24 27 / 8%);
+  --shadow-lg: 0 24px 60px -16px rgb(24 24 27 / 30%);
+
+  /* layout */
+  --appbar-h: 56px;
+  --toc-w: clamp(200px, 25%, 520px);
+  --doc-max: 62rem;
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
 }
 
 html.dark {
-  --bg: #141414;
-  --surface: #1c1c1c;
-  --surface-2: #232323;
-  --surface-3: #2b2b2b;
-  --border: #303030;
-  --border-strong: #454545;
-  --fg: #e7e7e2;
-  --fg-muted: #9c9c95;
-  --accent: #8faddd;
-  --accent-soft: #1f2a3a;
-  --status-draft: #d9a13f;
-  --status-approved: #6cba8b;
-  --pass: #6cba8b;
-  --fail: #e07b6d;
-  --skipped: #9c9c95;
-  --inconclusive: #d9a13f;
-  --missing: #e07b6d;
-  --unresolved: #c08bd6;
-  --attention: #e07b6d;
-  --pending: #d9a13f;
+  color-scheme: dark;
+  --bg: #09090b;
+  --surface: #131316;
+  --surface-2: #1a1a1f;
+  --surface-3: #232329;
+  --border: #26262c;
+  --border-strong: #3a3a44;
+  --fg: #f4f4f5;
+  --fg-strong: #ffffff;
+  --fg-muted: #a1a1aa;
+  --fg-subtle: #71717a;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: #16233d;
+  --accent-weak: #3a2f09;
+  --accent-contrast: #0b1220;
+  --status-draft: #fbbf24;
+  --status-approved: #4ade80;
+  --pass: #4ade80;
+  --fail: #f87171;
+  --skipped: #a1a1aa;
+  --inconclusive: #fbbf24;
+  --missing: #f87171;
+  --unresolved: #c4b5fd;
+  --attention: #f87171;
+  --pending: #fbbf24;
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 45%), 0 2px 6px -2px rgb(0 0 0 / 50%);
+  --shadow-md: 0 10px 28px -8px rgb(0 0 0 / 60%), 0 2px 6px -2px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 28px 70px -18px rgb(0 0 0 / 75%);
 }
 
 * { box-sizing: border-box; }
@@ -73,33 +114,35 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 15px/1.6 var(--font);
+  font: 0.9375rem/1.65 var(--font);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overflow-wrap: break-word;
 }
 
 a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
 
-code, kbd, pre { font-family: var(--mono); font-size: 0.92em; }
+code, kbd, pre { font-family: var(--mono); font-size: 0.9em; }
 
 kbd {
   border: 1px solid var(--border-strong);
   border-bottom-width: 2px;
-  border-radius: 4px;
-  padding: 0 0.35em;
+  border-radius: 5px;
+  padding: 0.05em 0.4em;
   background: var(--surface-2);
   color: var(--fg-muted);
+  font-size: 0.78em;
 }
 
-h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 0.5em; font-weight: 600; }
-h1 { font-size: 1.65rem; letter-spacing: -0.01em; }
-h2 { font-size: 1.15rem; }
+h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 0.5em; font-weight: 600; color: var(--fg-strong); letter-spacing: -0.011em; }
+h1 { font-size: 1.875rem; letter-spacing: -0.022em; }
+h2 { font-size: 1.125rem; }
 h3 { font-size: 1rem; }
 
 p { margin: 0 0 0.8em; }
-ul, ol { margin: 0 0 0.8em; padding-left: 1.4em; }
-hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
+ul, ol { margin: 0 0 0.8em; padding-left: 1.35em; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 1.4em 0; }
 
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -107,49 +150,91 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
 }
 .muted { color: var(--fg-muted); }
 
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.skip-link {
+  position: absolute; top: -3rem; left: 0.75rem; z-index: 200;
+  padding: 0.5rem 0.9rem; border-radius: var(--radius-sm);
+  background: var(--accent); color: var(--accent-contrast);
+  font-size: 0.8125rem; font-weight: 600;
+}
+.skip-link:focus-visible { top: 0.6rem; text-decoration: none; }
+
 /* ── prose ── */
-.prose { max-width: 78ch; }
+.prose { max-width: 76ch; }
 .prose > :last-child { margin-bottom: 0; }
 .prose pre {
   background: var(--surface-2); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 0.7em 0.9em; overflow: auto;
+  border-radius: var(--radius-sm); padding: 0.7em 0.9em; overflow: auto;
 }
-.prose table { border-collapse: collapse; margin-bottom: 0.8em; }
+.prose table { border-collapse: collapse; margin-bottom: 0.8em; font-size: 0.9em; }
 .prose th, .prose td { border: 1px solid var(--border); padding: 0.35em 0.6em; text-align: left; }
+.prose th { background: var(--surface-2); font-weight: 600; }
 .prose blockquote {
   margin: 0 0 0.8em; padding-left: 0.9em; border-left: 3px solid var(--border-strong);
   color: var(--fg-muted);
 }
 .prose img { max-width: 100%; height: auto; }
+.prose pre.mermaid {
+  background: none; border: 0; padding: 0; margin: 0 0 0.8em;
+  overflow-x: auto; text-align: center; font-family: inherit;
+}
+.prose pre.mermaid svg { max-width: 100%; height: auto; }
+/* Only wired diagrams (client-side click-to-enlarge) advertise the zoom. */
+.prose pre.mermaid[data-lightbox] { cursor: zoom-in; }
+.prose pre.mermaid[data-lightbox]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
 /* ── app bar ── */
 .app-bar {
   position: sticky; top: 0; z-index: 40;
-  display: flex; align-items: center; gap: 0.5rem;
-  height: var(--appbar-h); padding: 0 0.9rem;
-  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.75rem;
+  min-height: var(--appbar-h); padding: 0 1rem;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border);
 }
-.app-bar__brand { display: flex; align-items: center; gap: 0.45rem; font-weight: 600; color: var(--fg); }
+.app-bar__brand {
+  display: flex; align-items: center; gap: 0.45rem;
+  font-weight: 650; font-size: 0.9375rem; color: var(--fg-strong); letter-spacing: -0.01em;
+}
 .app-bar__brand:hover { text-decoration: none; color: var(--accent); }
-.app-bar__logo { width: 14px; height: 14px; border-radius: 3px; background: var(--accent); }
-.app-bar__sep { color: var(--border-strong); }
-.app-bar__title { color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.app-bar__tools { margin-left: auto; display: flex; gap: 0.25rem; }
+.app-bar__mark { color: var(--accent); flex: none; display: block; }
+.app-bar__sep { color: var(--fg-subtle); }
+.app-bar__title {
+  color: var(--fg-muted); font-size: 0.875rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.app-bar__views { margin-left: auto; }
+.app-bar__tools { display: flex; gap: 0.25rem; align-items: center; margin-left: auto; }
+.app-bar__views + .app-bar__tools { margin-left: 0.25rem; }
 
 .icon-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: 32px; height: 30px; padding: 0 0.45rem;
+  min-width: 2rem; height: 2rem; padding: 0 0.5rem;
+  border: 1px solid transparent; border-radius: var(--radius-sm);
   background: transparent; color: var(--fg-muted);
-  border: 1px solid transparent; border-radius: var(--radius);
-  font: 500 0.8rem/1 var(--font); cursor: pointer;
+  font: 500 0.78rem/1 var(--font); cursor: pointer;
 }
 .icon-btn:hover { background: var(--surface-2); color: var(--fg); }
-.icon-btn:focus-visible, .btn:focus-visible, .viewswitch__btn:focus-visible,
-.chip__remove:focus-visible, .filter__toggle:focus-visible, .columns__toggle:focus-visible,
-.trace__node:focus-visible, .row-toggle:focus-visible, .search:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
-}
 .toc-toggle { display: none; }
+
+/* ── view switcher (segmented control) ── */
+.viewswitch {
+  display: inline-flex; gap: 2px; padding: 3px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.viewswitch__btn {
+  border: 0; border-radius: 7px; background: transparent; color: var(--fg-muted);
+  padding: 0.3rem 0.7rem; font: 500 0.8125rem/1.25 var(--font); cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+.viewswitch__btn:hover { color: var(--fg); background: color-mix(in srgb, var(--surface) 55%, transparent); }
+.viewswitch__btn.is-active {
+  background: var(--surface); color: var(--fg-strong);
+  box-shadow: var(--shadow-xs); font-weight: 600;
+}
 
 /* ── shell / outline ── */
 .shell { display: grid; grid-template-columns: var(--toc-w) minmax(0, 1fr); align-items: start; }
@@ -157,421 +242,560 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
 
 .toc {
   position: sticky; top: var(--appbar-h);
-  height: calc(100vh - var(--appbar-h)); overflow: auto;
-  padding: 0.9rem 0.75rem 2rem;
+  display: flex; flex-direction: column;
+  height: calc(100vh - var(--appbar-h)); overflow: hidden;
+  padding: 1rem 0.75rem 0;
   border-right: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--bg);
 }
+/* Only the list scrolls, so the width handle stays on the frame. */
+.toc__scroll { flex: 1; overflow: auto; padding-bottom: 2.5rem; scrollbar-width: thin; }
 .toc__head {
   display: flex; justify-content: space-between; align-items: baseline;
-  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em;
-  color: var(--fg-muted); padding: 0 0.4rem 0.6rem;
+  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--fg-muted); padding: 0 0.5rem 0.6rem;
 }
 .toc__count { font-variant-numeric: tabular-nums; }
 .toc__list { list-style: none; margin: 0; padding: 0; }
-.toc__list .toc__list { padding-left: 0.9rem; border-left: 1px solid var(--border); margin-left: 0.55rem; }
+.toc__list .toc__list { padding-left: 0.75rem; border-left: 1px solid var(--border); margin-left: 0.6rem; }
 .toc__link {
   display: flex; gap: 0.45rem; align-items: baseline;
-  padding: 0.25rem 0.4rem; border-radius: 4px;
-  color: var(--fg-muted); font-size: 0.82rem; line-height: 1.35;
+  padding: 0.3rem 0.5rem; border-radius: var(--radius-sm);
+  color: var(--fg-muted); font-size: 0.8125rem; line-height: 1.4;
 }
-.toc__link code { color: var(--fg); font-size: 0.78rem; white-space: nowrap; flex: 0 0 auto; }
+.toc__link code { color: var(--fg-muted); font-size: 0.72rem; white-space: nowrap; flex: 0 0 auto; }
 .toc__link:hover { background: var(--surface-2); color: var(--fg); text-decoration: none; }
-.toc__link.is-active { background: var(--accent-soft); color: var(--fg); }
+.toc__link--section { color: var(--fg); font-weight: 600; }
+.toc__link--section .toc__title { white-space: normal; }
+.toc__link.is-active { background: var(--accent-soft); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent); }
 .toc__link.is-active code { color: var(--accent); }
-.toc__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.toc__title { color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 
-.shell__main { min-width: 0; padding: 1.6rem clamp(1rem, 3vw, 2.5rem) 4rem; }
+/* Drag handle on the outline's right edge. Hidden where the outline is a
+   drawer, because the drawer's width is viewport-based. */
+.toc__resizer {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 6px; z-index: 5;
+  cursor: col-resize; touch-action: none;
+}
+.toc__resizer:hover,
+.toc__resizer:focus-visible { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+body.toc-resizing { cursor: col-resize; user-select: none; }
+
+.shell__main { min-width: 0; padding: 1.75rem clamp(1rem, 2.5vw, 2.5rem) 5rem; }
+.shell__main > .doc-head, .shell__main > .toolbar, .shell__main > .views {
+  max-width: var(--doc-max); margin-left: auto; margin-right: auto;
+}
 
 /* ── document header ── */
-.doc-head { max-width: 78ch; margin-bottom: 1.4rem; }
-.doc-head h1 { margin-bottom: 0.3rem; }
-.doc-head__facts { color: var(--fg-muted); font-size: 0.86rem; margin: 0.35rem 0 0.6rem; }
-.doc-head__status { display: inline-flex; gap: 0.85rem; flex-wrap: wrap; font-size: 0.8rem; color: var(--fg-muted); }
-.doc-head__status-item { display: inline-flex; align-items: center; gap: 0.35rem; }
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.doc-head__badges { display: inline-flex; gap: 0.4rem; margin-left: 0.8rem; }
-.badge {
-  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
-  border: 1px solid var(--border-strong); border-radius: 999px;
-  padding: 0.05rem 0.5rem; color: var(--fg-muted);
+.doc-head { margin-bottom: 1.5rem; }
+.doc-head__eyebrow {
+  display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--fg-muted);
 }
-.doc-head__desc { color: var(--fg-muted); margin-top: 0.8rem; }
+.doc-head__eyebrow code {
+  font-size: 0.75rem; letter-spacing: 0; text-transform: none;
+  color: var(--fg-muted); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  padding: 0.05rem 0.5rem;
+}
+.doc-head h1 { margin: 0 0 0.3rem; }
+.doc-head__facts { color: var(--fg-muted); font-size: 0.8125rem; margin: 0.3rem 0 0.7rem; }
+.doc-head__status { display: flex; flex-direction: column; gap: 0.5rem; margin: 0 0 0.9rem; }
+.statusbar { display: flex; gap: 2px; height: 8px; max-width: 26rem; border-radius: var(--radius-pill); overflow: hidden; background: var(--surface-3); }
+.statusbar__seg { display: block; height: 100%; min-width: 4px; }
+.statusbar__legend { display: flex; gap: 1rem; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; font-size: 0.78rem; color: var(--fg-muted); }
+.statusbar__legend li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.statusbar__legend strong { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.doc-head__badges { display: inline-flex; gap: 0.4rem; margin-left: 0.6rem; vertical-align: middle; }
+.badge {
+  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-pill);
+  padding: 0.1rem 0.55rem; color: var(--fg-muted); background: var(--surface);
+}
+.doc-head__desc { color: var(--fg-muted); font-size: 0.9375rem; margin-top: 0.9rem; }
+
+/* ── alerts (goldmark-alert) ── */
+.markdown-alert {
+  border-left: 3px solid var(--border-strong); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--surface-2); padding: 0.6em 0.85em; margin: 0 0 0.9em;
+  color: var(--fg);
+}
+.markdown-alert > :last-child { margin-bottom: 0; }
+.markdown-alert-title { display: flex; align-items: center; gap: 0.4rem; font-weight: 600; margin: 0 0 0.35em; }
+.markdown-alert-title .markdown-icon { flex: none; fill: currentColor; }
+.markdown-alert-note { border-left-color: #3b82f6; }
+.markdown-alert-tip { border-left-color: #10b981; }
+.markdown-alert-important { border-left-color: #8b5cf6; }
+.markdown-alert-warning { border-left-color: #f59e0b; }
+.markdown-alert-caution { border-left-color: #ef4444; }
 
 /* ── document chain ── */
-.doc-chain { margin-top: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.chain-summary {
-  display: flex; gap: 0.6rem; align-items: baseline; cursor: pointer;
-  padding: 0.55rem 0.8rem; font-size: 0.8rem; color: var(--fg-muted);
+.doc-chain {
+  margin: 0 0 1.2rem; border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-xs); overflow: hidden;
 }
+.chain-details > summary.chain-summary { list-style: none; }
+.chain-summary {
+  display: flex; gap: 0.6rem; align-items: baseline;
+  padding: 0.7rem 0.9rem; cursor: pointer;
+  font-size: 0.8125rem; color: var(--fg-muted);
+}
+.chain-summary::-webkit-details-marker { display: none; }
+.chain-summary::before { content: "▸"; font-size: 0.7rem; color: var(--fg-subtle); }
+.chain-details[open] > .chain-summary::before { content: "▾"; }
+.chain-summary:hover { color: var(--fg); }
 .chain-summary__label { font-weight: 600; color: var(--fg); }
 .chain-summary__count { font-variant-numeric: tabular-nums; }
 
 .chain-stack { display: flex; flex-direction: column; padding: 0 0.9rem 0.9rem; }
-.chain-zone { display: flex; flex-direction: column; gap: 0.8rem; padding: 0.9rem 0; }
-.chain-zone--upstream { padding-bottom: 0.4rem; }
-.chain-zone--downstream { padding-top: 0.4rem; }
+.chain-zone { display: flex; flex-direction: column; gap: 0.8rem; padding: 0.75rem 0; }
+.chain-zone--upstream { padding-bottom: 0.35rem; }
+.chain-zone--downstream { padding-top: 0.35rem; }
 .chain-zone--current {
-  align-items: center;
-  padding: 0.7rem 0.8rem;
-  background: var(--accent-soft);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  align-items: center; padding: 0.8rem;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface-2);
 }
 .chain-zone-header {
-  font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--fg-muted); text-align: center;
 }
-
-.chain-separator {
-  display: flex; align-items: center; justify-content: center; gap: 0.75rem;
-  padding: 0 1.5rem; color: var(--border-strong);
-}
+.chain-separator { display: flex; align-items: center; gap: 0.6rem; justify-content: center; padding: 0.1rem 0; }
 .chain-separator-line { flex: 0 1 120px; height: 1px; background: var(--border); }
-.chain-separator-chevron { font-size: 0.8rem; line-height: 1; flex-shrink: 0; }
+.chain-separator-chevron { font-size: 0.8rem; line-height: 1; flex-shrink: 0; color: var(--fg-subtle); }
 
 .chain-tier { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
 .chain-tier-label {
-  font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
-  color: var(--fg-muted); text-align: center;
+  font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--fg-subtle); text-align: center;
 }
 .chain-tier-cards {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(9.375rem, 1fr));
-  gap: 0.5rem; width: 100%;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem;
 }
-
+.chain-tier-cards > .chain-card { flex: 0 1 20rem; }
 .chain-card {
-  position: relative; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0;
-  padding: 0.5rem 0.65rem;
-  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--fg); font-size: 0.78rem; line-height: 1.35;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.5rem 0.65rem; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--fg); min-width: 0;
 }
 .chain-card:hover, .chain-card:focus-visible {
-  border-color: var(--border-strong); background: var(--surface-3); text-decoration: none;
+  border-color: var(--accent); text-decoration: none; box-shadow: var(--shadow-xs);
 }
-.chain-card-title { font-weight: 600; overflow-wrap: anywhere; }
-.chain-card-meta { margin-top: auto; color: var(--fg-muted); font-size: 0.68rem; }
+.chain-card-title { font-weight: 600; font-size: 0.8125rem; overflow-wrap: anywhere; }
+.chain-card-meta { margin-top: auto; color: var(--fg-muted); font-size: 0.6875rem; }
 .chain-card-glyph {
-  position: absolute; top: 0.35rem; right: 0.5rem;
-  color: var(--fg-muted); font-size: 0.72rem; line-height: 1;
+  display: inline-block; color: var(--fg-subtle); font-size: 0.7rem;
+  margin-bottom: 0.1rem;
 }
 .chain-card--current {
-  max-width: 21rem; width: 100%; align-items: center; text-align: center;
-  padding: 0.7rem 1rem; border-color: var(--accent); background: var(--surface);
+  max-width: 100%; border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--surface); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .chain-card--current:hover { border-color: var(--accent); background: var(--surface); }
-.chain-card--current .chain-card-title { font-size: 0.95rem; color: var(--accent); }
+.chain-card--current .chain-card-title { font-size: 0.9375rem; color: var(--accent); }
 .chain-card--current .chain-card-meta { margin-top: 0.2rem; font-size: 0.72rem; }
 .chain-card--external { border-style: dashed; background: transparent; }
 .chain-card--external .chain-card-title { color: var(--fg-muted); }
 
-.doc-chain--deep .chain-stack { max-height: 24rem; overflow: auto; }
-.doc-chain--deep .chain-zone { gap: 0.6rem; padding: 0.65rem 0; }
+/* A deep chain is collapsed by its own summary; when open it scrolls inside a
+   capped area with a bottom fade, so a long downstream list cannot bury the
+   requirements and the clipped edge reads as "more below" rather than a bug. */
+.doc-chain--deep .chain-stack { max-height: 30rem; overflow: auto; }
+.doc-chain--deep .chain-stack::after {
+  content: ""; position: sticky; bottom: 0; display: block;
+  height: 2.5rem; margin-top: -2.5rem; flex: none;
+  background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+}
+.doc-chain--deep .chain-zone { gap: 0.6rem; padding: 0.6rem 0; }
 .doc-chain--deep .chain-card { padding: 0.4rem 0.55rem; }
 
-@media (max-width: 720px) {
-  .chain-tier-cards { grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0.4rem; }
-  .chain-card--current { max-width: 100%; }
-}
-@media (max-width: 480px) {
-  .chain-tier-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .chain-summary__count { display: none; }
-}
-
-/* ── toolbar ── */
+/* ── toolbar (search + filters) ── */
 .toolbar {
   position: sticky; top: var(--appbar-h); z-index: 30;
-  background: var(--bg);
-  padding: 0.55rem 0 0.5rem;
+  display: flex; flex-direction: column; gap: 0.45rem;
+  padding: 0.55rem 0;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
-  margin: 0 0 1.1rem;
+  margin: 0 auto 1.25rem;
 }
-.toolbar__row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
-.toolbar__row + .toolbar__row { margin-top: 0.45rem; }
-.toolbar__tools { margin-left: auto; display: flex; gap: 0.25rem; }
-.toolbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.45rem; }
-
-.viewswitch { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius); overflow: hidden; }
-.viewswitch__btn {
-  border: 0; background: transparent; color: var(--fg-muted);
-  padding: 0.32rem 0.7rem; font: 500 0.8rem/1.3 var(--font); cursor: pointer;
-}
-.viewswitch__btn + .viewswitch__btn { border-left: 1px solid var(--border); }
-.viewswitch__btn:hover { background: var(--surface-2); color: var(--fg); }
-.viewswitch__btn.is-active { background: var(--accent-soft); color: var(--accent); }
+.toolbar__row { display: flex; gap: 0.55rem; align-items: center; flex-wrap: wrap; }
+.toolbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
 
 .search {
-  flex: 1 1 18rem; min-width: 12rem;
-  padding: 0.42rem 0.65rem;
-  border: 1px solid var(--border-strong); border-radius: var(--radius);
-  background: var(--surface); color: var(--fg); font: 0.86rem/1.4 var(--font);
+  flex: 1 1 16rem; min-width: 11rem; height: 2.15rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--fg); font: 0.875rem/1.4 var(--font);
+  box-shadow: var(--shadow-xs);
 }
-.count { color: var(--fg-muted); font-size: 0.78rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.search::placeholder { color: var(--fg-muted); }
+.search:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+.count { color: var(--fg-muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-.filters { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.45rem; }
+.filters { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .filter { position: relative; }
 .filter__toggle {
   list-style: none; cursor: pointer;
-  border: 1px solid var(--border); border-radius: 999px;
-  padding: 0.15rem 0.6rem; font-size: 0.76rem; color: var(--fg-muted);
-  background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  padding: 0.22rem 0.7rem; font-size: 0.78rem; font-weight: 500; color: var(--fg-muted);
+  background: var(--surface); white-space: nowrap;
 }
 .filter__toggle::-webkit-details-marker { display: none; }
+.filter__toggle::after { content: " ›"; color: var(--fg-subtle); }
 .filter__toggle:hover { border-color: var(--border-strong); color: var(--fg); }
-.filter[open] > .filter__toggle { border-color: var(--accent); color: var(--accent); }
+.filter[open] > .filter__toggle { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.filter[open] > .filter__toggle::after { content: " ⌄"; }
 .filter__count { font-variant-numeric: tabular-nums; }
 .filter__count:not(:empty) { margin-left: 0.2rem; }
 .filter__menu {
-  position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
-  min-width: 13rem; max-height: 18rem; overflow: auto;
+  position: absolute; top: calc(100% + 5px); left: 0; z-index: 25;
+  min-width: 12rem; max-height: 18rem; overflow: auto;
   background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: var(--radius); box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  border-radius: var(--radius); box-shadow: var(--shadow-md);
   padding: 0.35rem;
 }
-.filter__option { display: flex; gap: 0.45rem; align-items: center; padding: 0.2rem 0.35rem; border-radius: 4px; font-size: 0.82rem; cursor: pointer; }
+.filter__option {
+  display: flex; gap: 0.5rem; align-items: center;
+  padding: 0.3rem 0.4rem; border-radius: var(--radius-sm);
+  font-size: 0.8125rem; cursor: pointer;
+}
 .filter__option:hover { background: var(--surface-2); }
 
 /* ── chips ── */
 .chip {
   display: inline-flex; align-items: center; gap: 0.3rem;
-  border: 1px solid var(--border); border-radius: 999px;
-  padding: 0.05rem 0.5rem; font-size: 0.72rem; line-height: 1.5;
-  color: var(--fg-muted); background: var(--surface);
+  border: 1px solid transparent; border-radius: var(--radius-pill);
+  padding: 0.1rem 0.55rem;
+  font-size: 0.75rem; font-weight: 500; line-height: 1.5;
+  color: var(--fg-muted); background: var(--surface-2);
   white-space: nowrap;
 }
-.chip--status { border-color: color-mix(in srgb, var(--chip, var(--fg-muted)) 45%, transparent); color: var(--chip, var(--fg-muted)); }
-.chip--pass { border-color: color-mix(in srgb, var(--pass) 45%, transparent); color: var(--pass); }
-.chip--fail, .chip--coverage-missing { border-color: color-mix(in srgb, var(--fail) 45%, transparent); color: var(--fail); }
-.chip--skipped { color: var(--skipped); }
-.chip--inconclusive { border-color: color-mix(in srgb, var(--inconclusive) 45%, transparent); color: var(--inconclusive); }
-.chip--no-verdict, .chip--none { border-style: dashed; }
-.chip--covered { color: var(--pass); }
-.chip--not-required { color: var(--fg-muted); }
-.chip--coverage-unresolved { border-color: color-mix(in srgb, var(--unresolved) 45%, transparent); color: var(--unresolved); }
-.chip--missing-coverage { color: var(--missing); }
-.chip--filter { background: var(--surface-2); }
-.chip__remove {
-  border: 0; background: transparent; color: var(--fg-muted);
-  cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.1rem;
+.chip--status {
+  color: var(--chip, var(--fg-muted));
+  background: color-mix(in srgb, var(--chip, var(--fg-muted)) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--chip, var(--fg-muted)) 32%, transparent);
 }
-.chip__remove:hover { color: var(--fg); }
+.chip--pass, .chip--covered {
+  color: var(--pass);
+  background: color-mix(in srgb, var(--pass) 11%, var(--surface));
+  border-color: color-mix(in srgb, var(--pass) 30%, transparent);
+}
+.chip--fail, .chip--coverage-missing, .chip--missing-coverage, .chip--failing {
+  color: var(--fail);
+  background: color-mix(in srgb, var(--fail) 11%, var(--surface));
+  border-color: color-mix(in srgb, var(--fail) 30%, transparent);
+}
+.chip--inconclusive, .chip--pending {
+  color: var(--inconclusive);
+  background: color-mix(in srgb, var(--inconclusive) 11%, var(--surface));
+  border-color: color-mix(in srgb, var(--inconclusive) 30%, transparent);
+}
+.chip--skipped, .chip--none { color: var(--fg-muted); background: var(--surface-2); border-color: var(--border); }
+.chip--unresolved, .chip--coverage-unresolved {
+  color: var(--unresolved);
+  background: color-mix(in srgb, var(--unresolved) 11%, var(--surface));
+  border-color: color-mix(in srgb, var(--unresolved) 30%, transparent);
+}
+.chip--not-required, .chip--no-coverage {
+  color: var(--fg-muted); background: transparent; border-color: var(--border-strong); border-style: dashed;
+}
+.chip--no-verdict {
+  color: var(--fg-muted); background: transparent;
+  border-color: color-mix(in srgb, var(--pending) 45%, transparent); border-style: dashed;
+}
+.chip--filter {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.chip__remove {
+  border: 0; background: transparent; color: inherit; cursor: pointer;
+  padding: 0; font: inherit; line-height: 1; opacity: 0.7;
+}
+.chip__remove:hover { opacity: 1; }
 
 .linkbtn {
-  border: 0; background: transparent; color: var(--accent);
-  font: 0.78rem/1.4 var(--font); cursor: pointer; padding: 0.1rem 0.2rem;
+  border: 0; background: none; padding: 0; cursor: pointer;
+  color: var(--accent); font: inherit; text-decoration: underline;
+  text-underline-offset: 2px;
 }
-.linkbtn:hover { text-decoration: underline; }
+.linkbtn:hover { color: var(--accent-hover); }
 
 .btn {
-  display: inline-flex; align-items: center; gap: 0.3rem;
-  border: 1px solid var(--border-strong); border-radius: var(--radius);
-  background: var(--surface); color: var(--fg);
-  padding: 0.28rem 0.6rem; font: 500 0.8rem/1.4 var(--font); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.3rem 0.7rem; border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); background: var(--surface);
+  color: var(--fg); font: 500 0.8125rem/1.3 var(--font); cursor: pointer;
+  box-shadow: var(--shadow-xs);
 }
 .btn:hover { background: var(--surface-2); text-decoration: none; }
 .btn.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 
-/* ── views ── */
-.view-head { margin: 0 0 0.5rem; }
-.view-sub { color: var(--fg-muted); font-size: 0.84rem; max-width: 80ch; margin: 0; }
-.view-tools { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.6rem 0 0.9rem; }
+/* ── view scaffolding ── */
+.view-head { margin: 0 0 0.4rem; }
+.view-sub { color: var(--fg-muted); font-size: 0.8125rem; max-width: 80ch; margin: 0; }
+.view-tools { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.7rem 0 0.9rem; }
 .filter-note { font-size: 0.78rem; color: var(--fg-muted); margin: 0 0 0.8rem; }
 
 .empty {
   border: 1px dashed var(--border-strong); border-radius: var(--radius);
-  padding: 1.2rem 1.4rem; color: var(--fg-muted); background: var(--surface);
-  max-width: 46rem;
+  padding: 1.1rem 1.2rem; color: var(--fg-muted); font-size: 0.875rem;
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
 }
-.empty__title { font-weight: 600; color: var(--fg); margin-bottom: 0.3rem; }
+.empty__title { font-weight: 600; color: var(--fg); margin-bottom: 0.25rem; }
 
-/* ── document cards ── */
-/* Cards use the available width on large screens (the reading measure is
-   capped by the prose inside, not by the card) so wide monitors are not left
-   with two empty gutters; narrow screens keep the natural measure. */
-.doc { max-width: 82ch; }
-@media (min-width: 1280px) {
-  .doc { max-width: 56rem; }
-  .doc-head { max-width: none; }
-}
+.doc { max-width: 100%; }
+
+/* ── requirement cards ── */
 .req {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.85rem 1rem 0.7rem;
-  margin: 0 0 0.7rem;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-xs);
+  padding: 1rem 1.15rem 0.85rem;
+  margin: 0 0 0.75rem;
   scroll-margin-top: calc(var(--appbar-h) + 132px);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
-.req--child { margin-left: 1.1rem; border-left: 2px solid var(--border); }
-.req[data-status]:not([data-status="approved"]) { border-left: 3px solid var(--status-draft); }
-.req.is-flash, .item.is-flash { animation: flash 1.2s ease-out; }
-@keyframes flash { from { background: var(--accent-soft); } to { background: var(--surface); } }
+.req:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.req--child { margin-left: 1.25rem; margin-top: -0.35rem; border-left: 2px solid var(--border); }
+/* A requirement's children sit on a rail that starts and ends with the parent,
+   so a doc section extracted from a comment cannot be mistaken for a heading
+   over the next sibling requirement. */
+.req__children {
+  /* Inset from the sibling-card column so the rail sits inside the parent's
+     width; at the card's own left edge it would be invisible. */
+  margin: -0.15rem 0 0.9rem 2.5rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--border);
+}
+.req__children > .req--child,
+.req__children > .item--child { margin-left: 0; }
+.req__children > :last-child { margin-bottom: 0; }
+.req[data-status]:not([data-status="approved"]) { border-left: 3px solid var(--status-draft); padding-left: calc(1.15rem - 2px); }
+.req.is-flash { animation: flash 1.4s ease-out; }
+@keyframes flash {
+  from { background: var(--accent-weak); }
+  to { background: var(--surface); }
+}
 
-.req__head { display: flex; gap: 0.5rem; align-items: baseline; }
-.req__title { margin: 0; display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
-.req__id { font-size: 0.86rem; color: var(--accent); background: var(--accent-soft); padding: 0.05rem 0.4rem; border-radius: 4px; }
-.req__name { font-size: 1rem; font-weight: 600; }
-.anchor { color: var(--border-strong); font-size: 0.85rem; margin-left: auto; opacity: 0; }
+.req__head { display: flex; gap: 0.55rem; align-items: baseline; }
+.req__title { margin: 0; display: flex; gap: 0.55rem; align-items: baseline; flex-wrap: wrap; }
+.req__id {
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.01em;
+  color: var(--accent); background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  padding: 0.08rem 0.45rem; border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+.req__name { font-size: 1rem; font-weight: 600; color: var(--fg-strong); letter-spacing: -0.008em; }
+.anchor { color: var(--fg-subtle); font-size: 0.85rem; margin-left: auto; opacity: 0; }
 .req:hover .anchor, .item:hover .anchor, .anchor:focus-visible { opacity: 1; }
 .anchor:hover { text-decoration: none; color: var(--accent); }
 
-.req__flags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.45rem 0 0; }
-.req__body { margin-top: 0.55rem; }
+.req__flags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.55rem 0 0; }
+.req__body { margin-top: 0.7rem; }
+.req__body > :last-child { margin-bottom: 0; }
 
-.req__detail { margin-top: 0.6rem; border-top: 1px solid var(--border); padding-top: 0.45rem; }
+.req__detail { margin-top: 0.9rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
 .req__detail-toggle, .evidence__toggle {
-  cursor: pointer; font-size: 0.76rem; color: var(--fg-muted);
-  list-style: none; display: inline-flex; gap: 0.4rem; align-items: center;
+  display: flex; align-items: center; gap: 0.45rem;
+  list-style: none; cursor: pointer;
+  font-size: 0.8125rem; font-weight: 500; color: var(--fg-muted);
+  padding: 0.2rem 0; border-radius: var(--radius-sm);
 }
 .req__detail-toggle::-webkit-details-marker, .evidence__toggle::-webkit-details-marker { display: none; }
-.req__detail-toggle::before, .evidence__toggle::before { content: "▸"; font-size: 0.7rem; }
+.req__detail-toggle::before, .evidence__toggle::before {
+  content: "▸"; font-size: 0.7rem; color: var(--fg-subtle);
+}
 .req__detail[open] > .req__detail-toggle::before, .evidence[open] > .evidence__toggle::before { content: "▾"; }
 .req__detail-toggle:hover, .evidence__toggle:hover { color: var(--fg); }
-.req__detail-body { padding-top: 0.55rem; }
+.req__detail-meta { margin-left: auto; font-size: 0.75rem; font-weight: 400; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+.req__detail-body { padding-top: 0.65rem; }
 
-.attrs { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.4rem 1rem; margin: 0 0 0.7rem; }
-.attrs__row { display: flex; gap: 0.5rem; align-items: baseline; min-width: 0; }
-.attrs__row dt { color: var(--fg-muted); font-size: 0.75rem; min-width: 5.5rem; }
-.attrs__row dd { margin: 0; font-size: 0.82rem; min-width: 0; }
+.attrs { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.45rem 1.25rem; margin: 0 0 0.75rem; }
+.attrs__row { display: flex; gap: 0.55rem; align-items: baseline; min-width: 0; }
+.attrs__row dt { color: var(--fg-muted); font-size: 0.75rem; min-width: 5.5rem; flex: none; }
+.attrs__row dd { margin: 0; font-size: 0.8125rem; min-width: 0; }
 .attrs__row--undeclared dt::after { content: " ?"; color: var(--inconclusive); }
-.attr__pills { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; }
-.attr__pill { background: var(--surface-2); border-radius: 4px; padding: 0 0.35rem; font-size: 0.76rem; }
-.attr__nested { margin: 0; max-height: 12rem; overflow: auto; background: var(--surface-2); padding: 0.4rem; border-radius: 4px; }
+.attr__pills { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; }
+.attr__pill { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 0.4rem; font-size: 0.75rem; }
+.attr__nested { margin: 0; max-height: 12rem; overflow: auto; background: var(--surface-2); border: 1px solid var(--border); padding: 0.45rem; border-radius: var(--radius-sm); font-size: 0.75rem; }
 
 .rationale { color: var(--fg-muted); font-size: 0.85rem; margin-bottom: 0.6rem; }
 .evidence { margin-bottom: 0.6rem; }
-.evidence__item { border-left: 2px solid var(--border); padding: 0.3rem 0 0.3rem 0.7rem; margin: 0.45rem 0; font-size: 0.82rem; }
+.evidence__item { border-left: 2px solid var(--border); padding: 0.3rem 0 0.3rem 0.75rem; margin: 0.45rem 0; font-size: 0.8125rem; }
 .evidence__item .chip { margin-right: 0.3rem; }
 .evidence__case { color: var(--fg); }
 .evidence__file { color: var(--fg-muted); margin-left: 0.45rem; font-size: 0.75rem; }
 .evidence__desc { margin-top: 0.3rem; }
 
-.traces { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.8rem; }
-.traces__head { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); margin-bottom: 0.3rem; }
-.link { display: flex; gap: 0.4rem; align-items: baseline; flex-wrap: wrap; padding: 0.12rem 0; font-size: 0.8rem; }
+.traces { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.9rem; }
+.traces__head { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); margin-bottom: 0.35rem; }
+.link { display: flex; gap: 0.4rem; align-items: baseline; flex-wrap: wrap; padding: 0.15rem 0; font-size: 0.8125rem; }
 .link code { color: var(--accent); }
 .link__title { color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 22rem; }
-.link__pin { font-size: 0.7rem; color: var(--fg-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 0.25rem; }
+.link__pin { font-size: 0.6875rem; color: var(--fg-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 0.3rem; }
 .link__pin--outdated { color: var(--fail); border-color: color-mix(in srgb, var(--fail) 45%, transparent); }
 .link__pin--predated { color: var(--unresolved); border-color: color-mix(in srgb, var(--unresolved) 45%, transparent); }
 .link--broken { color: var(--fail); }
 
-/* ── containers / info ── */
-.item { margin: 0 0 0.8rem; scroll-margin-top: calc(var(--appbar-h) + 132px); }
-.item--child { margin-left: 1.1rem; }
-.item__head { cursor: pointer; display: flex; gap: 0.5rem; align-items: baseline; }
-.item__title { margin: 0; font-size: 0.95rem; color: var(--fg); }
-.item__body { margin-top: 0.45rem; padding-left: 0.2rem; }
-.item--container > details > .item__body { border-left: 1px solid var(--border); padding-left: 0.8rem; }
+/* ── sections ── */
+.item { margin: 0 0 0.6rem; scroll-margin-top: calc(var(--appbar-h) + 132px); }
+.item--child { margin-left: 1.25rem; }
+.item__head {
+  cursor: pointer; display: flex; gap: 0.5rem; align-items: baseline;
+  padding: 0.3rem 0.45rem; margin-left: -0.45rem; border-radius: var(--radius-sm);
+}
+.item__head:hover { background: var(--surface-2); }
+.item__head::-webkit-details-marker { display: none; }
+.item__head::before { content: "▸"; font-size: 0.7rem; color: var(--fg-subtle); }
+details[open] > .item__head::before { content: "▾"; }
+.item__title { margin: 0; font-size: 1rem; color: var(--fg-strong); }
+.item__body { margin-top: 0.4rem; padding-left: 0.2rem; }
+.item--section > details > .item__body { border-left: 1px solid var(--border); padding-left: 0.9rem; margin-left: 0.3rem; }
+.item--section > details > summary { list-style: none; }
 
 /* ── table view ── */
-.table-scroll { overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.grid { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
-.grid th, .grid td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+.table-scroll { overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-xs); }
+.grid { border-collapse: collapse; width: 100%; font-size: 0.8125rem; }
+.grid th, .grid td { padding: 0.45rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
 .grid thead th {
-  position: sticky; top: 0; z-index: 2;
+  position: sticky; top: 0; z-index: 1;
   background: var(--surface-2); color: var(--fg-muted);
-  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
-  white-space: nowrap;
+  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
 }
+.grid tbody tr:last-child td { border-bottom: 0; }
+.grid tbody tr:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
 .grid th.sortable { cursor: pointer; user-select: none; }
 .grid th.sortable:hover { color: var(--fg); }
 .grid th.is-sorted { color: var(--accent); }
-.grid tbody tr:hover { background: var(--surface-2); }
 .grid .num { text-align: right; font-variant-numeric: tabular-nums; }
-.cell-id code { color: var(--accent); }
+.cell-id code { color: var(--accent); font-size: 0.8125rem; }
 .cell-title { min-width: 14rem; }
-.cell-sub { display: block; color: var(--fg-muted); font-size: 0.72rem; }
+.cell-sub { display: block; color: var(--fg-muted); font-size: 0.72rem; margin-top: 0.1rem; }
 .cell--attention { color: var(--attention); font-weight: 600; }
 .cell-detail { width: 1.8rem; padding-right: 0; }
-.row-toggle { border: 0; background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 0.75rem; padding: 0 0.2rem; }
-.grid__detail > td { background: var(--surface-2); padding: 0.7rem 0.9rem; }
+.row-toggle { border: 0; background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 0.75rem; padding: 0 0.2rem; white-space: nowrap; }
+.row-toggle:hover { color: var(--accent); }
+.grid__row.is-selected { background: var(--accent-soft); }
+.grid__row.is-flash { animation: flash 1.4s ease-out; }
+.grid__detail > td { background: var(--surface-2); padding: 0.8rem 1rem; }
 .grid__detail .req__body { max-width: 80ch; }
-.grid__detail .req__detail { border-top: 0; }
+.grid__detail .req__detail { border-top: 0; padding-top: 0.2rem; }
 
 .columns { position: relative; }
 .columns__toggle {
   list-style: none; cursor: pointer;
-  border: 1px solid var(--border-strong); border-radius: var(--radius);
-  padding: 0.26rem 0.6rem; font-size: 0.78rem; color: var(--fg-muted); background: var(--surface);
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 0.28rem 0.65rem; font-size: 0.78rem; font-weight: 500; color: var(--fg-muted); background: var(--surface);
+  box-shadow: var(--shadow-xs);
 }
 .columns__toggle::-webkit-details-marker { display: none; }
 .columns__toggle:hover { color: var(--fg); }
 .columns__menu {
-  position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+  position: absolute; top: calc(100% + 5px); left: 0; z-index: 20;
   min-width: 12rem; max-height: 20rem; overflow: auto;
   background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: var(--radius); box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  border-radius: var(--radius); box-shadow: var(--shadow-md);
   padding: 0.35rem;
 }
-.columns__option { display: flex; gap: 0.45rem; align-items: center; padding: 0.2rem 0.35rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
+.columns__option { display: flex; gap: 0.5rem; align-items: center; padding: 0.28rem 0.4rem; border-radius: var(--radius-sm); font-size: 0.8125rem; cursor: pointer; }
 .columns__option:hover { background: var(--surface-2); }
 
 /* ── trace explorer ── */
 .trace { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(14rem, 1.2fr) minmax(10rem, 1fr); gap: 0.9rem; align-items: start; }
-.trace__col { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
-.trace__head { display: flex; justify-content: space-between; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+.trace__col { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.trace__head { display: flex; justify-content: space-between; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
 .trace__node {
+  position: relative;
   display: flex; flex-direction: column; gap: 0.1rem; text-align: left; width: 100%;
   border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--surface); color: var(--fg);
-  padding: 0.4rem 0.55rem; cursor: pointer; font: inherit;
+  background: var(--surface); color: var(--fg); box-shadow: var(--shadow-xs);
+  padding: 0.5rem 0.65rem; cursor: pointer; font: inherit;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
-.trace__node:hover { border-color: var(--accent); }
-.trace__node code { color: var(--accent); font-size: 0.8rem; }
+.trace__node:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.trace__node code { color: var(--accent); font-size: 0.78rem; }
 .trace__node.is-muted { opacity: 0.55; }
 .trace__node--broken { cursor: default; border-style: dashed; color: var(--fail); }
 .trace__node--broken code { color: var(--fail); }
-.trace__title { font-size: 0.82rem; }
-.trace__meta { color: var(--fg-muted); font-size: 0.68rem; }
-.trace__center { padding: 0.5rem; border-radius: var(--radius); background: var(--surface-2); }
-.trace__card { margin-top: 0.4rem; }
-.trace__id { font-size: 1rem; font-weight: 600; color: var(--accent); }
-.trace__card .trace__title { font-size: 1rem; font-weight: 600; margin: 0.2rem 0; }
-.trace__badges { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.trace__node--external { text-decoration: none; padding-right: 1.6rem; }
+.trace__node--external::after {
+  content: "↗"; position: absolute; top: 0.45rem; right: 0.55rem;
+  color: var(--fg-muted); font-size: 0.7rem;
+}
+.trace__title { font-size: 0.8125rem; }
+.trace__meta { color: var(--fg-muted); font-size: 0.7rem; }
+.trace__center {
+  padding: 0.7rem 0.8rem; border-radius: var(--radius);
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.trace__card { margin-top: 0.45rem; }
+.trace__id { font-size: 0.9375rem; font-weight: 600; color: var(--accent); }
+.trace__card .trace__title { font-size: 1rem; font-weight: 600; margin: 0.2rem 0 0.4rem; color: var(--fg-strong); }
+.trace__badges { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 
 .matrix { margin-top: 1.6rem; }
 .matrix__title { margin-bottom: 0.2rem; }
 .matrix__block { margin-top: 1rem; }
 .matrix__table { border-collapse: collapse; font-size: 0.75rem; }
-.matrix__table th, .matrix__table td { border: 1px solid var(--border); padding: 0.2rem 0.4rem; }
+.matrix__table th, .matrix__table td { border: 1px solid var(--border); padding: 0.22rem 0.45rem; }
 .matrix__corner { background: var(--surface-2); }
 .matrix__col { writing-mode: horizontal-tb; white-space: nowrap; background: var(--surface-2); color: var(--fg-muted); }
 .matrix__row { white-space: nowrap; background: var(--surface-2); text-align: left; }
 .matrix__cell { text-align: center; }
-.matrix__cell--on { color: var(--accent); }
+.matrix__cell--on { color: var(--accent); cursor: pointer; }
+.matrix__cell--on:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .matrix__dot { font-size: 0.6rem; }
+.matrix__col a { color: var(--fg-muted); }
+.matrix__col a:hover { color: var(--accent); }
 
-/* ── coverage / tiles / queues ── */
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.6rem; margin: 0.8rem 0 1.2rem; }
+/* ── tiles / queues / dashboard ── */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.75rem; margin: 0.9rem 0 1.3rem; }
 .tile {
   border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
-  padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.1rem;
+  box-shadow: var(--shadow-xs);
+  padding: 0.8rem 0.9rem; display: flex; flex-direction: column; gap: 0.25rem;
 }
 .tile--attention { border-left: 3px solid var(--attention); }
 .tile--pending { border-left: 3px solid var(--pending); }
-.tile__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
-.tile__value { font-size: 1.15rem; font-weight: 600; }
-.tile__detail { font-size: 0.74rem; color: var(--fg-muted); }
+.tile__label { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
+.tile__value { font-size: 1.375rem; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.tile__bar { display: block; height: 5px; border-radius: var(--radius-pill); background: var(--surface-3); overflow: hidden; }
+.tile__bar-fill { display: block; height: 100%; border-radius: inherit; background: var(--pass); }
+.tile--attention .tile__bar-fill { background: var(--fail); }
+.tile--pending .tile__bar-fill { background: var(--pending); }
+.tile__detail { font-size: 0.75rem; color: var(--fg-muted); }
 
-.queues { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 0.8rem; margin-bottom: 1.4rem; }
-.queue { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: 0.7rem 0.85rem; }
-.queue__title { display: flex; gap: 0.45rem; align-items: baseline; margin: 0 0 0.2rem; font-size: 0.9rem; }
-.queue__count { color: var(--fg-muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
-.queue__body { color: var(--fg-muted); font-size: 0.76rem; margin: 0 0 0.4rem; }
-.queue__list { list-style: none; margin: 0 0 0.4rem; padding: 0; max-height: 18rem; overflow: auto; }
-.queue__list li { padding: 0.22rem 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+.queues { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 0.8rem; margin-bottom: 1.4rem; }
+.queue {
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+  box-shadow: var(--shadow-xs); padding: 0.8rem 0.95rem;
+}
+.queue__title { display: flex; gap: 0.5rem; align-items: baseline; margin: 0 0 0.2rem; font-size: 0.9375rem; }
+.queue__count {
+  color: var(--fg-muted); font-size: 0.75rem; font-variant-numeric: tabular-nums;
+  background: var(--surface-2); border-radius: var(--radius-pill); padding: 0 0.45rem;
+}
+.queue__body { color: var(--fg-muted); font-size: 0.78rem; margin: 0 0 0.5rem; }
+.queue__list { list-style: none; margin: 0 0 0.5rem; padding: 0; max-height: 16rem; overflow: auto; }
+.queue__list li { padding: 0.28rem 0; border-bottom: 1px solid var(--border); font-size: 0.8125rem; }
 .queue__list li:last-child { border-bottom: 0; }
-.queue__req-title { color: var(--fg-muted); margin-left: 0.3rem; }
+.queue__req-title { color: var(--fg-muted); margin-left: 0.35rem; }
 .queue__note { display: block; color: var(--fg-muted); font-size: 0.72rem; }
-.queue__more { font-size: 0.74rem; color: var(--fg-muted); margin: 0.2rem 0 0; }
+.queue__more { font-size: 0.75rem; color: var(--fg-muted); margin: 0.2rem 0 0; }
 
-.dash { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: 0.7rem 0.9rem; }
-.dash-bars { display: flex; flex-direction: column; gap: 0.35rem; }
-.dash-bar { display: grid; grid-template-columns: 6.5rem 1fr 2.5rem; gap: 0.5rem; align-items: center; font-size: 0.78rem; }
+.dash { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-xs); padding: 0.8rem 1rem; }
+.dash-bars { display: flex; flex-direction: column; gap: 0.4rem; }
+.dash-bar { display: grid; grid-template-columns: 6.5rem 1fr 2.5rem; gap: 0.55rem; align-items: center; font-size: 0.78rem; }
 .dash-bar__label { color: var(--fg-muted); }
-.dash-bar__track { height: 6px; background: var(--surface-3); border-radius: 999px; overflow: hidden; }
-.dash-bar__fill { display: block; height: 100%; background: var(--fg-muted); }
+.dash-bar__track { height: 7px; background: var(--surface-3); border-radius: var(--radius-pill); overflow: hidden; }
+.dash-bar__fill { display: block; height: 100%; background: var(--fg-muted); border-radius: inherit; }
 .dash-bar--pass .dash-bar__fill { background: var(--pass); }
 .dash-bar--fail .dash-bar__fill { background: var(--fail); }
 .dash-bar--inconclusive .dash-bar__fill { background: var(--inconclusive); }
@@ -580,118 +804,91 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
 .dash-bar__val { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg-muted); }
 
 /* ── project page ── */
-.shell--project .project { max-width: 78rem; padding: 1.6rem clamp(1rem, 3vw, 2.5rem) 4rem; }
-.project h2 { margin-top: 1.6rem; }
-.project-search { margin-top: 1.2rem; }
-.project-search .search { width: 100%; max-width: 34rem; }
-.results { list-style: none; margin: 0.5rem 0 0; padding: 0; max-width: 48rem; }
-.results li { padding: 0.28rem 0; border-bottom: 1px solid var(--border); font-size: 0.84rem; }
+.shell--project .project {
+  width: 100%; max-width: 80rem; margin: 0 auto;
+  padding: 2rem clamp(1rem, 3vw, 2.5rem) 5rem;
+}
+.project .doc-head { margin-bottom: 1.2rem; }
+.project h2 { margin: 1.8rem 0 0.6rem; font-size: 1.125rem; }
+.project-search { margin-top: 0.4rem; }
+.project-search h2 { margin-top: 0; }
+.project-search .search { width: 100%; max-width: 36rem; }
+.results { list-style: none; margin: 0.6rem 0 0; padding: 0; max-width: 48rem; }
+.results li { padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: 0.84rem; }
+.results li:last-child { border-bottom: 0; }
+.results__count { border-bottom: 0 !important; color: var(--fg-muted); font-size: 0.76rem; }
 .catalog { margin-top: 0.4rem; }
-.catalog .grid { font-size: 0.82rem; }
+.catalog .grid { font-size: 0.8125rem; }
+.catalog__level {
+  display: inline-block; font-size: 0.7rem; font-weight: 500;
+  color: var(--fg-muted); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  padding: 0 0.45rem; white-space: nowrap;
+}
+.cell-bar { display: block; width: 5rem; height: 4px; margin: 0.25rem 0 0 auto; border-radius: var(--radius-pill); background: var(--surface-3); overflow: hidden; }
+.cell-bar__fill { display: block; height: 100%; background: var(--pass); border-radius: inherit; }
+.cell-bar__fill--attention { background: var(--fail); }
+
+.catalog .grid tbody tr[data-href] { cursor: pointer; }
+.catalog .grid tbody tr[data-href]:hover { background: var(--surface-2); }
 
 /* ── overlays ── */
 body.overlay-open { overflow: hidden; }
 .overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 8vh 1rem 1rem; }
-.overlay__backdrop { position: absolute; inset: 0; background: rgb(0 0 0 / 42%); }
+.overlay__backdrop { position: absolute; inset: 0; background: rgb(9 9 11 / 48%); backdrop-filter: blur(2px); }
 .overlay__panel {
   position: relative; width: min(44rem, 100%);
   background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: 8px; box-shadow: 0 20px 60px rgb(0 0 0 / 25%);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 .overlay__panel--narrow { width: min(34rem, 100%); }
+/* Enlarged diagram: near-full viewport, scrollable, and the cloned svg keeps
+   Mermaid's inline max-width from clamping it back to the column width. */
+.overlay__panel--lightbox {
+  width: 96vw; max-width: none; max-height: 84vh;
+  padding: 0.6rem; overflow: auto; background: var(--surface);
+}
+.overlay__panel--lightbox > .icon-btn {
+  position: absolute; top: 0.35rem; right: 0.35rem; background: var(--surface);
+}
+/* The svg keeps Mermaid's inline max-width, so the enlargement has to win with
+   !important — the clone is not clamped back to the prose column width. */
+.overlay__panel--lightbox svg {
+  max-width: none !important; width: 100% !important; height: auto !important; display: block;
+}
 
 .palette__input {
   width: 100%; border: 0; border-bottom: 1px solid var(--border);
-  padding: 0.8rem 1rem; font: 0.95rem/1.4 var(--font);
+  padding: 0.9rem 1rem; font: 0.9375rem/1.4 var(--font);
   background: var(--surface); color: var(--fg); outline: none;
 }
-.palette__list { list-style: none; margin: 0; padding: 0.35rem; max-height: 50vh; overflow: auto; }
+.palette__list { list-style: none; margin: 0; padding: 0.4rem; max-height: 50vh; overflow: auto; }
 .palette__item {
   display: flex; gap: 0.6rem; align-items: baseline; width: 100%; text-align: left;
   border: 0; background: transparent; color: var(--fg);
-  padding: 0.4rem 0.55rem; border-radius: 4px; cursor: pointer; font: inherit;
+  padding: 0.45rem 0.6rem; border-radius: var(--radius-sm); cursor: pointer; font: inherit;
 }
 .palette__item.is-active,
 .palette__item.is-active:hover { background: var(--accent-soft); }
 .palette__item.is-active .palette__label { color: var(--accent); font-weight: 600; }
-.palette__glyph { color: var(--fg-muted); width: 1rem; text-align: center; }
+.palette__glyph { color: var(--fg-subtle); width: 1rem; text-align: center; }
 .palette__text { display: flex; flex-direction: column; min-width: 0; }
-.palette__label { font-size: 0.86rem; }
-.palette__hint { color: var(--fg-muted); font-size: 0.74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.palette__empty { margin: 0; padding: 0.8rem 1rem; color: var(--fg-muted); font-size: 0.84rem; }
-.palette__foot { display: flex; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding: 0.5rem 1rem; font-size: 0.72rem; color: var(--fg-muted); }
+.palette__label { font-size: 0.875rem; }
+.palette__hint { color: var(--fg-muted); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palette__empty { margin: 0; padding: 0.9rem 1rem; color: var(--fg-muted); font-size: 0.84rem; }
+.palette__foot { display: flex; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding: 0.55rem 1rem; font-size: 0.72rem; color: var(--fg-muted); }
 
-.shortcuts { padding: 1rem 1.1rem 1.1rem; }
-.shortcuts__title { font-size: 1rem; margin-bottom: 0.7rem; }
-.shortcuts__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.4rem 1rem; margin: 0 0 0.7rem; }
-.shortcuts__grid > div { display: flex; gap: 0.5rem; align-items: baseline; }
-.shortcuts__grid dt { min-width: 4rem; }
-.shortcuts__grid dd { margin: 0; font-size: 0.82rem; color: var(--fg-muted); }
-.shortcuts__note { font-size: 0.74rem; color: var(--fg-muted); margin: 0; }
-
-/* ── density ── */
-body.density-compact .req { padding: 0.55rem 0.8rem 0.5rem; margin-bottom: 0.45rem; }
-body.density-compact .grid th, body.density-compact .grid td { padding: 0.24rem 0.45rem; }
-body.density-compact .toc__link { padding: 0.15rem 0.35rem; }
-body.density-compact .tile { padding: 0.4rem 0.6rem; }
-
-/* ── responsive ── */
-@media (max-width: 900px) {
-  .shell { grid-template-columns: minmax(0, 1fr); }
-  .toc-toggle { display: inline-flex; }
-  .toc {
-    position: fixed; top: var(--appbar-h); left: 0; bottom: 0; z-index: 35;
-    width: min(20rem, 86vw); transform: translateX(-102%);
-    transition: transform 160ms ease; box-shadow: 0 0 40px rgb(0 0 0 / 20%);
-    height: auto;
-  }
-  body.toc-open .toc { transform: none; }
-  .trace { grid-template-columns: minmax(0, 1fr); }
-  .trace__center { order: -1; }
-}
-
-@media (max-height: 640px) {
-  .toolbar { position: static; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
-}
-
-@media print {
-  .app-bar, .toc, .toolbar, .overlay, .view-tools { display: none !important; }
-  .shell { display: block; }
-  .shell__main { padding: 0; }
-  .req, .item { break-inside: avoid; }
-}
-
-/* ── follow-up UX fixes ── */
+.shortcuts { padding: 1.1rem 1.2rem 1.2rem; }
 .shortcuts__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .shortcuts__head .shortcuts__title { margin: 0; }
 .shortcuts .icon-btn { font-size: 1rem; }
-
-/* The chain closes the Document view, so its collapsed summary sits directly
-   under the last card. */
-.view--document .doc-chain { margin: 1.2rem 0 0; }
-.view--document .doc-chain .chain-stack { padding-top: 0.2rem; }
-
-.results__count { border-bottom: 0 !important; color: var(--fg-muted); font-size: 0.76rem; }
-
-.matrix__cell--on { cursor: pointer; }
-.matrix__cell--on:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.matrix__col a { color: var(--fg-muted); }
-.matrix__col a:hover { color: var(--accent); }
-
-.trace__node--external::after { content: " ↗"; color: var(--fg-muted); font-size: 0.7rem; }
-.trace__node--external { text-decoration: none; }
-
-/* Whole-row affordance for the project catalog. */
-.catalog .grid tbody tr[data-href] { cursor: pointer; }
-.catalog .grid tbody tr[data-href]:hover { background: var(--surface-2); }
-
-
+.shortcuts__title { font-size: 1rem; margin-bottom: 0.7rem; }
+.shortcuts__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.45rem 1rem; margin: 0 0 0.7rem; }
+.shortcuts__grid > div { display: flex; gap: 0.5rem; align-items: baseline; }
+.shortcuts__grid dt { min-width: 4rem; }
+.shortcuts__grid dd { margin: 0; font-size: 0.8125rem; color: var(--fg-muted); }
+.shortcuts__note { font-size: 0.75rem; color: var(--fg-muted); margin: 0; }
 
 /* Outline entry the Trace view is centred on. */
 .toc__item.is-selected > .toc__link {
@@ -704,14 +901,98 @@ body.density-compact .tile { padding: 0.4rem 0.6rem; }
 
 /* In the Trace view the outline is the requirement picker. */
 body[data-view="trace"] .toc__link { cursor: pointer; }
+
+/* A section reached from the command palette flashes briefly. */
+.item.is-flash > .item__title, .item.is-flash > details > summary {
+  background: var(--accent-weak); border-radius: var(--radius-sm); transition: background 0.6s ease;
+}
+
+/* ── responsive ── */
+@media (max-width: 1100px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .toc-toggle { display: inline-flex; }
+  .toc__resizer { display: none; }
+  .toc {
+    position: fixed; top: var(--appbar-h); left: 0; bottom: 0; z-index: 35;
+    width: min(20rem, 86vw); transform: translateX(-102%);
+    transition: transform 160ms ease; box-shadow: var(--shadow-lg);
+    height: auto; background: var(--surface);
+  }
+  body.toc-open .toc { transform: none; }
+  .trace { grid-template-columns: minmax(0, 1fr); }
+  .trace__center { order: -1; }
+  .req--child { margin-left: 0.75rem; }
+}
+
+/* The app bar keeps the view switcher: below 860px it takes its own row, so
+   --appbar-h grows with it and the sticky toolbar/outline stay aligned. */
+@media (max-width: 860px) {
+  :root { --appbar-h: 100px; }
+  .app-bar { flex-wrap: wrap; align-content: center; gap: 0.35rem 0.6rem; padding: 0.5rem 0.75rem; }
+  .app-bar__views { order: 3; width: 100%; margin-left: 0; }
+  .viewswitch { width: 100%; }
+  .viewswitch__btn { flex: 1 1 0; padding-left: 0.4rem; padding-right: 0.4rem; }
+  .doc-head h1 { font-size: 1.5rem; }
+}
+
+@media (max-width: 720px) {
+  .shell__main { padding: 1.25rem 0.9rem 4rem; }
+  .chain-tier-cards { grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0.4rem; }
+  .chain-card--current { max-width: 100%; }
+  .req { padding: 0.85rem 0.9rem 0.7rem; border-radius: var(--radius); }
+  .tiles { grid-template-columns: minmax(0, 1fr); }
+  .app-bar__sep, .app-bar__title { display: none; }
+  .doc-head__badges { margin-left: 0; }
+}
+
+@media (max-width: 480px) {
+  .chain-tier-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chain-summary__count { display: none; }
+  .toolbar__row { gap: 0.4rem; }
+  .search { flex-basis: 100%; }
+}
+
+@media (max-height: 640px) {
+  .toolbar { position: static; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+@media print {
+  .app-bar, .toc, .toolbar, .overlay, .view-tools, .skip-link { display: none !important; }
+  body { background: #fff; color: #000; }
+  .shell { display: block; }
+  .shell__main, .shell--project .project { padding: 0; max-width: none; }
+  .req, .item { break-inside: avoid; box-shadow: none; border-color: #ccc; }
+  /* A collapsed folder must still print its contents: browsers print neither
+     the children of a closed <details> nor its summary affordance usefully. */
+  details:not([open]) > *:not(summary) { display: block !important; }
+  .item--section > details > summary { list-style: none; }
+}
 </style>
 </head>
 <body data-page="document">
+<a class="skip-link" href="#main">Skip to content</a>
 <header class="app-bar">
   <button type="button" class="icon-btn toc-toggle" data-action="toggle-toc" aria-label="Toggle outline" aria-controls="toc" aria-expanded="false">&#9776;</button>
-  <a class="app-bar__brand" href="index.html"><span class="app-bar__logo" aria-hidden="true"></span>reqmd</a>
+  <a class="app-bar__brand" href="index.html"><svg class="app-bar__mark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6H4z"/><path d="M14 4h6v6h-6z"/><path d="M4 14h6v6H4z"/><path d="M14 14h6v6h-6z"/><path d="M10 7h4"/><path d="M7 10v4"/><path d="M14 17h4"/><path d="M17 14v4"/></svg>reqmd</a>
   <span class="app-bar__sep" aria-hidden="true">/</span>
   <span class="app-bar__title">reqmd Stakeholder Goals</span>
+  <div class="app-bar__views">
+    <div class="viewswitch" role="group" aria-label="View">
+      <button type="button" class="viewswitch__btn is-active" data-view="document" aria-pressed="true" title="Document view (g d)">Document</button>
+      <button type="button" class="viewswitch__btn" data-view="table" aria-pressed="false" title="Table view (g t)">Table</button>
+      <button type="button" class="viewswitch__btn" data-view="trace" aria-pressed="false" title="Trace explorer (g r)">Trace</button>
+      <button type="button" class="viewswitch__btn" data-view="coverage" aria-pressed="false" title="Coverage view (g c)">Coverage</button>
+    </div>
+  </div>
   <div class="app-bar__tools">
     <button type="button" class="icon-btn" data-action="palette" aria-label="Command palette" title="Command palette (Ctrl+K)" data-mod-hint="palette">Ctrl K</button>
     <button type="button" class="icon-btn" data-action="theme" aria-label="Toggle theme" title="Toggle light/dark">◐</button>
@@ -720,20 +1001,28 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
 <div class="shell">
 <nav class="toc" id="toc" aria-label="Outline">
   <div class="toc__head"><span>Outline</span><span class="toc__count" data-toc-count></span></div>
+  <div class="toc__scroll">
   <ul class="toc__list">
-<li class="toc__item" data-toc-for="STK-GOAL-001"><a class="toc__link" href="#STK-GOAL-001"><code>STK-GOAL-001</code><span class="toc__title">Text-first Git-native authoring</span></a></li>
-<li class="toc__item" data-toc-for="STK-GOAL-002"><a class="toc__link" href="#STK-GOAL-002"><code>STK-GOAL-002</code><span class="toc__title">Human-readable machine-parsable specs</span></a></li>
-<li class="toc__item" data-toc-for="STK-GOAL-003"><a class="toc__link" href="#STK-GOAL-003"><code>STK-GOAL-003</code><span class="toc__title">Schema-driven validation</span></a></li>
-<li class="toc__item" data-toc-for="STK-GOAL-004"><a class="toc__link" href="#STK-GOAL-004"><code>STK-GOAL-004</code><span class="toc__title">Multi-format export for review and analytics</span></a></li>
-<li class="toc__item" data-toc-for="STK-GOAL-005"><a class="toc__link" href="#STK-GOAL-005"><code>STK-GOAL-005</code><span class="toc__title">V-model traceability</span></a></li>
-<li class="toc__item" data-toc-for="STK-GOAL-006"><a class="toc__link" href="#STK-GOAL-006"><code>STK-GOAL-006</code><span class="toc__title">Verification results close the V-model</span></a></li>
-<li class="toc__item" data-toc-for="STK-GOAL-007"><a class="toc__link" href="#STK-GOAL-007"><code>STK-GOAL-007</code><span class="toc__title">Interoperable requirement ingestion</span></a></li>
+<li class="toc__item" data-toc-for="sec-preamble"><a class="toc__link toc__link--section" href="#sec-preamble"><span class="toc__title"></span></a></li>
+<li class="toc__item" data-toc-for="sec-authoring-and-validation"><a class="toc__link toc__link--section" href="#sec-authoring-and-validation"><span class="toc__title">Authoring and validation</span></a><ul class="toc__list"><li class="toc__item toc__item--child" data-toc-for="STK-GOAL-001"><a class="toc__link" href="#STK-GOAL-001"><code>STK-GOAL-001</code><span class="toc__title">Text-first Git-native authoring</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="STK-GOAL-002"><a class="toc__link" href="#STK-GOAL-002"><code>STK-GOAL-002</code><span class="toc__title">Human-readable machine-parsable specs</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="STK-GOAL-003"><a class="toc__link" href="#STK-GOAL-003"><code>STK-GOAL-003</code><span class="toc__title">Schema-driven validation</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="STK-GOAL-004"><a class="toc__link" href="#STK-GOAL-004"><code>STK-GOAL-004</code><span class="toc__title">Multi-format export for review and analytics</span></a></li>
+</ul></li>
+<li class="toc__item" data-toc-for="sec-evidence-and-reporting"><a class="toc__link toc__link--section" href="#sec-evidence-and-reporting"><span class="toc__title">Evidence and reporting</span></a><ul class="toc__list"><li class="toc__item toc__item--child" data-toc-for="STK-GOAL-005"><a class="toc__link" href="#STK-GOAL-005"><code>STK-GOAL-005</code><span class="toc__title">V-model traceability</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="STK-GOAL-006"><a class="toc__link" href="#STK-GOAL-006"><code>STK-GOAL-006</code><span class="toc__title">Verification results close the V-model</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="STK-GOAL-007"><a class="toc__link" href="#STK-GOAL-007"><code>STK-GOAL-007</code><span class="toc__title">Interoperable requirement ingestion</span></a></li>
+</ul></li>
   </ul>
+  </div>
+  <div class="toc__resizer" data-action="resize-toc" role="separator" aria-orientation="vertical" aria-label="Resize outline" aria-valuemin="200" aria-valuemax="520" aria-valuenow="300" tabindex="0" title="Drag to resize · double-click to reset"></div>
 </nav>
 <div class="shell__main">
 <header class="doc-head">
+<p class="doc-head__eyebrow"><span>stakeholder-needs</span><span aria-hidden="true">·</span><code>stakeholder</code></p>
 <h1>reqmd Stakeholder Goals</h1>
-<span class="doc-head__status"><span class="doc-head__status-item"><span class="dot" style="background:var(--status-approved)" aria-hidden="true"></span>approved 7</span></span><span class="doc-head__badges"><span class="badge" title="Root boundary — this document has no upstream sources">Root</span></span><p class="doc-head__facts">7 requirements</p>
+<p class="doc-head__facts">7 requirements · 3 items<span class="doc-head__badges"><span class="badge" title="Root boundary — this document has no upstream sources">Root</span></span></p>
+<div class="doc-head__status"><div class="statusbar" role="img" aria-label="Status distribution across 7 requirements"><span class="statusbar__seg" style="flex:7;background:var(--status-approved)" title="approved 7"></span></div><ul class="statusbar__legend"><li><span class="dot" style="background:var(--status-approved)" aria-hidden="true"></span>approved <strong>7</strong></li></ul></div>
 <div class="doc-head__desc prose">
 <p>Stakeholder goals define the high-level business and technical objectives that the reqmd tool must satisfy. As the top V-model layer, they have no upstream traces.</p>
 
@@ -741,256 +1030,49 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
 </header>
 <div class="toolbar">
   <div class="toolbar__row">
-    <div class="viewswitch" role="group" aria-label="View">
-      <button type="button" class="viewswitch__btn is-active" data-view="document" aria-pressed="true" title="Document view (g d)">Document</button>
-      <button type="button" class="viewswitch__btn" data-view="table" aria-pressed="false" title="Table view (g t)">Table</button>
-      <button type="button" class="viewswitch__btn" data-view="trace" aria-pressed="false" title="Trace explorer (g r)">Trace</button>
-      <button type="button" class="viewswitch__btn" data-view="coverage" aria-pressed="false" title="Coverage view (g c)">Coverage</button>
-    </div>
-    <div class="toolbar__tools">
-      <button type="button" class="icon-btn" data-action="density" aria-label="Toggle density" title="Toggle density (f)">⇕</button>
-    </div>
-  </div>
-  <div class="toolbar__row">
     <input type="search" class="search" data-search placeholder="Search ID, title, body, attributes…" autocomplete="off" spellcheck="false" aria-label="Search requirements">
     <span class="count" data-count role="status" aria-live="polite"></span>
+    <div class="filters" data-filters data-default-status="approved">
+      <details class="filter" data-filter-group="category">
+        <summary class="filter__toggle">Category<span class="filter__count" data-filter-count="category"></span></summary>
+        <div class="filter__menu">
+          <label class="filter__option"><input type="checkbox" value="Authoring" data-filter-attr="category"><span>Authoring</span></label>
+          <label class="filter__option"><input type="checkbox" value="Export" data-filter-attr="category"><span>Export</span></label>
+          <label class="filter__option"><input type="checkbox" value="Interoperability" data-filter-attr="category"><span>Interoperability</span></label>
+          <label class="filter__option"><input type="checkbox" value="Traceability" data-filter-attr="category"><span>Traceability</span></label>
+          <label class="filter__option"><input type="checkbox" value="Validation" data-filter-attr="category"><span>Validation</span></label>
+          <label class="filter__option"><input type="checkbox" value="Verification" data-filter-attr="category"><span>Verification</span></label>
+        </div>
+      </details>
+      <details class="filter" data-filter-group="priority">
+        <summary class="filter__toggle">Priority<span class="filter__count" data-filter-count="priority"></span></summary>
+        <div class="filter__menu">
+          <label class="filter__option"><input type="checkbox" value="Critical" data-filter-attr="priority"><span>Critical</span></label>
+          <label class="filter__option"><input type="checkbox" value="High" data-filter-attr="priority"><span>High</span></label>
+        </div>
+      </details>
+      <details class="filter" data-filter-group="source">
+        <summary class="filter__toggle">Source<span class="filter__count" data-filter-count="source"></span></summary>
+        <div class="filter__menu">
+          <label class="filter__option"><input type="checkbox" value="Engineering" data-filter-attr="source"><span>Engineering</span></label>
+          <label class="filter__option"><input type="checkbox" value="Product" data-filter-attr="source"><span>Product</span></label>
+          <label class="filter__option"><input type="checkbox" value="Quality" data-filter-attr="source"><span>Quality</span></label>
+          <label class="filter__option"><input type="checkbox" value="Safety" data-filter-attr="source"><span>Safety</span></label>
+        </div>
+      </details>
+    </div>
   </div>
   <div class="toolbar__chips" data-active-filters hidden></div>
-  <div class="filters" data-filters data-default-status="approved">
-    <details class="filter" data-filter-group="category">
-      <summary class="filter__toggle">Category<span class="filter__count" data-filter-count="category"></span></summary>
-      <div class="filter__menu">
-        <label class="filter__option"><input type="checkbox" value="Authoring" data-filter-attr="category"><span>Authoring</span></label>
-        <label class="filter__option"><input type="checkbox" value="Export" data-filter-attr="category"><span>Export</span></label>
-        <label class="filter__option"><input type="checkbox" value="Interoperability" data-filter-attr="category"><span>Interoperability</span></label>
-        <label class="filter__option"><input type="checkbox" value="Traceability" data-filter-attr="category"><span>Traceability</span></label>
-        <label class="filter__option"><input type="checkbox" value="Validation" data-filter-attr="category"><span>Validation</span></label>
-        <label class="filter__option"><input type="checkbox" value="Verification" data-filter-attr="category"><span>Verification</span></label>
-      </div>
-    </details>
-    <details class="filter" data-filter-group="priority">
-      <summary class="filter__toggle">Priority<span class="filter__count" data-filter-count="priority"></span></summary>
-      <div class="filter__menu">
-        <label class="filter__option"><input type="checkbox" value="Critical" data-filter-attr="priority"><span>Critical</span></label>
-        <label class="filter__option"><input type="checkbox" value="High" data-filter-attr="priority"><span>High</span></label>
-      </div>
-    </details>
-    <details class="filter" data-filter-group="source">
-      <summary class="filter__toggle">Source<span class="filter__count" data-filter-count="source"></span></summary>
-      <div class="filter__menu">
-        <label class="filter__option"><input type="checkbox" value="Engineering" data-filter-attr="source"><span>Engineering</span></label>
-        <label class="filter__option"><input type="checkbox" value="Product" data-filter-attr="source"><span>Product</span></label>
-        <label class="filter__option"><input type="checkbox" value="Quality" data-filter-attr="source"><span>Quality</span></label>
-        <label class="filter__option"><input type="checkbox" value="Safety" data-filter-attr="source"><span>Safety</span></label>
-      </div>
-    </details>
-  </div>
 <noscript><p class="filter-note">The Table, Trace, and Coverage views and the search filters need JavaScript. The Document view is complete without it.</p></noscript>
 </div>
-<main class="views">
+<main class="views" id="main">
 <section class="view view--document" data-view-panel="document">
-<main class="doc">
-<article class="req" id="STK-GOAL-001" data-id="STK-GOAL-001" data-status="approved" data-coverage="covered">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">STK-GOAL-001</code> <span class="req__name">Text-first Git-native authoring</span></h2>
-<a class="anchor" href="#STK-GOAL-001" aria-label="Link to STK-GOAL-001">#</a>
-</header>
-<div class="req__body prose">
-<p>The requirement management tool shall enable text-first, Git-native authoring of requirement specifications without requiring a GUI. New projects shall be able to start from a working scaffold (schema plus example document) without hand-writing schema boilerplate.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>Critical</dd></div>
-<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Product</dd></div>
-<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Authoring</dd></div>
-</dl>
-<div class="rationale"><strong>Rationale:</strong> <p>Engineers work in IDEs and version control daily. A plain-text format that diffs cleanly and reviews in standard pull requests minimizes tool-switching friction. A scaffolded starting point removes the blank-page cost of adopting a schema-driven format.</p>
-</div>
-<div class="traces">
-<div class="traces__col"><div class="traces__head">Traced from (3)</div>
-<a class="link" href="02-system-requirements.html#SYS-CLI-001"><code>SYS-CLI-001</code><span class="link__title">CLI subcommands</span></a>
-<a class="link" href="02-system-requirements.html#SYS-FMT-001"><code>SYS-FMT-001</code><span class="link__title">Markdown requirement format</span></a>
-<a class="link" href="02-system-requirements.html#SYS-INI-001"><code>SYS-INI-001</code><span class="link__title">Project scaffolding with presets</span></a>
-</div>
-</div>
-</div>
-</details>
-</article>
-<article class="req" id="STK-GOAL-002" data-id="STK-GOAL-002" data-status="approved" data-coverage="covered">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">STK-GOAL-002</code> <span class="req__name">Human-readable machine-parsable specs</span></h2>
-<a class="anchor" href="#STK-GOAL-002" aria-label="Link to STK-GOAL-002">#</a>
-</header>
-<div class="req__body prose">
-<p>Requirement documents shall be human-readable in any Markdown renderer and simultaneously machine-parsable into structured attributes.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>Critical</dd></div>
-<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Engineering</dd></div>
-<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Authoring</dd></div>
-</dl>
-<div class="rationale"><strong>Rationale:</strong> <p>Non-technical stakeholders review requirements in rendered form (GitHub, GitLab, docs sites). Automated tooling needs structured data for validation and export. Both modes must coexist in the same file.</p>
-</div>
-<div class="traces">
-<div class="traces__col"><div class="traces__head">Traced from (6)</div>
-<a class="link" href="02-system-requirements.html#SYS-BAS-001"><code>SYS-BAS-001</code><span class="link__title">Baseline comparison via git tags</span></a>
-<a class="link" href="02-system-requirements.html#SYS-FMT-002"><code>SYS-FMT-002</code><span class="link__title">Built-in attribute system</span></a>
-<a class="link" href="02-system-requirements.html#SYS-FMT-004"><code>SYS-FMT-004</code><span class="link__title">YAML frontmatter support</span></a>
-<a class="link" href="02-system-requirements.html#SYS-IMP-001"><code>SYS-IMP-001</code><span class="link__title">Source-code requirement extraction</span></a>
-<a class="link" href="02-system-requirements.html#SYS-IMP-002"><code>SYS-IMP-002</code><span class="link__title">External requirement import via an exchange format</span></a>
-<a class="link" href="02-system-requirements.html#SYS-REPIN-001"><code>SYS-REPIN-001</code><span class="link__title">Bulk version-pin update via reqmd repin</span></a>
-</div>
-</div>
-</div>
-</details>
-</article>
-<article class="req" id="STK-GOAL-003" data-id="STK-GOAL-003" data-status="approved" data-coverage="covered">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">STK-GOAL-003</code> <span class="req__name">Schema-driven validation</span></h2>
-<a class="anchor" href="#STK-GOAL-003" aria-label="Link to STK-GOAL-003">#</a>
-</header>
-<div class="req__body prose">
-<p>The tool shall validate requirements against a project-defined schema, rejecting malformed or incomplete entries before they reach production reviews. Validation shall be scopable to a filtered subset of the tree without losing trace resolution.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>Critical</dd></div>
-<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Quality</dd></div>
-<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Validation</dd></div>
-</dl>
-<div class="rationale"><strong>Rationale:</strong> <p>Manual review alone does not scale. Schema-driven validation catches missing fields, invalid values, and broken trace chains automatically in CI. Scoping keeps incremental CI affordable on large trees.</p>
-</div>
-<div class="traces">
-<div class="traces__col"><div class="traces__head">Traced from (7)</div>
-<a class="link" href="02-system-requirements.html#SYS-CHK-003"><code>SYS-CHK-003</code><span class="link__title">Disjoint-attribute consistency check</span></a>
-<a class="link" href="02-system-requirements.html#SYS-CON-001"><code>SYS-CON-001</code><span class="link__title">Content tree — nothing dropped</span></a>
-<a class="link" href="02-system-requirements.html#SYS-FIL-001"><code>SYS-FIL-001</code><span class="link__title">Generic attribute filtering</span></a>
-<a class="link" href="02-system-requirements.html#SYS-FMT-003"><code>SYS-FMT-003</code><span class="link__title">Schema.yaml document configuration</span></a>
-<a class="link" href="02-system-requirements.html#SYS-STS-001"><code>SYS-STS-001</code><span class="link__title">Requirement status lifecycle</span></a>
-<a class="link" href="02-system-requirements.html#SYS-SUP-001"><code>SYS-SUP-001</code><span class="link__title">Check suppression</span></a>
-<a class="link" href="02-system-requirements.html#SYS-VAL-001"><code>SYS-VAL-001</code><span class="link__title">Multi-pass validation pipeline</span></a>
-</div>
-</div>
-</div>
-</details>
-</article>
-<article class="req" id="STK-GOAL-004" data-id="STK-GOAL-004" data-status="approved" data-coverage="covered">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">STK-GOAL-004</code> <span class="req__name">Multi-format export for review and analytics</span></h2>
-<a class="anchor" href="#STK-GOAL-004" aria-label="Link to STK-GOAL-004">#</a>
-</header>
-<div class="req__body prose">
-<p>The tool shall export requirement specifications to standard interchange formats: CSV for suppliers, standalone HTML for human review, flat NDJSON tables for reporting platforms and data warehouses, and a graph database for structural queries.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>High</dd></div>
-<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Product</dd></div>
-<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Export</dd></div>
-</dl>
-<div class="rationale"><strong>Rationale:</strong> <p>Tier-1 suppliers and homologation authorities require structured export formats. CSV covers basic exchange; HTML supports human trace navigation; NDJSON feeds analytics and dashboards without a bespoke integration; the graph export serves cross-cutting dependency and impact queries.</p>
-</div>
-<div class="traces">
-<div class="traces__col"><div class="traces__head">Traced from (4)</div>
-<a class="link" href="02-system-requirements.html#SYS-CLI-001"><code>SYS-CLI-001</code><span class="link__title">CLI subcommands</span></a>
-<a class="link" href="02-system-requirements.html#SYS-EXP-001"><code>SYS-EXP-001</code><span class="link__title">NDJSON tables for reporting platforms</span></a>
-<a class="link" href="02-system-requirements.html#SYS-GRA-001"><code>SYS-GRA-001</code><span class="link__title">Graph database export</span></a>
-<a class="link" href="02-system-requirements.html#SYS-HTM-001"><code>SYS-HTM-001</code><span class="link__title">Standalone HTML export</span></a>
-</div>
-</div>
-</div>
-</details>
-</article>
-<article class="req" id="STK-GOAL-005" data-id="STK-GOAL-005" data-status="approved" data-coverage="covered">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">STK-GOAL-005</code> <span class="req__name">V-model traceability</span></h2>
-<a class="anchor" href="#STK-GOAL-005" aria-label="Link to STK-GOAL-005">#</a>
-</header>
-<div class="req__body prose">
-<p>The tool shall support V-model traceability patterns conformant with ASPICE and ISO 26262, including upstream-only trace declarations, disposition tracking, version pins, and automatic parent-child hierarchy linking from heading levels.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>High</dd></div>
-<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Safety</dd></div>
-<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Traceability</dd></div>
-</dl>
-<div class="rationale"><strong>Rationale:</strong> <p>Functional safety standards mandate bidirectional traceability from stakeholder needs through system requirements, software requirements, and test specifications. Heading-level hierarchy lets authors decompose requirements naturally while the tool auto-links child-to-parent traces.</p>
-</div>
-<div class="traces">
-<div class="traces__col"><div class="traces__head">Traced from (9)</div>
-<a class="link" href="02-system-requirements.html#SYS-CON-001"><code>SYS-CON-001</code><span class="link__title">Content tree — nothing dropped</span></a>
-<a class="link" href="02-system-requirements.html#SYS-FIL-001"><code>SYS-FIL-001</code><span class="link__title">Generic attribute filtering</span></a>
-<a class="link" href="02-system-requirements.html#SYS-FMT-005"><code>SYS-FMT-005</code><span class="link__title">Level-typed trace coverage</span></a>
-<a class="link" href="02-system-requirements.html#SYS-IMP-001"><code>SYS-IMP-001</code><span class="link__title">Source-code requirement extraction</span></a>
-<a class="link" href="02-system-requirements.html#SYS-IMP-002"><code>SYS-IMP-002</code><span class="link__title">External requirement import via an exchange format</span></a>
-<a class="link" href="02-system-requirements.html#SYS-STS-001"><code>SYS-STS-001</code><span class="link__title">Requirement status lifecycle</span></a>
-<a class="link" href="02-system-requirements.html#SYS-TRC-001"><code>SYS-TRC-001</code><span class="link__title">Upstream-only trace model</span></a>
-<a class="link" href="02-system-requirements.html#SYS-VAL-001"><code>SYS-VAL-001</code><span class="link__title">Multi-pass validation pipeline</span></a>
-<a class="link" href="02-system-requirements.html#SYS-VAL-002"><code>SYS-VAL-002</code><span class="link__title">Verification result ingestion and outcome-gated checks</span></a>
-</div>
-</div>
-</div>
-</details>
-</article>
-<article class="req" id="STK-GOAL-006" data-id="STK-GOAL-006" data-status="approved" data-coverage="not-required">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">STK-GOAL-006</code> <span class="req__name">Verification results close the V-model</span></h2>
-<a class="anchor" href="#STK-GOAL-006" aria-label="Link to STK-GOAL-006">#</a>
-</header>
-<div class="req__body prose">
-<p>The tool shall consume verification and validation results produced by automated tests and manual reviews, and shall enforce that every approved verification measure carries a current, passing result.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>High</dd></div>
-<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Quality</dd></div>
-<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Verification</dd></div>
-</dl>
-<div class="rationale"><strong>Rationale:</strong> <p>A trace to a test specification proves that verification was <em>planned</em>, not that it <em>passed</em>. ASPICE requires recording and evaluating verification results. Loading results per invocation (CTRF reports and review documents) keeps run-to-run churn out of git while still failing CI on a failing or missing verdict.</p>
-</div>
-</div>
-</details>
-</article>
-<article class="req" id="STK-GOAL-007" data-id="STK-GOAL-007" data-status="approved" data-coverage="not-required">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">STK-GOAL-007</code> <span class="req__name">Interoperable requirement ingestion</span></h2>
-<a class="anchor" href="#STK-GOAL-007" aria-label="Link to STK-GOAL-007">#</a>
-</header>
-<div class="req__body prose">
-<p>The tool shall ingest requirements that originate outside authored Markdown — source-code symbols with documented trace markers, and records exported from ALM systems such as DOORS or codeBeamer — into the same ID space and document format as hand-authored requirements.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>High</dd></div>
-<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Engineering</dd></div>
-<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Interoperability</dd></div>
-</dl>
-<div class="rationale"><strong>Rationale:</strong> <p>Real projects do not start with an empty repository. Imported items must validate, trace, export, and diff exactly like authored ones, or the tool only covers half the specification. A single versioned exchange format keeps every importer small and keeps the Markdown/YAML syntax rules in one implementation.</p>
-</div>
-</div>
-</details>
-</article>
+<div class="doc">
 <nav class="doc-chain doc-chain--deep" aria-label="Document traceability chain">
-  <details class="chain-details">
+  <details class="chain-details" open>
     <summary class="chain-summary">
       <span class="chain-summary__label">Traceability chain</span>
-      <span class="chain-summary__count">0 upstream · 19 downstream</span>
+      <span class="chain-summary__count">0 upstream · 32 downstream</span>
     </summary>
   <div class="chain-stack">
     <div class="chain-zone chain-zone--current">
@@ -1028,7 +1110,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         <div class="chain-tier-label">Downstream · 3 levels below</div>
         <div class="chain-tier-cards">
       <a class="chain-card" href="imported-requirements.html">
-        <span class="chain-card-title">Auto-imported requirements (reqmd-code)</span>
+        <span class="chain-card-title">imported</span>
         <span class="chain-card-meta">imported</span>
       </a>
       <a class="chain-card" href="04-tests-requirements.html">
@@ -1040,13 +1122,29 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       <div class="chain-tier">
         <div class="chain-tier-label">Downstream · 4 levels below</div>
         <div class="chain-tier-cards">
+      <a class="chain-card" href="clang-requirements.html">
+        <span class="chain-card-title">Package: clang</span>
+        <span class="chain-card-meta">clang</span>
+      </a>
       <a class="chain-card" href="cli-requirements.html">
         <span class="chain-card-title">Package: cli</span>
         <span class="chain-card-meta">cli</span>
       </a>
+      <a class="chain-card" href="cpp-requirements.html">
+        <span class="chain-card-title">Package: cpp</span>
+        <span class="chain-card-meta">cpp</span>
+      </a>
+      <a class="chain-card" href="csv_import-requirements.html">
+        <span class="chain-card-title">Package: csv_import</span>
+        <span class="chain-card-meta">csv_import</span>
+      </a>
       <a class="chain-card" href="diff-requirements.html">
         <span class="chain-card-title">Package: diff</span>
         <span class="chain-card-meta">diff</span>
+      </a>
+      <a class="chain-card" href="exchange-requirements.html">
+        <span class="chain-card-title">Package: exchange</span>
+        <span class="chain-card-meta">exchange</span>
       </a>
       <a class="chain-card" href="export-requirements.html">
         <span class="chain-card-title">Package: export</span>
@@ -1056,9 +1154,17 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         <span class="chain-card-title">Package: exporter</span>
         <span class="chain-card-meta">exporter</span>
       </a>
+      <a class="chain-card" href="extractor-requirements.html">
+        <span class="chain-card-title">Package: extractor</span>
+        <span class="chain-card-meta">extractor</span>
+      </a>
       <a class="chain-card" href="filter-requirements.html">
         <span class="chain-card-title">Package: filter</span>
         <span class="chain-card-meta">filter</span>
+      </a>
+      <a class="chain-card" href="golang-requirements.html">
+        <span class="chain-card-title">Package: golang</span>
+        <span class="chain-card-meta">golang</span>
       </a>
       <a class="chain-card" href="graph-requirements.html">
         <span class="chain-card-title">Package: graph</span>
@@ -1067,6 +1173,14 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       <a class="chain-card" href="graph_test-requirements.html">
         <span class="chain-card-title">Package: graph_test</span>
         <span class="chain-card-meta">graph_test</span>
+      </a>
+      <a class="chain-card" href="lang-requirements.html">
+        <span class="chain-card-title">Package: lang</span>
+        <span class="chain-card-meta">lang</span>
+      </a>
+      <a class="chain-card" href="lang_test-requirements.html">
+        <span class="chain-card-title">Package: lang_test</span>
+        <span class="chain-card-meta">lang_test</span>
       </a>
       <a class="chain-card" href="main-requirements.html">
         <span class="chain-card-title">Package: main</span>
@@ -1080,6 +1194,10 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         <span class="chain-card-title">Package: parser</span>
         <span class="chain-card-meta">parser</span>
       </a>
+      <a class="chain-card" href="python-requirements.html">
+        <span class="chain-card-title">Package: python</span>
+        <span class="chain-card-meta">python</span>
+      </a>
       <a class="chain-card" href="repin-requirements.html">
         <span class="chain-card-title">Package: repin</span>
         <span class="chain-card-meta">repin</span>
@@ -1088,9 +1206,21 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         <span class="chain-card-title">Package: reporter</span>
         <span class="chain-card-meta">reporter</span>
       </a>
+      <a class="chain-card" href="reqmd_io-requirements.html">
+        <span class="chain-card-title">Package: reqmd_io</span>
+        <span class="chain-card-meta">reqmd_io</span>
+      </a>
+      <a class="chain-card" href="rust-requirements.html">
+        <span class="chain-card-title">Package: rust</span>
+        <span class="chain-card-meta">rust</span>
+      </a>
       <a class="chain-card" href="schema-requirements.html">
         <span class="chain-card-title">Package: schema</span>
         <span class="chain-card-meta">schema</span>
+      </a>
+      <a class="chain-card" href="test_reqmd_io-requirements.html">
+        <span class="chain-card-title">Package: test_reqmd_io</span>
+        <span class="chain-card-meta">test_reqmd_io</span>
       </a>
       <a class="chain-card" href="verify-requirements.html">
         <span class="chain-card-title">Package: verify</span>
@@ -1100,13 +1230,238 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         <span class="chain-card-title">Package: verify_test</span>
         <span class="chain-card-meta">verify_test</span>
       </a>
+      <a class="chain-card" href="writer-requirements.html">
+        <span class="chain-card-title">Package: writer</span>
+        <span class="chain-card-meta">writer</span>
+      </a>
         </div>
       </div>
     </div>
   </div>
   </details>
 </nav>
-</main>
+<section class="item item--section" id="sec-preamble" data-anchor="sec-preamble">
+<div class="item__body prose">
+<p>High-level business and technical objectives that the reqmd tool must satisfy. As the top V-model layer they have no upstream traces.</p>
+
+</div>
+</section>
+<section class="item item--section" id="sec-authoring-and-validation" data-anchor="sec-authoring-and-validation">
+<details open>
+<summary class="item__head"><h2 class="item__title">Authoring and validation</h2><a class="anchor" href="#sec-authoring-and-validation" aria-label="Link to this section">#</a></summary>
+<div class="item__body prose">
+<p>Goals about how requirements are written and how they are checked.</p>
+
+</div>
+<article class="req req--child" id="STK-GOAL-001" data-id="STK-GOAL-001" data-status="approved" data-coverage="covered">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">STK-GOAL-001</code> <span class="req__name">Text-first Git-native authoring</span></h3>
+<a class="anchor" href="#STK-GOAL-001" aria-label="Link to STK-GOAL-001">#</a>
+</header>
+<div class="req__body prose">
+<p>The requirement management tool shall enable text-first, Git-native authoring of requirement specifications without requiring a GUI. New projects shall be able to start from a working scaffold (schema plus example document) without hand-writing schema boilerplate.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">3 attributes · traces</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>Critical</dd></div>
+<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Product</dd></div>
+<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Authoring</dd></div>
+</dl>
+<div class="rationale"><strong>Rationale:</strong> <p>Engineers work in IDEs and version control daily. A plain-text format that diffs cleanly and reviews in standard pull requests minimizes tool-switching friction. A scaffolded starting point removes the blank-page cost of adopting a schema-driven format.</p>
+</div>
+<div class="traces">
+<div class="traces__col"><div class="traces__head">Traced from (3)</div>
+<a class="link" href="02-system-requirements.html#SYS-CLI-001"><code>SYS-CLI-001</code><span class="link__title">CLI subcommands</span></a>
+<a class="link" href="02-system-requirements.html#SYS-FMT-001"><code>SYS-FMT-001</code><span class="link__title">Markdown requirement format</span></a>
+<a class="link" href="02-system-requirements.html#SYS-INI-001"><code>SYS-INI-001</code><span class="link__title">Project scaffolding with presets</span></a>
+</div>
+</div>
+</div>
+</details>
+</article>
+<article class="req req--child" id="STK-GOAL-002" data-id="STK-GOAL-002" data-status="approved" data-coverage="covered">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">STK-GOAL-002</code> <span class="req__name">Human-readable machine-parsable specs</span></h3>
+<a class="anchor" href="#STK-GOAL-002" aria-label="Link to STK-GOAL-002">#</a>
+</header>
+<div class="req__body prose">
+<p>Requirement documents shall be human-readable in any Markdown renderer and simultaneously machine-parsable into structured attributes.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">3 attributes · traces</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>Critical</dd></div>
+<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Engineering</dd></div>
+<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Authoring</dd></div>
+</dl>
+<div class="rationale"><strong>Rationale:</strong> <p>Non-technical stakeholders review requirements in rendered form (GitHub, GitLab, docs sites). Automated tooling needs structured data for validation and export. Both modes must coexist in the same file.</p>
+</div>
+<div class="traces">
+<div class="traces__col"><div class="traces__head">Traced from (7)</div>
+<a class="link" href="02-system-requirements.html#SYS-BAS-001"><code>SYS-BAS-001</code><span class="link__title">Baseline comparison via git tags</span></a>
+<a class="link" href="02-system-requirements.html#SYS-FMT-002"><code>SYS-FMT-002</code><span class="link__title">Built-in attribute system</span></a>
+<a class="link" href="02-system-requirements.html#SYS-FMT-004"><code>SYS-FMT-004</code><span class="link__title">YAML frontmatter support</span></a>
+<a class="link" href="02-system-requirements.html#SYS-IMP-001"><code>SYS-IMP-001</code><span class="link__title">Source-code requirement extraction</span></a>
+<a class="link" href="02-system-requirements.html#SYS-IMP-002"><code>SYS-IMP-002</code><span class="link__title">External requirement import via an exchange format</span></a>
+<a class="link" href="02-system-requirements.html#SYS-IMP-003"><code>SYS-IMP-003</code><span class="link__title">Producer-facing validation and status mapping</span></a>
+<a class="link" href="02-system-requirements.html#SYS-REPIN-001"><code>SYS-REPIN-001</code><span class="link__title">Bulk version-pin update via</span></a>
+</div>
+</div>
+</div>
+</details>
+</article>
+<article class="req req--child" id="STK-GOAL-003" data-id="STK-GOAL-003" data-status="approved" data-coverage="covered">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">STK-GOAL-003</code> <span class="req__name">Schema-driven validation</span></h3>
+<a class="anchor" href="#STK-GOAL-003" aria-label="Link to STK-GOAL-003">#</a>
+</header>
+<div class="req__body prose">
+<p>The tool shall validate requirements against a project-defined schema, rejecting malformed or incomplete entries before they reach production reviews. Validation shall be scopable to a filtered subset of the tree without losing trace resolution.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">3 attributes · traces</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>Critical</dd></div>
+<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Quality</dd></div>
+<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Validation</dd></div>
+</dl>
+<div class="rationale"><strong>Rationale:</strong> <p>Manual review alone does not scale. Schema-driven validation catches missing fields, invalid values, and broken trace chains automatically in CI. Scoping keeps incremental CI affordable on large trees.</p>
+</div>
+<div class="traces">
+<div class="traces__col"><div class="traces__head">Traced from (7)</div>
+<a class="link" href="02-system-requirements.html#SYS-CHK-003"><code>SYS-CHK-003</code><span class="link__title">Disjoint-attribute consistency check</span></a>
+<a class="link" href="02-system-requirements.html#SYS-CON-001"><code>SYS-CON-001</code><span class="link__title">Content tree — nothing dropped</span></a>
+<a class="link" href="02-system-requirements.html#SYS-FIL-001"><code>SYS-FIL-001</code><span class="link__title">Generic attribute filtering</span></a>
+<a class="link" href="02-system-requirements.html#SYS-FMT-003"><code>SYS-FMT-003</code><span class="link__title">Schema.yaml document configuration</span></a>
+<a class="link" href="02-system-requirements.html#SYS-STS-001"><code>SYS-STS-001</code><span class="link__title">Requirement status lifecycle</span></a>
+<a class="link" href="02-system-requirements.html#SYS-SUP-001"><code>SYS-SUP-001</code><span class="link__title">Check suppression</span></a>
+<a class="link" href="02-system-requirements.html#SYS-VAL-001"><code>SYS-VAL-001</code><span class="link__title">Multi-pass validation pipeline</span></a>
+</div>
+</div>
+</div>
+</details>
+</article>
+<article class="req req--child" id="STK-GOAL-004" data-id="STK-GOAL-004" data-status="approved" data-coverage="covered">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">STK-GOAL-004</code> <span class="req__name">Multi-format export for review and analytics</span></h3>
+<a class="anchor" href="#STK-GOAL-004" aria-label="Link to STK-GOAL-004">#</a>
+</header>
+<div class="req__body prose">
+<p>The tool shall export requirement specifications to standard interchange formats: CSV for suppliers, standalone HTML for human review, flat NDJSON tables for reporting platforms and data warehouses, and a graph database for structural queries.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">3 attributes · traces</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>High</dd></div>
+<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Product</dd></div>
+<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Export</dd></div>
+</dl>
+<div class="rationale"><strong>Rationale:</strong> <p>Tier-1 suppliers and homologation authorities require structured export formats. CSV covers basic exchange; HTML supports human trace navigation; NDJSON feeds analytics and dashboards without a bespoke integration; the graph export serves cross-cutting dependency and impact queries.</p>
+</div>
+<div class="traces">
+<div class="traces__col"><div class="traces__head">Traced from (4)</div>
+<a class="link" href="02-system-requirements.html#SYS-CLI-001"><code>SYS-CLI-001</code><span class="link__title">CLI subcommands</span></a>
+<a class="link" href="02-system-requirements.html#SYS-EXP-001"><code>SYS-EXP-001</code><span class="link__title">NDJSON tables for reporting platforms</span></a>
+<a class="link" href="02-system-requirements.html#SYS-GRA-001"><code>SYS-GRA-001</code><span class="link__title">Graph database export</span></a>
+<a class="link" href="02-system-requirements.html#SYS-HTM-001"><code>SYS-HTM-001</code><span class="link__title">Standalone HTML export</span></a>
+</div>
+</div>
+</div>
+</details>
+</article>
+</details>
+</section>
+<section class="item item--section" id="sec-evidence-and-reporting" data-anchor="sec-evidence-and-reporting">
+<details open>
+<summary class="item__head"><h2 class="item__title">Evidence and reporting</h2><a class="anchor" href="#sec-evidence-and-reporting" aria-label="Link to this section">#</a></summary>
+<div class="item__body prose">
+<p>Goals about what the toolchain produces and how it is evidenced.</p>
+
+</div>
+<article class="req req--child" id="STK-GOAL-005" data-id="STK-GOAL-005" data-status="approved" data-coverage="covered">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">STK-GOAL-005</code> <span class="req__name">V-model traceability</span></h3>
+<a class="anchor" href="#STK-GOAL-005" aria-label="Link to STK-GOAL-005">#</a>
+</header>
+<div class="req__body prose">
+<p>The tool shall support V-model traceability patterns conformant with ASPICE and ISO 26262, including upstream-only trace declarations, disposition tracking, version pins, and automatic parent-child hierarchy linking from heading levels.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">3 attributes · traces</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>High</dd></div>
+<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Safety</dd></div>
+<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Traceability</dd></div>
+</dl>
+<div class="rationale"><strong>Rationale:</strong> <p>Functional safety standards mandate bidirectional traceability from stakeholder needs through system requirements, software requirements, and test specifications. Heading-level hierarchy lets authors decompose requirements naturally while the tool auto-links child-to-parent traces.</p>
+</div>
+<div class="traces">
+<div class="traces__col"><div class="traces__head">Traced from (9)</div>
+<a class="link" href="02-system-requirements.html#SYS-CON-001"><code>SYS-CON-001</code><span class="link__title">Content tree — nothing dropped</span></a>
+<a class="link" href="02-system-requirements.html#SYS-FIL-001"><code>SYS-FIL-001</code><span class="link__title">Generic attribute filtering</span></a>
+<a class="link" href="02-system-requirements.html#SYS-FMT-005"><code>SYS-FMT-005</code><span class="link__title">Level-typed trace coverage</span></a>
+<a class="link" href="02-system-requirements.html#SYS-IMP-001"><code>SYS-IMP-001</code><span class="link__title">Source-code requirement extraction</span></a>
+<a class="link" href="02-system-requirements.html#SYS-IMP-002"><code>SYS-IMP-002</code><span class="link__title">External requirement import via an exchange format</span></a>
+<a class="link" href="02-system-requirements.html#SYS-STS-001"><code>SYS-STS-001</code><span class="link__title">Requirement status lifecycle</span></a>
+<a class="link" href="02-system-requirements.html#SYS-TRC-001"><code>SYS-TRC-001</code><span class="link__title">Upstream-only trace model</span></a>
+<a class="link" href="02-system-requirements.html#SYS-VAL-001"><code>SYS-VAL-001</code><span class="link__title">Multi-pass validation pipeline</span></a>
+<a class="link" href="02-system-requirements.html#SYS-VAL-002"><code>SYS-VAL-002</code><span class="link__title">Verification result ingestion and outcome-gated checks</span></a>
+</div>
+</div>
+</div>
+</details>
+</article>
+<article class="req req--child" id="STK-GOAL-006" data-id="STK-GOAL-006" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">STK-GOAL-006</code> <span class="req__name">Verification results close the V-model</span></h3>
+<a class="anchor" href="#STK-GOAL-006" aria-label="Link to STK-GOAL-006">#</a>
+</header>
+<div class="req__body prose">
+<p>The tool shall consume verification and validation results produced by automated tests and manual reviews, and shall enforce that every approved verification measure carries a current, passing result.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">3 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>High</dd></div>
+<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Quality</dd></div>
+<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Verification</dd></div>
+</dl>
+<div class="rationale"><strong>Rationale:</strong> <p>A trace to a test specification proves that verification was <em>planned</em>, not that it <em>passed</em>. ASPICE requires recording and evaluating verification results. Loading results per invocation (CTRF reports and review documents) keeps run-to-run churn out of git while still failing CI on a failing or missing verdict.</p>
+</div>
+</div>
+</details>
+</article>
+<article class="req req--child" id="STK-GOAL-007" data-id="STK-GOAL-007" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">STK-GOAL-007</code> <span class="req__name">Interoperable requirement ingestion</span></h3>
+<a class="anchor" href="#STK-GOAL-007" aria-label="Link to STK-GOAL-007">#</a>
+</header>
+<div class="req__body prose">
+<p>The tool shall ingest requirements that originate outside authored Markdown — source-code symbols with documented trace markers, and records exported from ALM systems such as DOORS or codeBeamer — into the same ID space and document format as hand-authored requirements.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">3 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="priority"><dt>Priority</dt><dd>High</dd></div>
+<div class="attrs__row" data-attr="source"><dt>Source</dt><dd>Engineering</dd></div>
+<div class="attrs__row" data-attr="category"><dt>Category</dt><dd>Interoperability</dd></div>
+</dl>
+<div class="rationale"><strong>Rationale:</strong> <p>Real projects do not start with an empty repository. Imported items must validate, trace, export, and diff exactly like authored ones, or the tool only covers half the specification. A single versioned exchange format keeps every importer small and keeps the Markdown/YAML syntax rules in one implementation.</p>
+</div>
+</div>
+</details>
+</article>
+</details>
+</section>
+</div>
 </section>
 <section class="view" data-view-panel="table" hidden></section>
 <section class="view" data-view-panel="trace" hidden></section>
@@ -1140,7 +1495,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         <div><dt><kbd>g</kbd><kbd>t</kbd></dt><dd>Table view</dd></div>
         <div><dt><kbd>g</kbd><kbd>r</kbd></dt><dd>Trace explorer</dd></div>
         <div><dt><kbd>g</kbd><kbd>c</kbd></dt><dd>Coverage view</dd></div>
-        <div><dt><kbd>f</kbd></dt><dd>Toggle density</dd></div>
         <div><dt><kbd>t</kbd></dt><dd>Toggle theme</dd></div>
         <div><dt><kbd>?</kbd></dt><dd>This help</dd></div>
         <div><dt><kbd>esc</kbd></dt><dd>Close overlays</dd></div>
@@ -1149,7 +1503,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     </div>
   </div>
 </div>
-<script type="application/json" id="req-model">{"doc":{"title":"reqmd Stakeholder Goals","dir":"spec/01-stakeholder","documentId":"stakeholder","level":"stakeholder-needs"},"filters":{"category":["Authoring","Export","Interoperability","Traceability","Validation","Verification"],"priority":["Critical","High"],"source":["Engineering","Product","Quality","Safety"]},"defaultStatus":"approved","statusEnabled":true,"hasResults":false,"attributeColumns":["priority","source","category"],"nodes":[{"id":"STK-GOAL-001","title":"Text-first Git-native authoring","attrs":{"category":"Authoring","priority":"Critical","source":"Product"},"coverage":"covered","down":[{"id":"SYS-CLI-001","ref":"STK-GOAL-001","title":"CLI subcommands","href":"02-system-requirements.html#SYS-CLI-001","resolved":true},{"id":"SYS-FMT-001","ref":"STK-GOAL-001","title":"Markdown requirement format","href":"02-system-requirements.html#SYS-FMT-001","resolved":true},{"id":"SYS-INI-001","ref":"STK-GOAL-001","title":"Project scaffolding with presets","href":"02-system-requirements.html#SYS-INI-001","resolved":true}]},{"id":"STK-GOAL-002","title":"Human-readable machine-parsable specs","attrs":{"category":"Authoring","priority":"Critical","source":"Engineering"},"coverage":"covered","down":[{"id":"SYS-BAS-001","ref":"STK-GOAL-002","title":"Baseline comparison via git tags","href":"02-system-requirements.html#SYS-BAS-001","resolved":true},{"id":"SYS-FMT-002","ref":"STK-GOAL-002","title":"Built-in attribute system","href":"02-system-requirements.html#SYS-FMT-002","resolved":true},{"id":"SYS-FMT-004","ref":"STK-GOAL-002","title":"YAML frontmatter support","href":"02-system-requirements.html#SYS-FMT-004","resolved":true},{"id":"SYS-IMP-001","ref":"STK-GOAL-002","title":"Source-code requirement extraction","href":"02-system-requirements.html#SYS-IMP-001","resolved":true},{"id":"SYS-IMP-002","ref":"STK-GOAL-002","title":"External requirement import via an exchange format","href":"02-system-requirements.html#SYS-IMP-002","resolved":true},{"id":"SYS-REPIN-001","ref":"STK-GOAL-002","title":"Bulk version-pin update via reqmd repin","href":"02-system-requirements.html#SYS-REPIN-001","resolved":true}]},{"id":"STK-GOAL-003","title":"Schema-driven validation","attrs":{"category":"Validation","priority":"Critical","source":"Quality"},"coverage":"covered","down":[{"id":"SYS-CHK-003","ref":"STK-GOAL-003","title":"Disjoint-attribute consistency check","href":"02-system-requirements.html#SYS-CHK-003","resolved":true},{"id":"SYS-CON-001","ref":"STK-GOAL-003","title":"Content tree — nothing dropped","href":"02-system-requirements.html#SYS-CON-001","resolved":true},{"id":"SYS-FIL-001","ref":"STK-GOAL-003","title":"Generic attribute filtering","href":"02-system-requirements.html#SYS-FIL-001","resolved":true},{"id":"SYS-FMT-003","ref":"STK-GOAL-003","title":"Schema.yaml document configuration","href":"02-system-requirements.html#SYS-FMT-003","resolved":true},{"id":"SYS-STS-001","ref":"STK-GOAL-003","title":"Requirement status lifecycle","href":"02-system-requirements.html#SYS-STS-001","resolved":true},{"id":"SYS-SUP-001","ref":"STK-GOAL-003","title":"Check suppression","href":"02-system-requirements.html#SYS-SUP-001","resolved":true},{"id":"SYS-VAL-001","ref":"STK-GOAL-003","title":"Multi-pass validation pipeline","href":"02-system-requirements.html#SYS-VAL-001","resolved":true}]},{"id":"STK-GOAL-004","title":"Multi-format export for review and analytics","attrs":{"category":"Export","priority":"High","source":"Product"},"coverage":"covered","down":[{"id":"SYS-CLI-001","ref":"STK-GOAL-004","title":"CLI subcommands","href":"02-system-requirements.html#SYS-CLI-001","resolved":true},{"id":"SYS-EXP-001","ref":"STK-GOAL-004","title":"NDJSON tables for reporting platforms","href":"02-system-requirements.html#SYS-EXP-001","resolved":true},{"id":"SYS-GRA-001","ref":"STK-GOAL-004","title":"Graph database export","href":"02-system-requirements.html#SYS-GRA-001","resolved":true},{"id":"SYS-HTM-001","ref":"STK-GOAL-004","title":"Standalone HTML export","href":"02-system-requirements.html#SYS-HTM-001","resolved":true}]},{"id":"STK-GOAL-005","title":"V-model traceability","attrs":{"category":"Traceability","priority":"High","source":"Safety"},"coverage":"covered","down":[{"id":"SYS-CON-001","ref":"STK-GOAL-005","title":"Content tree — nothing dropped","href":"02-system-requirements.html#SYS-CON-001","resolved":true},{"id":"SYS-FIL-001","ref":"STK-GOAL-005","title":"Generic attribute filtering","href":"02-system-requirements.html#SYS-FIL-001","resolved":true},{"id":"SYS-FMT-005","ref":"STK-GOAL-005","title":"Level-typed trace coverage","href":"02-system-requirements.html#SYS-FMT-005","resolved":true},{"id":"SYS-IMP-001","ref":"STK-GOAL-005","title":"Source-code requirement extraction","href":"02-system-requirements.html#SYS-IMP-001","resolved":true},{"id":"SYS-IMP-002","ref":"STK-GOAL-005","title":"External requirement import via an exchange format","href":"02-system-requirements.html#SYS-IMP-002","resolved":true},{"id":"SYS-STS-001","ref":"STK-GOAL-005","title":"Requirement status lifecycle","href":"02-system-requirements.html#SYS-STS-001","resolved":true},{"id":"SYS-TRC-001","ref":"STK-GOAL-005","title":"Upstream-only trace model","href":"02-system-requirements.html#SYS-TRC-001","resolved":true},{"id":"SYS-VAL-001","ref":"STK-GOAL-005","title":"Multi-pass validation pipeline","href":"02-system-requirements.html#SYS-VAL-001","resolved":true},{"id":"SYS-VAL-002","ref":"STK-GOAL-005","title":"Verification result ingestion and outcome-gated checks","href":"02-system-requirements.html#SYS-VAL-002","resolved":true}]},{"id":"STK-GOAL-006","title":"Verification results close the V-model","attrs":{"category":"Verification","priority":"High","source":"Quality"},"coverage":"not-required"},{"id":"STK-GOAL-007","title":"Interoperable requirement ingestion","attrs":{"category":"Interoperability","priority":"High","source":"Engineering"},"coverage":"not-required"}]}</script>
+<script type="application/json" id="req-model">{"doc":{"title":"reqmd Stakeholder Goals","dir":"spec/01-stakeholder","documentId":"stakeholder","level":"stakeholder-needs"},"filters":{"category":["Authoring","Export","Interoperability","Traceability","Validation","Verification"],"priority":["Critical","High"],"source":["Engineering","Product","Quality","Safety"]},"defaultStatus":"approved","statusEnabled":true,"hasResults":false,"attributeColumns":["priority","source","category"],"nodes":[{"id":"sec-preamble","type":"section"},{"id":"sec-authoring-and-validation","type":"section","title":"Authoring and validation"},{"id":"STK-GOAL-001","title":"Text-first Git-native authoring","attrs":{"category":"Authoring","priority":"Critical","source":"Product"},"coverage":"covered","down":[{"id":"SYS-CLI-001","ref":"STK-GOAL-001","title":"CLI subcommands","href":"02-system-requirements.html#SYS-CLI-001","resolved":true},{"id":"SYS-FMT-001","ref":"STK-GOAL-001","title":"Markdown requirement format","href":"02-system-requirements.html#SYS-FMT-001","resolved":true},{"id":"SYS-INI-001","ref":"STK-GOAL-001","title":"Project scaffolding with presets","href":"02-system-requirements.html#SYS-INI-001","resolved":true}]},{"id":"STK-GOAL-002","title":"Human-readable machine-parsable specs","attrs":{"category":"Authoring","priority":"Critical","source":"Engineering"},"coverage":"covered","down":[{"id":"SYS-BAS-001","ref":"STK-GOAL-002","title":"Baseline comparison via git tags","href":"02-system-requirements.html#SYS-BAS-001","resolved":true},{"id":"SYS-FMT-002","ref":"STK-GOAL-002","title":"Built-in attribute system","href":"02-system-requirements.html#SYS-FMT-002","resolved":true},{"id":"SYS-FMT-004","ref":"STK-GOAL-002","title":"YAML frontmatter support","href":"02-system-requirements.html#SYS-FMT-004","resolved":true},{"id":"SYS-IMP-001","ref":"STK-GOAL-002","title":"Source-code requirement extraction","href":"02-system-requirements.html#SYS-IMP-001","resolved":true},{"id":"SYS-IMP-002","ref":"STK-GOAL-002","title":"External requirement import via an exchange format","href":"02-system-requirements.html#SYS-IMP-002","resolved":true},{"id":"SYS-IMP-003","ref":"STK-GOAL-002","title":"Producer-facing validation and status mapping","href":"02-system-requirements.html#SYS-IMP-003","resolved":true},{"id":"SYS-REPIN-001","ref":"STK-GOAL-002","title":"Bulk version-pin update via","href":"02-system-requirements.html#SYS-REPIN-001","resolved":true}]},{"id":"STK-GOAL-003","title":"Schema-driven validation","attrs":{"category":"Validation","priority":"Critical","source":"Quality"},"coverage":"covered","down":[{"id":"SYS-CHK-003","ref":"STK-GOAL-003","title":"Disjoint-attribute consistency check","href":"02-system-requirements.html#SYS-CHK-003","resolved":true},{"id":"SYS-CON-001","ref":"STK-GOAL-003","title":"Content tree — nothing dropped","href":"02-system-requirements.html#SYS-CON-001","resolved":true},{"id":"SYS-FIL-001","ref":"STK-GOAL-003","title":"Generic attribute filtering","href":"02-system-requirements.html#SYS-FIL-001","resolved":true},{"id":"SYS-FMT-003","ref":"STK-GOAL-003","title":"Schema.yaml document configuration","href":"02-system-requirements.html#SYS-FMT-003","resolved":true},{"id":"SYS-STS-001","ref":"STK-GOAL-003","title":"Requirement status lifecycle","href":"02-system-requirements.html#SYS-STS-001","resolved":true},{"id":"SYS-SUP-001","ref":"STK-GOAL-003","title":"Check suppression","href":"02-system-requirements.html#SYS-SUP-001","resolved":true},{"id":"SYS-VAL-001","ref":"STK-GOAL-003","title":"Multi-pass validation pipeline","href":"02-system-requirements.html#SYS-VAL-001","resolved":true}]},{"id":"STK-GOAL-004","title":"Multi-format export for review and analytics","attrs":{"category":"Export","priority":"High","source":"Product"},"coverage":"covered","down":[{"id":"SYS-CLI-001","ref":"STK-GOAL-004","title":"CLI subcommands","href":"02-system-requirements.html#SYS-CLI-001","resolved":true},{"id":"SYS-EXP-001","ref":"STK-GOAL-004","title":"NDJSON tables for reporting platforms","href":"02-system-requirements.html#SYS-EXP-001","resolved":true},{"id":"SYS-GRA-001","ref":"STK-GOAL-004","title":"Graph database export","href":"02-system-requirements.html#SYS-GRA-001","resolved":true},{"id":"SYS-HTM-001","ref":"STK-GOAL-004","title":"Standalone HTML export","href":"02-system-requirements.html#SYS-HTM-001","resolved":true}]},{"id":"sec-evidence-and-reporting","type":"section","title":"Evidence and reporting"},{"id":"STK-GOAL-005","title":"V-model traceability","attrs":{"category":"Traceability","priority":"High","source":"Safety"},"coverage":"covered","down":[{"id":"SYS-CON-001","ref":"STK-GOAL-005","title":"Content tree — nothing dropped","href":"02-system-requirements.html#SYS-CON-001","resolved":true},{"id":"SYS-FIL-001","ref":"STK-GOAL-005","title":"Generic attribute filtering","href":"02-system-requirements.html#SYS-FIL-001","resolved":true},{"id":"SYS-FMT-005","ref":"STK-GOAL-005","title":"Level-typed trace coverage","href":"02-system-requirements.html#SYS-FMT-005","resolved":true},{"id":"SYS-IMP-001","ref":"STK-GOAL-005","title":"Source-code requirement extraction","href":"02-system-requirements.html#SYS-IMP-001","resolved":true},{"id":"SYS-IMP-002","ref":"STK-GOAL-005","title":"External requirement import via an exchange format","href":"02-system-requirements.html#SYS-IMP-002","resolved":true},{"id":"SYS-STS-001","ref":"STK-GOAL-005","title":"Requirement status lifecycle","href":"02-system-requirements.html#SYS-STS-001","resolved":true},{"id":"SYS-TRC-001","ref":"STK-GOAL-005","title":"Upstream-only trace model","href":"02-system-requirements.html#SYS-TRC-001","resolved":true},{"id":"SYS-VAL-001","ref":"STK-GOAL-005","title":"Multi-pass validation pipeline","href":"02-system-requirements.html#SYS-VAL-001","resolved":true},{"id":"SYS-VAL-002","ref":"STK-GOAL-005","title":"Verification result ingestion and outcome-gated checks","href":"02-system-requirements.html#SYS-VAL-002","resolved":true}]},{"id":"STK-GOAL-006","title":"Verification results close the V-model","attrs":{"category":"Verification","priority":"High","source":"Quality"},"coverage":"not-required"},{"id":"STK-GOAL-007","title":"Interoperable requirement ingestion","attrs":{"category":"Interoperability","priority":"High","source":"Engineering"},"coverage":"not-required"}]}</script>
 <script>
 
 // reqmd HTML export client.
@@ -1173,7 +1527,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
   function readJSON(id) {
     var el = document.getElementById(id);
     if (!el) return null;
-    try { return JSON.parse(el.textContent); } catch (e) { return null; }
+    try { return JSON.parse(el.textContent); } catch { return null; }
   }
 
   function el(tag, props, children) {
@@ -1247,7 +1601,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     if (pairs.length) pairs.forEach(function (pair) { p.append('f', pair); });
     else if (s.explicitFilters) p.set('f', '');
     if (s.view && s.view !== 'document') p.set('view', s.view);
-    if (s.density === 'compact') p.set('density', 'compact');
     if (s.view === 'trace' && s.selected) p.set('req', s.selected);
     return p.toString();
   }
@@ -1259,7 +1612,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       filters: {},
       explicitFilters: false,
       view: 'document',
-      density: 'comfortable',
       selected: p.get('req') || null
     };
     if (p.has('f')) {
@@ -1268,7 +1620,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     }
     var view = p.get('view');
     if (['document', 'table', 'trace', 'coverage'].indexOf(view) !== -1) out.view = view;
-    if (p.get('density') === 'compact') out.density = 'compact';
     return out;
   }
 
@@ -1297,6 +1648,105 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
   }
 
   // ── theme ──
+  // Mermaid replaces each <pre class="mermaid"> with an <svg>, so the diagram
+  // source has to be stashed before that happens. The Mermaid script is
+  // emitted before this one in document order, so its DOMContentLoaded
+  // listener runs first — the stash must be here, at top level.
+  Array.prototype.forEach.call(document.querySelectorAll('pre.mermaid'), function (p) {
+    p.setAttribute('data-src', p.textContent);
+  });
+
+  // ── diagram enlargement ──
+  // Mermaid swaps the stashed source for an <svg> asynchronously after load,
+  // and again on every theme change. A child-list observer is the hook: no
+  // timer, and the affordance appears only once a diagram has rendered.
+  var LIGHTBOX_SUFFIX = '-lb';
+  // Set by the document page, which owns the overlay stack.
+  var openDiagramLightbox = null;
+
+  function reEscape(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  // A clone keeps every id, and Mermaid ids are page-global: an unsuffixed
+  // second copy would steal url(#id) references from the original. Ids get a
+  // suffix and references to them are rewritten by walking the DOM — a regex
+  // over outerHTML would also rewrite diagram label text that looks like a ref.
+  function cloneDiagram(svg) {
+    var clone = svg.cloneNode(true);
+    var ids = {};
+    [clone].concat(Array.prototype.slice.call(clone.querySelectorAll('[id]'))).forEach(function (node) {
+      var id = node.getAttribute('id');
+      ids[id] = true;
+      node.setAttribute('id', id + LIGHTBOX_SUFFIX);
+    });
+    var names = Object.keys(ids).sort(function (a, b) { return b.length - a.length; });
+    if (!names.length) return clone;
+    // Longest id first so `a` cannot match inside `a1`.
+    var idsPattern = names.map(reEscape).join('|');
+    var inRef = new RegExp('#(' + idsPattern + ')', 'g');
+    // Bare ids in attribute lists such as aria-labelledby.
+    var bareRef = new RegExp('(^|\\s)(' + idsPattern + ')(?=\\s|$)', 'g');
+    // Mermaid's own stylesheet addresses nodes by class (`.nodeId`) as well as
+    // by id, so class selectors inside the clone need the same suffix.
+    var classRef = new RegExp('\\.(' + idsPattern + ')(?![\\w-])', 'g');
+    function rewrite(value) {
+      return value.replace(inRef, '#$1' + LIGHTBOX_SUFFIX).replace(bareRef, '$1$2' + LIGHTBOX_SUFFIX);
+    }
+    [clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*'))).forEach(function (node) {
+      Array.prototype.forEach.call(node.attributes, function (a) {
+        node.setAttribute(a.name, rewrite(a.value));
+      });
+      if (node.tagName.toLowerCase() === 'style') {
+        node.textContent = rewrite(node.textContent).replace(classRef, '.$1' + LIGHTBOX_SUFFIX);
+      }
+    });
+    return clone;
+  }
+
+  function wireDiagram(p) {
+    if (p.hasAttribute('data-lightbox') || !p.querySelector('svg')) return;
+    p.setAttribute('data-lightbox', '');
+    p.setAttribute('role', 'button');
+    p.setAttribute('tabindex', '0');
+    p.setAttribute('aria-label', 'Enlarge diagram');
+    function open(e) {
+      var svg = p.querySelector('svg');
+      if (!openDiagramLightbox || !svg) return;
+      e.preventDefault();
+      openDiagramLightbox(svg);
+    }
+    p.addEventListener('click', open);
+    p.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') open(e);
+    });
+  }
+
+  function setupDiagrams() {
+    var containers = document.querySelectorAll('pre.mermaid');
+    if (!containers.length) return;
+    var watch = new MutationObserver(function () {
+      Array.prototype.forEach.call(document.querySelectorAll('pre.mermaid'), wireDiagram);
+    });
+    Array.prototype.forEach.call(containers, function (p) {
+      watch.observe(p, { childList: true });
+      wireDiagram(p);
+    });
+  }
+
+  // Re-render the diagrams in the new palette. Restoring the source text and
+  // clearing data-processed before mermaid.run() makes a light→dark→light
+  // round trip replace the SVG instead of nesting a second one.
+  function renderDiagrams(dark) {
+    if (!window.mermaid) return;
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('pre.mermaid[data-src]'));
+    if (!nodes.length) return;
+    mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+    nodes.forEach(function (p) {
+      p.removeAttribute('data-processed');
+      p.textContent = p.getAttribute('data-src');
+    });
+    mermaid.run({ nodes: nodes });
+  }
+
   function setupTheme() {
     var buttons = document.querySelectorAll('[data-action="theme"]');
     function apply() {
@@ -1310,8 +1760,9 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       b.addEventListener('click', function () {
         var dark = !document.documentElement.classList.contains('dark');
         document.documentElement.classList.toggle('dark', dark);
-        try { localStorage.setItem('reqmd-theme', dark ? 'dark' : 'light'); } catch (e) { /* private mode */ }
+        try { localStorage.setItem('reqmd-theme', dark ? 'dark' : 'light'); } catch { /* private mode */ }
         apply();
+        renderDiagrams(dark);
       });
     });
     apply();
@@ -1337,14 +1788,15 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     var nodes = model.nodes || [];
     var byId = {};
     var reqNodes = [];
+    var sectionNodes = [];
     nodes.forEach(function (n) {
       byId[n.id] = n;
       if (!n.type) reqNodes.push(n);
+      else if (n.type === 'section' && n.title) sectionNodes.push(n);
     });
 
     var state = {
       view: 'document',
-      density: 'comfortable',
       query: '',
       filters: {},
       explicitFilters: false,
@@ -1374,15 +1826,44 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     var searchEl = document.querySelector('[data-search]');
     var chipsEl = document.querySelector('[data-active-filters]');
     var filtersEl = document.querySelector('[data-filters]');
+    // The lightbox only ever hosts a clone of a rendered Mermaid <svg>, so it is
+    // built here instead of being server-rendered like the other overlays.
+    var lightboxWell = el('div', { className: 'lightbox__well' });
+    function buildLightbox() {
+      var overlay = el('div', {
+        className: 'overlay', id: 'lightbox', role: 'dialog',
+        'aria-modal': 'true', 'aria-label': 'Diagram', hidden: true
+      }, [
+        el('div', { className: 'overlay__backdrop', 'data-action': 'close-overlays' }),
+        el('div', { className: 'overlay__panel overlay__panel--lightbox' }, [
+          el('button', {
+            type: 'button', className: 'icon-btn', 'data-action': 'close-overlays',
+            'aria-label': 'Close diagram', text: '\u00d7'
+          }),
+          lightboxWell
+        ])
+      ]);
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
     var overlays = {
       palette: document.getElementById('palette'),
-      shortcuts: document.getElementById('shortcuts')
+      shortcuts: document.getElementById('shortcuts'),
+      lightbox: buildLightbox()
     };
     var paletteInput = document.querySelector('[data-palette-input]');
     var paletteList = document.querySelector('[data-palette-list]');
     var paletteEmpty = document.querySelector('[data-palette-empty]');
     var paletteIndex = 0;
     var lastFocus = null;
+
+    // Diagrams are wired in setupDiagrams; the original stays in the page.
+    openDiagramLightbox = function (svg) {
+      clear(lightboxWell);
+      lightboxWell.appendChild(cloneDiagram(svg));
+      openOverlay('lightbox');
+    };
 
     if (filtersEl && filtersEl.getAttribute('data-default-status')) {
       state.defaultStatus = filtersEl.getAttribute('data-default-status');
@@ -1488,21 +1969,20 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       var qs = encodeUrlState(state);
       try {
         history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
-      } catch (e) { /* file:// or sandboxed */ }
+      } catch { /* file:// or sandboxed */ }
     }
 
     function restoreState() {
       var decoded;
       try {
         decoded = decodeUrlState(location.search);
-      } catch (e) {
+      } catch {
         return;
       }
       state.query = decoded.query;
       state.filters = decoded.filters;
       state.explicitFilters = decoded.explicitFilters;
       state.view = decoded.view;
-      state.density = decoded.density;
       if (decoded.selected) state.selected = decoded.selected;
       if (searchEl) searchEl.value = state.query;
       if (!state.explicitFilters && state.defaultStatus && model.filters &&
@@ -1606,18 +2086,20 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       var items = document.querySelectorAll('[data-toc-for]');
       function visibleFor(item) {
         var id = item.getAttribute('data-toc-for');
-        if (byId[id] && !byId[id].type) return visibleSet.has(id);
         var nested = item.querySelectorAll('[data-toc-for]');
         var hasRequirements = false;
+        var descendantVisible = false;
         for (var i = 0; i < nested.length; i++) {
           var nid = nested[i].getAttribute('data-toc-for');
           if (byId[nid] && !byId[nid].type) {
             hasRequirements = true;
-            if (visibleSet.has(nid)) return true;
+            if (visibleSet.has(nid)) { descendantVisible = true; break; }
           }
         }
-        // Leaf items (prose blocks) are structural: always visible.
-        return !hasRequirements;
+        if (byId[id] && !byId[id].type) return visibleSet.has(id) || descendantVisible;
+        // Section/prose items follow their requirements; leaf prose blocks are
+        // structural and always visible.
+        return descendantVisible || !hasRequirements;
       }
       Array.prototype.forEach.call(items, function (item) {
         item.classList.toggle('is-filtered-out', !visibleFor(item));
@@ -1797,7 +2279,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         el('h2', { text: 'Table' }),
         el('p', { className: 'view-sub', text: 'Sort by any column, choose columns, expand a row for body and evidence.' + (model.hasResults ? '' : ' No verification results are loaded, so every verdict shows as a dash.') })
       ]);
-      var chooser = buildColumnChooser(defs);
+      var chooser = buildColumnChooser();
       var toolbar = el('div', { className: 'view-tools' }, [chooser]);
       tablePanel.appendChild(head);
       tablePanel.appendChild(toolbar);
@@ -1876,7 +2358,12 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     function stateBadge(kind, value) {
       if (!value) return el('span', { className: 'muted', text: '—' });
       var label = kind === 'coverage' ? (COVERAGE_LABELS[value] || value) : value;
-      return el('span', { className: 'chip chip--' + value, text: label });
+      // Keep the server-rendered chip vocabulary: coverage problems use the
+      // chip--coverage-missing spelling so one CSS rule styles both views.
+      var cls = 'chip chip--' + value;
+      if (kind === 'status') cls = 'chip chip--status';
+      if (kind === 'coverage' && value === 'missing-coverage') cls += ' chip--coverage-missing';
+      return el('span', { className: cls, text: label });
     }
 
     function compareRows(a, b, sort) {
@@ -1895,7 +2382,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       return sort.dir === 'asc' ? cmp : -cmp;
     }
 
-    function buildColumnChooser(visibleDefs) {
+    function buildColumnChooser() {
       var wrap = el('details', { className: 'columns' }, [el('summary', { className: 'columns__toggle', text: 'Columns' })]);
       var menu = el('div', { className: 'columns__menu' });
       columnDefs().forEach(function (d) {
@@ -1921,7 +2408,13 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         var body = card.querySelector('.req__body');
         if (body) td.appendChild(body.cloneNode(true));
         var detail = card.querySelector('.req__detail');
-        if (detail) td.appendChild(detail.cloneNode(true));
+        if (detail) {
+          var clone = detail.cloneNode(true);
+          // The row is already expanded: a nested collapsed disclosure would
+          // force a second click to see the attributes the reader asked for.
+          clone.open = true;
+          td.appendChild(clone);
+        }
         var flags = card.querySelector('.req__flags');
         if (flags) td.appendChild(flags.cloneNode(true));
       } else {
@@ -2036,9 +2529,29 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       writeState();
     }
 
+    // safeHref rejects anything but a same-origin path or a web/mail scheme
+    // before it is used for navigation. Exported links are built from document
+    // paths, but a crafted spec can put "javascript:" in a path: the export is
+    // an untrusted static artifact, so the sink is guarded rather than trusted.
+    function safeHref(href) {
+      if (!href) return '';
+      var value = String(href).trim();
+      if (/^(?:https?:|mailto:|#|\/|\.\.?\/)/i.test(value)) return value;
+      if (value.indexOf(':') === -1) return value; // a bare relative path
+      return '';
+    }
+
+    // navigate follows a link only after safeHref has vetted it, and uses
+    // location.assign rather than assigning location.href: the export is an
+    // untrusted static artefact, so the sink is explicit and guarded.
+    function navigate(href) {
+      var target = safeHref(href);
+      if (target) location.assign(target);
+    }
+
     function selectNode(id, href) {
       if (!byId[id]) {
-        if (href) location.href = href;
+        navigate(href);
         return;
       }
       if (state.selected && state.selected !== id) state.trail.push(state.selected);
@@ -2072,7 +2585,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         var filteredOut = inDocument && !visibleSet.has(link.id);
         var tag = inDocument ? 'button' : 'a';
         var attrs = {
-          className: 'trace__node trace__node--external' + (filteredOut ? ' is-muted' : ''),
+          className: 'trace__node' + (inDocument ? '' : ' trace__node--external') + (filteredOut ? ' is-muted' : ''),
           'data-link-id': link.id,
           title: (dir === 'up' ? node.id + ' → ' + link.id : link.id + ' → ' + node.id)
         };
@@ -2115,8 +2628,11 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     }
 
     function traceBadges(node) {
+      var cov = node.coverage || '';
+      var covClass = 'chip chip--' + (cov || 'none');
+      if (cov === 'missing-coverage') covClass += ' chip--coverage-missing';
       var badges = [
-        el('span', { className: 'chip chip--' + (node.coverage || 'none'), text: COVERAGE_LABELS[node.coverage] || 'no coverage data' })
+        el('span', { className: covClass, text: COVERAGE_LABELS[cov] || 'no coverage data' })
       ];
       if (node.verdict) {
         badges.push(el('span', { className: 'chip chip--' + node.verdict, text: node.verdict }));
@@ -2404,6 +2920,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       if (!id) return;
       var target = document.getElementById(id);
       if (!target) return;
+      openAncestorDetails(target);
 
       var html = document.documentElement;
       var smooth = html.style.scrollBehavior;
@@ -2442,6 +2959,29 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     // jumpTo reveals a requirement without discarding the reviewer's context.
     // keepFilters keeps search and attribute filters; the target may be hidden
     // by them, in which case the filters are cleared as a last resort.
+    // focusSection scrolls to a section anchor and opens every collapsed
+    // <details> above it. Sections are not selectable requirements, so the
+    // selection is cleared instead of set.
+    function openAncestorDetails(el) {
+      var opener = el.parentElement;
+      while (opener) {
+        if (opener.tagName === 'DETAILS') opener.open = true;
+        opener = opener.parentElement;
+      }
+    }
+
+    function focusSection(anchor) {
+      var target = document.getElementById(anchor);
+      if (!target) return;
+      state.selected = null;
+      computeVisible();
+      openAncestorDetails(target);
+      if (target.scrollIntoView) target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      target.classList.add('is-flash');
+      setTimeout(function () { target.classList.remove('is-flash'); }, 1200);
+      if (location.hash !== '#' + anchor) history.replaceState(null, '', '#' + anchor);
+    }
+
     function jumpTo(id, keepFilters) {
       state.view = 'document';
       state.selected = id;
@@ -2462,10 +3002,11 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       setView('document');
       var target = document.getElementById(id);
       if (target) {
+        openAncestorDetails(target);
         window.scrollTo(0, Math.max(0, target.getBoundingClientRect().top + window.scrollY - stickyChromeHeight() - 8));
         target.classList.add('is-flash');
         setTimeout(function () { target.classList.remove('is-flash'); }, 1400);
-        try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (err) { /* file:// */ }
+        try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch { /* file:// */ }
       }
     }
 
@@ -2495,6 +3036,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       Object.keys(overlays).forEach(function (k) {
         if (overlays[k]) overlays[k].hidden = true;
       });
+      clear(lightboxWell);
       overlayOpen = null;
       document.body.classList.remove('overlay-open');
       if (lastFocus && lastFocus.focus) lastFocus.focus();
@@ -2505,7 +3047,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       { key: 'view:table', glyph: '▦', label: 'View: Table', hint: 'dense sortable grid', run: function () { setView('table'); } },
       { key: 'view:trace', glyph: '⌘', label: 'View: Trace', hint: 'trace explorer', run: function () { setView('trace'); } },
       { key: 'view:coverage', glyph: '◔', label: 'View: Coverage', hint: 'coverage and verification', run: function () { setView('coverage'); } },
-      { key: 'toggle:density', glyph: '⇕', label: 'Toggle density', hint: 'comfortable / compact', run: function () { toggleDensity(); } },
       { key: 'filters:clear', glyph: '×', label: 'Clear search and filters', hint: 'reset the current view', run: function () {
         state.filters = {}; state.query = ''; state.explicitFilters = true; if (searchEl) searchEl.value = ''; apply();
       } },
@@ -2543,6 +3084,18 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         var node = hit.node;
         out.push({ key: 'req:' + node.id, glyph: '§', label: node.id, hint: node.title || '', reqId: node.id });
       });
+      // Sections are navigation targets only: they have no ID and are never
+      // counted, but a folder you cannot jump to is not navigable.
+      for (var j = 0; j < sectionNodes.length; j++) {
+        var sec = sectionNodes[j];
+        var secTitle = (sec.title || '').toLowerCase();
+        var secScore = -1;
+        if (secTitle === q || secTitle.indexOf(q) === 0) secScore = 3;
+        else if (secTitle.indexOf(q) !== -1) secScore = 4;
+        else if (fuzzy && fuzzyScore(sec.title, needle) >= 0) secScore = 5;
+        if (secScore < 0) continue;
+        out.push({ key: 'sec:' + sec.id, glyph: '#', label: sec.id, hint: sec.title || '', sectionAnchor: sec.id });
+      }
       return out.slice(0, 40);
     }
 
@@ -2743,12 +3296,17 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       var button = buttons[i];
       if (!button) return;
       var reqId = null;
+      var anchor = null;
+      var glyph = button.getAttribute('data-glyph');
       var label = button.getAttribute('data-label');
       var command = commands.filter(function (c) { return c.label === label; })[0];
-      if (button.getAttribute('data-glyph') === '§') reqId = label;
+      if (glyph === '§') reqId = label;
+      if (glyph === '#') anchor = label;
       closeOverlays();
       if (reqId) {
         jumpTo(reqId);
+      } else if (anchor) {
+        focusSection(anchor);
       } else if (command && typeof command.run === 'function') {
         command.run();
       }
@@ -2760,12 +3318,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       var current = paletteActive();
       if (current < 0) current = 0;
       setPaletteActive((current + delta + buttons.length) % buttons.length);
-    }
-
-    function toggleDensity() {
-      state.density = state.density === 'compact' ? 'comfortable' : 'compact';
-      document.body.classList.toggle('density-compact', state.density === 'compact');
-      writeState();
     }
 
     // ── wiring ──
@@ -2782,7 +3334,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
           trapFocus(overlays.palette.querySelector('.overlay__panel'), e);
           return;
         }
-        trapFocus(overlays.shortcuts.querySelector('.overlay__panel'), e);
+        trapFocus(overlays[overlayOpen].querySelector('.overlay__panel'), e);
         return;
       }
 
@@ -2794,7 +3346,10 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       // Ignore modified keys for single-letter shortcuts.
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (typing) {
-        if (e.key === 'Escape' && t.blur) t.blur();
+        if (e.key === 'Escape') {
+          if (t.blur) t.blur();
+          closeMenus();
+        }
         return;
       }
 
@@ -2802,6 +3357,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         if (document.body.classList.contains('toc-open')) {
           document.body.classList.remove('toc-open');
         }
+        closeMenus();
         return;
       }
       if (e.key === '/') {
@@ -2811,7 +3367,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       }
       if (e.key === '?') { e.preventDefault(); openOverlay('shortcuts'); return; }
       if (e.key === 't') { toggleThemeButton(); return; }
-      if (e.key === 'f') { toggleDensity(); return; }
       var now = Date.now();
       if (pendingG && now - pendingG < 900) {
         pendingG = 0;
@@ -2835,7 +3390,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       btn.addEventListener('click', function () {
         switch (action) {
           case 'palette': openOverlay('palette'); break;
-          case 'density': toggleDensity(); break;
           case 'toggle-toc': {
             var open = document.body.classList.toggle('toc-open');
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -2887,6 +3441,73 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       });
     });
 
+    // Filter and column menus are native <details>; a popover should also close
+    // when the reader clicks elsewhere or presses Escape.
+    function closeMenus() {
+      Array.prototype.forEach.call(document.querySelectorAll('details.filter[open], details.columns[open]'), function (d) {
+        d.removeAttribute('open');
+      });
+    }
+    document.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('details.filter, details.columns')) return;
+      closeMenus();
+    });
+
+    // ── outline width ──
+    // The outline defaults to 25% of the viewport and is one CSS variable.
+    // Drag the handle (or use the arrow keys) to set a fixed width; the value
+    // is remembered per export origin. Double-click clears it back to 25%.
+    var TOC_MIN = 200, TOC_MAX = 520;
+    function tocWidth() {
+      var el = document.querySelector('.toc');
+      return el ? Math.round(el.getBoundingClientRect().width) : 0;
+    }
+    function syncTocHandle(width) {
+      var handle = document.querySelector('[data-action="resize-toc"]');
+      if (handle) handle.setAttribute('aria-valuenow', String(width));
+    }
+    function setTocWidth(px) {
+      var w = Math.max(TOC_MIN, Math.min(TOC_MAX, Math.round(px)));
+      document.documentElement.style.setProperty('--toc-w', w + 'px');
+      syncTocHandle(w);
+      try { localStorage.setItem('reqmd-toc-w', String(w)); } catch { /* private mode */ }
+    }
+    function resetTocWidth() {
+      document.documentElement.style.removeProperty('--toc-w');
+      syncTocHandle(tocWidth());
+      try { localStorage.removeItem('reqmd-toc-w'); } catch { /* private mode */ }
+    }
+
+    function setupTocResizer() {
+      var handle = document.querySelector('[data-action="resize-toc"]');
+      if (!handle) return;
+      try {
+        var saved = parseInt(localStorage.getItem('reqmd-toc-w'), 10);
+        if (saved) setTocWidth(saved);
+        else syncTocHandle(tocWidth());
+      } catch { /* private mode */ }
+
+      handle.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        handle.setPointerCapture(e.pointerId);
+        document.body.classList.add('toc-resizing');
+        function move(ev) { setTocWidth(ev.clientX); }
+        function stop() {
+          document.body.classList.remove('toc-resizing');
+          handle.removeEventListener('pointermove', move);
+          handle.removeEventListener('pointerup', stop);
+        }
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', stop);
+      });
+      handle.addEventListener('dblclick', resetTocWidth);
+      handle.addEventListener('keydown', function (e) {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        e.preventDefault();
+        setTocWidth(tocWidth() + (e.key === 'ArrowRight' ? 16 : -16));
+      });
+    }
+
     if (paletteInput) {
       paletteInput.addEventListener('input', function () {
         paletteIndex = 0;
@@ -2896,7 +3517,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
 
     // ── init ──
     restoreState();
-    document.body.classList.toggle('density-compact', state.density === 'compact');
     setView(state.view);
 
     // A #REQ-ID deep link selects Document mode and reveals the target.
@@ -2907,6 +3527,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       }
     }
 
+    setupTocResizer();
     setupOutlineClicks();
     setupScrollSpy();
     apply();
@@ -2988,7 +3609,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       catalog.addEventListener('click', function (e) {
         if (e.target.closest('a')) return;
         var row = e.target.closest('tr[data-href]');
-        if (row) location.href = row.getAttribute('data-href');
+        if (row) navigate(row.getAttribute('data-href'));
       });
     }
   }
@@ -3006,6 +3627,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     document.addEventListener('DOMContentLoaded', function () {
       setupTheme();
       setupModHints();
+      setupDiagrams();
       if (document.body.getAttribute('data-page') === 'project') initProjectPage();
       else initDocumentPage();
     });

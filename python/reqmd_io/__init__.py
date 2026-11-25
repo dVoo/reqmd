@@ -66,7 +66,7 @@ class Item:
     """Base class for one content item.
 
     ``kind`` is the only difference between content and structure: a
-    requirement renders an attr block, a section renders structure only. Items
+    requirement renders a reqmd block, a section renders structure only. Items
     nest through ``children``; the flat ``parent`` argument of
     :meth:`Document.add` is resolved into that tree, so a producer that holds a
     flat table never has to build it by hand.
@@ -112,7 +112,7 @@ class Requirement(Item):
 
 @dataclass
 class Section(Item):
-    """Structure: a heading with prose and children, never an attr block.
+    """Structure: a heading with prose and children, never a reqmd block.
 
     A section carries no ``fields`` and no ``status``; both are rejected by the
     renderer. An untitled section renders as a plain prose block.

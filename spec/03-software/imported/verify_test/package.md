@@ -4,7 +4,7 @@
 
 ## internal/verify/verify\_test.go
 ### IMP-verify\_test-writeFixture-e0c0c1b: writeFixture
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -16,7 +16,7 @@ trace: []
 writeFixture writes fixture content to a file, failing the test on error.
 
 ### IMP-verify\_test-ctrfReport-79379c6: ctrfReport
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -29,7 +29,7 @@ CTRF parser
 ctrfReport builds a minimal CTRF JSON report with the given tests.
 
 ### IMP-verify\_test-TestLoadCTRF\_PassFail-b91f1a4: TestLoadCTRF\_PassFail
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -39,7 +39,7 @@ trace: []
 ```
 
 ### IMP-verify\_test-TestLoadCTRF\_UninstrumentedTestSkippedSilently-d9022ec: TestLoadCTRF\_UninstrumentedTestSkippedSilently
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -53,7 +53,7 @@ the old per-test "no x-reqmd.id" warning is gone so suites can adopt
 reqmd incrementally without spamming every uninstrumented test.
 
 ### IMP-verify\_test-TestLoadCTRF\_UnboundResultWarns-96e81b8: TestLoadCTRF\_UnboundResultWarns
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -66,7 +66,7 @@ A test with an x-reqmd block but nothing bindable (no id, no verifies)
 yields an unbound-result warning.
 
 ### IMP-verify\_test-TestLoadCTRF\_VersionPinPreserved-f1c65fe: TestLoadCTRF\_VersionPinPreserved
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -76,7 +76,7 @@ trace: []
 ```
 
 ### IMP-verify\_test-TestLoadCTRF\_FlakyIsInconclusive-ce6325e: TestLoadCTRF\_FlakyIsInconclusive
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -86,7 +86,7 @@ trace: []
 ```
 
 ### IMP-verify\_test-TestMergeLatest\_LatestByVerifiedAt-2266f70: TestMergeLatest\_LatestByVerifiedAt
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -99,7 +99,7 @@ trace:
 Multi-file merge
 
 ### IMP-verify\_test-TestMergeLatest\_PinStrippedFromKey-f51f924: TestMergeLatest\_PinStrippedFromKey
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -110,7 +110,7 @@ trace:
 ```
 
 ### IMP-verify\_test-TestLoadResults\_NonCTRFJsonSkipped-1349326: TestLoadResults\_NonCTRFJsonSkipped
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -123,7 +123,7 @@ trace:
 Auto-detection (non-CTRF json skipped)
 
 ### IMP-verify\_test-TestLoadResults\_PlainJsonCTRFShapeAccepted-f530cff: TestLoadResults\_PlainJsonCTRFShapeAccepted
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -134,7 +134,7 @@ trace:
 ```
 
 ### IMP-verify\_test-TestLoadCTRF\_ResultsArrayRejected-fc5eec4: TestLoadCTRF\_ResultsArrayRejected
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -144,7 +144,7 @@ trace: []
 ```
 
 ### IMP-verify\_test-TestLoadCTRF\_ResultsArrayJsonSkippedSilently-e97acae: TestLoadCTRF\_ResultsArrayJsonSkippedSilently
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -154,7 +154,7 @@ trace: []
 ```
 
 ### IMP-verify\_test-TestLoadCTRF\_MalformedJSONError-23d5f1e: TestLoadCTRF\_MalformedJSONError
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -164,7 +164,7 @@ trace: []
 ```
 
 ### IMP-verify\_test-TestSynthesize\_ResultNodeIDAndTrace-0191e26: TestSynthesize\_ResultNodeIDAndTrace
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -177,7 +177,7 @@ trace:
 Synthesize
 
 ### IMP-verify\_test-TestIsResultNode-d92525e: TestIsResultNode
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -188,7 +188,7 @@ trace:
 ```
 
 ### IMP-verify\_test-TestLoadCTRF\_IDWithCase\_RecordsCaseKey-709880c: TestLoadCTRF\_IDWithCase\_RecordsCaseKey
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -200,7 +200,7 @@ trace: []
 v2 binding (patterns C/D/E)
 
 ### IMP-verify\_test-TestLoadCTRF\_CaseAndVerifies\_SynthesizesCaseBinding-9262656: TestLoadCTRF\_CaseAndVerifies\_SynthesizesCaseBinding
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -210,7 +210,7 @@ trace: []
 ```
 
 ### IMP-verify\_test-TestLoadCTRF\_VerifiesOnly\_ImplicitCaseFromSuiteName-838ccf7: TestLoadCTRF\_VerifiesOnly\_ImplicitCaseFromSuiteName
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -220,7 +220,7 @@ trace: []
 ```
 
 ### IMP-verify\_test-TestSynthesize\_CaseKeyedCreatesTCAndCasedResults-02d0ab5: TestSynthesize\_CaseKeyedCreatesTCAndCasedResults
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go
@@ -231,7 +231,7 @@ trace:
 ```
 
 ### IMP-verify\_test-TestIsTestCaseNode-4bdc873: TestIsTestCaseNode
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/verify/verify_test.go

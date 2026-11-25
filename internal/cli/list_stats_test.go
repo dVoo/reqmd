@@ -66,7 +66,7 @@ func TestStatsCmd_Filter(t *testing.T) {
 func TestListCmd_ShowsItems(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "sw/schema.yaml", variantSchema)
-	writeFile(t, root, "sw/sw.md", "# Software\n\nIntro prose for the doc.\n\n## Sub System\n\n### SW-001: Base parser\n```attr\nstatus: approved\nvariant: [Base]\n```\n")
+	writeFile(t, root, "sw/sw.md", "# Software\n\nIntro prose for the doc.\n\n## Sub System\n\n### SW-001: Base parser\n```reqmd\nstatus: approved\nvariant: [Base]\n```\n")
 
 	out, err := runCmd(t, newListCmd(), root)
 	if err != nil {
@@ -104,7 +104,7 @@ func TestListCmd_ShowsItems(t *testing.T) {
 func TestListCmd_ItemsJSON(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "sw/schema.yaml", variantSchema)
-	writeFile(t, root, "sw/sw.md", "# Software\n\nIntro prose for the doc.\n\n## Sub System\n\n### SW-001: Base parser\n```attr\nstatus: approved\nvariant: [Base]\n```\n")
+	writeFile(t, root, "sw/sw.md", "# Software\n\nIntro prose for the doc.\n\n## Sub System\n\n### SW-001: Base parser\n```reqmd\nstatus: approved\nvariant: [Base]\n```\n")
 
 	out, err := runCmd(t, newListCmd(), "--json", root)
 	if err != nil {
@@ -121,7 +121,7 @@ func TestListCmd_ItemsJSON(t *testing.T) {
 func TestStatsCmd_ShowsItems(t *testing.T) {
 	root := t.TempDir()
 	writeFile(t, root, "sw/schema.yaml", variantSchema)
-	writeFile(t, root, "sw/sw.md", "# Software\n\nIntro prose for the doc.\n\n## Sub System\n\n### SW-001: Base parser\n```attr\nstatus: approved\nvariant: [Base]\n```\n")
+	writeFile(t, root, "sw/sw.md", "# Software\n\nIntro prose for the doc.\n\n## Sub System\n\n### SW-001: Base parser\n```reqmd\nstatus: approved\nvariant: [Base]\n```\n")
 
 	out, err := runCmd(t, newStatsCmd(), root)
 	if err != nil {

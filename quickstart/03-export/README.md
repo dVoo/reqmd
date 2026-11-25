@@ -13,7 +13,7 @@ Produces one CSV per document directory (`stakeholder-requirements.csv`,
 `system-requirements.csv`, etc.) with a leading `Type` column followed by
 ID, Title, all schema attributes, Body, Rationale. Rows are emitted in
 document order for every node — requirements **and** sections
-(headings without `attr` blocks) — so the CSV mirrors the source
+(headings without `reqmd` blocks) — so the CSV mirrors the source
 document, not just its requirement subset.
 
 ## HTML export
@@ -42,7 +42,7 @@ document. Each page has:
   HTML export** — `csv`, `json`, and `ls` keep the raw Markdown — and a page
   containing one needs network access for that pinned runtime
 - Collapsible folder sections and plain prose blocks for headings
-  without `attr` blocks (exactly as authored)
+  without `reqmd` blocks (exactly as authored)
 - Sidebar TOC with the same folder nesting
 - Upstream/downstream trace links between files
 - Document chain section (V-model navigation)

@@ -12,7 +12,7 @@ A downstream requirement can pin the upstream version it was last verified again
 
 ````markdown
 ## UP-001
-```attr
+```reqmd
 status: approved
 version: 3
 ```
@@ -20,7 +20,7 @@ version: 3
 
 ````markdown
 ## DN-001
-```attr
+```reqmd
 status: approved
 trace: [UP-001~2]   # verified against UP-001 v2, but UP-001 is now v3
 ```

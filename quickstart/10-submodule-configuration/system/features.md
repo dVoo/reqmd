@@ -1,7 +1,7 @@
 # System Requirements
 
 ## SYS-001: Boot sequence
-```attr
+```reqmd
 owner: Systems
 verification-method: Test
 trace: [stakeholder/STK-001]

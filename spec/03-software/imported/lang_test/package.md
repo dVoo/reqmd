@@ -4,7 +4,7 @@
 
 ## reqmd-code/internal/lang/helpers\_test.go
 ### IMP-lang\_test-TestModuleNameFromFile-ef68781: TestModuleNameFromFile
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers_test.go
@@ -19,7 +19,7 @@ default package name from the source path (one shared table instead of one
 per language).
 
 ### IMP-lang\_test-TestHasAncestorKind-22d86e7: TestHasAncestorKind
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers_test.go
@@ -33,7 +33,7 @@ TestHasAncestorKind covers the shared ancestor walk: the nil guard, a
 matching ancestor, and one of several candidate kinds.
 
 ### IMP-lang\_test-walk-9689cad: walk
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers_test.go
@@ -45,7 +45,7 @@ trace: []
 walk visits every node depth-first.
 
 ### IMP-lang\_test-TestIsTestFile-e0e6742: TestIsTestFile
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/lang/helpers_test.go

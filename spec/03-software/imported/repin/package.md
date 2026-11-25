@@ -4,7 +4,7 @@
 
 ## internal/repin/repin.go
 ### IMP-repin-Result-e706624: Result
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -21,7 +21,7 @@ The JSON field names form the stable contract for the
 `reqmd repin --json` interface.
 
 ### IMP-repin-ApplyReport-fe50f25: ApplyReport
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -32,13 +32,13 @@ trace: []
 
 ApplyReport describes the outcome of a repin apply step. Applied
 is the number of ref replacements actually written to disk (a
-delta whose SourceRef wasn't found in any attr block is a no-op
+delta whose SourceRef wasn't found in any reqmd block is a no-op
 and not counted). Skipped holds the predated deltas, which repin
 never auto-fixes. Files is the number of distinct spec files
 actually rewritten.
 
 ### IMP-repin-Build-e76efe3: Build
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -56,7 +56,7 @@ a pin against a versioned upstream are also proposed for pinning
 The returned Result is sorted (delegated to graph.RepinDeltas).
 
 ### IMP-repin-Apply-5d0fd9b: Apply
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -72,7 +72,7 @@ unpinned delta. Predated deltas are reported back in the Skipped
 slice and never applied — they are data-integrity errors that
 require manual review.
 
-The rewrite is scoped to ```attr blocks: each block's contents
+The rewrite is scoped to ```reqmd blocks: each block's contents
 are scanned for the SourceRef substring, which is replaced with
 the new ref form (REF~newPin, or REF~newPin if the ref was
 previously unpinned). All other bytes of the file are preserved
@@ -84,7 +84,7 @@ function returns the error; the apply report lists every delta that was
 successfully applied.
 
 ### IMP-repin-applyToFile-396fcb0: applyToFile
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -93,14 +93,14 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-applyToFile rewrites the attr-block portions of src so that each
+applyToFile rewrites the reqmd-block portions of src so that each
 delta's SourceRef is replaced with the new ref form. A delta is
-considered a no-op if its SourceRef isn't found in any attr block
+considered a no-op if its SourceRef isn't found in any reqmd block
 (or every match is at a non-boundary position); in that case the
 file is returned unchanged.
 
 Returns the (possibly rewritten) bytes and the total number of
-ref replacements actually made across all attr blocks.
+ref replacements actually made across all reqmd blocks.
 
 Matching is whole-ref: SourceRef "UP-001" only matches when the
 ref is at a list-element boundary (followed by `,`, `]`, or
@@ -110,7 +110,7 @@ substring match from corrupting an already-pinned ref like
 `UP-001~3` when the same ref is being promoted from unpinned.
 
 ### IMP-repin-refPair-3f3a0d2: refPair
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -124,7 +124,7 @@ matching. oldRef and newRef are []byte (not strings) to avoid
 repeated []byte() conversions inside the hot scan loop.
 
 ### IMP-repin-buildPairs-b1a95f0: buildPairs
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -137,7 +137,7 @@ buildPairs projects a slice of RepinDelta into refPairs, dropping
 any delta whose old ref already equals the new ref (no-op).
 
 ### IMP-repin-applyPairsToBlock-d1dd176: applyPairsToBlock
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -155,12 +155,12 @@ unchanged (zero allocation) and a count of 0.
 
 Cost note: this is N sub-scans into one output buffer, where N is
 len(pairs) — not a true single pass. For the typical repin
-workload (a handful of deltas, small attr blocks) this is fine;
+workload (a handful of deltas, small reqmd blocks) this is fine;
 an Aho-Corasick automaton would be the single-pass alternative but
 is overkill here.
 
 ### IMP-repin-isRefBoundary-7978e98: isRefBoundary
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -183,7 +183,7 @@ checked:
      must never be rewritten.
 
 ### IMP-repin-newRefFrom-b432132: newRefFrom
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -200,7 +200,7 @@ The transform is:
    - "ID"         + newPin=3 → "ID~3"          (unpinned promote)
 
 ### IMP-repin-attrRange-a27fc5f: attrRange
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -210,10 +210,10 @@ trace: []
 ```
 
 attrRange is an inclusive [start, end) byte range covering the
-inner YAML of an attr block (NOT including the ``` fences).
+inner YAML of a reqmd block (NOT including the ``` fences).
 
 ### IMP-repin-locateAttrBlocks-482068e: locateAttrBlocks
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -222,18 +222,18 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-locateAttrBlocks scans src for ```attr\n ... \n``` fences and
+locateAttrBlocks scans src for ```reqmd\n ... \n``` fences and
 returns the inner-YAML byte ranges. Blank lines between the
 opening fence and the first YAML line are skipped over by the
 parser; the same applies here: we treat the byte immediately
 after the opening fence's newline as the range start.
 
-The match is anchored to the literal string "```attr" followed
+The match is anchored to the literal string "```reqmd" followed
 by an optional space/info segment. This matches the parser's
-attrFenceInfo = "attr" convention exactly.
+attrFenceInfo convention exactly.
 
 ### IMP-repin-bytesSliceReplace-0712eaa: bytesSliceReplace
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -246,7 +246,7 @@ bytesSliceReplace returns a new []byte with src[start:end]
 replaced by replacement. Single allocation via nested appends.
 
 ### IMP-repin-stripPinForDisplay-6fee437: stripPinForDisplay
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -259,7 +259,7 @@ stripPinForDisplay removes a trailing ~N from a ref so the dry-run
 diff reads naturally. Delegates to model.StripPin.
 
 ### IMP-repin-FormatText-ef8de19: FormatText
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -276,7 +276,7 @@ shown by `reqmd repin` in dry-run mode. The format is:
 	N outdated + M unpinned + P predated refs across K files.
 
 ### IMP-repin-FormatTextApplied-c2e84fe: FormatTextApplied
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin.go
@@ -290,7 +290,7 @@ Used after a successful --yes run.
 
 ## internal/repin/repin\_test.go
 ### IMP-repin-writeFile-e36944a: writeFile
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -304,7 +304,7 @@ writeFile creates a temp dir, writes content, and returns the dir path
 (caller is responsible for cleanup via t.TempDir()).
 
 ### IMP-repin-minimalSchema-67f296b: minimalSchema
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -313,12 +313,12 @@ x-reqmd.symbol-kind: const
 trace: []
 ```
 
-minimalSchema is a permissive JSON Schema for attr blocks. Tests
+minimalSchema is a permissive JSON Schema for reqmd blocks. Tests
 only need the schema to exist (parser requires it); they don't
 validate the attrs strictly.
 
 ### IMP-repin-makeTree-1cd1113: makeTree
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -334,7 +334,7 @@ line is rendered exactly as supplied so we can assert byte-level
 edits in Apply.
 
 ### IMP-repin-TestBuild\_Outdated-1e31778: TestBuild\_Outdated
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -347,7 +347,7 @@ trace:
 Build
 
 ### IMP-repin-TestBuild\_PromoteUnpinned-9dcb605: TestBuild\_PromoteUnpinned
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -358,7 +358,7 @@ trace:
 ```
 
 ### IMP-repin-TestBuild\_NoPromoteUnpinned-0171e10: TestBuild\_NoPromoteUnpinned
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -369,7 +369,7 @@ trace:
 ```
 
 ### IMP-repin-TestBuild\_CurrentIsNoOp-e4931f1: TestBuild\_CurrentIsNoOp
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -380,7 +380,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_RewritesAttrBlockOnly-7f89609: TestApply\_RewritesAttrBlockOnly
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -393,7 +393,7 @@ trace:
 Apply: file rewrite semantics
 
 ### IMP-repin-TestApply\_PromoteAddsPin-026610f: TestApply\_PromoteAddsPin
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -404,7 +404,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_PreservesProseWithTilde-cc05272: TestApply\_PreservesProseWithTilde
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -415,7 +415,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_Idempotent-be9805f: TestApply\_Idempotent
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -426,7 +426,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_UnpinnedPromoteDoesNotCorruptPinnedSiblings-c1fd101: TestApply\_UnpinnedPromoteDoesNotCorruptPinnedSiblings
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -444,7 +444,7 @@ must use whole-ref matching so an unpinned ref never corrupts a
 pinned sibling.
 
 ### IMP-repin-TestApply\_SkipsPredated-6633c33: TestApply\_SkipsPredated
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -455,7 +455,7 @@ trace:
 ```
 
 ### IMP-repin-TestApply\_MultipleDeltasSameFile-33d073f: TestApply\_MultipleDeltasSameFile
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -466,7 +466,7 @@ trace:
 ```
 
 ### IMP-repin-TestNewRefFrom-124c532: TestNewRefFrom
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -479,7 +479,7 @@ trace:
 newRefFrom
 
 ### IMP-repin-TestLocateAttrBlocks-c978a8e: TestLocateAttrBlocks
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -492,7 +492,7 @@ trace:
 locateAttrBlocks
 
 ### IMP-repin-TestLocateAttrBlocks\_NoBlocks-ce0a15e: TestLocateAttrBlocks\_NoBlocks
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -503,7 +503,7 @@ trace:
 ```
 
 ### IMP-repin-TestLocateAttrBlocks\_IgnoresFencedButNotAttr-4a508d6: TestLocateAttrBlocks\_IgnoresFencedButNotAttr
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -514,7 +514,7 @@ trace:
 ```
 
 ### IMP-repin-TestFormatText\_Empty-aedec57: TestFormatText\_Empty
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -527,7 +527,7 @@ trace:
 FormatText
 
 ### IMP-repin-TestFormatText\_Outdated-6b59b62: TestFormatText\_Outdated
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -538,7 +538,7 @@ trace:
 ```
 
 ### IMP-repin-TestResultJSON\_Roundtrip-82619ce: TestResultJSON\_Roundtrip
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -551,7 +551,7 @@ trace:
 JSON output
 
 ### IMP-repin-TestBuild\_SortedByFile-d604ba6: TestBuild\_SortedByFile
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go
@@ -565,7 +565,7 @@ Sort order — repin reuses graph's sort; this is a regression test
 to ensure Build preserves it.
 
 ### IMP-repin-TestApply\_PreservesFileMode-ff4fcfc: TestApply\_PreservesFileMode
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/repin/repin_test.go

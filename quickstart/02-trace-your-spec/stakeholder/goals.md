@@ -1,7 +1,7 @@
 # Stakeholder Goals
 
 ## STK-GOAL-001: Fast Boot
-```attr
+```reqmd
 priority: High
 ```
 The system shall boot to the home screen within 5 seconds of ignition on.

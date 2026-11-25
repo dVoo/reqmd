@@ -111,7 +111,7 @@ func TestBuild_RendersDocument(t *testing.T) {
 }
 
 // TestBuild_NestedSectionsAndDepth covers the tree: a section renders a heading
-// with children one level deeper, and no attr block.
+// with children one level deeper, and no reqmd block.
 func TestBuild_NestedSectionsAndDepth(t *testing.T) {
 	got := render(t, bundle(Document{
 		Key:   "d",
@@ -143,7 +143,7 @@ func TestBuild_NestedSectionsAndDepth(t *testing.T) {
 		t.Errorf("section rendered at level %d, want 2", chapter.Level)
 	}
 	if chapter.Attrs != nil {
-		t.Errorf("a section must render no attr block, got %v", chapter.Attrs)
+		t.Errorf("a section must render no reqmd block, got %v", chapter.Attrs)
 	}
 	if !strings.Contains(md, "Chapter intro.") {
 		t.Error("section prose missing from the rendered document")

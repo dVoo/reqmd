@@ -43,9 +43,9 @@ func TestHeadingIDReMatchesRequirementHeadingLevels(t *testing.T) {
 }
 
 func TestApplyRewritePreservesHeadingLevel(t *testing.T) {
-	body := "### SYS-002: child\n```attr\ntrace: [SYS-001]\n```\n"
+	body := "### SYS-002: child\n```reqmd\ntrace: [SYS-001]\n```\n"
 	got := applyRewrite(body, "doc.md", map[string]string{"SYS-002": "T00-SYS-002", "SYS-001": "T00-SYS-001"}, "T00")
-	want := "### T00-SYS-002: child\n```attr\ntrace: [T00-SYS-001]\n```\n"
+	want := "### T00-SYS-002: child\n```reqmd\ntrace: [T00-SYS-001]\n```\n"
 	if got != want {
 		t.Fatalf("applyRewrite =\n%q\nwant\n%q", got, want)
 	}
@@ -63,10 +63,10 @@ func TestApplyRewriteTagsSchemaPrefixOnce(t *testing.T) {
 }
 
 func TestRewriteBlockForCopyPreservesHeadingLevel(t *testing.T) {
-	block := "#### SW-EXP-004: diagram\n```attr\ntrace: [SYS-001~2]\n```\n"
+	block := "#### SW-EXP-004: diagram\n```reqmd\ntrace: [SYS-001~2]\n```\n"
 	reqIDs := map[string]bool{"SW-EXP-004": true, "SYS-001": true}
 	got := rewriteBlockForCopy(block, 1, reqIDs)
-	want := "#### SW-EXP-004_c1: diagram\n```attr\ntrace: [SYS-001_c1~2]\n```\n"
+	want := "#### SW-EXP-004_c1: diagram\n```reqmd\ntrace: [SYS-001_c1~2]\n```\n"
 	if got != want {
 		t.Fatalf("rewriteBlockForCopy =\n%q\nwant\n%q", got, want)
 	}

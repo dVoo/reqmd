@@ -1,7 +1,7 @@
 # Software Requirements
 
 ## SW-001: Boot controller
-```attr
+```reqmd
 owner: Platform
 component: boot-controller
 verification-method: Test

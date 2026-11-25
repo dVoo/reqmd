@@ -2,7 +2,7 @@
 // (standard_schema.yaml) and projects it into the exchange document metadata
 // that every generated document carries.
 //
-// standard_schema.yaml is the single source of truth for the attr-block
+// standard_schema.yaml is the single source of truth for the reqmd-block
 // properties reqmd-code emits; reqmd-import re-renders it as each document's
 // schema.yaml, so there is no second copy to drift.
 package schema

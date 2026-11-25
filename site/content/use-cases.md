@@ -8,7 +8,7 @@ reqmd is a tool for teams who need to write, link, and verify requirements. This
 
 ## What reqmd does
 
-reqmd reads a tree of Markdown files — each requirement is a heading, a YAML `attr` block, and some prose — and checks every cross-reference, every status, every version pin. It produces HTML, CSV, and graph exports, loads verification results from CI or manual reviews, and closes the loop from spec to code.
+reqmd reads a tree of Markdown files — each requirement is a heading, a YAML `reqmd` block, and some prose — and checks every cross-reference, every status, every version pin. It produces HTML, CSV, and graph exports, loads verification results from CI or manual reviews, and closes the loop from spec to code.
 
 You write requirements the way you already write documentation: in a text editor, in Git, in a pull request. reqmd adds the trace checks that a human reviewer would do — but mechanically, on every commit.
 

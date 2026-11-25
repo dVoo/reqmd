@@ -20,7 +20,7 @@ import (
 // instead of growing an in-place version.
 const SchemaURL = "https://reqmd.dev/exchange/v1/schema.json"
 
-// Item kinds. A requirement renders a heading plus an attr block and takes part
+// Item kinds. A requirement renders a heading plus a reqmd block and takes part
 // in validation, tracing and coverage; a section renders structure only.
 const (
 	KindRequirement = "requirement"
@@ -51,7 +51,7 @@ type Document struct {
 	Body string `json:"body,omitempty"`
 	// Items is the document content, in document order.
 	Items []Item `json:"items,omitempty"`
-	// Properties and Required describe the attr-block JSON Schema for
+	// Properties and Required describe the reqmd-block JSON Schema for
 	// requirements. Sections never carry fields, so both apply to requirements
 	// only.
 	Properties map[string]any `json:"properties,omitempty"`
@@ -104,7 +104,7 @@ type Item struct {
 	Title string `json:"title,omitempty"`
 	// Body is Markdown prose. It must not contain headings.
 	Body string `json:"body,omitempty"`
-	// Fields are the remaining attr-block entries. Requirements only.
+	// Fields are the remaining reqmd-block entries. Requirements only.
 	Fields map[string]any `json:"fields,omitempty"`
 	// Status is the source system's own status value; the renderer maps it.
 	Status string `json:"status,omitempty"`

@@ -4,62 +4,103 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Package: export</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjU2M2ViIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCI+PHN0eWxlPkBtZWRpYSAocHJlZmVycy1jb2xvci1zY2hlbWU6ZGFyayl7cGF0aHtzdHJva2U6IzYwYTVmYX19PC9zdHlsZT48cGF0aCBkPSJNNCA0aDZ2Nkg0eiIvPjxwYXRoIGQ9Ik0xNCA0aDZ2NmgtNnoiLz48cGF0aCBkPSJNNCAxNGg2djZINHoiLz48cGF0aCBkPSJNMTQgMTRoNnY2aC02eiIvPjxwYXRoIGQ9Ik0xMCA3aDQiLz48cGF0aCBkPSJNNyAxMHY0Ii8+PHBhdGggZD0iTTE0IDE3aDQiLz48cGF0aCBkPSJNMTcgMTR2NCIvPjwvc3ZnPg==">
 <script>(function(){try{var t=localStorage.getItem('reqmd-theme');var d=t?t==='dark':window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)').matches;if(d)document.documentElement.classList.add('dark');}catch(e){}})();</script>
 <style>
 
-/* reqmd HTML export — quiet, typography-led, semantic colour only for state. */
+/* reqmd HTML export — one embedded stylesheet, no build step.
+   Zinc neutrals carry the surface hierarchy; cobalt marks interaction; the
+   semantic palette is reserved for state (status, coverage, verdict). */
 
 :root {
-  --bg: #fbfbfa;
+  color-scheme: light;
+
+  /* surfaces */
+  --bg: #fafafa;
   --surface: #ffffff;
-  --surface-2: #f4f4f1;
-  --surface-3: #ecece8;
-  --border: #e4e4df;
-  --border-strong: #cbcbc4;
-  --fg: #1d1d1b;
-  --fg-muted: #6b6b65;
-  --accent: #33557f;
-  --accent-soft: #e8eef7;
+  --surface-2: #f4f4f5;
+  --surface-3: #ececee;
+  --border: #e4e4e7;
+  --border-strong: #d4d4d8;
 
-  --status-draft: #a86a00;
-  --status-approved: #2f7d4f;
-  --pass: #2f7d4f;
-  --fail: #b3382c;
-  --skipped: #6b6b65;
-  --inconclusive: #a06a00;
-  --missing: #b3382c;
-  --unresolved: #8b4a9c;
-  --attention: #b3382c;
-  --pending: #a06a00;
+  /* text */
+  --fg: #18181b;
+  --fg-strong: #09090b;
+  --fg-muted: #71717a;
+  --fg-subtle: #a1a1aa;
 
-  --radius: 6px;
-  --appbar-h: 48px;
-  --toc-w: 300px;
-  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  /* interaction */
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-soft: #eff4ff;
+  --accent-weak: #fff7d6;
+  --accent-contrast: #ffffff;
+
+  /* semantic state */
+  --status-draft: #b45309;
+  --status-approved: #15803d;
+  --pass: #15803d;
+  --fail: #dc2626;
+  --skipped: #71717a;
+  --inconclusive: #b45309;
+  --missing: #dc2626;
+  --unresolved: #7c3aed;
+  --attention: #dc2626;
+  --pending: #b45309;
+
+  /* shape & elevation */
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --shadow-xs: 0 1px 2px rgb(24 24 27 / 5%);
+  --shadow-sm: 0 1px 2px rgb(24 24 27 / 6%), 0 2px 6px -2px rgb(24 24 27 / 8%);
+  --shadow-md: 0 8px 24px -6px rgb(24 24 27 / 14%), 0 2px 6px -2px rgb(24 24 27 / 8%);
+  --shadow-lg: 0 24px 60px -16px rgb(24 24 27 / 30%);
+
+  /* layout */
+  --appbar-h: 56px;
+  --toc-w: clamp(200px, 25%, 520px);
+  --doc-max: 62rem;
+  --ring: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent);
+
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", sans-serif;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
 }
 
 html.dark {
-  --bg: #141414;
-  --surface: #1c1c1c;
-  --surface-2: #232323;
-  --surface-3: #2b2b2b;
-  --border: #303030;
-  --border-strong: #454545;
-  --fg: #e7e7e2;
-  --fg-muted: #9c9c95;
-  --accent: #8faddd;
-  --accent-soft: #1f2a3a;
-  --status-draft: #d9a13f;
-  --status-approved: #6cba8b;
-  --pass: #6cba8b;
-  --fail: #e07b6d;
-  --skipped: #9c9c95;
-  --inconclusive: #d9a13f;
-  --missing: #e07b6d;
-  --unresolved: #c08bd6;
-  --attention: #e07b6d;
-  --pending: #d9a13f;
+  color-scheme: dark;
+  --bg: #09090b;
+  --surface: #131316;
+  --surface-2: #1a1a1f;
+  --surface-3: #232329;
+  --border: #26262c;
+  --border-strong: #3a3a44;
+  --fg: #f4f4f5;
+  --fg-strong: #ffffff;
+  --fg-muted: #a1a1aa;
+  --fg-subtle: #71717a;
+  --accent: #60a5fa;
+  --accent-hover: #93c5fd;
+  --accent-soft: #16233d;
+  --accent-weak: #3a2f09;
+  --accent-contrast: #0b1220;
+  --status-draft: #fbbf24;
+  --status-approved: #4ade80;
+  --pass: #4ade80;
+  --fail: #f87171;
+  --skipped: #a1a1aa;
+  --inconclusive: #fbbf24;
+  --missing: #f87171;
+  --unresolved: #c4b5fd;
+  --attention: #f87171;
+  --pending: #fbbf24;
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 40%);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 45%), 0 2px 6px -2px rgb(0 0 0 / 50%);
+  --shadow-md: 0 10px 28px -8px rgb(0 0 0 / 60%), 0 2px 6px -2px rgb(0 0 0 / 45%);
+  --shadow-lg: 0 28px 70px -18px rgb(0 0 0 / 75%);
 }
 
 * { box-sizing: border-box; }
@@ -73,33 +114,35 @@ body {
   margin: 0;
   background: var(--bg);
   color: var(--fg);
-  font: 15px/1.6 var(--font);
+  font: 0.9375rem/1.65 var(--font);
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   overflow-wrap: break-word;
 }
 
 a { color: var(--accent); text-decoration: none; }
-a:hover { text-decoration: underline; }
+a:hover { color: var(--accent-hover); text-decoration: underline; }
 
-code, kbd, pre { font-family: var(--mono); font-size: 0.92em; }
+code, kbd, pre { font-family: var(--mono); font-size: 0.9em; }
 
 kbd {
   border: 1px solid var(--border-strong);
   border-bottom-width: 2px;
-  border-radius: 4px;
-  padding: 0 0.35em;
+  border-radius: 5px;
+  padding: 0.05em 0.4em;
   background: var(--surface-2);
   color: var(--fg-muted);
+  font-size: 0.78em;
 }
 
-h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 0.5em; font-weight: 600; }
-h1 { font-size: 1.65rem; letter-spacing: -0.01em; }
-h2 { font-size: 1.15rem; }
+h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 0.5em; font-weight: 600; color: var(--fg-strong); letter-spacing: -0.011em; }
+h1 { font-size: 1.875rem; letter-spacing: -0.022em; }
+h2 { font-size: 1.125rem; }
 h3 { font-size: 1rem; }
 
 p { margin: 0 0 0.8em; }
-ul, ol { margin: 0 0 0.8em; padding-left: 1.4em; }
-hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
+ul, ol { margin: 0 0 0.8em; padding-left: 1.35em; }
+hr { border: 0; border-top: 1px solid var(--border); margin: 1.4em 0; }
 
 .visually-hidden {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
@@ -107,49 +150,91 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
 }
 .muted { color: var(--fg-muted); }
 
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.skip-link {
+  position: absolute; top: -3rem; left: 0.75rem; z-index: 200;
+  padding: 0.5rem 0.9rem; border-radius: var(--radius-sm);
+  background: var(--accent); color: var(--accent-contrast);
+  font-size: 0.8125rem; font-weight: 600;
+}
+.skip-link:focus-visible { top: 0.6rem; text-decoration: none; }
+
 /* ── prose ── */
-.prose { max-width: 78ch; }
+.prose { max-width: 76ch; }
 .prose > :last-child { margin-bottom: 0; }
 .prose pre {
   background: var(--surface-2); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 0.7em 0.9em; overflow: auto;
+  border-radius: var(--radius-sm); padding: 0.7em 0.9em; overflow: auto;
 }
-.prose table { border-collapse: collapse; margin-bottom: 0.8em; }
+.prose table { border-collapse: collapse; margin-bottom: 0.8em; font-size: 0.9em; }
 .prose th, .prose td { border: 1px solid var(--border); padding: 0.35em 0.6em; text-align: left; }
+.prose th { background: var(--surface-2); font-weight: 600; }
 .prose blockquote {
   margin: 0 0 0.8em; padding-left: 0.9em; border-left: 3px solid var(--border-strong);
   color: var(--fg-muted);
 }
 .prose img { max-width: 100%; height: auto; }
+.prose pre.mermaid {
+  background: none; border: 0; padding: 0; margin: 0 0 0.8em;
+  overflow-x: auto; text-align: center; font-family: inherit;
+}
+.prose pre.mermaid svg { max-width: 100%; height: auto; }
+/* Only wired diagrams (client-side click-to-enlarge) advertise the zoom. */
+.prose pre.mermaid[data-lightbox] { cursor: zoom-in; }
+.prose pre.mermaid[data-lightbox]:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
 
 /* ── app bar ── */
 .app-bar {
   position: sticky; top: 0; z-index: 40;
-  display: flex; align-items: center; gap: 0.5rem;
-  height: var(--appbar-h); padding: 0 0.9rem;
-  background: var(--surface); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 0.75rem;
+  min-height: var(--appbar-h); padding: 0 1rem;
+  background: color-mix(in srgb, var(--surface) 86%, transparent);
+  backdrop-filter: saturate(160%) blur(12px);
+  -webkit-backdrop-filter: saturate(160%) blur(12px);
+  border-bottom: 1px solid var(--border);
 }
-.app-bar__brand { display: flex; align-items: center; gap: 0.45rem; font-weight: 600; color: var(--fg); }
+.app-bar__brand {
+  display: flex; align-items: center; gap: 0.45rem;
+  font-weight: 650; font-size: 0.9375rem; color: var(--fg-strong); letter-spacing: -0.01em;
+}
 .app-bar__brand:hover { text-decoration: none; color: var(--accent); }
-.app-bar__logo { width: 14px; height: 14px; border-radius: 3px; background: var(--accent); }
-.app-bar__sep { color: var(--border-strong); }
-.app-bar__title { color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.app-bar__tools { margin-left: auto; display: flex; gap: 0.25rem; }
+.app-bar__mark { color: var(--accent); flex: none; display: block; }
+.app-bar__sep { color: var(--fg-subtle); }
+.app-bar__title {
+  color: var(--fg-muted); font-size: 0.875rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0;
+}
+.app-bar__views { margin-left: auto; }
+.app-bar__tools { display: flex; gap: 0.25rem; align-items: center; margin-left: auto; }
+.app-bar__views + .app-bar__tools { margin-left: 0.25rem; }
 
 .icon-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  min-width: 32px; height: 30px; padding: 0 0.45rem;
+  min-width: 2rem; height: 2rem; padding: 0 0.5rem;
+  border: 1px solid transparent; border-radius: var(--radius-sm);
   background: transparent; color: var(--fg-muted);
-  border: 1px solid transparent; border-radius: var(--radius);
-  font: 500 0.8rem/1 var(--font); cursor: pointer;
+  font: 500 0.78rem/1 var(--font); cursor: pointer;
 }
 .icon-btn:hover { background: var(--surface-2); color: var(--fg); }
-.icon-btn:focus-visible, .btn:focus-visible, .viewswitch__btn:focus-visible,
-.chip__remove:focus-visible, .filter__toggle:focus-visible, .columns__toggle:focus-visible,
-.trace__node:focus-visible, .row-toggle:focus-visible, .search:focus-visible {
-  outline: 2px solid var(--accent); outline-offset: 2px;
-}
 .toc-toggle { display: none; }
+
+/* ── view switcher (segmented control) ── */
+.viewswitch {
+  display: inline-flex; gap: 2px; padding: 3px;
+  background: var(--surface-2); border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.viewswitch__btn {
+  border: 0; border-radius: 7px; background: transparent; color: var(--fg-muted);
+  padding: 0.3rem 0.7rem; font: 500 0.8125rem/1.25 var(--font); cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+.viewswitch__btn:hover { color: var(--fg); background: color-mix(in srgb, var(--surface) 55%, transparent); }
+.viewswitch__btn.is-active {
+  background: var(--surface); color: var(--fg-strong);
+  box-shadow: var(--shadow-xs); font-weight: 600;
+}
 
 /* ── shell / outline ── */
 .shell { display: grid; grid-template-columns: var(--toc-w) minmax(0, 1fr); align-items: start; }
@@ -157,421 +242,560 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
 
 .toc {
   position: sticky; top: var(--appbar-h);
-  height: calc(100vh - var(--appbar-h)); overflow: auto;
-  padding: 0.9rem 0.75rem 2rem;
+  display: flex; flex-direction: column;
+  height: calc(100vh - var(--appbar-h)); overflow: hidden;
+  padding: 1rem 0.75rem 0;
   border-right: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--bg);
 }
+/* Only the list scrolls, so the width handle stays on the frame. */
+.toc__scroll { flex: 1; overflow: auto; padding-bottom: 2.5rem; scrollbar-width: thin; }
 .toc__head {
   display: flex; justify-content: space-between; align-items: baseline;
-  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.07em;
-  color: var(--fg-muted); padding: 0 0.4rem 0.6rem;
+  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em;
+  color: var(--fg-muted); padding: 0 0.5rem 0.6rem;
 }
 .toc__count { font-variant-numeric: tabular-nums; }
 .toc__list { list-style: none; margin: 0; padding: 0; }
-.toc__list .toc__list { padding-left: 0.9rem; border-left: 1px solid var(--border); margin-left: 0.55rem; }
+.toc__list .toc__list { padding-left: 0.75rem; border-left: 1px solid var(--border); margin-left: 0.6rem; }
 .toc__link {
   display: flex; gap: 0.45rem; align-items: baseline;
-  padding: 0.25rem 0.4rem; border-radius: 4px;
-  color: var(--fg-muted); font-size: 0.82rem; line-height: 1.35;
+  padding: 0.3rem 0.5rem; border-radius: var(--radius-sm);
+  color: var(--fg-muted); font-size: 0.8125rem; line-height: 1.4;
 }
-.toc__link code { color: var(--fg); font-size: 0.78rem; white-space: nowrap; flex: 0 0 auto; }
+.toc__link code { color: var(--fg-muted); font-size: 0.72rem; white-space: nowrap; flex: 0 0 auto; }
 .toc__link:hover { background: var(--surface-2); color: var(--fg); text-decoration: none; }
-.toc__link.is-active { background: var(--accent-soft); color: var(--fg); }
+.toc__link--section { color: var(--fg); font-weight: 600; }
+.toc__link--section .toc__title { white-space: normal; }
+.toc__link.is-active { background: var(--accent-soft); color: var(--fg); box-shadow: inset 2px 0 0 var(--accent); }
 .toc__link.is-active code { color: var(--accent); }
-.toc__title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.toc__title { color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 
-.shell__main { min-width: 0; padding: 1.6rem clamp(1rem, 3vw, 2.5rem) 4rem; }
+/* Drag handle on the outline's right edge. Hidden where the outline is a
+   drawer, because the drawer's width is viewport-based. */
+.toc__resizer {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 6px; z-index: 5;
+  cursor: col-resize; touch-action: none;
+}
+.toc__resizer:hover,
+.toc__resizer:focus-visible { background: color-mix(in srgb, var(--accent) 35%, transparent); }
+body.toc-resizing { cursor: col-resize; user-select: none; }
+
+.shell__main { min-width: 0; padding: 1.75rem clamp(1rem, 2.5vw, 2.5rem) 5rem; }
+.shell__main > .doc-head, .shell__main > .toolbar, .shell__main > .views {
+  max-width: var(--doc-max); margin-left: auto; margin-right: auto;
+}
 
 /* ── document header ── */
-.doc-head { max-width: 78ch; margin-bottom: 1.4rem; }
-.doc-head h1 { margin-bottom: 0.3rem; }
-.doc-head__facts { color: var(--fg-muted); font-size: 0.86rem; margin: 0.35rem 0 0.6rem; }
-.doc-head__status { display: inline-flex; gap: 0.85rem; flex-wrap: wrap; font-size: 0.8rem; color: var(--fg-muted); }
-.doc-head__status-item { display: inline-flex; align-items: center; gap: 0.35rem; }
-.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-.doc-head__badges { display: inline-flex; gap: 0.4rem; margin-left: 0.8rem; }
-.badge {
-  font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em;
-  border: 1px solid var(--border-strong); border-radius: 999px;
-  padding: 0.05rem 0.5rem; color: var(--fg-muted);
+.doc-head { margin-bottom: 1.5rem; }
+.doc-head__eyebrow {
+  display: flex; gap: 0.45rem; align-items: center; flex-wrap: wrap;
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.06em;
+  text-transform: uppercase; color: var(--fg-muted);
 }
-.doc-head__desc { color: var(--fg-muted); margin-top: 0.8rem; }
+.doc-head__eyebrow code {
+  font-size: 0.75rem; letter-spacing: 0; text-transform: none;
+  color: var(--fg-muted); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  padding: 0.05rem 0.5rem;
+}
+.doc-head h1 { margin: 0 0 0.3rem; }
+.doc-head__facts { color: var(--fg-muted); font-size: 0.8125rem; margin: 0.3rem 0 0.7rem; }
+.doc-head__status { display: flex; flex-direction: column; gap: 0.5rem; margin: 0 0 0.9rem; }
+.statusbar { display: flex; gap: 2px; height: 8px; max-width: 26rem; border-radius: var(--radius-pill); overflow: hidden; background: var(--surface-3); }
+.statusbar__seg { display: block; height: 100%; min-width: 4px; }
+.statusbar__legend { display: flex; gap: 1rem; flex-wrap: wrap; margin: 0; padding: 0; list-style: none; font-size: 0.78rem; color: var(--fg-muted); }
+.statusbar__legend li { display: inline-flex; align-items: center; gap: 0.4rem; }
+.statusbar__legend strong { color: var(--fg); font-weight: 600; font-variant-numeric: tabular-nums; }
+.dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; flex: none; }
+.doc-head__badges { display: inline-flex; gap: 0.4rem; margin-left: 0.6rem; vertical-align: middle; }
+.badge {
+  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-pill);
+  padding: 0.1rem 0.55rem; color: var(--fg-muted); background: var(--surface);
+}
+.doc-head__desc { color: var(--fg-muted); font-size: 0.9375rem; margin-top: 0.9rem; }
+
+/* ── alerts (goldmark-alert) ── */
+.markdown-alert {
+  border-left: 3px solid var(--border-strong); border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  background: var(--surface-2); padding: 0.6em 0.85em; margin: 0 0 0.9em;
+  color: var(--fg);
+}
+.markdown-alert > :last-child { margin-bottom: 0; }
+.markdown-alert-title { display: flex; align-items: center; gap: 0.4rem; font-weight: 600; margin: 0 0 0.35em; }
+.markdown-alert-title .markdown-icon { flex: none; fill: currentColor; }
+.markdown-alert-note { border-left-color: #3b82f6; }
+.markdown-alert-tip { border-left-color: #10b981; }
+.markdown-alert-important { border-left-color: #8b5cf6; }
+.markdown-alert-warning { border-left-color: #f59e0b; }
+.markdown-alert-caution { border-left-color: #ef4444; }
 
 /* ── document chain ── */
-.doc-chain { margin-top: 1rem; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.chain-summary {
-  display: flex; gap: 0.6rem; align-items: baseline; cursor: pointer;
-  padding: 0.55rem 0.8rem; font-size: 0.8rem; color: var(--fg-muted);
+.doc-chain {
+  margin: 0 0 1.2rem; border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-xs); overflow: hidden;
 }
+.chain-details > summary.chain-summary { list-style: none; }
+.chain-summary {
+  display: flex; gap: 0.6rem; align-items: baseline;
+  padding: 0.7rem 0.9rem; cursor: pointer;
+  font-size: 0.8125rem; color: var(--fg-muted);
+}
+.chain-summary::-webkit-details-marker { display: none; }
+.chain-summary::before { content: "▸"; font-size: 0.7rem; color: var(--fg-subtle); }
+.chain-details[open] > .chain-summary::before { content: "▾"; }
+.chain-summary:hover { color: var(--fg); }
 .chain-summary__label { font-weight: 600; color: var(--fg); }
 .chain-summary__count { font-variant-numeric: tabular-nums; }
 
 .chain-stack { display: flex; flex-direction: column; padding: 0 0.9rem 0.9rem; }
-.chain-zone { display: flex; flex-direction: column; gap: 0.8rem; padding: 0.9rem 0; }
-.chain-zone--upstream { padding-bottom: 0.4rem; }
-.chain-zone--downstream { padding-top: 0.4rem; }
+.chain-zone { display: flex; flex-direction: column; gap: 0.8rem; padding: 0.75rem 0; }
+.chain-zone--upstream { padding-bottom: 0.35rem; }
+.chain-zone--downstream { padding-top: 0.35rem; }
 .chain-zone--current {
-  align-items: center;
-  padding: 0.7rem 0.8rem;
-  background: var(--accent-soft);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
+  align-items: center; padding: 0.8rem;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--surface-2);
 }
 .chain-zone-header {
-  font-size: 0.68rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em;
+  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--fg-muted); text-align: center;
 }
-
-.chain-separator {
-  display: flex; align-items: center; justify-content: center; gap: 0.75rem;
-  padding: 0 1.5rem; color: var(--border-strong);
-}
+.chain-separator { display: flex; align-items: center; gap: 0.6rem; justify-content: center; padding: 0.1rem 0; }
 .chain-separator-line { flex: 0 1 120px; height: 1px; background: var(--border); }
-.chain-separator-chevron { font-size: 0.8rem; line-height: 1; flex-shrink: 0; }
+.chain-separator-chevron { font-size: 0.8rem; line-height: 1; flex-shrink: 0; color: var(--fg-subtle); }
 
 .chain-tier { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
 .chain-tier-label {
-  font-size: 0.7rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em;
-  color: var(--fg-muted); text-align: center;
+  font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--fg-subtle); text-align: center;
 }
 .chain-tier-cards {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(9.375rem, 1fr));
-  gap: 0.5rem; width: 100%;
+  display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem;
 }
-
+.chain-tier-cards > .chain-card { flex: 0 1 20rem; }
 .chain-card {
-  position: relative; display: flex; flex-direction: column; gap: 0.2rem; min-width: 0;
-  padding: 0.5rem 0.65rem;
-  background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius);
-  color: var(--fg); font-size: 0.78rem; line-height: 1.35;
-  transition: border-color 0.15s ease, background-color 0.15s ease;
+  display: flex; flex-direction: column; gap: 0.15rem;
+  padding: 0.5rem 0.65rem; border: 1px solid var(--border); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--fg); min-width: 0;
 }
 .chain-card:hover, .chain-card:focus-visible {
-  border-color: var(--border-strong); background: var(--surface-3); text-decoration: none;
+  border-color: var(--accent); text-decoration: none; box-shadow: var(--shadow-xs);
 }
-.chain-card-title { font-weight: 600; overflow-wrap: anywhere; }
-.chain-card-meta { margin-top: auto; color: var(--fg-muted); font-size: 0.68rem; }
+.chain-card-title { font-weight: 600; font-size: 0.8125rem; overflow-wrap: anywhere; }
+.chain-card-meta { margin-top: auto; color: var(--fg-muted); font-size: 0.6875rem; }
 .chain-card-glyph {
-  position: absolute; top: 0.35rem; right: 0.5rem;
-  color: var(--fg-muted); font-size: 0.72rem; line-height: 1;
+  display: inline-block; color: var(--fg-subtle); font-size: 0.7rem;
+  margin-bottom: 0.1rem;
 }
 .chain-card--current {
-  max-width: 21rem; width: 100%; align-items: center; text-align: center;
-  padding: 0.7rem 1rem; border-color: var(--accent); background: var(--surface);
+  max-width: 100%; border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: var(--surface); box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 .chain-card--current:hover { border-color: var(--accent); background: var(--surface); }
-.chain-card--current .chain-card-title { font-size: 0.95rem; color: var(--accent); }
+.chain-card--current .chain-card-title { font-size: 0.9375rem; color: var(--accent); }
 .chain-card--current .chain-card-meta { margin-top: 0.2rem; font-size: 0.72rem; }
 .chain-card--external { border-style: dashed; background: transparent; }
 .chain-card--external .chain-card-title { color: var(--fg-muted); }
 
-.doc-chain--deep .chain-stack { max-height: 24rem; overflow: auto; }
-.doc-chain--deep .chain-zone { gap: 0.6rem; padding: 0.65rem 0; }
+/* A deep chain is collapsed by its own summary; when open it scrolls inside a
+   capped area with a bottom fade, so a long downstream list cannot bury the
+   requirements and the clipped edge reads as "more below" rather than a bug. */
+.doc-chain--deep .chain-stack { max-height: 30rem; overflow: auto; }
+.doc-chain--deep .chain-stack::after {
+  content: ""; position: sticky; bottom: 0; display: block;
+  height: 2.5rem; margin-top: -2.5rem; flex: none;
+  background: linear-gradient(transparent, var(--surface)); pointer-events: none;
+}
+.doc-chain--deep .chain-zone { gap: 0.6rem; padding: 0.6rem 0; }
 .doc-chain--deep .chain-card { padding: 0.4rem 0.55rem; }
 
-@media (max-width: 720px) {
-  .chain-tier-cards { grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0.4rem; }
-  .chain-card--current { max-width: 100%; }
-}
-@media (max-width: 480px) {
-  .chain-tier-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .chain-summary__count { display: none; }
-}
-
-/* ── toolbar ── */
+/* ── toolbar (search + filters) ── */
 .toolbar {
   position: sticky; top: var(--appbar-h); z-index: 30;
-  background: var(--bg);
-  padding: 0.55rem 0 0.5rem;
+  display: flex; flex-direction: column; gap: 0.45rem;
+  padding: 0.55rem 0;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   border-bottom: 1px solid var(--border);
-  margin: 0 0 1.1rem;
+  margin: 0 auto 1.25rem;
 }
-.toolbar__row { display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; }
-.toolbar__row + .toolbar__row { margin-top: 0.45rem; }
-.toolbar__tools { margin-left: auto; display: flex; gap: 0.25rem; }
-.toolbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; margin-top: 0.45rem; }
-
-.viewswitch { display: inline-flex; border: 1px solid var(--border-strong); border-radius: var(--radius); overflow: hidden; }
-.viewswitch__btn {
-  border: 0; background: transparent; color: var(--fg-muted);
-  padding: 0.32rem 0.7rem; font: 500 0.8rem/1.3 var(--font); cursor: pointer;
-}
-.viewswitch__btn + .viewswitch__btn { border-left: 1px solid var(--border); }
-.viewswitch__btn:hover { background: var(--surface-2); color: var(--fg); }
-.viewswitch__btn.is-active { background: var(--accent-soft); color: var(--accent); }
+.toolbar__row { display: flex; gap: 0.55rem; align-items: center; flex-wrap: wrap; }
+.toolbar__chips { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem; }
 
 .search {
-  flex: 1 1 18rem; min-width: 12rem;
-  padding: 0.42rem 0.65rem;
-  border: 1px solid var(--border-strong); border-radius: var(--radius);
-  background: var(--surface); color: var(--fg); font: 0.86rem/1.4 var(--font);
+  flex: 1 1 16rem; min-width: 11rem; height: 2.15rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  background: var(--surface); color: var(--fg); font: 0.875rem/1.4 var(--font);
+  box-shadow: var(--shadow-xs);
 }
-.count { color: var(--fg-muted); font-size: 0.78rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.search::placeholder { color: var(--fg-muted); }
+.search:focus-visible { outline: none; border-color: var(--accent); box-shadow: var(--ring); }
+.count { color: var(--fg-muted); font-size: 0.75rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-.filters { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-top: 0.45rem; }
+.filters { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .filter { position: relative; }
 .filter__toggle {
   list-style: none; cursor: pointer;
-  border: 1px solid var(--border); border-radius: 999px;
-  padding: 0.15rem 0.6rem; font-size: 0.76rem; color: var(--fg-muted);
-  background: var(--surface);
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  padding: 0.22rem 0.7rem; font-size: 0.78rem; font-weight: 500; color: var(--fg-muted);
+  background: var(--surface); white-space: nowrap;
 }
 .filter__toggle::-webkit-details-marker { display: none; }
+.filter__toggle::after { content: " ›"; color: var(--fg-subtle); }
 .filter__toggle:hover { border-color: var(--border-strong); color: var(--fg); }
-.filter[open] > .filter__toggle { border-color: var(--accent); color: var(--accent); }
+.filter[open] > .filter__toggle { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.filter[open] > .filter__toggle::after { content: " ⌄"; }
 .filter__count { font-variant-numeric: tabular-nums; }
 .filter__count:not(:empty) { margin-left: 0.2rem; }
 .filter__menu {
-  position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
-  min-width: 13rem; max-height: 18rem; overflow: auto;
+  position: absolute; top: calc(100% + 5px); left: 0; z-index: 25;
+  min-width: 12rem; max-height: 18rem; overflow: auto;
   background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: var(--radius); box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  border-radius: var(--radius); box-shadow: var(--shadow-md);
   padding: 0.35rem;
 }
-.filter__option { display: flex; gap: 0.45rem; align-items: center; padding: 0.2rem 0.35rem; border-radius: 4px; font-size: 0.82rem; cursor: pointer; }
+.filter__option {
+  display: flex; gap: 0.5rem; align-items: center;
+  padding: 0.3rem 0.4rem; border-radius: var(--radius-sm);
+  font-size: 0.8125rem; cursor: pointer;
+}
 .filter__option:hover { background: var(--surface-2); }
 
 /* ── chips ── */
 .chip {
   display: inline-flex; align-items: center; gap: 0.3rem;
-  border: 1px solid var(--border); border-radius: 999px;
-  padding: 0.05rem 0.5rem; font-size: 0.72rem; line-height: 1.5;
-  color: var(--fg-muted); background: var(--surface);
+  border: 1px solid transparent; border-radius: var(--radius-pill);
+  padding: 0.1rem 0.55rem;
+  font-size: 0.75rem; font-weight: 500; line-height: 1.5;
+  color: var(--fg-muted); background: var(--surface-2);
   white-space: nowrap;
 }
-.chip--status { border-color: color-mix(in srgb, var(--chip, var(--fg-muted)) 45%, transparent); color: var(--chip, var(--fg-muted)); }
-.chip--pass { border-color: color-mix(in srgb, var(--pass) 45%, transparent); color: var(--pass); }
-.chip--fail, .chip--coverage-missing { border-color: color-mix(in srgb, var(--fail) 45%, transparent); color: var(--fail); }
-.chip--skipped { color: var(--skipped); }
-.chip--inconclusive { border-color: color-mix(in srgb, var(--inconclusive) 45%, transparent); color: var(--inconclusive); }
-.chip--no-verdict, .chip--none { border-style: dashed; }
-.chip--covered { color: var(--pass); }
-.chip--not-required { color: var(--fg-muted); }
-.chip--coverage-unresolved { border-color: color-mix(in srgb, var(--unresolved) 45%, transparent); color: var(--unresolved); }
-.chip--missing-coverage { color: var(--missing); }
-.chip--filter { background: var(--surface-2); }
-.chip__remove {
-  border: 0; background: transparent; color: var(--fg-muted);
-  cursor: pointer; font-size: 0.95rem; line-height: 1; padding: 0 0.1rem;
+.chip--status {
+  color: var(--chip, var(--fg-muted));
+  background: color-mix(in srgb, var(--chip, var(--fg-muted)) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--chip, var(--fg-muted)) 32%, transparent);
 }
-.chip__remove:hover { color: var(--fg); }
+.chip--pass, .chip--covered {
+  color: var(--pass);
+  background: color-mix(in srgb, var(--pass) 11%, var(--surface));
+  border-color: color-mix(in srgb, var(--pass) 30%, transparent);
+}
+.chip--fail, .chip--coverage-missing, .chip--missing-coverage, .chip--failing {
+  color: var(--fail);
+  background: color-mix(in srgb, var(--fail) 11%, var(--surface));
+  border-color: color-mix(in srgb, var(--fail) 30%, transparent);
+}
+.chip--inconclusive, .chip--pending {
+  color: var(--inconclusive);
+  background: color-mix(in srgb, var(--inconclusive) 11%, var(--surface));
+  border-color: color-mix(in srgb, var(--inconclusive) 30%, transparent);
+}
+.chip--skipped, .chip--none { color: var(--fg-muted); background: var(--surface-2); border-color: var(--border); }
+.chip--unresolved, .chip--coverage-unresolved {
+  color: var(--unresolved);
+  background: color-mix(in srgb, var(--unresolved) 11%, var(--surface));
+  border-color: color-mix(in srgb, var(--unresolved) 30%, transparent);
+}
+.chip--not-required, .chip--no-coverage {
+  color: var(--fg-muted); background: transparent; border-color: var(--border-strong); border-style: dashed;
+}
+.chip--no-verdict {
+  color: var(--fg-muted); background: transparent;
+  border-color: color-mix(in srgb, var(--pending) 45%, transparent); border-style: dashed;
+}
+.chip--filter {
+  color: var(--accent);
+  background: var(--accent-soft);
+  border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.chip__remove {
+  border: 0; background: transparent; color: inherit; cursor: pointer;
+  padding: 0; font: inherit; line-height: 1; opacity: 0.7;
+}
+.chip__remove:hover { opacity: 1; }
 
 .linkbtn {
-  border: 0; background: transparent; color: var(--accent);
-  font: 0.78rem/1.4 var(--font); cursor: pointer; padding: 0.1rem 0.2rem;
+  border: 0; background: none; padding: 0; cursor: pointer;
+  color: var(--accent); font: inherit; text-decoration: underline;
+  text-underline-offset: 2px;
 }
-.linkbtn:hover { text-decoration: underline; }
+.linkbtn:hover { color: var(--accent-hover); }
 
 .btn {
-  display: inline-flex; align-items: center; gap: 0.3rem;
-  border: 1px solid var(--border-strong); border-radius: var(--radius);
-  background: var(--surface); color: var(--fg);
-  padding: 0.28rem 0.6rem; font: 500 0.8rem/1.4 var(--font); cursor: pointer;
+  display: inline-flex; align-items: center; gap: 0.35rem;
+  padding: 0.3rem 0.7rem; border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm); background: var(--surface);
+  color: var(--fg); font: 500 0.8125rem/1.3 var(--font); cursor: pointer;
+  box-shadow: var(--shadow-xs);
 }
 .btn:hover { background: var(--surface-2); text-decoration: none; }
 .btn.is-active { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
 
-/* ── views ── */
-.view-head { margin: 0 0 0.5rem; }
-.view-sub { color: var(--fg-muted); font-size: 0.84rem; max-width: 80ch; margin: 0; }
-.view-tools { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.6rem 0 0.9rem; }
+/* ── view scaffolding ── */
+.view-head { margin: 0 0 0.4rem; }
+.view-sub { color: var(--fg-muted); font-size: 0.8125rem; max-width: 80ch; margin: 0; }
+.view-tools { display: flex; flex-wrap: wrap; gap: 0.4rem; align-items: center; margin: 0.7rem 0 0.9rem; }
 .filter-note { font-size: 0.78rem; color: var(--fg-muted); margin: 0 0 0.8rem; }
 
 .empty {
   border: 1px dashed var(--border-strong); border-radius: var(--radius);
-  padding: 1.2rem 1.4rem; color: var(--fg-muted); background: var(--surface);
-  max-width: 46rem;
+  padding: 1.1rem 1.2rem; color: var(--fg-muted); font-size: 0.875rem;
+  background: color-mix(in srgb, var(--surface) 60%, transparent);
 }
-.empty__title { font-weight: 600; color: var(--fg); margin-bottom: 0.3rem; }
+.empty__title { font-weight: 600; color: var(--fg); margin-bottom: 0.25rem; }
 
-/* ── document cards ── */
-/* Cards use the available width on large screens (the reading measure is
-   capped by the prose inside, not by the card) so wide monitors are not left
-   with two empty gutters; narrow screens keep the natural measure. */
-.doc { max-width: 82ch; }
-@media (min-width: 1280px) {
-  .doc { max-width: 56rem; }
-  .doc-head { max-width: none; }
-}
+.doc { max-width: 100%; }
+
+/* ── requirement cards ── */
 .req {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 0.85rem 1rem 0.7rem;
-  margin: 0 0 0.7rem;
+  border: 1px solid var(--border); border-radius: var(--radius-lg);
+  background: var(--surface); box-shadow: var(--shadow-xs);
+  padding: 1rem 1.15rem 0.85rem;
+  margin: 0 0 0.75rem;
   scroll-margin-top: calc(var(--appbar-h) + 132px);
+  transition: border-color 140ms ease, box-shadow 140ms ease;
 }
-.req--child { margin-left: 1.1rem; border-left: 2px solid var(--border); }
-.req[data-status]:not([data-status="approved"]) { border-left: 3px solid var(--status-draft); }
-.req.is-flash, .item.is-flash { animation: flash 1.2s ease-out; }
-@keyframes flash { from { background: var(--accent-soft); } to { background: var(--surface); } }
+.req:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
+.req--child { margin-left: 1.25rem; margin-top: -0.35rem; border-left: 2px solid var(--border); }
+/* A requirement's children sit on a rail that starts and ends with the parent,
+   so a doc section extracted from a comment cannot be mistaken for a heading
+   over the next sibling requirement. */
+.req__children {
+  /* Inset from the sibling-card column so the rail sits inside the parent's
+     width; at the card's own left edge it would be invisible. */
+  margin: -0.15rem 0 0.9rem 2.5rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--border);
+}
+.req__children > .req--child,
+.req__children > .item--child { margin-left: 0; }
+.req__children > :last-child { margin-bottom: 0; }
+.req[data-status]:not([data-status="approved"]) { border-left: 3px solid var(--status-draft); padding-left: calc(1.15rem - 2px); }
+.req.is-flash { animation: flash 1.4s ease-out; }
+@keyframes flash {
+  from { background: var(--accent-weak); }
+  to { background: var(--surface); }
+}
 
-.req__head { display: flex; gap: 0.5rem; align-items: baseline; }
-.req__title { margin: 0; display: flex; gap: 0.5rem; align-items: baseline; flex-wrap: wrap; }
-.req__id { font-size: 0.86rem; color: var(--accent); background: var(--accent-soft); padding: 0.05rem 0.4rem; border-radius: 4px; }
-.req__name { font-size: 1rem; font-weight: 600; }
-.anchor { color: var(--border-strong); font-size: 0.85rem; margin-left: auto; opacity: 0; }
+.req__head { display: flex; gap: 0.55rem; align-items: baseline; }
+.req__title { margin: 0; display: flex; gap: 0.55rem; align-items: baseline; flex-wrap: wrap; }
+.req__id {
+  font-size: 0.75rem; font-weight: 600; letter-spacing: 0.01em;
+  color: var(--accent); background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
+  padding: 0.08rem 0.45rem; border-radius: var(--radius-sm);
+  white-space: nowrap;
+}
+.req__name { font-size: 1rem; font-weight: 600; color: var(--fg-strong); letter-spacing: -0.008em; }
+.anchor { color: var(--fg-subtle); font-size: 0.85rem; margin-left: auto; opacity: 0; }
 .req:hover .anchor, .item:hover .anchor, .anchor:focus-visible { opacity: 1; }
 .anchor:hover { text-decoration: none; color: var(--accent); }
 
-.req__flags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.45rem 0 0; }
-.req__body { margin-top: 0.55rem; }
+.req__flags { display: flex; flex-wrap: wrap; gap: 0.35rem; margin: 0.55rem 0 0; }
+.req__body { margin-top: 0.7rem; }
+.req__body > :last-child { margin-bottom: 0; }
 
-.req__detail { margin-top: 0.6rem; border-top: 1px solid var(--border); padding-top: 0.45rem; }
+.req__detail { margin-top: 0.9rem; border-top: 1px solid var(--border); padding-top: 0.5rem; }
 .req__detail-toggle, .evidence__toggle {
-  cursor: pointer; font-size: 0.76rem; color: var(--fg-muted);
-  list-style: none; display: inline-flex; gap: 0.4rem; align-items: center;
+  display: flex; align-items: center; gap: 0.45rem;
+  list-style: none; cursor: pointer;
+  font-size: 0.8125rem; font-weight: 500; color: var(--fg-muted);
+  padding: 0.2rem 0; border-radius: var(--radius-sm);
 }
 .req__detail-toggle::-webkit-details-marker, .evidence__toggle::-webkit-details-marker { display: none; }
-.req__detail-toggle::before, .evidence__toggle::before { content: "▸"; font-size: 0.7rem; }
+.req__detail-toggle::before, .evidence__toggle::before {
+  content: "▸"; font-size: 0.7rem; color: var(--fg-subtle);
+}
 .req__detail[open] > .req__detail-toggle::before, .evidence[open] > .evidence__toggle::before { content: "▾"; }
 .req__detail-toggle:hover, .evidence__toggle:hover { color: var(--fg); }
-.req__detail-body { padding-top: 0.55rem; }
+.req__detail-meta { margin-left: auto; font-size: 0.75rem; font-weight: 400; color: var(--fg-muted); font-variant-numeric: tabular-nums; }
+.req__detail-body { padding-top: 0.65rem; }
 
-.attrs { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.4rem 1rem; margin: 0 0 0.7rem; }
-.attrs__row { display: flex; gap: 0.5rem; align-items: baseline; min-width: 0; }
-.attrs__row dt { color: var(--fg-muted); font-size: 0.75rem; min-width: 5.5rem; }
-.attrs__row dd { margin: 0; font-size: 0.82rem; min-width: 0; }
+.attrs { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.45rem 1.25rem; margin: 0 0 0.75rem; }
+.attrs__row { display: flex; gap: 0.55rem; align-items: baseline; min-width: 0; }
+.attrs__row dt { color: var(--fg-muted); font-size: 0.75rem; min-width: 5.5rem; flex: none; }
+.attrs__row dd { margin: 0; font-size: 0.8125rem; min-width: 0; }
 .attrs__row--undeclared dt::after { content: " ?"; color: var(--inconclusive); }
-.attr__pills { display: inline-flex; flex-wrap: wrap; gap: 0.25rem; }
-.attr__pill { background: var(--surface-2); border-radius: 4px; padding: 0 0.35rem; font-size: 0.76rem; }
-.attr__nested { margin: 0; max-height: 12rem; overflow: auto; background: var(--surface-2); padding: 0.4rem; border-radius: 4px; }
+.attr__pills { display: inline-flex; flex-wrap: wrap; gap: 0.3rem; }
+.attr__pill { background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 0.4rem; font-size: 0.75rem; }
+.attr__nested { margin: 0; max-height: 12rem; overflow: auto; background: var(--surface-2); border: 1px solid var(--border); padding: 0.45rem; border-radius: var(--radius-sm); font-size: 0.75rem; }
 
 .rationale { color: var(--fg-muted); font-size: 0.85rem; margin-bottom: 0.6rem; }
 .evidence { margin-bottom: 0.6rem; }
-.evidence__item { border-left: 2px solid var(--border); padding: 0.3rem 0 0.3rem 0.7rem; margin: 0.45rem 0; font-size: 0.82rem; }
+.evidence__item { border-left: 2px solid var(--border); padding: 0.3rem 0 0.3rem 0.75rem; margin: 0.45rem 0; font-size: 0.8125rem; }
 .evidence__item .chip { margin-right: 0.3rem; }
 .evidence__case { color: var(--fg); }
 .evidence__file { color: var(--fg-muted); margin-left: 0.45rem; font-size: 0.75rem; }
 .evidence__desc { margin-top: 0.3rem; }
 
-.traces { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.8rem; }
-.traces__head { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); margin-bottom: 0.3rem; }
-.link { display: flex; gap: 0.4rem; align-items: baseline; flex-wrap: wrap; padding: 0.12rem 0; font-size: 0.8rem; }
+.traces { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.9rem; }
+.traces__head { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); margin-bottom: 0.35rem; }
+.link { display: flex; gap: 0.4rem; align-items: baseline; flex-wrap: wrap; padding: 0.15rem 0; font-size: 0.8125rem; }
 .link code { color: var(--accent); }
 .link__title { color: var(--fg-muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 22rem; }
-.link__pin { font-size: 0.7rem; color: var(--fg-muted); border: 1px solid var(--border); border-radius: 3px; padding: 0 0.25rem; }
+.link__pin { font-size: 0.6875rem; color: var(--fg-muted); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 0.3rem; }
 .link__pin--outdated { color: var(--fail); border-color: color-mix(in srgb, var(--fail) 45%, transparent); }
 .link__pin--predated { color: var(--unresolved); border-color: color-mix(in srgb, var(--unresolved) 45%, transparent); }
 .link--broken { color: var(--fail); }
 
-/* ── containers / info ── */
-.item { margin: 0 0 0.8rem; scroll-margin-top: calc(var(--appbar-h) + 132px); }
-.item--child { margin-left: 1.1rem; }
-.item__head { cursor: pointer; display: flex; gap: 0.5rem; align-items: baseline; }
-.item__title { margin: 0; font-size: 0.95rem; color: var(--fg); }
-.item__body { margin-top: 0.45rem; padding-left: 0.2rem; }
-.item--container > details > .item__body { border-left: 1px solid var(--border); padding-left: 0.8rem; }
+/* ── sections ── */
+.item { margin: 0 0 0.6rem; scroll-margin-top: calc(var(--appbar-h) + 132px); }
+.item--child { margin-left: 1.25rem; }
+.item__head {
+  cursor: pointer; display: flex; gap: 0.5rem; align-items: baseline;
+  padding: 0.3rem 0.45rem; margin-left: -0.45rem; border-radius: var(--radius-sm);
+}
+.item__head:hover { background: var(--surface-2); }
+.item__head::-webkit-details-marker { display: none; }
+.item__head::before { content: "▸"; font-size: 0.7rem; color: var(--fg-subtle); }
+details[open] > .item__head::before { content: "▾"; }
+.item__title { margin: 0; font-size: 1rem; color: var(--fg-strong); }
+.item__body { margin-top: 0.4rem; padding-left: 0.2rem; }
+.item--section > details > .item__body { border-left: 1px solid var(--border); padding-left: 0.9rem; margin-left: 0.3rem; }
+.item--section > details > summary { list-style: none; }
 
 /* ── table view ── */
-.table-scroll { overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); }
-.grid { border-collapse: collapse; width: 100%; font-size: 0.82rem; }
-.grid th, .grid td { padding: 0.4rem 0.6rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
+.table-scroll { overflow: auto; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-xs); }
+.grid { border-collapse: collapse; width: 100%; font-size: 0.8125rem; }
+.grid th, .grid td { padding: 0.45rem 0.7rem; text-align: left; border-bottom: 1px solid var(--border); vertical-align: top; }
 .grid thead th {
-  position: sticky; top: 0; z-index: 2;
+  position: sticky; top: 0; z-index: 1;
   background: var(--surface-2); color: var(--fg-muted);
-  font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.05em;
-  white-space: nowrap;
+  font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--border);
 }
+.grid tbody tr:last-child td { border-bottom: 0; }
+.grid tbody tr:hover { background: color-mix(in srgb, var(--surface-2) 70%, transparent); }
 .grid th.sortable { cursor: pointer; user-select: none; }
 .grid th.sortable:hover { color: var(--fg); }
 .grid th.is-sorted { color: var(--accent); }
-.grid tbody tr:hover { background: var(--surface-2); }
 .grid .num { text-align: right; font-variant-numeric: tabular-nums; }
-.cell-id code { color: var(--accent); }
+.cell-id code { color: var(--accent); font-size: 0.8125rem; }
 .cell-title { min-width: 14rem; }
-.cell-sub { display: block; color: var(--fg-muted); font-size: 0.72rem; }
+.cell-sub { display: block; color: var(--fg-muted); font-size: 0.72rem; margin-top: 0.1rem; }
 .cell--attention { color: var(--attention); font-weight: 600; }
 .cell-detail { width: 1.8rem; padding-right: 0; }
-.row-toggle { border: 0; background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 0.75rem; padding: 0 0.2rem; }
-.grid__detail > td { background: var(--surface-2); padding: 0.7rem 0.9rem; }
+.row-toggle { border: 0; background: transparent; color: var(--fg-muted); cursor: pointer; font-size: 0.75rem; padding: 0 0.2rem; white-space: nowrap; }
+.row-toggle:hover { color: var(--accent); }
+.grid__row.is-selected { background: var(--accent-soft); }
+.grid__row.is-flash { animation: flash 1.4s ease-out; }
+.grid__detail > td { background: var(--surface-2); padding: 0.8rem 1rem; }
 .grid__detail .req__body { max-width: 80ch; }
-.grid__detail .req__detail { border-top: 0; }
+.grid__detail .req__detail { border-top: 0; padding-top: 0.2rem; }
 
 .columns { position: relative; }
 .columns__toggle {
   list-style: none; cursor: pointer;
-  border: 1px solid var(--border-strong); border-radius: var(--radius);
-  padding: 0.26rem 0.6rem; font-size: 0.78rem; color: var(--fg-muted); background: var(--surface);
+  border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+  padding: 0.28rem 0.65rem; font-size: 0.78rem; font-weight: 500; color: var(--fg-muted); background: var(--surface);
+  box-shadow: var(--shadow-xs);
 }
 .columns__toggle::-webkit-details-marker { display: none; }
 .columns__toggle:hover { color: var(--fg); }
 .columns__menu {
-  position: absolute; top: calc(100% + 4px); left: 0; z-index: 20;
+  position: absolute; top: calc(100% + 5px); left: 0; z-index: 20;
   min-width: 12rem; max-height: 20rem; overflow: auto;
   background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: var(--radius); box-shadow: 0 8px 24px rgb(0 0 0 / 12%);
+  border-radius: var(--radius); box-shadow: var(--shadow-md);
   padding: 0.35rem;
 }
-.columns__option { display: flex; gap: 0.45rem; align-items: center; padding: 0.2rem 0.35rem; border-radius: 4px; font-size: 0.8rem; cursor: pointer; }
+.columns__option { display: flex; gap: 0.5rem; align-items: center; padding: 0.28rem 0.4rem; border-radius: var(--radius-sm); font-size: 0.8125rem; cursor: pointer; }
 .columns__option:hover { background: var(--surface-2); }
 
 /* ── trace explorer ── */
 .trace { display: grid; grid-template-columns: minmax(10rem, 1fr) minmax(14rem, 1.2fr) minmax(10rem, 1fr); gap: 0.9rem; align-items: start; }
-.trace__col { display: flex; flex-direction: column; gap: 0.35rem; min-width: 0; }
-.trace__head { display: flex; justify-content: space-between; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
+.trace__col { display: flex; flex-direction: column; gap: 0.4rem; min-width: 0; }
+.trace__head { display: flex; justify-content: space-between; font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
 .trace__node {
+  position: relative;
   display: flex; flex-direction: column; gap: 0.1rem; text-align: left; width: 100%;
   border: 1px solid var(--border); border-radius: var(--radius);
-  background: var(--surface); color: var(--fg);
-  padding: 0.4rem 0.55rem; cursor: pointer; font: inherit;
+  background: var(--surface); color: var(--fg); box-shadow: var(--shadow-xs);
+  padding: 0.5rem 0.65rem; cursor: pointer; font: inherit;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
 }
-.trace__node:hover { border-color: var(--accent); }
-.trace__node code { color: var(--accent); font-size: 0.8rem; }
+.trace__node:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.trace__node code { color: var(--accent); font-size: 0.78rem; }
 .trace__node.is-muted { opacity: 0.55; }
 .trace__node--broken { cursor: default; border-style: dashed; color: var(--fail); }
 .trace__node--broken code { color: var(--fail); }
-.trace__title { font-size: 0.82rem; }
-.trace__meta { color: var(--fg-muted); font-size: 0.68rem; }
-.trace__center { padding: 0.5rem; border-radius: var(--radius); background: var(--surface-2); }
-.trace__card { margin-top: 0.4rem; }
-.trace__id { font-size: 1rem; font-weight: 600; color: var(--accent); }
-.trace__card .trace__title { font-size: 1rem; font-weight: 600; margin: 0.2rem 0; }
-.trace__badges { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+.trace__node--external { text-decoration: none; padding-right: 1.6rem; }
+.trace__node--external::after {
+  content: "↗"; position: absolute; top: 0.45rem; right: 0.55rem;
+  color: var(--fg-muted); font-size: 0.7rem;
+}
+.trace__title { font-size: 0.8125rem; }
+.trace__meta { color: var(--fg-muted); font-size: 0.7rem; }
+.trace__center {
+  padding: 0.7rem 0.8rem; border-radius: var(--radius);
+  background: var(--surface-2); border: 1px solid var(--border);
+}
+.trace__card { margin-top: 0.45rem; }
+.trace__id { font-size: 0.9375rem; font-weight: 600; color: var(--accent); }
+.trace__card .trace__title { font-size: 1rem; font-weight: 600; margin: 0.2rem 0 0.4rem; color: var(--fg-strong); }
+.trace__badges { display: flex; gap: 0.35rem; flex-wrap: wrap; }
 
 .matrix { margin-top: 1.6rem; }
 .matrix__title { margin-bottom: 0.2rem; }
 .matrix__block { margin-top: 1rem; }
 .matrix__table { border-collapse: collapse; font-size: 0.75rem; }
-.matrix__table th, .matrix__table td { border: 1px solid var(--border); padding: 0.2rem 0.4rem; }
+.matrix__table th, .matrix__table td { border: 1px solid var(--border); padding: 0.22rem 0.45rem; }
 .matrix__corner { background: var(--surface-2); }
 .matrix__col { writing-mode: horizontal-tb; white-space: nowrap; background: var(--surface-2); color: var(--fg-muted); }
 .matrix__row { white-space: nowrap; background: var(--surface-2); text-align: left; }
 .matrix__cell { text-align: center; }
-.matrix__cell--on { color: var(--accent); }
+.matrix__cell--on { color: var(--accent); cursor: pointer; }
+.matrix__cell--on:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
 .matrix__dot { font-size: 0.6rem; }
+.matrix__col a { color: var(--fg-muted); }
+.matrix__col a:hover { color: var(--accent); }
 
-/* ── coverage / tiles / queues ── */
-.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.6rem; margin: 0.8rem 0 1.2rem; }
+/* ── tiles / queues / dashboard ── */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); gap: 0.75rem; margin: 0.9rem 0 1.3rem; }
 .tile {
   border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
-  padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.1rem;
+  box-shadow: var(--shadow-xs);
+  padding: 0.8rem 0.9rem; display: flex; flex-direction: column; gap: 0.25rem;
 }
 .tile--attention { border-left: 3px solid var(--attention); }
 .tile--pending { border-left: 3px solid var(--pending); }
-.tile__label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; color: var(--fg-muted); }
-.tile__value { font-size: 1.15rem; font-weight: 600; }
-.tile__detail { font-size: 0.74rem; color: var(--fg-muted); }
+.tile__label { font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--fg-muted); }
+.tile__value { font-size: 1.375rem; font-weight: 650; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.tile__bar { display: block; height: 5px; border-radius: var(--radius-pill); background: var(--surface-3); overflow: hidden; }
+.tile__bar-fill { display: block; height: 100%; border-radius: inherit; background: var(--pass); }
+.tile--attention .tile__bar-fill { background: var(--fail); }
+.tile--pending .tile__bar-fill { background: var(--pending); }
+.tile__detail { font-size: 0.75rem; color: var(--fg-muted); }
 
-.queues { display: grid; grid-template-columns: repeat(auto-fit, minmax(18rem, 1fr)); gap: 0.8rem; margin-bottom: 1.4rem; }
-.queue { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: 0.7rem 0.85rem; }
-.queue__title { display: flex; gap: 0.45rem; align-items: baseline; margin: 0 0 0.2rem; font-size: 0.9rem; }
-.queue__count { color: var(--fg-muted); font-size: 0.8rem; font-variant-numeric: tabular-nums; }
-.queue__body { color: var(--fg-muted); font-size: 0.76rem; margin: 0 0 0.4rem; }
-.queue__list { list-style: none; margin: 0 0 0.4rem; padding: 0; max-height: 18rem; overflow: auto; }
-.queue__list li { padding: 0.22rem 0; border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+.queues { display: grid; grid-template-columns: repeat(auto-fit, minmax(19rem, 1fr)); gap: 0.8rem; margin-bottom: 1.4rem; }
+.queue {
+  border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface);
+  box-shadow: var(--shadow-xs); padding: 0.8rem 0.95rem;
+}
+.queue__title { display: flex; gap: 0.5rem; align-items: baseline; margin: 0 0 0.2rem; font-size: 0.9375rem; }
+.queue__count {
+  color: var(--fg-muted); font-size: 0.75rem; font-variant-numeric: tabular-nums;
+  background: var(--surface-2); border-radius: var(--radius-pill); padding: 0 0.45rem;
+}
+.queue__body { color: var(--fg-muted); font-size: 0.78rem; margin: 0 0 0.5rem; }
+.queue__list { list-style: none; margin: 0 0 0.5rem; padding: 0; max-height: 16rem; overflow: auto; }
+.queue__list li { padding: 0.28rem 0; border-bottom: 1px solid var(--border); font-size: 0.8125rem; }
 .queue__list li:last-child { border-bottom: 0; }
-.queue__req-title { color: var(--fg-muted); margin-left: 0.3rem; }
+.queue__req-title { color: var(--fg-muted); margin-left: 0.35rem; }
 .queue__note { display: block; color: var(--fg-muted); font-size: 0.72rem; }
-.queue__more { font-size: 0.74rem; color: var(--fg-muted); margin: 0.2rem 0 0; }
+.queue__more { font-size: 0.75rem; color: var(--fg-muted); margin: 0.2rem 0 0; }
 
-.dash { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); padding: 0.7rem 0.9rem; }
-.dash-bars { display: flex; flex-direction: column; gap: 0.35rem; }
-.dash-bar { display: grid; grid-template-columns: 6.5rem 1fr 2.5rem; gap: 0.5rem; align-items: center; font-size: 0.78rem; }
+.dash { border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow-xs); padding: 0.8rem 1rem; }
+.dash-bars { display: flex; flex-direction: column; gap: 0.4rem; }
+.dash-bar { display: grid; grid-template-columns: 6.5rem 1fr 2.5rem; gap: 0.55rem; align-items: center; font-size: 0.78rem; }
 .dash-bar__label { color: var(--fg-muted); }
-.dash-bar__track { height: 6px; background: var(--surface-3); border-radius: 999px; overflow: hidden; }
-.dash-bar__fill { display: block; height: 100%; background: var(--fg-muted); }
+.dash-bar__track { height: 7px; background: var(--surface-3); border-radius: var(--radius-pill); overflow: hidden; }
+.dash-bar__fill { display: block; height: 100%; background: var(--fg-muted); border-radius: inherit; }
 .dash-bar--pass .dash-bar__fill { background: var(--pass); }
 .dash-bar--fail .dash-bar__fill { background: var(--fail); }
 .dash-bar--inconclusive .dash-bar__fill { background: var(--inconclusive); }
@@ -580,118 +804,91 @@ hr { border: 0; border-top: 1px solid var(--border); margin: 1.2em 0; }
 .dash-bar__val { text-align: right; font-variant-numeric: tabular-nums; color: var(--fg-muted); }
 
 /* ── project page ── */
-.shell--project .project { max-width: 78rem; padding: 1.6rem clamp(1rem, 3vw, 2.5rem) 4rem; }
-.project h2 { margin-top: 1.6rem; }
-.project-search { margin-top: 1.2rem; }
-.project-search .search { width: 100%; max-width: 34rem; }
-.results { list-style: none; margin: 0.5rem 0 0; padding: 0; max-width: 48rem; }
-.results li { padding: 0.28rem 0; border-bottom: 1px solid var(--border); font-size: 0.84rem; }
+.shell--project .project {
+  width: 100%; max-width: 80rem; margin: 0 auto;
+  padding: 2rem clamp(1rem, 3vw, 2.5rem) 5rem;
+}
+.project .doc-head { margin-bottom: 1.2rem; }
+.project h2 { margin: 1.8rem 0 0.6rem; font-size: 1.125rem; }
+.project-search { margin-top: 0.4rem; }
+.project-search h2 { margin-top: 0; }
+.project-search .search { width: 100%; max-width: 36rem; }
+.results { list-style: none; margin: 0.6rem 0 0; padding: 0; max-width: 48rem; }
+.results li { padding: 0.35rem 0; border-bottom: 1px solid var(--border); font-size: 0.84rem; }
+.results li:last-child { border-bottom: 0; }
+.results__count { border-bottom: 0 !important; color: var(--fg-muted); font-size: 0.76rem; }
 .catalog { margin-top: 0.4rem; }
-.catalog .grid { font-size: 0.82rem; }
+.catalog .grid { font-size: 0.8125rem; }
+.catalog__level {
+  display: inline-block; font-size: 0.7rem; font-weight: 500;
+  color: var(--fg-muted); background: var(--surface-2);
+  border: 1px solid var(--border); border-radius: var(--radius-pill);
+  padding: 0 0.45rem; white-space: nowrap;
+}
+.cell-bar { display: block; width: 5rem; height: 4px; margin: 0.25rem 0 0 auto; border-radius: var(--radius-pill); background: var(--surface-3); overflow: hidden; }
+.cell-bar__fill { display: block; height: 100%; background: var(--pass); border-radius: inherit; }
+.cell-bar__fill--attention { background: var(--fail); }
+
+.catalog .grid tbody tr[data-href] { cursor: pointer; }
+.catalog .grid tbody tr[data-href]:hover { background: var(--surface-2); }
 
 /* ── overlays ── */
 body.overlay-open { overflow: hidden; }
 .overlay { position: fixed; inset: 0; z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 8vh 1rem 1rem; }
-.overlay__backdrop { position: absolute; inset: 0; background: rgb(0 0 0 / 42%); }
+.overlay__backdrop { position: absolute; inset: 0; background: rgb(9 9 11 / 48%); backdrop-filter: blur(2px); }
 .overlay__panel {
   position: relative; width: min(44rem, 100%);
   background: var(--surface); border: 1px solid var(--border-strong);
-  border-radius: 8px; box-shadow: 0 20px 60px rgb(0 0 0 / 25%);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 .overlay__panel--narrow { width: min(34rem, 100%); }
+/* Enlarged diagram: near-full viewport, scrollable, and the cloned svg keeps
+   Mermaid's inline max-width from clamping it back to the column width. */
+.overlay__panel--lightbox {
+  width: 96vw; max-width: none; max-height: 84vh;
+  padding: 0.6rem; overflow: auto; background: var(--surface);
+}
+.overlay__panel--lightbox > .icon-btn {
+  position: absolute; top: 0.35rem; right: 0.35rem; background: var(--surface);
+}
+/* The svg keeps Mermaid's inline max-width, so the enlargement has to win with
+   !important — the clone is not clamped back to the prose column width. */
+.overlay__panel--lightbox svg {
+  max-width: none !important; width: 100% !important; height: auto !important; display: block;
+}
 
 .palette__input {
   width: 100%; border: 0; border-bottom: 1px solid var(--border);
-  padding: 0.8rem 1rem; font: 0.95rem/1.4 var(--font);
+  padding: 0.9rem 1rem; font: 0.9375rem/1.4 var(--font);
   background: var(--surface); color: var(--fg); outline: none;
 }
-.palette__list { list-style: none; margin: 0; padding: 0.35rem; max-height: 50vh; overflow: auto; }
+.palette__list { list-style: none; margin: 0; padding: 0.4rem; max-height: 50vh; overflow: auto; }
 .palette__item {
   display: flex; gap: 0.6rem; align-items: baseline; width: 100%; text-align: left;
   border: 0; background: transparent; color: var(--fg);
-  padding: 0.4rem 0.55rem; border-radius: 4px; cursor: pointer; font: inherit;
+  padding: 0.45rem 0.6rem; border-radius: var(--radius-sm); cursor: pointer; font: inherit;
 }
 .palette__item.is-active,
 .palette__item.is-active:hover { background: var(--accent-soft); }
 .palette__item.is-active .palette__label { color: var(--accent); font-weight: 600; }
-.palette__glyph { color: var(--fg-muted); width: 1rem; text-align: center; }
+.palette__glyph { color: var(--fg-subtle); width: 1rem; text-align: center; }
 .palette__text { display: flex; flex-direction: column; min-width: 0; }
-.palette__label { font-size: 0.86rem; }
-.palette__hint { color: var(--fg-muted); font-size: 0.74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.palette__empty { margin: 0; padding: 0.8rem 1rem; color: var(--fg-muted); font-size: 0.84rem; }
-.palette__foot { display: flex; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding: 0.5rem 1rem; font-size: 0.72rem; color: var(--fg-muted); }
+.palette__label { font-size: 0.875rem; }
+.palette__hint { color: var(--fg-muted); font-size: 0.75rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.palette__empty { margin: 0; padding: 0.9rem 1rem; color: var(--fg-muted); font-size: 0.84rem; }
+.palette__foot { display: flex; gap: 1rem; flex-wrap: wrap; border-top: 1px solid var(--border); padding: 0.55rem 1rem; font-size: 0.72rem; color: var(--fg-muted); }
 
-.shortcuts { padding: 1rem 1.1rem 1.1rem; }
-.shortcuts__title { font-size: 1rem; margin-bottom: 0.7rem; }
-.shortcuts__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.4rem 1rem; margin: 0 0 0.7rem; }
-.shortcuts__grid > div { display: flex; gap: 0.5rem; align-items: baseline; }
-.shortcuts__grid dt { min-width: 4rem; }
-.shortcuts__grid dd { margin: 0; font-size: 0.82rem; color: var(--fg-muted); }
-.shortcuts__note { font-size: 0.74rem; color: var(--fg-muted); margin: 0; }
-
-/* ── density ── */
-body.density-compact .req { padding: 0.55rem 0.8rem 0.5rem; margin-bottom: 0.45rem; }
-body.density-compact .grid th, body.density-compact .grid td { padding: 0.24rem 0.45rem; }
-body.density-compact .toc__link { padding: 0.15rem 0.35rem; }
-body.density-compact .tile { padding: 0.4rem 0.6rem; }
-
-/* ── responsive ── */
-@media (max-width: 900px) {
-  .shell { grid-template-columns: minmax(0, 1fr); }
-  .toc-toggle { display: inline-flex; }
-  .toc {
-    position: fixed; top: var(--appbar-h); left: 0; bottom: 0; z-index: 35;
-    width: min(20rem, 86vw); transform: translateX(-102%);
-    transition: transform 160ms ease; box-shadow: 0 0 40px rgb(0 0 0 / 20%);
-    height: auto;
-  }
-  body.toc-open .toc { transform: none; }
-  .trace { grid-template-columns: minmax(0, 1fr); }
-  .trace__center { order: -1; }
-}
-
-@media (max-height: 640px) {
-  .toolbar { position: static; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
-}
-
-@media print {
-  .app-bar, .toc, .toolbar, .overlay, .view-tools { display: none !important; }
-  .shell { display: block; }
-  .shell__main { padding: 0; }
-  .req, .item { break-inside: avoid; }
-}
-
-/* ── follow-up UX fixes ── */
+.shortcuts { padding: 1.1rem 1.2rem 1.2rem; }
 .shortcuts__head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
 .shortcuts__head .shortcuts__title { margin: 0; }
 .shortcuts .icon-btn { font-size: 1rem; }
-
-/* The chain closes the Document view, so its collapsed summary sits directly
-   under the last card. */
-.view--document .doc-chain { margin: 1.2rem 0 0; }
-.view--document .doc-chain .chain-stack { padding-top: 0.2rem; }
-
-.results__count { border-bottom: 0 !important; color: var(--fg-muted); font-size: 0.76rem; }
-
-.matrix__cell--on { cursor: pointer; }
-.matrix__cell--on:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-.matrix__col a { color: var(--fg-muted); }
-.matrix__col a:hover { color: var(--accent); }
-
-.trace__node--external::after { content: " ↗"; color: var(--fg-muted); font-size: 0.7rem; }
-.trace__node--external { text-decoration: none; }
-
-/* Whole-row affordance for the project catalog. */
-.catalog .grid tbody tr[data-href] { cursor: pointer; }
-.catalog .grid tbody tr[data-href]:hover { background: var(--surface-2); }
-
-
+.shortcuts__title { font-size: 1rem; margin-bottom: 0.7rem; }
+.shortcuts__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr)); gap: 0.45rem 1rem; margin: 0 0 0.7rem; }
+.shortcuts__grid > div { display: flex; gap: 0.5rem; align-items: baseline; }
+.shortcuts__grid dt { min-width: 4rem; }
+.shortcuts__grid dd { margin: 0; font-size: 0.8125rem; color: var(--fg-muted); }
+.shortcuts__note { font-size: 0.75rem; color: var(--fg-muted); margin: 0; }
 
 /* Outline entry the Trace view is centred on. */
 .toc__item.is-selected > .toc__link {
@@ -704,14 +901,98 @@ body.density-compact .tile { padding: 0.4rem 0.6rem; }
 
 /* In the Trace view the outline is the requirement picker. */
 body[data-view="trace"] .toc__link { cursor: pointer; }
+
+/* A section reached from the command palette flashes briefly. */
+.item.is-flash > .item__title, .item.is-flash > details > summary {
+  background: var(--accent-weak); border-radius: var(--radius-sm); transition: background 0.6s ease;
+}
+
+/* ── responsive ── */
+@media (max-width: 1100px) {
+  .tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  .toc-toggle { display: inline-flex; }
+  .toc__resizer { display: none; }
+  .toc {
+    position: fixed; top: var(--appbar-h); left: 0; bottom: 0; z-index: 35;
+    width: min(20rem, 86vw); transform: translateX(-102%);
+    transition: transform 160ms ease; box-shadow: var(--shadow-lg);
+    height: auto; background: var(--surface);
+  }
+  body.toc-open .toc { transform: none; }
+  .trace { grid-template-columns: minmax(0, 1fr); }
+  .trace__center { order: -1; }
+  .req--child { margin-left: 0.75rem; }
+}
+
+/* The app bar keeps the view switcher: below 860px it takes its own row, so
+   --appbar-h grows with it and the sticky toolbar/outline stay aligned. */
+@media (max-width: 860px) {
+  :root { --appbar-h: 100px; }
+  .app-bar { flex-wrap: wrap; align-content: center; gap: 0.35rem 0.6rem; padding: 0.5rem 0.75rem; }
+  .app-bar__views { order: 3; width: 100%; margin-left: 0; }
+  .viewswitch { width: 100%; }
+  .viewswitch__btn { flex: 1 1 0; padding-left: 0.4rem; padding-right: 0.4rem; }
+  .doc-head h1 { font-size: 1.5rem; }
+}
+
+@media (max-width: 720px) {
+  .shell__main { padding: 1.25rem 0.9rem 4rem; }
+  .chain-tier-cards { grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr)); gap: 0.4rem; }
+  .chain-card--current { max-width: 100%; }
+  .req { padding: 0.85rem 0.9rem 0.7rem; border-radius: var(--radius); }
+  .tiles { grid-template-columns: minmax(0, 1fr); }
+  .app-bar__sep, .app-bar__title { display: none; }
+  .doc-head__badges { margin-left: 0; }
+}
+
+@media (max-width: 480px) {
+  .chain-tier-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .chain-summary__count { display: none; }
+  .toolbar__row { gap: 0.4rem; }
+  .search { flex-basis: 100%; }
+}
+
+@media (max-height: 640px) {
+  .toolbar { position: static; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+}
+
+@media print {
+  .app-bar, .toc, .toolbar, .overlay, .view-tools, .skip-link { display: none !important; }
+  body { background: #fff; color: #000; }
+  .shell { display: block; }
+  .shell__main, .shell--project .project { padding: 0; max-width: none; }
+  .req, .item { break-inside: avoid; box-shadow: none; border-color: #ccc; }
+  /* A collapsed folder must still print its contents: browsers print neither
+     the children of a closed <details> nor its summary affordance usefully. */
+  details:not([open]) > *:not(summary) { display: block !important; }
+  .item--section > details > summary { list-style: none; }
+}
 </style>
 </head>
 <body data-page="document">
+<a class="skip-link" href="#main">Skip to content</a>
 <header class="app-bar">
   <button type="button" class="icon-btn toc-toggle" data-action="toggle-toc" aria-label="Toggle outline" aria-controls="toc" aria-expanded="false">&#9776;</button>
-  <a class="app-bar__brand" href="index.html"><span class="app-bar__logo" aria-hidden="true"></span>reqmd</a>
+  <a class="app-bar__brand" href="index.html"><svg class="app-bar__mark" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h6v6H4z"/><path d="M14 4h6v6h-6z"/><path d="M4 14h6v6H4z"/><path d="M14 14h6v6h-6z"/><path d="M10 7h4"/><path d="M7 10v4"/><path d="M14 17h4"/><path d="M17 14v4"/></svg>reqmd</a>
   <span class="app-bar__sep" aria-hidden="true">/</span>
   <span class="app-bar__title">Package: export</span>
+  <div class="app-bar__views">
+    <div class="viewswitch" role="group" aria-label="View">
+      <button type="button" class="viewswitch__btn is-active" data-view="document" aria-pressed="true" title="Document view (g d)">Document</button>
+      <button type="button" class="viewswitch__btn" data-view="table" aria-pressed="false" title="Table view (g t)">Table</button>
+      <button type="button" class="viewswitch__btn" data-view="trace" aria-pressed="false" title="Trace explorer (g r)">Trace</button>
+      <button type="button" class="viewswitch__btn" data-view="coverage" aria-pressed="false" title="Coverage view (g c)">Coverage</button>
+    </div>
+  </div>
   <div class="app-bar__tools">
     <button type="button" class="icon-btn" data-action="palette" aria-label="Command palette" title="Command palette (Ctrl+K)" data-mod-hint="palette">Ctrl K</button>
     <button type="button" class="icon-btn" data-action="theme" aria-label="Toggle theme" title="Toggle light/dark">◐</button>
@@ -720,527 +1001,99 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
 <div class="shell">
 <nav class="toc" id="toc" aria-label="Outline">
   <div class="toc__head"><span>Outline</span><span class="toc__count" data-toc-count></span></div>
+  <div class="toc__scroll">
   <ul class="toc__list">
-<li class="toc__item" data-toc-for="item-1"><a class="toc__link" href="#item-1"><span class="toc__title"></span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-newCsvCmd-b7e44bd"><a class="toc__link" href="#IMP-export-newCsvCmd-b7e44bd"><code>IMP-export-newCsvCmd-b7e44bd</code><span class="toc__title">newCsvCmd</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-NewExportCmd-44591a9"><a class="toc__link" href="#IMP-export-NewExportCmd-44591a9"><code>IMP-export-NewExportCmd-44591a9</code><span class="toc__title">NewExportCmd</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-newGraphCmd-34aaec5"><a class="toc__link" href="#IMP-export-newGraphCmd-34aaec5"><code>IMP-export-newGraphCmd-34aaec5</code><span class="toc__title">newGraphCmd</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-outputDirPerm-499f0e1"><a class="toc__link" href="#IMP-export-outputDirPerm-499f0e1"><code>IMP-export-outputDirPerm-499f0e1</code><span class="toc__title">outputDirPerm</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-newHTMLCmd-d5201e8"><a class="toc__link" href="#IMP-export-newHTMLCmd-d5201e8"><code>IMP-export-newHTMLCmd-d5201e8</code><span class="toc__title">newHTMLCmd</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-runExportHTML-0d522f9"><a class="toc__link" href="#IMP-export-runExportHTML-0d522f9"><code>IMP-export-runExportHTML-0d522f9</code><span class="toc__title">runExportHTML</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-discoverHTMLDocs-d84b278"><a class="toc__link" href="#IMP-export-discoverHTMLDocs-d84b278"><code>IMP-export-discoverHTMLDocs-d84b278</code><span class="toc__title">discoverHTMLDocs</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-analyzeHTMLGraph-e1968e2"><a class="toc__link" href="#IMP-export-analyzeHTMLGraph-e1968e2"><code>IMP-export-analyzeHTMLGraph-e1968e2</code><span class="toc__title">analyzeHTMLGraph</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-htmlOutput-19b55b1"><a class="toc__link" href="#IMP-export-htmlOutput-19b55b1"><code>IMP-export-htmlOutput-19b55b1</code><span class="toc__title">htmlOutput</span></a><ul class="toc__list"><li class="toc__item toc__item--child" data-toc-for="IMP-export-resolveFor-2baaf0e"><a class="toc__link" href="#IMP-export-resolveFor-2baaf0e"><code>IMP-export-resolveFor-2baaf0e</code><span class="toc__title">resolveFor</span></a></li>
+<li class="toc__item" data-toc-for="sec-internal-cli-export-csv-go"><a class="toc__link toc__link--section" href="#sec-internal-cli-export-csv-go"><span class="toc__title">internal/cli/export/csv.go</span></a><ul class="toc__list"><li class="toc__item toc__item--child" data-toc-for="IMP-export-newCsvCmd-b7e44bd"><a class="toc__link" href="#IMP-export-newCsvCmd-b7e44bd"><code>IMP-export-newCsvCmd-b7e44bd</code><span class="toc__title">newCsvCmd</span></a></li>
+</ul></li>
+<li class="toc__item" data-toc-for="sec-internal-cli-export-export-go"><a class="toc__link toc__link--section" href="#sec-internal-cli-export-export-go"><span class="toc__title">internal/cli/export/export.go</span></a><ul class="toc__list"><li class="toc__item toc__item--child" data-toc-for="IMP-export-NewExportCmd-44591a9"><a class="toc__link" href="#IMP-export-NewExportCmd-44591a9"><code>IMP-export-NewExportCmd-44591a9</code><span class="toc__title">NewExportCmd</span></a></li>
+</ul></li>
+<li class="toc__item" data-toc-for="sec-internal-cli-export-graph-go"><a class="toc__link toc__link--section" href="#sec-internal-cli-export-graph-go"><span class="toc__title">internal/cli/export/graph.go</span></a><ul class="toc__list"><li class="toc__item toc__item--child" data-toc-for="IMP-export-newGraphCmd-34aaec5"><a class="toc__link" href="#IMP-export-newGraphCmd-34aaec5"><code>IMP-export-newGraphCmd-34aaec5</code><span class="toc__title">newGraphCmd</span></a></li>
+</ul></li>
+<li class="toc__item" data-toc-for="sec-internal-cli-export-html-go"><a class="toc__link toc__link--section" href="#sec-internal-cli-export-html-go"><span class="toc__title">internal/cli/export/html.go</span></a><ul class="toc__list"><li class="toc__item toc__item--child" data-toc-for="IMP-export-outputDirPerm-499f0e1"><a class="toc__link" href="#IMP-export-outputDirPerm-499f0e1"><code>IMP-export-outputDirPerm-499f0e1</code><span class="toc__title">outputDirPerm</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-newHTMLCmd-d5201e8"><a class="toc__link" href="#IMP-export-newHTMLCmd-d5201e8"><code>IMP-export-newHTMLCmd-d5201e8</code><span class="toc__title">newHTMLCmd</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-runExportHTML-0d522f9"><a class="toc__link" href="#IMP-export-runExportHTML-0d522f9"><code>IMP-export-runExportHTML-0d522f9</code><span class="toc__title">runExportHTML</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-discoverHTMLDocs-d84b278"><a class="toc__link" href="#IMP-export-discoverHTMLDocs-d84b278"><code>IMP-export-discoverHTMLDocs-d84b278</code><span class="toc__title">discoverHTMLDocs</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-analyzeHTMLGraph-e1968e2"><a class="toc__link" href="#IMP-export-analyzeHTMLGraph-e1968e2"><code>IMP-export-analyzeHTMLGraph-e1968e2</code><span class="toc__title">analyzeHTMLGraph</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-htmlOutput-19b55b1"><a class="toc__link" href="#IMP-export-htmlOutput-19b55b1"><code>IMP-export-htmlOutput-19b55b1</code><span class="toc__title">htmlOutput</span></a><ul class="toc__list"><li class="toc__item toc__item--child" data-toc-for="IMP-export-resolveFor-2baaf0e"><a class="toc__link" href="#IMP-export-resolveFor-2baaf0e"><code>IMP-export-resolveFor-2baaf0e</code><span class="toc__title">resolveFor</span></a></li>
 <li class="toc__item toc__item--child" data-toc-for="IMP-export-writeDocumentPages-589104f"><a class="toc__link" href="#IMP-export-writeDocumentPages-589104f"><code>IMP-export-writeDocumentPages-589104f</code><span class="toc__title">writeDocumentPages</span></a></li>
 <li class="toc__item toc__item--child" data-toc-for="IMP-export-writeDocumentPage-c42d086"><a class="toc__link" href="#IMP-export-writeDocumentPage-c42d086"><code>IMP-export-writeDocumentPage-c42d086</code><span class="toc__title">writeDocumentPage</span></a></li>
 <li class="toc__item toc__item--child" data-toc-for="IMP-export-writeProjectIndex-65ab62f"><a class="toc__link" href="#IMP-export-writeProjectIndex-65ab62f"><code>IMP-export-writeProjectIndex-65ab62f</code><span class="toc__title">writeProjectIndex</span></a></li>
 </ul></li>
-<li class="toc__item" data-toc-for="IMP-export-newHTMLOutput-781a8ad"><a class="toc__link" href="#IMP-export-newHTMLOutput-781a8ad"><code>IMP-export-newHTMLOutput-781a8ad</code><span class="toc__title">newHTMLOutput</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-writeHTMLFile-7e55c53"><a class="toc__link" href="#IMP-export-writeHTMLFile-7e55c53"><code>IMP-export-writeHTMLFile-7e55c53</code><span class="toc__title">writeHTMLFile</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-tableFindings-91b72c1"><a class="toc__link" href="#IMP-export-tableFindings-91b72c1"><code>IMP-export-tableFindings-91b72c1</code><span class="toc__title">tableFindings</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-tableRequirements-0aa7d47"><a class="toc__link" href="#IMP-export-tableRequirements-0aa7d47"><code>IMP-export-tableRequirements-0aa7d47</code><span class="toc__title">tableRequirements</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-tableResults-a3efb1b"><a class="toc__link" href="#IMP-export-tableResults-a3efb1b"><code>IMP-export-tableResults-a3efb1b</code><span class="toc__title">tableResults</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-tableTraces-ff7b141"><a class="toc__link" href="#IMP-export-tableTraces-ff7b141"><code>IMP-export-tableTraces-ff7b141</code><span class="toc__title">tableTraces</span></a></li>
-<li class="toc__item" data-toc-for="IMP-export-newJSONCmd-bb9f639"><a class="toc__link" href="#IMP-export-newJSONCmd-bb9f639"><code>IMP-export-newJSONCmd-bb9f639</code><span class="toc__title">newJSONCmd</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-newHTMLOutput-781a8ad"><a class="toc__link" href="#IMP-export-newHTMLOutput-781a8ad"><code>IMP-export-newHTMLOutput-781a8ad</code><span class="toc__title">newHTMLOutput</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-writeHTMLFile-7e55c53"><a class="toc__link" href="#IMP-export-writeHTMLFile-7e55c53"><code>IMP-export-writeHTMLFile-7e55c53</code><span class="toc__title">writeHTMLFile</span></a></li>
+</ul></li>
+<li class="toc__item" data-toc-for="sec-internal-cli-export-json-go"><a class="toc__link toc__link--section" href="#sec-internal-cli-export-json-go"><span class="toc__title">internal/cli/export/json.go</span></a><ul class="toc__list"><li class="toc__item toc__item--child" data-toc-for="IMP-export-tableFindings-91b72c1"><a class="toc__link" href="#IMP-export-tableFindings-91b72c1"><code>IMP-export-tableFindings-91b72c1</code><span class="toc__title">tableFindings</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-tableRequirements-0aa7d47"><a class="toc__link" href="#IMP-export-tableRequirements-0aa7d47"><code>IMP-export-tableRequirements-0aa7d47</code><span class="toc__title">tableRequirements</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-tableResults-a3efb1b"><a class="toc__link" href="#IMP-export-tableResults-a3efb1b"><code>IMP-export-tableResults-a3efb1b</code><span class="toc__title">tableResults</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-tableTraces-ff7b141"><a class="toc__link" href="#IMP-export-tableTraces-ff7b141"><code>IMP-export-tableTraces-ff7b141</code><span class="toc__title">tableTraces</span></a></li>
+<li class="toc__item toc__item--child" data-toc-for="IMP-export-newJSONCmd-bb9f639"><a class="toc__link" href="#IMP-export-newJSONCmd-bb9f639"><code>IMP-export-newJSONCmd-bb9f639</code><span class="toc__title">newJSONCmd</span></a></li>
+</ul></li>
   </ul>
+  </div>
+  <div class="toc__resizer" data-action="resize-toc" role="separator" aria-orientation="vertical" aria-label="Resize outline" aria-valuemin="200" aria-valuemax="520" aria-valuenow="300" tabindex="0" title="Drag to resize · double-click to reset"></div>
 </nav>
 <div class="shell__main">
 <header class="doc-head">
+<p class="doc-head__eyebrow"><span>imported-requirements</span><span aria-hidden="true">·</span><code>export</code></p>
 <h1>Package: export</h1>
-<span class="doc-head__status"><span class="doc-head__status-item"><span class="dot" style="background:var(--status-approved)" aria-hidden="true"></span>approved 20</span></span><span class="doc-head__badges"><span class="badge" title="Leaf boundary — this document is not referenced as upstream by any other document">Leaf</span></span><p class="doc-head__facts">20 requirements · 4 nested · 1 items</p>
+<p class="doc-head__facts">20 requirements · 4 nested · 5 items<span class="doc-head__badges"><span class="badge" title="Leaf boundary — this document is not referenced as upstream by any other document">Leaf</span></span></p>
+<div class="doc-head__status"><div class="statusbar" role="img" aria-label="Status distribution across 20 requirements"><span class="statusbar__seg" style="flex:20;background:var(--status-approved)" title="approved 20"></span></div><ul class="statusbar__legend"><li><span class="dot" style="background:var(--status-approved)" aria-hidden="true"></span>approved <strong>20</strong></li></ul></div>
 </header>
 <div class="toolbar">
   <div class="toolbar__row">
-    <div class="viewswitch" role="group" aria-label="View">
-      <button type="button" class="viewswitch__btn is-active" data-view="document" aria-pressed="true" title="Document view (g d)">Document</button>
-      <button type="button" class="viewswitch__btn" data-view="table" aria-pressed="false" title="Table view (g t)">Table</button>
-      <button type="button" class="viewswitch__btn" data-view="trace" aria-pressed="false" title="Trace explorer (g r)">Trace</button>
-      <button type="button" class="viewswitch__btn" data-view="coverage" aria-pressed="false" title="Coverage view (g c)">Coverage</button>
-    </div>
-    <div class="toolbar__tools">
-      <button type="button" class="icon-btn" data-action="density" aria-label="Toggle density" title="Toggle density (f)">⇕</button>
-    </div>
-  </div>
-  <div class="toolbar__row">
     <input type="search" class="search" data-search placeholder="Search ID, title, body, attributes…" autocomplete="off" spellcheck="false" aria-label="Search requirements">
     <span class="count" data-count role="status" aria-live="polite"></span>
+    <div class="filters" data-filters data-default-status="approved">
+      <details class="filter" data-filter-group="x-reqmd.source-file">
+        <summary class="filter__toggle">X Reqmd.source File<span class="filter__count" data-filter-count="x-reqmd.source-file"></span></summary>
+        <div class="filter__menu">
+          <label class="filter__option"><input type="checkbox" value="internal/cli/export/csv.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/csv.go</span></label>
+          <label class="filter__option"><input type="checkbox" value="internal/cli/export/export.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/export.go</span></label>
+          <label class="filter__option"><input type="checkbox" value="internal/cli/export/graph.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/graph.go</span></label>
+          <label class="filter__option"><input type="checkbox" value="internal/cli/export/html.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/html.go</span></label>
+          <label class="filter__option"><input type="checkbox" value="internal/cli/export/json.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/json.go</span></label>
+        </div>
+      </details>
+      <details class="filter" data-filter-group="x-reqmd.source-line">
+        <summary class="filter__toggle">X Reqmd.source Line<span class="filter__count" data-filter-count="x-reqmd.source-line"></span></summary>
+        <div class="filter__menu">
+          <label class="filter__option"><input type="checkbox" value="10" data-filter-attr="x-reqmd.source-line"><span>10</span></label>
+          <label class="filter__option"><input type="checkbox" value="104" data-filter-attr="x-reqmd.source-line"><span>104</span></label>
+          <label class="filter__option"><input type="checkbox" value="125" data-filter-attr="x-reqmd.source-line"><span>125</span></label>
+          <label class="filter__option"><input type="checkbox" value="137" data-filter-attr="x-reqmd.source-line"><span>137</span></label>
+          <label class="filter__option"><input type="checkbox" value="165" data-filter-attr="x-reqmd.source-line"><span>165</span></label>
+          <label class="filter__option"><input type="checkbox" value="17" data-filter-attr="x-reqmd.source-line"><span>17</span></label>
+          <label class="filter__option"><input type="checkbox" value="186" data-filter-attr="x-reqmd.source-line"><span>186</span></label>
+          <label class="filter__option"><input type="checkbox" value="19" data-filter-attr="x-reqmd.source-line"><span>19</span></label>
+          <label class="filter__option"><input type="checkbox" value="23" data-filter-attr="x-reqmd.source-line"><span>23</span></label>
+          <label class="filter__option"><input type="checkbox" value="238" data-filter-attr="x-reqmd.source-line"><span>238</span></label>
+          <label class="filter__option"><input type="checkbox" value="25" data-filter-attr="x-reqmd.source-line"><span>25</span></label>
+          <label class="filter__option"><input type="checkbox" value="257" data-filter-attr="x-reqmd.source-line"><span>257</span></label>
+          <label class="filter__option"><input type="checkbox" value="26" data-filter-attr="x-reqmd.source-line"><span>26</span></label>
+          <label class="filter__option"><input type="checkbox" value="279" data-filter-attr="x-reqmd.source-line"><span>279</span></label>
+          <label class="filter__option"><input type="checkbox" value="50" data-filter-attr="x-reqmd.source-line"><span>50</span></label>
+          <label class="filter__option"><input type="checkbox" value="79" data-filter-attr="x-reqmd.source-line"><span>79</span></label>
+        </div>
+      </details>
+      <details class="filter" data-filter-group="x-reqmd.symbol-kind">
+        <summary class="filter__toggle">X Reqmd.symbol Kind<span class="filter__count" data-filter-count="x-reqmd.symbol-kind"></span></summary>
+        <div class="filter__menu">
+          <label class="filter__option"><input type="checkbox" value="const" data-filter-attr="x-reqmd.symbol-kind"><span>const</span></label>
+          <label class="filter__option"><input type="checkbox" value="function" data-filter-attr="x-reqmd.symbol-kind"><span>function</span></label>
+          <label class="filter__option"><input type="checkbox" value="method" data-filter-attr="x-reqmd.symbol-kind"><span>method</span></label>
+          <label class="filter__option"><input type="checkbox" value="type" data-filter-attr="x-reqmd.symbol-kind"><span>type</span></label>
+        </div>
+      </details>
+    </div>
   </div>
   <div class="toolbar__chips" data-active-filters hidden></div>
-  <div class="filters" data-filters data-default-status="approved">
-    <details class="filter" data-filter-group="x-reqmd.source-file">
-      <summary class="filter__toggle">X Reqmd.source File<span class="filter__count" data-filter-count="x-reqmd.source-file"></span></summary>
-      <div class="filter__menu">
-        <label class="filter__option"><input type="checkbox" value="internal/cli/export/csv.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/csv.go</span></label>
-        <label class="filter__option"><input type="checkbox" value="internal/cli/export/export.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/export.go</span></label>
-        <label class="filter__option"><input type="checkbox" value="internal/cli/export/graph.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/graph.go</span></label>
-        <label class="filter__option"><input type="checkbox" value="internal/cli/export/html.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/html.go</span></label>
-        <label class="filter__option"><input type="checkbox" value="internal/cli/export/json.go" data-filter-attr="x-reqmd.source-file"><span>internal/cli/export/json.go</span></label>
-      </div>
-    </details>
-    <details class="filter" data-filter-group="x-reqmd.source-line">
-      <summary class="filter__toggle">X Reqmd.source Line<span class="filter__count" data-filter-count="x-reqmd.source-line"></span></summary>
-      <div class="filter__menu">
-        <label class="filter__option"><input type="checkbox" value="10" data-filter-attr="x-reqmd.source-line"><span>10</span></label>
-        <label class="filter__option"><input type="checkbox" value="106" data-filter-attr="x-reqmd.source-line"><span>106</span></label>
-        <label class="filter__option"><input type="checkbox" value="140" data-filter-attr="x-reqmd.source-line"><span>140</span></label>
-        <label class="filter__option"><input type="checkbox" value="152" data-filter-attr="x-reqmd.source-line"><span>152</span></label>
-        <label class="filter__option"><input type="checkbox" value="17" data-filter-attr="x-reqmd.source-line"><span>17</span></label>
-        <label class="filter__option"><input type="checkbox" value="180" data-filter-attr="x-reqmd.source-line"><span>180</span></label>
-        <label class="filter__option"><input type="checkbox" value="19" data-filter-attr="x-reqmd.source-line"><span>19</span></label>
-        <label class="filter__option"><input type="checkbox" value="195" data-filter-attr="x-reqmd.source-line"><span>195</span></label>
-        <label class="filter__option"><input type="checkbox" value="209" data-filter-attr="x-reqmd.source-line"><span>209</span></label>
-        <label class="filter__option"><input type="checkbox" value="21" data-filter-attr="x-reqmd.source-line"><span>21</span></label>
-        <label class="filter__option"><input type="checkbox" value="23" data-filter-attr="x-reqmd.source-line"><span>23</span></label>
-        <label class="filter__option"><input type="checkbox" value="232" data-filter-attr="x-reqmd.source-line"><span>232</span></label>
-        <label class="filter__option"><input type="checkbox" value="254" data-filter-attr="x-reqmd.source-line"><span>254</span></label>
-        <label class="filter__option"><input type="checkbox" value="26" data-filter-attr="x-reqmd.source-line"><span>26</span></label>
-        <label class="filter__option"><input type="checkbox" value="48" data-filter-attr="x-reqmd.source-line"><span>48</span></label>
-        <label class="filter__option"><input type="checkbox" value="77" data-filter-attr="x-reqmd.source-line"><span>77</span></label>
-      </div>
-    </details>
-    <details class="filter" data-filter-group="x-reqmd.symbol-kind">
-      <summary class="filter__toggle">X Reqmd.symbol Kind<span class="filter__count" data-filter-count="x-reqmd.symbol-kind"></span></summary>
-      <div class="filter__menu">
-        <label class="filter__option"><input type="checkbox" value="const" data-filter-attr="x-reqmd.symbol-kind"><span>const</span></label>
-        <label class="filter__option"><input type="checkbox" value="function" data-filter-attr="x-reqmd.symbol-kind"><span>function</span></label>
-        <label class="filter__option"><input type="checkbox" value="method" data-filter-attr="x-reqmd.symbol-kind"><span>method</span></label>
-        <label class="filter__option"><input type="checkbox" value="type" data-filter-attr="x-reqmd.symbol-kind"><span>type</span></label>
-      </div>
-    </details>
-  </div>
 <noscript><p class="filter-note">The Table, Trace, and Coverage views and the search filters need JavaScript. The Document view is complete without it.</p></noscript>
 </div>
-<main class="views">
+<main class="views" id="main">
 <section class="view view--document" data-view-panel="document">
-<main class="doc">
-<section class="item" id="item-1" data-anchor="item-1">
-<div class="item__body prose">
-<!-- raw HTML omitted -->
-<p>This file is auto-generated by reqmd-code. Do not edit by hand.</p>
-
-</div>
-</section>
-<article class="req" id="IMP-export-newCsvCmd-b7e44bd" data-id="IMP-export-newCsvCmd-b7e44bd" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-newCsvCmd-b7e44bd</code> <span class="req__name">newCsvCmd</span></h2>
-<a class="anchor" href="#IMP-export-newCsvCmd-b7e44bd" aria-label="Link to IMP-export-newCsvCmd-b7e44bd">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/csv.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>17</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-NewExportCmd-44591a9" data-id="IMP-export-NewExportCmd-44591a9" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-NewExportCmd-44591a9</code> <span class="req__name">NewExportCmd</span></h2>
-<a class="anchor" href="#IMP-export-NewExportCmd-44591a9" aria-label="Link to IMP-export-NewExportCmd-44591a9">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>NewExportCmd builds the <code>reqmd export</code> command with its subcommands.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/export.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>10</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-newGraphCmd-34aaec5" data-id="IMP-export-newGraphCmd-34aaec5" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-newGraphCmd-34aaec5</code> <span class="req__name">newGraphCmd</span></h2>
-<a class="anchor" href="#IMP-export-newGraphCmd-34aaec5" aria-label="Link to IMP-export-newGraphCmd-34aaec5">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/graph.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>17</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-outputDirPerm-499f0e1" data-id="IMP-export-outputDirPerm-499f0e1" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-outputDirPerm-499f0e1</code> <span class="req__name">outputDirPerm</span></h2>
-<a class="anchor" href="#IMP-export-outputDirPerm-499f0e1" aria-label="Link to IMP-export-outputDirPerm-499f0e1">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>outputDirPerm keeps output directories readable by the exporting user'sgroup, following the CLI's 0750 convention.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>21</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-newHTMLCmd-d5201e8" data-id="IMP-export-newHTMLCmd-d5201e8" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-newHTMLCmd-d5201e8</code> <span class="req__name">newHTMLCmd</span></h2>
-<a class="anchor" href="#IMP-export-newHTMLCmd-d5201e8" aria-label="Link to IMP-export-newHTMLCmd-d5201e8">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>23</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-runExportHTML-0d522f9" data-id="IMP-export-runExportHTML-0d522f9" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-runExportHTML-0d522f9</code> <span class="req__name">runExportHTML</span></h2>
-<a class="anchor" href="#IMP-export-runExportHTML-0d522f9" aria-label="Link to IMP-export-runExportHTML-0d522f9">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>runExportHTML writes one page per document plus the project home.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>48</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-discoverHTMLDocs-d84b278" data-id="IMP-export-discoverHTMLDocs-d84b278" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-discoverHTMLDocs-d84b278</code> <span class="req__name">discoverHTMLDocs</span></h2>
-<a class="anchor" href="#IMP-export-discoverHTMLDocs-d84b278" aria-label="Link to IMP-export-discoverHTMLDocs-d84b278">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>discoverHTMLDocs parses the tree and, when a filter is active, returns thematching requirement IDs for graph scoping plus the pruned export set. Thegraph is still built from the full docs so trace links resolve.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>77</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-analyzeHTMLGraph-e1968e2" data-id="IMP-export-analyzeHTMLGraph-e1968e2" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-analyzeHTMLGraph-e1968e2</code> <span class="req__name">analyzeHTMLGraph</span></h2>
-<a class="anchor" href="#IMP-export-analyzeHTMLGraph-e1968e2" aria-label="Link to IMP-export-analyzeHTMLGraph-e1968e2">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>analyzeHTMLGraph builds the trace graph and adapts it into the presentationanalysis every HTML view renders from. Ephemeral verification results aresynthesized into pseudo-requirements before the graph is built.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>106</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-htmlOutput-19b55b1" data-id="IMP-export-htmlOutput-19b55b1" data-status="approved" data-coverage="covered">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-htmlOutput-19b55b1</code> <span class="req__name">htmlOutput</span></h2>
-<a class="anchor" href="#IMP-export-htmlOutput-19b55b1" aria-label="Link to IMP-export-htmlOutput-19b55b1">#</a>
-</header>
-<div class="req__body prose">
-<p>htmlOutput resolves output paths once for a document set and writes thedocument pages and the project home.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>140</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>type</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req req--child" id="IMP-export-resolveFor-2baaf0e" data-id="IMP-export-resolveFor-2baaf0e" data-status="approved" data-coverage="not-required">
-<header class="req__head">
-<h3 class="req__title"><code class="req__id">IMP-export-resolveFor-2baaf0e</code> <span class="req__name">resolveFor</span></h3>
-<a class="anchor" href="#IMP-export-resolveFor-2baaf0e" aria-label="Link to IMP-export-resolveFor-2baaf0e">#</a>
-</header>
-<div class="req__body prose">
-<p>resolveFor maps a requirement ID to an href relative to current'sdirectory, so trace links work in both output layouts.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>180</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>method</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req req--child" id="IMP-export-writeDocumentPages-589104f" data-id="IMP-export-writeDocumentPages-589104f" data-status="approved" data-coverage="not-required">
-<header class="req__head">
-<h3 class="req__title"><code class="req__id">IMP-export-writeDocumentPages-589104f</code> <span class="req__name">writeDocumentPages</span></h3>
-<a class="anchor" href="#IMP-export-writeDocumentPages-589104f" aria-label="Link to IMP-export-writeDocumentPages-589104f">#</a>
-</header>
-<div class="req__body prose">
-<p>writeDocumentPages renders every exported document page.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>195</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>method</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req req--child" id="IMP-export-writeDocumentPage-c42d086" data-id="IMP-export-writeDocumentPage-c42d086" data-status="approved" data-coverage="not-required">
-<header class="req__head">
-<h3 class="req__title"><code class="req__id">IMP-export-writeDocumentPage-c42d086</code> <span class="req__name">writeDocumentPage</span></h3>
-<a class="anchor" href="#IMP-export-writeDocumentPage-c42d086" aria-label="Link to IMP-export-writeDocumentPage-c42d086">#</a>
-</header>
-<div class="req__body prose">
-<p>writeDocumentPage renders one document page, wiring its boundary badge,document chain, and per-page trace link resolver.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>209</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>method</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req req--child" id="IMP-export-writeProjectIndex-65ab62f" data-id="IMP-export-writeProjectIndex-65ab62f" data-status="approved" data-coverage="not-required">
-<header class="req__head">
-<h3 class="req__title"><code class="req__id">IMP-export-writeProjectIndex-65ab62f</code> <span class="req__name">writeProjectIndex</span></h3>
-<a class="anchor" href="#IMP-export-writeProjectIndex-65ab62f" aria-label="Link to IMP-export-writeProjectIndex-65ab62f">#</a>
-</header>
-<div class="req__body prose">
-<p>writeProjectIndex writes the project home page.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>232</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>method</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-newHTMLOutput-781a8ad" data-id="IMP-export-newHTMLOutput-781a8ad" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-newHTMLOutput-781a8ad</code> <span class="req__name">newHTMLOutput</span></h2>
-<a class="anchor" href="#IMP-export-newHTMLOutput-781a8ad" aria-label="Link to IMP-export-newHTMLOutput-781a8ad">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>newHTMLOutput computes the output layout: flat files in outputDir when set,otherwise one page inside each document directory.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>152</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-writeHTMLFile-7e55c53" data-id="IMP-export-writeHTMLFile-7e55c53" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-writeHTMLFile-7e55c53</code> <span class="req__name">writeHTMLFile</span></h2>
-<a class="anchor" href="#IMP-export-writeHTMLFile-7e55c53" aria-label="Link to IMP-export-writeHTMLFile-7e55c53">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>writeHTMLFile creates path, runs write, and reports both the write and closeerror so a truncated export is never reported as written.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>254</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-tableFindings-91b72c1" data-id="IMP-export-tableFindings-91b72c1" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-tableFindings-91b72c1</code> <span class="req__name">tableFindings</span></h2>
-<a class="anchor" href="#IMP-export-tableFindings-91b72c1" aria-label="Link to IMP-export-tableFindings-91b72c1">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>jsonTable names the four NDJSON files written by <code>export json</code>.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>19</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-tableRequirements-0aa7d47" data-id="IMP-export-tableRequirements-0aa7d47" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-tableRequirements-0aa7d47</code> <span class="req__name">tableRequirements</span></h2>
-<a class="anchor" href="#IMP-export-tableRequirements-0aa7d47" aria-label="Link to IMP-export-tableRequirements-0aa7d47">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>jsonTable names the four NDJSON files written by <code>export json</code>.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>19</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-tableResults-a3efb1b" data-id="IMP-export-tableResults-a3efb1b" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-tableResults-a3efb1b</code> <span class="req__name">tableResults</span></h2>
-<a class="anchor" href="#IMP-export-tableResults-a3efb1b" aria-label="Link to IMP-export-tableResults-a3efb1b">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>jsonTable names the four NDJSON files written by <code>export json</code>.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>19</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-tableTraces-ff7b141" data-id="IMP-export-tableTraces-ff7b141" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-tableTraces-ff7b141</code> <span class="req__name">tableTraces</span></h2>
-<a class="anchor" href="#IMP-export-tableTraces-ff7b141" aria-label="Link to IMP-export-tableTraces-ff7b141">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<div class="req__body prose">
-<p>jsonTable names the four NDJSON files written by <code>export json</code>.</p>
-
-</div>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>19</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
-<article class="req" id="IMP-export-newJSONCmd-bb9f639" data-id="IMP-export-newJSONCmd-bb9f639" data-status="approved" data-coverage="missing-coverage">
-<header class="req__head">
-<h2 class="req__title"><code class="req__id">IMP-export-newJSONCmd-bb9f639</code> <span class="req__name">newJSONCmd</span></h2>
-<a class="anchor" href="#IMP-export-newJSONCmd-bb9f639" aria-label="Link to IMP-export-newJSONCmd-bb9f639">#</a>
-</header>
-<p class="req__flags"><span class="chip chip--coverage chip--coverage-missing">missing coverage</span></p>
-<details class="req__detail"><summary class="req__detail-toggle">Details</summary>
-<div class="req__detail-body">
-<dl class="attrs">
-<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>26</dd></div>
-<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
-<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
-</dl>
-</div>
-</details>
-</article>
+<div class="doc">
 <nav class="doc-chain doc-chain--deep" aria-label="Document traceability chain">
-  <details class="chain-details">
+  <details class="chain-details" open>
     <summary class="chain-summary">
       <span class="chain-summary__label">Traceability chain</span>
       <span class="chain-summary__count">6 upstream</span>
@@ -1293,7 +1146,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         <div class="chain-tier-label">Upstream</div>
         <div class="chain-tier-cards">
       <a class="chain-card" href="imported-requirements.html">
-        <span class="chain-card-title">Auto-imported requirements (reqmd-code)</span>
+        <span class="chain-card-title">imported</span>
         <span class="chain-card-meta">imported</span>
       </a>
         </div>
@@ -1313,7 +1166,455 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
   </div>
   </details>
 </nav>
-</main>
+<section class="item item--section" id="sec-internal-cli-export-csv-go" data-anchor="sec-internal-cli-export-csv-go">
+<details open>
+<summary class="item__head"><h2 class="item__title">internal/cli/export/csv.go</h2><a class="anchor" href="#sec-internal-cli-export-csv-go" aria-label="Link to this section">#</a></summary>
+<article class="req req--child" id="IMP-export-newCsvCmd-b7e44bd" data-id="IMP-export-newCsvCmd-b7e44bd" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-newCsvCmd-b7e44bd</code> <span class="req__name">newCsvCmd</span></h3>
+<a class="anchor" href="#IMP-export-newCsvCmd-b7e44bd" aria-label="Link to IMP-export-newCsvCmd-b7e44bd">#</a>
+</header>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/csv.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>17</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+</details>
+</section>
+<section class="item item--section" id="sec-internal-cli-export-export-go" data-anchor="sec-internal-cli-export-export-go">
+<details open>
+<summary class="item__head"><h2 class="item__title">internal/cli/export/export.go</h2><a class="anchor" href="#sec-internal-cli-export-export-go" aria-label="Link to this section">#</a></summary>
+<article class="req req--child" id="IMP-export-NewExportCmd-44591a9" data-id="IMP-export-NewExportCmd-44591a9" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-NewExportCmd-44591a9</code> <span class="req__name">NewExportCmd</span></h3>
+<a class="anchor" href="#IMP-export-NewExportCmd-44591a9" aria-label="Link to IMP-export-NewExportCmd-44591a9">#</a>
+</header>
+<div class="req__body prose">
+<p>NewExportCmd builds the <code>reqmd export</code> command with its subcommands.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/export.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>10</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+</details>
+</section>
+<section class="item item--section" id="sec-internal-cli-export-graph-go" data-anchor="sec-internal-cli-export-graph-go">
+<details open>
+<summary class="item__head"><h2 class="item__title">internal/cli/export/graph.go</h2><a class="anchor" href="#sec-internal-cli-export-graph-go" aria-label="Link to this section">#</a></summary>
+<article class="req req--child" id="IMP-export-newGraphCmd-34aaec5" data-id="IMP-export-newGraphCmd-34aaec5" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-newGraphCmd-34aaec5</code> <span class="req__name">newGraphCmd</span></h3>
+<a class="anchor" href="#IMP-export-newGraphCmd-34aaec5" aria-label="Link to IMP-export-newGraphCmd-34aaec5">#</a>
+</header>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/graph.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>17</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+</details>
+</section>
+<section class="item item--section" id="sec-internal-cli-export-html-go" data-anchor="sec-internal-cli-export-html-go">
+<details open>
+<summary class="item__head"><h2 class="item__title">internal/cli/export/html.go</h2><a class="anchor" href="#sec-internal-cli-export-html-go" aria-label="Link to this section">#</a></summary>
+<article class="req req--child" id="IMP-export-outputDirPerm-499f0e1" data-id="IMP-export-outputDirPerm-499f0e1" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-outputDirPerm-499f0e1</code> <span class="req__name">outputDirPerm</span></h3>
+<a class="anchor" href="#IMP-export-outputDirPerm-499f0e1" aria-label="Link to IMP-export-outputDirPerm-499f0e1">#</a>
+</header>
+<div class="req__body prose">
+<p>outputDirPerm keeps output directories readable by the exporting user's
+group, following the CLI's 0750 convention.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>23</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-newHTMLCmd-d5201e8" data-id="IMP-export-newHTMLCmd-d5201e8" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-newHTMLCmd-d5201e8</code> <span class="req__name">newHTMLCmd</span></h3>
+<a class="anchor" href="#IMP-export-newHTMLCmd-d5201e8" aria-label="Link to IMP-export-newHTMLCmd-d5201e8">#</a>
+</header>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>25</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-runExportHTML-0d522f9" data-id="IMP-export-runExportHTML-0d522f9" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-runExportHTML-0d522f9</code> <span class="req__name">runExportHTML</span></h3>
+<a class="anchor" href="#IMP-export-runExportHTML-0d522f9" aria-label="Link to IMP-export-runExportHTML-0d522f9">#</a>
+</header>
+<div class="req__body prose">
+<p>runExportHTML writes one page per document plus the project home.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>50</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-discoverHTMLDocs-d84b278" data-id="IMP-export-discoverHTMLDocs-d84b278" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-discoverHTMLDocs-d84b278</code> <span class="req__name">discoverHTMLDocs</span></h3>
+<a class="anchor" href="#IMP-export-discoverHTMLDocs-d84b278" aria-label="Link to IMP-export-discoverHTMLDocs-d84b278">#</a>
+</header>
+<div class="req__body prose">
+<p>discoverHTMLDocs parses the tree and, when a filter is active, returns the
+matching requirement IDs for graph scoping plus the pruned export set. The
+graph is still built from the full docs so trace links resolve.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>79</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-analyzeHTMLGraph-e1968e2" data-id="IMP-export-analyzeHTMLGraph-e1968e2" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-analyzeHTMLGraph-e1968e2</code> <span class="req__name">analyzeHTMLGraph</span></h3>
+<a class="anchor" href="#IMP-export-analyzeHTMLGraph-e1968e2" aria-label="Link to IMP-export-analyzeHTMLGraph-e1968e2">#</a>
+</header>
+<div class="req__body prose">
+<p>analyzeHTMLGraph builds the trace graph and adapts it into the presentation
+analysis every HTML view renders from. Ephemeral verification results are
+synthesized into pseudo-requirements before the graph is built.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>104</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-htmlOutput-19b55b1" data-id="IMP-export-htmlOutput-19b55b1" data-status="approved" data-coverage="covered">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-htmlOutput-19b55b1</code> <span class="req__name">htmlOutput</span></h3>
+<a class="anchor" href="#IMP-export-htmlOutput-19b55b1" aria-label="Link to IMP-export-htmlOutput-19b55b1">#</a>
+</header>
+<div class="req__body prose">
+<p>htmlOutput resolves output paths once for a document set and writes the
+document pages and the project home.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>125</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>type</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<div class="req__children">
+<article class="req req--child" id="IMP-export-resolveFor-2baaf0e" data-id="IMP-export-resolveFor-2baaf0e" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h4 class="req__title"><code class="req__id">IMP-export-resolveFor-2baaf0e</code> <span class="req__name">resolveFor</span></h4>
+<a class="anchor" href="#IMP-export-resolveFor-2baaf0e" aria-label="Link to IMP-export-resolveFor-2baaf0e">#</a>
+</header>
+<div class="req__body prose">
+<p>resolveFor maps a requirement ID to an href relative to current's
+directory, so trace links work in both output layouts.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>165</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>method</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-writeDocumentPages-589104f" data-id="IMP-export-writeDocumentPages-589104f" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h4 class="req__title"><code class="req__id">IMP-export-writeDocumentPages-589104f</code> <span class="req__name">writeDocumentPages</span></h4>
+<a class="anchor" href="#IMP-export-writeDocumentPages-589104f" aria-label="Link to IMP-export-writeDocumentPages-589104f">#</a>
+</header>
+<div class="req__body prose">
+<p>writeDocumentPages renders every exported document page, one worker per CPU
+when there is more than one document. All of the expensive work (render data,
+page model, body Markdown, the embedded view model JSON) is per document,
+while the analysis, render context, boundaries and output maps are read-only
+after construction, so they are shared. Each worker keeps its own
+exporter.HTML, which carries the per-page state (boundary, document chain,
+link resolver).</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>186</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>method</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-writeDocumentPage-c42d086" data-id="IMP-export-writeDocumentPage-c42d086" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h4 class="req__title"><code class="req__id">IMP-export-writeDocumentPage-c42d086</code> <span class="req__name">writeDocumentPage</span></h4>
+<a class="anchor" href="#IMP-export-writeDocumentPage-c42d086" aria-label="Link to IMP-export-writeDocumentPage-c42d086">#</a>
+</header>
+<div class="req__body prose">
+<p>writeDocumentPage renders one document page, wiring its boundary badge,
+document chain, and per-page trace link resolver. It returns the output path
+so the caller can report it in document order.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>238</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>method</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-writeProjectIndex-65ab62f" data-id="IMP-export-writeProjectIndex-65ab62f" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h4 class="req__title"><code class="req__id">IMP-export-writeProjectIndex-65ab62f</code> <span class="req__name">writeProjectIndex</span></h4>
+<a class="anchor" href="#IMP-export-writeProjectIndex-65ab62f" aria-label="Link to IMP-export-writeProjectIndex-65ab62f">#</a>
+</header>
+<div class="req__body prose">
+<p>writeProjectIndex writes the project home page.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>257</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>method</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+</div>
+<article class="req req--child" id="IMP-export-newHTMLOutput-781a8ad" data-id="IMP-export-newHTMLOutput-781a8ad" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-newHTMLOutput-781a8ad</code> <span class="req__name">newHTMLOutput</span></h3>
+<a class="anchor" href="#IMP-export-newHTMLOutput-781a8ad" aria-label="Link to IMP-export-newHTMLOutput-781a8ad">#</a>
+</header>
+<div class="req__body prose">
+<p>newHTMLOutput computes the output layout: flat files in outputDir when set,
+otherwise one page inside each document directory.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>137</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-writeHTMLFile-7e55c53" data-id="IMP-export-writeHTMLFile-7e55c53" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-writeHTMLFile-7e55c53</code> <span class="req__name">writeHTMLFile</span></h3>
+<a class="anchor" href="#IMP-export-writeHTMLFile-7e55c53" aria-label="Link to IMP-export-writeHTMLFile-7e55c53">#</a>
+</header>
+<div class="req__body prose">
+<p>writeHTMLFile creates path, runs write, and reports both the write and close
+error so a truncated export is never reported as written.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/html.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>279</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+</details>
+</section>
+<section class="item item--section" id="sec-internal-cli-export-json-go" data-anchor="sec-internal-cli-export-json-go">
+<details open>
+<summary class="item__head"><h2 class="item__title">internal/cli/export/json.go</h2><a class="anchor" href="#sec-internal-cli-export-json-go" aria-label="Link to this section">#</a></summary>
+<article class="req req--child" id="IMP-export-tableFindings-91b72c1" data-id="IMP-export-tableFindings-91b72c1" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-tableFindings-91b72c1</code> <span class="req__name">tableFindings</span></h3>
+<a class="anchor" href="#IMP-export-tableFindings-91b72c1" aria-label="Link to IMP-export-tableFindings-91b72c1">#</a>
+</header>
+<div class="req__body prose">
+<p>jsonTable names the four NDJSON files written by <code>export json</code>.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>19</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-tableRequirements-0aa7d47" data-id="IMP-export-tableRequirements-0aa7d47" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-tableRequirements-0aa7d47</code> <span class="req__name">tableRequirements</span></h3>
+<a class="anchor" href="#IMP-export-tableRequirements-0aa7d47" aria-label="Link to IMP-export-tableRequirements-0aa7d47">#</a>
+</header>
+<div class="req__body prose">
+<p>jsonTable names the four NDJSON files written by <code>export json</code>.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>19</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-tableResults-a3efb1b" data-id="IMP-export-tableResults-a3efb1b" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-tableResults-a3efb1b</code> <span class="req__name">tableResults</span></h3>
+<a class="anchor" href="#IMP-export-tableResults-a3efb1b" aria-label="Link to IMP-export-tableResults-a3efb1b">#</a>
+</header>
+<div class="req__body prose">
+<p>jsonTable names the four NDJSON files written by <code>export json</code>.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>19</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-tableTraces-ff7b141" data-id="IMP-export-tableTraces-ff7b141" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-tableTraces-ff7b141</code> <span class="req__name">tableTraces</span></h3>
+<a class="anchor" href="#IMP-export-tableTraces-ff7b141" aria-label="Link to IMP-export-tableTraces-ff7b141">#</a>
+</header>
+<div class="req__body prose">
+<p>jsonTable names the four NDJSON files written by <code>export json</code>.</p>
+
+</div>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>19</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>const</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+<article class="req req--child" id="IMP-export-newJSONCmd-bb9f639" data-id="IMP-export-newJSONCmd-bb9f639" data-status="approved" data-coverage="not-required">
+<header class="req__head">
+<h3 class="req__title"><code class="req__id">IMP-export-newJSONCmd-bb9f639</code> <span class="req__name">newJSONCmd</span></h3>
+<a class="anchor" href="#IMP-export-newJSONCmd-bb9f639" aria-label="Link to IMP-export-newJSONCmd-bb9f639">#</a>
+</header>
+<details class="req__detail"><summary class="req__detail-toggle">Details<span class="req__detail-meta">5 attributes</span></summary>
+<div class="req__detail-body">
+<dl class="attrs">
+<div class="attrs__row" data-attr="x-reqmd.imported"><dt>X Reqmd.imported</dt><dd>true</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-file"><dt>X Reqmd.source File</dt><dd>internal/cli/export/json.go</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.source-line"><dt>X Reqmd.source Line</dt><dd>26</dd></div>
+<div class="attrs__row" data-attr="x-reqmd.symbol-kind"><dt>X Reqmd.symbol Kind</dt><dd>function</dd></div>
+<div class="attrs__row" data-attr="status"><dt>Status</dt><dd>approved</dd></div>
+</dl>
+</div>
+</details>
+</article>
+</details>
+</section>
+</div>
 </section>
 <section class="view" data-view-panel="table" hidden></section>
 <section class="view" data-view-panel="trace" hidden></section>
@@ -1347,7 +1648,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         <div><dt><kbd>g</kbd><kbd>t</kbd></dt><dd>Table view</dd></div>
         <div><dt><kbd>g</kbd><kbd>r</kbd></dt><dd>Trace explorer</dd></div>
         <div><dt><kbd>g</kbd><kbd>c</kbd></dt><dd>Coverage view</dd></div>
-        <div><dt><kbd>f</kbd></dt><dd>Toggle density</dd></div>
         <div><dt><kbd>t</kbd></dt><dd>Toggle theme</dd></div>
         <div><dt><kbd>?</kbd></dt><dd>This help</dd></div>
         <div><dt><kbd>esc</kbd></dt><dd>Close overlays</dd></div>
@@ -1356,7 +1656,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     </div>
   </div>
 </div>
-<script type="application/json" id="req-model">{"doc":{"title":"Package: export","dir":"spec/03-software/imported/export","level":"imported-requirements"},"filters":{"x-reqmd.source-file":["internal/cli/export/csv.go","internal/cli/export/export.go","internal/cli/export/graph.go","internal/cli/export/html.go","internal/cli/export/json.go"],"x-reqmd.source-line":["10","106","140","152","17","180","19","195","209","21","23","232","254","26","48","77"],"x-reqmd.symbol-kind":["const","function","method","type"]},"defaultStatus":"approved","statusEnabled":true,"hasResults":false,"attributeColumns":["x-reqmd.imported","x-reqmd.source-file","x-reqmd.source-line","x-reqmd.symbol-kind"],"nodes":[{"id":"item-1","type":"info"},{"id":"IMP-export-newCsvCmd-b7e44bd","title":"newCsvCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/csv.go","x-reqmd.source-line":17,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"},{"id":"IMP-export-NewExportCmd-44591a9","title":"NewExportCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/export.go","x-reqmd.source-line":10,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"},{"id":"IMP-export-newGraphCmd-34aaec5","title":"newGraphCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/graph.go","x-reqmd.source-line":17,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"},{"id":"IMP-export-outputDirPerm-499f0e1","title":"outputDirPerm","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":21,"x-reqmd.symbol-kind":"const"},"coverage":"missing-coverage"},{"id":"IMP-export-newHTMLCmd-d5201e8","title":"newHTMLCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":23,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"},{"id":"IMP-export-runExportHTML-0d522f9","title":"runExportHTML","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":48,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"},{"id":"IMP-export-discoverHTMLDocs-d84b278","title":"discoverHTMLDocs","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":77,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"},{"id":"IMP-export-analyzeHTMLGraph-e1968e2","title":"analyzeHTMLGraph","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":106,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"},{"id":"IMP-export-htmlOutput-19b55b1","title":"htmlOutput","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":140,"x-reqmd.symbol-kind":"type"},"coverage":"covered"},{"id":"IMP-export-resolveFor-2baaf0e","title":"resolveFor","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":180,"x-reqmd.symbol-kind":"method"},"coverage":"not-required"},{"id":"IMP-export-writeDocumentPages-589104f","title":"writeDocumentPages","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":195,"x-reqmd.symbol-kind":"method"},"coverage":"not-required"},{"id":"IMP-export-writeDocumentPage-c42d086","title":"writeDocumentPage","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":209,"x-reqmd.symbol-kind":"method"},"coverage":"not-required"},{"id":"IMP-export-writeProjectIndex-65ab62f","title":"writeProjectIndex","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":232,"x-reqmd.symbol-kind":"method"},"coverage":"not-required"},{"id":"IMP-export-newHTMLOutput-781a8ad","title":"newHTMLOutput","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":152,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"},{"id":"IMP-export-writeHTMLFile-7e55c53","title":"writeHTMLFile","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":254,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"},{"id":"IMP-export-tableFindings-91b72c1","title":"tableFindings","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":19,"x-reqmd.symbol-kind":"const"},"coverage":"missing-coverage"},{"id":"IMP-export-tableRequirements-0aa7d47","title":"tableRequirements","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":19,"x-reqmd.symbol-kind":"const"},"coverage":"missing-coverage"},{"id":"IMP-export-tableResults-a3efb1b","title":"tableResults","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":19,"x-reqmd.symbol-kind":"const"},"coverage":"missing-coverage"},{"id":"IMP-export-tableTraces-ff7b141","title":"tableTraces","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":19,"x-reqmd.symbol-kind":"const"},"coverage":"missing-coverage"},{"id":"IMP-export-newJSONCmd-bb9f639","title":"newJSONCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":26,"x-reqmd.symbol-kind":"function"},"coverage":"missing-coverage"}]}</script>
+<script type="application/json" id="req-model">{"doc":{"title":"Package: export","dir":"spec/03-software/imported/export","documentId":"export","level":"imported-requirements"},"filters":{"x-reqmd.source-file":["internal/cli/export/csv.go","internal/cli/export/export.go","internal/cli/export/graph.go","internal/cli/export/html.go","internal/cli/export/json.go"],"x-reqmd.source-line":["10","104","125","137","165","17","186","19","23","238","25","257","26","279","50","79"],"x-reqmd.symbol-kind":["const","function","method","type"]},"defaultStatus":"approved","statusEnabled":true,"hasResults":false,"attributeColumns":["x-reqmd.imported","x-reqmd.source-file","x-reqmd.source-line","x-reqmd.symbol-kind"],"nodes":[{"id":"sec-internal-cli-export-csv-go","type":"section","title":"internal/cli/export/csv.go"},{"id":"IMP-export-newCsvCmd-b7e44bd","title":"newCsvCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/csv.go","x-reqmd.source-line":17,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"},{"id":"sec-internal-cli-export-export-go","type":"section","title":"internal/cli/export/export.go"},{"id":"IMP-export-NewExportCmd-44591a9","title":"NewExportCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/export.go","x-reqmd.source-line":10,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"},{"id":"sec-internal-cli-export-graph-go","type":"section","title":"internal/cli/export/graph.go"},{"id":"IMP-export-newGraphCmd-34aaec5","title":"newGraphCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/graph.go","x-reqmd.source-line":17,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"},{"id":"sec-internal-cli-export-html-go","type":"section","title":"internal/cli/export/html.go"},{"id":"IMP-export-outputDirPerm-499f0e1","title":"outputDirPerm","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":23,"x-reqmd.symbol-kind":"const"},"coverage":"not-required"},{"id":"IMP-export-newHTMLCmd-d5201e8","title":"newHTMLCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":25,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"},{"id":"IMP-export-runExportHTML-0d522f9","title":"runExportHTML","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":50,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"},{"id":"IMP-export-discoverHTMLDocs-d84b278","title":"discoverHTMLDocs","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":79,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"},{"id":"IMP-export-analyzeHTMLGraph-e1968e2","title":"analyzeHTMLGraph","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":104,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"},{"id":"IMP-export-htmlOutput-19b55b1","title":"htmlOutput","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":125,"x-reqmd.symbol-kind":"type"},"coverage":"covered"},{"id":"IMP-export-resolveFor-2baaf0e","title":"resolveFor","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":165,"x-reqmd.symbol-kind":"method"},"coverage":"not-required"},{"id":"IMP-export-writeDocumentPages-589104f","title":"writeDocumentPages","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":186,"x-reqmd.symbol-kind":"method"},"coverage":"not-required"},{"id":"IMP-export-writeDocumentPage-c42d086","title":"writeDocumentPage","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":238,"x-reqmd.symbol-kind":"method"},"coverage":"not-required"},{"id":"IMP-export-writeProjectIndex-65ab62f","title":"writeProjectIndex","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":257,"x-reqmd.symbol-kind":"method"},"coverage":"not-required"},{"id":"IMP-export-newHTMLOutput-781a8ad","title":"newHTMLOutput","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":137,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"},{"id":"IMP-export-writeHTMLFile-7e55c53","title":"writeHTMLFile","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/html.go","x-reqmd.source-line":279,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"},{"id":"sec-internal-cli-export-json-go","type":"section","title":"internal/cli/export/json.go"},{"id":"IMP-export-tableFindings-91b72c1","title":"tableFindings","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":19,"x-reqmd.symbol-kind":"const"},"coverage":"not-required"},{"id":"IMP-export-tableRequirements-0aa7d47","title":"tableRequirements","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":19,"x-reqmd.symbol-kind":"const"},"coverage":"not-required"},{"id":"IMP-export-tableResults-a3efb1b","title":"tableResults","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":19,"x-reqmd.symbol-kind":"const"},"coverage":"not-required"},{"id":"IMP-export-tableTraces-ff7b141","title":"tableTraces","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":19,"x-reqmd.symbol-kind":"const"},"coverage":"not-required"},{"id":"IMP-export-newJSONCmd-bb9f639","title":"newJSONCmd","attrs":{"status":"approved","x-reqmd.imported":true,"x-reqmd.source-file":"internal/cli/export/json.go","x-reqmd.source-line":26,"x-reqmd.symbol-kind":"function"},"coverage":"not-required"}]}</script>
 <script>
 
 // reqmd HTML export client.
@@ -1380,7 +1680,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
   function readJSON(id) {
     var el = document.getElementById(id);
     if (!el) return null;
-    try { return JSON.parse(el.textContent); } catch (e) { return null; }
+    try { return JSON.parse(el.textContent); } catch { return null; }
   }
 
   function el(tag, props, children) {
@@ -1454,7 +1754,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     if (pairs.length) pairs.forEach(function (pair) { p.append('f', pair); });
     else if (s.explicitFilters) p.set('f', '');
     if (s.view && s.view !== 'document') p.set('view', s.view);
-    if (s.density === 'compact') p.set('density', 'compact');
     if (s.view === 'trace' && s.selected) p.set('req', s.selected);
     return p.toString();
   }
@@ -1466,7 +1765,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       filters: {},
       explicitFilters: false,
       view: 'document',
-      density: 'comfortable',
       selected: p.get('req') || null
     };
     if (p.has('f')) {
@@ -1475,7 +1773,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     }
     var view = p.get('view');
     if (['document', 'table', 'trace', 'coverage'].indexOf(view) !== -1) out.view = view;
-    if (p.get('density') === 'compact') out.density = 'compact';
     return out;
   }
 
@@ -1504,6 +1801,105 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
   }
 
   // ── theme ──
+  // Mermaid replaces each <pre class="mermaid"> with an <svg>, so the diagram
+  // source has to be stashed before that happens. The Mermaid script is
+  // emitted before this one in document order, so its DOMContentLoaded
+  // listener runs first — the stash must be here, at top level.
+  Array.prototype.forEach.call(document.querySelectorAll('pre.mermaid'), function (p) {
+    p.setAttribute('data-src', p.textContent);
+  });
+
+  // ── diagram enlargement ──
+  // Mermaid swaps the stashed source for an <svg> asynchronously after load,
+  // and again on every theme change. A child-list observer is the hook: no
+  // timer, and the affordance appears only once a diagram has rendered.
+  var LIGHTBOX_SUFFIX = '-lb';
+  // Set by the document page, which owns the overlay stack.
+  var openDiagramLightbox = null;
+
+  function reEscape(s) { return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+
+  // A clone keeps every id, and Mermaid ids are page-global: an unsuffixed
+  // second copy would steal url(#id) references from the original. Ids get a
+  // suffix and references to them are rewritten by walking the DOM — a regex
+  // over outerHTML would also rewrite diagram label text that looks like a ref.
+  function cloneDiagram(svg) {
+    var clone = svg.cloneNode(true);
+    var ids = {};
+    [clone].concat(Array.prototype.slice.call(clone.querySelectorAll('[id]'))).forEach(function (node) {
+      var id = node.getAttribute('id');
+      ids[id] = true;
+      node.setAttribute('id', id + LIGHTBOX_SUFFIX);
+    });
+    var names = Object.keys(ids).sort(function (a, b) { return b.length - a.length; });
+    if (!names.length) return clone;
+    // Longest id first so `a` cannot match inside `a1`.
+    var idsPattern = names.map(reEscape).join('|');
+    var inRef = new RegExp('#(' + idsPattern + ')', 'g');
+    // Bare ids in attribute lists such as aria-labelledby.
+    var bareRef = new RegExp('(^|\\s)(' + idsPattern + ')(?=\\s|$)', 'g');
+    // Mermaid's own stylesheet addresses nodes by class (`.nodeId`) as well as
+    // by id, so class selectors inside the clone need the same suffix.
+    var classRef = new RegExp('\\.(' + idsPattern + ')(?![\\w-])', 'g');
+    function rewrite(value) {
+      return value.replace(inRef, '#$1' + LIGHTBOX_SUFFIX).replace(bareRef, '$1$2' + LIGHTBOX_SUFFIX);
+    }
+    [clone].concat(Array.prototype.slice.call(clone.querySelectorAll('*'))).forEach(function (node) {
+      Array.prototype.forEach.call(node.attributes, function (a) {
+        node.setAttribute(a.name, rewrite(a.value));
+      });
+      if (node.tagName.toLowerCase() === 'style') {
+        node.textContent = rewrite(node.textContent).replace(classRef, '.$1' + LIGHTBOX_SUFFIX);
+      }
+    });
+    return clone;
+  }
+
+  function wireDiagram(p) {
+    if (p.hasAttribute('data-lightbox') || !p.querySelector('svg')) return;
+    p.setAttribute('data-lightbox', '');
+    p.setAttribute('role', 'button');
+    p.setAttribute('tabindex', '0');
+    p.setAttribute('aria-label', 'Enlarge diagram');
+    function open(e) {
+      var svg = p.querySelector('svg');
+      if (!openDiagramLightbox || !svg) return;
+      e.preventDefault();
+      openDiagramLightbox(svg);
+    }
+    p.addEventListener('click', open);
+    p.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') open(e);
+    });
+  }
+
+  function setupDiagrams() {
+    var containers = document.querySelectorAll('pre.mermaid');
+    if (!containers.length) return;
+    var watch = new MutationObserver(function () {
+      Array.prototype.forEach.call(document.querySelectorAll('pre.mermaid'), wireDiagram);
+    });
+    Array.prototype.forEach.call(containers, function (p) {
+      watch.observe(p, { childList: true });
+      wireDiagram(p);
+    });
+  }
+
+  // Re-render the diagrams in the new palette. Restoring the source text and
+  // clearing data-processed before mermaid.run() makes a light→dark→light
+  // round trip replace the SVG instead of nesting a second one.
+  function renderDiagrams(dark) {
+    if (!window.mermaid) return;
+    var nodes = Array.prototype.slice.call(document.querySelectorAll('pre.mermaid[data-src]'));
+    if (!nodes.length) return;
+    mermaid.initialize({ startOnLoad: false, theme: dark ? 'dark' : 'default' });
+    nodes.forEach(function (p) {
+      p.removeAttribute('data-processed');
+      p.textContent = p.getAttribute('data-src');
+    });
+    mermaid.run({ nodes: nodes });
+  }
+
   function setupTheme() {
     var buttons = document.querySelectorAll('[data-action="theme"]');
     function apply() {
@@ -1517,8 +1913,9 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       b.addEventListener('click', function () {
         var dark = !document.documentElement.classList.contains('dark');
         document.documentElement.classList.toggle('dark', dark);
-        try { localStorage.setItem('reqmd-theme', dark ? 'dark' : 'light'); } catch (e) { /* private mode */ }
+        try { localStorage.setItem('reqmd-theme', dark ? 'dark' : 'light'); } catch { /* private mode */ }
         apply();
+        renderDiagrams(dark);
       });
     });
     apply();
@@ -1544,14 +1941,15 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     var nodes = model.nodes || [];
     var byId = {};
     var reqNodes = [];
+    var sectionNodes = [];
     nodes.forEach(function (n) {
       byId[n.id] = n;
       if (!n.type) reqNodes.push(n);
+      else if (n.type === 'section' && n.title) sectionNodes.push(n);
     });
 
     var state = {
       view: 'document',
-      density: 'comfortable',
       query: '',
       filters: {},
       explicitFilters: false,
@@ -1581,15 +1979,44 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     var searchEl = document.querySelector('[data-search]');
     var chipsEl = document.querySelector('[data-active-filters]');
     var filtersEl = document.querySelector('[data-filters]');
+    // The lightbox only ever hosts a clone of a rendered Mermaid <svg>, so it is
+    // built here instead of being server-rendered like the other overlays.
+    var lightboxWell = el('div', { className: 'lightbox__well' });
+    function buildLightbox() {
+      var overlay = el('div', {
+        className: 'overlay', id: 'lightbox', role: 'dialog',
+        'aria-modal': 'true', 'aria-label': 'Diagram', hidden: true
+      }, [
+        el('div', { className: 'overlay__backdrop', 'data-action': 'close-overlays' }),
+        el('div', { className: 'overlay__panel overlay__panel--lightbox' }, [
+          el('button', {
+            type: 'button', className: 'icon-btn', 'data-action': 'close-overlays',
+            'aria-label': 'Close diagram', text: '\u00d7'
+          }),
+          lightboxWell
+        ])
+      ]);
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
     var overlays = {
       palette: document.getElementById('palette'),
-      shortcuts: document.getElementById('shortcuts')
+      shortcuts: document.getElementById('shortcuts'),
+      lightbox: buildLightbox()
     };
     var paletteInput = document.querySelector('[data-palette-input]');
     var paletteList = document.querySelector('[data-palette-list]');
     var paletteEmpty = document.querySelector('[data-palette-empty]');
     var paletteIndex = 0;
     var lastFocus = null;
+
+    // Diagrams are wired in setupDiagrams; the original stays in the page.
+    openDiagramLightbox = function (svg) {
+      clear(lightboxWell);
+      lightboxWell.appendChild(cloneDiagram(svg));
+      openOverlay('lightbox');
+    };
 
     if (filtersEl && filtersEl.getAttribute('data-default-status')) {
       state.defaultStatus = filtersEl.getAttribute('data-default-status');
@@ -1695,21 +2122,20 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       var qs = encodeUrlState(state);
       try {
         history.replaceState(null, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
-      } catch (e) { /* file:// or sandboxed */ }
+      } catch { /* file:// or sandboxed */ }
     }
 
     function restoreState() {
       var decoded;
       try {
         decoded = decodeUrlState(location.search);
-      } catch (e) {
+      } catch {
         return;
       }
       state.query = decoded.query;
       state.filters = decoded.filters;
       state.explicitFilters = decoded.explicitFilters;
       state.view = decoded.view;
-      state.density = decoded.density;
       if (decoded.selected) state.selected = decoded.selected;
       if (searchEl) searchEl.value = state.query;
       if (!state.explicitFilters && state.defaultStatus && model.filters &&
@@ -1813,18 +2239,20 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       var items = document.querySelectorAll('[data-toc-for]');
       function visibleFor(item) {
         var id = item.getAttribute('data-toc-for');
-        if (byId[id] && !byId[id].type) return visibleSet.has(id);
         var nested = item.querySelectorAll('[data-toc-for]');
         var hasRequirements = false;
+        var descendantVisible = false;
         for (var i = 0; i < nested.length; i++) {
           var nid = nested[i].getAttribute('data-toc-for');
           if (byId[nid] && !byId[nid].type) {
             hasRequirements = true;
-            if (visibleSet.has(nid)) return true;
+            if (visibleSet.has(nid)) { descendantVisible = true; break; }
           }
         }
-        // Leaf items (prose blocks) are structural: always visible.
-        return !hasRequirements;
+        if (byId[id] && !byId[id].type) return visibleSet.has(id) || descendantVisible;
+        // Section/prose items follow their requirements; leaf prose blocks are
+        // structural and always visible.
+        return descendantVisible || !hasRequirements;
       }
       Array.prototype.forEach.call(items, function (item) {
         item.classList.toggle('is-filtered-out', !visibleFor(item));
@@ -2004,7 +2432,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         el('h2', { text: 'Table' }),
         el('p', { className: 'view-sub', text: 'Sort by any column, choose columns, expand a row for body and evidence.' + (model.hasResults ? '' : ' No verification results are loaded, so every verdict shows as a dash.') })
       ]);
-      var chooser = buildColumnChooser(defs);
+      var chooser = buildColumnChooser();
       var toolbar = el('div', { className: 'view-tools' }, [chooser]);
       tablePanel.appendChild(head);
       tablePanel.appendChild(toolbar);
@@ -2083,7 +2511,12 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     function stateBadge(kind, value) {
       if (!value) return el('span', { className: 'muted', text: '—' });
       var label = kind === 'coverage' ? (COVERAGE_LABELS[value] || value) : value;
-      return el('span', { className: 'chip chip--' + value, text: label });
+      // Keep the server-rendered chip vocabulary: coverage problems use the
+      // chip--coverage-missing spelling so one CSS rule styles both views.
+      var cls = 'chip chip--' + value;
+      if (kind === 'status') cls = 'chip chip--status';
+      if (kind === 'coverage' && value === 'missing-coverage') cls += ' chip--coverage-missing';
+      return el('span', { className: cls, text: label });
     }
 
     function compareRows(a, b, sort) {
@@ -2102,7 +2535,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       return sort.dir === 'asc' ? cmp : -cmp;
     }
 
-    function buildColumnChooser(visibleDefs) {
+    function buildColumnChooser() {
       var wrap = el('details', { className: 'columns' }, [el('summary', { className: 'columns__toggle', text: 'Columns' })]);
       var menu = el('div', { className: 'columns__menu' });
       columnDefs().forEach(function (d) {
@@ -2128,7 +2561,13 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         var body = card.querySelector('.req__body');
         if (body) td.appendChild(body.cloneNode(true));
         var detail = card.querySelector('.req__detail');
-        if (detail) td.appendChild(detail.cloneNode(true));
+        if (detail) {
+          var clone = detail.cloneNode(true);
+          // The row is already expanded: a nested collapsed disclosure would
+          // force a second click to see the attributes the reader asked for.
+          clone.open = true;
+          td.appendChild(clone);
+        }
         var flags = card.querySelector('.req__flags');
         if (flags) td.appendChild(flags.cloneNode(true));
       } else {
@@ -2243,9 +2682,29 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       writeState();
     }
 
+    // safeHref rejects anything but a same-origin path or a web/mail scheme
+    // before it is used for navigation. Exported links are built from document
+    // paths, but a crafted spec can put "javascript:" in a path: the export is
+    // an untrusted static artifact, so the sink is guarded rather than trusted.
+    function safeHref(href) {
+      if (!href) return '';
+      var value = String(href).trim();
+      if (/^(?:https?:|mailto:|#|\/|\.\.?\/)/i.test(value)) return value;
+      if (value.indexOf(':') === -1) return value; // a bare relative path
+      return '';
+    }
+
+    // navigate follows a link only after safeHref has vetted it, and uses
+    // location.assign rather than assigning location.href: the export is an
+    // untrusted static artefact, so the sink is explicit and guarded.
+    function navigate(href) {
+      var target = safeHref(href);
+      if (target) location.assign(target);
+    }
+
     function selectNode(id, href) {
       if (!byId[id]) {
-        if (href) location.href = href;
+        navigate(href);
         return;
       }
       if (state.selected && state.selected !== id) state.trail.push(state.selected);
@@ -2279,7 +2738,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         var filteredOut = inDocument && !visibleSet.has(link.id);
         var tag = inDocument ? 'button' : 'a';
         var attrs = {
-          className: 'trace__node trace__node--external' + (filteredOut ? ' is-muted' : ''),
+          className: 'trace__node' + (inDocument ? '' : ' trace__node--external') + (filteredOut ? ' is-muted' : ''),
           'data-link-id': link.id,
           title: (dir === 'up' ? node.id + ' → ' + link.id : link.id + ' → ' + node.id)
         };
@@ -2322,8 +2781,11 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     }
 
     function traceBadges(node) {
+      var cov = node.coverage || '';
+      var covClass = 'chip chip--' + (cov || 'none');
+      if (cov === 'missing-coverage') covClass += ' chip--coverage-missing';
       var badges = [
-        el('span', { className: 'chip chip--' + (node.coverage || 'none'), text: COVERAGE_LABELS[node.coverage] || 'no coverage data' })
+        el('span', { className: covClass, text: COVERAGE_LABELS[cov] || 'no coverage data' })
       ];
       if (node.verdict) {
         badges.push(el('span', { className: 'chip chip--' + node.verdict, text: node.verdict }));
@@ -2611,6 +3073,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       if (!id) return;
       var target = document.getElementById(id);
       if (!target) return;
+      openAncestorDetails(target);
 
       var html = document.documentElement;
       var smooth = html.style.scrollBehavior;
@@ -2649,6 +3112,29 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     // jumpTo reveals a requirement without discarding the reviewer's context.
     // keepFilters keeps search and attribute filters; the target may be hidden
     // by them, in which case the filters are cleared as a last resort.
+    // focusSection scrolls to a section anchor and opens every collapsed
+    // <details> above it. Sections are not selectable requirements, so the
+    // selection is cleared instead of set.
+    function openAncestorDetails(el) {
+      var opener = el.parentElement;
+      while (opener) {
+        if (opener.tagName === 'DETAILS') opener.open = true;
+        opener = opener.parentElement;
+      }
+    }
+
+    function focusSection(anchor) {
+      var target = document.getElementById(anchor);
+      if (!target) return;
+      state.selected = null;
+      computeVisible();
+      openAncestorDetails(target);
+      if (target.scrollIntoView) target.scrollIntoView({ block: 'start', behavior: 'smooth' });
+      target.classList.add('is-flash');
+      setTimeout(function () { target.classList.remove('is-flash'); }, 1200);
+      if (location.hash !== '#' + anchor) history.replaceState(null, '', '#' + anchor);
+    }
+
     function jumpTo(id, keepFilters) {
       state.view = 'document';
       state.selected = id;
@@ -2669,10 +3155,11 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       setView('document');
       var target = document.getElementById(id);
       if (target) {
+        openAncestorDetails(target);
         window.scrollTo(0, Math.max(0, target.getBoundingClientRect().top + window.scrollY - stickyChromeHeight() - 8));
         target.classList.add('is-flash');
         setTimeout(function () { target.classList.remove('is-flash'); }, 1400);
-        try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch (err) { /* file:// */ }
+        try { history.replaceState(null, '', location.pathname + location.search + '#' + id); } catch { /* file:// */ }
       }
     }
 
@@ -2702,6 +3189,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       Object.keys(overlays).forEach(function (k) {
         if (overlays[k]) overlays[k].hidden = true;
       });
+      clear(lightboxWell);
       overlayOpen = null;
       document.body.classList.remove('overlay-open');
       if (lastFocus && lastFocus.focus) lastFocus.focus();
@@ -2712,7 +3200,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       { key: 'view:table', glyph: '▦', label: 'View: Table', hint: 'dense sortable grid', run: function () { setView('table'); } },
       { key: 'view:trace', glyph: '⌘', label: 'View: Trace', hint: 'trace explorer', run: function () { setView('trace'); } },
       { key: 'view:coverage', glyph: '◔', label: 'View: Coverage', hint: 'coverage and verification', run: function () { setView('coverage'); } },
-      { key: 'toggle:density', glyph: '⇕', label: 'Toggle density', hint: 'comfortable / compact', run: function () { toggleDensity(); } },
       { key: 'filters:clear', glyph: '×', label: 'Clear search and filters', hint: 'reset the current view', run: function () {
         state.filters = {}; state.query = ''; state.explicitFilters = true; if (searchEl) searchEl.value = ''; apply();
       } },
@@ -2750,6 +3237,18 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         var node = hit.node;
         out.push({ key: 'req:' + node.id, glyph: '§', label: node.id, hint: node.title || '', reqId: node.id });
       });
+      // Sections are navigation targets only: they have no ID and are never
+      // counted, but a folder you cannot jump to is not navigable.
+      for (var j = 0; j < sectionNodes.length; j++) {
+        var sec = sectionNodes[j];
+        var secTitle = (sec.title || '').toLowerCase();
+        var secScore = -1;
+        if (secTitle === q || secTitle.indexOf(q) === 0) secScore = 3;
+        else if (secTitle.indexOf(q) !== -1) secScore = 4;
+        else if (fuzzy && fuzzyScore(sec.title, needle) >= 0) secScore = 5;
+        if (secScore < 0) continue;
+        out.push({ key: 'sec:' + sec.id, glyph: '#', label: sec.id, hint: sec.title || '', sectionAnchor: sec.id });
+      }
       return out.slice(0, 40);
     }
 
@@ -2950,12 +3449,17 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       var button = buttons[i];
       if (!button) return;
       var reqId = null;
+      var anchor = null;
+      var glyph = button.getAttribute('data-glyph');
       var label = button.getAttribute('data-label');
       var command = commands.filter(function (c) { return c.label === label; })[0];
-      if (button.getAttribute('data-glyph') === '§') reqId = label;
+      if (glyph === '§') reqId = label;
+      if (glyph === '#') anchor = label;
       closeOverlays();
       if (reqId) {
         jumpTo(reqId);
+      } else if (anchor) {
+        focusSection(anchor);
       } else if (command && typeof command.run === 'function') {
         command.run();
       }
@@ -2967,12 +3471,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       var current = paletteActive();
       if (current < 0) current = 0;
       setPaletteActive((current + delta + buttons.length) % buttons.length);
-    }
-
-    function toggleDensity() {
-      state.density = state.density === 'compact' ? 'comfortable' : 'compact';
-      document.body.classList.toggle('density-compact', state.density === 'compact');
-      writeState();
     }
 
     // ── wiring ──
@@ -2989,7 +3487,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
           trapFocus(overlays.palette.querySelector('.overlay__panel'), e);
           return;
         }
-        trapFocus(overlays.shortcuts.querySelector('.overlay__panel'), e);
+        trapFocus(overlays[overlayOpen].querySelector('.overlay__panel'), e);
         return;
       }
 
@@ -3001,7 +3499,10 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       // Ignore modified keys for single-letter shortcuts.
       if (e.metaKey || e.ctrlKey || e.altKey) return;
       if (typing) {
-        if (e.key === 'Escape' && t.blur) t.blur();
+        if (e.key === 'Escape') {
+          if (t.blur) t.blur();
+          closeMenus();
+        }
         return;
       }
 
@@ -3009,6 +3510,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
         if (document.body.classList.contains('toc-open')) {
           document.body.classList.remove('toc-open');
         }
+        closeMenus();
         return;
       }
       if (e.key === '/') {
@@ -3018,7 +3520,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       }
       if (e.key === '?') { e.preventDefault(); openOverlay('shortcuts'); return; }
       if (e.key === 't') { toggleThemeButton(); return; }
-      if (e.key === 'f') { toggleDensity(); return; }
       var now = Date.now();
       if (pendingG && now - pendingG < 900) {
         pendingG = 0;
@@ -3042,7 +3543,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       btn.addEventListener('click', function () {
         switch (action) {
           case 'palette': openOverlay('palette'); break;
-          case 'density': toggleDensity(); break;
           case 'toggle-toc': {
             var open = document.body.classList.toggle('toc-open');
             btn.setAttribute('aria-expanded', open ? 'true' : 'false');
@@ -3094,6 +3594,73 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       });
     });
 
+    // Filter and column menus are native <details>; a popover should also close
+    // when the reader clicks elsewhere or presses Escape.
+    function closeMenus() {
+      Array.prototype.forEach.call(document.querySelectorAll('details.filter[open], details.columns[open]'), function (d) {
+        d.removeAttribute('open');
+      });
+    }
+    document.addEventListener('click', function (e) {
+      if (e.target.closest && e.target.closest('details.filter, details.columns')) return;
+      closeMenus();
+    });
+
+    // ── outline width ──
+    // The outline defaults to 25% of the viewport and is one CSS variable.
+    // Drag the handle (or use the arrow keys) to set a fixed width; the value
+    // is remembered per export origin. Double-click clears it back to 25%.
+    var TOC_MIN = 200, TOC_MAX = 520;
+    function tocWidth() {
+      var el = document.querySelector('.toc');
+      return el ? Math.round(el.getBoundingClientRect().width) : 0;
+    }
+    function syncTocHandle(width) {
+      var handle = document.querySelector('[data-action="resize-toc"]');
+      if (handle) handle.setAttribute('aria-valuenow', String(width));
+    }
+    function setTocWidth(px) {
+      var w = Math.max(TOC_MIN, Math.min(TOC_MAX, Math.round(px)));
+      document.documentElement.style.setProperty('--toc-w', w + 'px');
+      syncTocHandle(w);
+      try { localStorage.setItem('reqmd-toc-w', String(w)); } catch { /* private mode */ }
+    }
+    function resetTocWidth() {
+      document.documentElement.style.removeProperty('--toc-w');
+      syncTocHandle(tocWidth());
+      try { localStorage.removeItem('reqmd-toc-w'); } catch { /* private mode */ }
+    }
+
+    function setupTocResizer() {
+      var handle = document.querySelector('[data-action="resize-toc"]');
+      if (!handle) return;
+      try {
+        var saved = parseInt(localStorage.getItem('reqmd-toc-w'), 10);
+        if (saved) setTocWidth(saved);
+        else syncTocHandle(tocWidth());
+      } catch { /* private mode */ }
+
+      handle.addEventListener('pointerdown', function (e) {
+        e.preventDefault();
+        handle.setPointerCapture(e.pointerId);
+        document.body.classList.add('toc-resizing');
+        function move(ev) { setTocWidth(ev.clientX); }
+        function stop() {
+          document.body.classList.remove('toc-resizing');
+          handle.removeEventListener('pointermove', move);
+          handle.removeEventListener('pointerup', stop);
+        }
+        handle.addEventListener('pointermove', move);
+        handle.addEventListener('pointerup', stop);
+      });
+      handle.addEventListener('dblclick', resetTocWidth);
+      handle.addEventListener('keydown', function (e) {
+        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+        e.preventDefault();
+        setTocWidth(tocWidth() + (e.key === 'ArrowRight' ? 16 : -16));
+      });
+    }
+
     if (paletteInput) {
       paletteInput.addEventListener('input', function () {
         paletteIndex = 0;
@@ -3103,7 +3670,6 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
 
     // ── init ──
     restoreState();
-    document.body.classList.toggle('density-compact', state.density === 'compact');
     setView(state.view);
 
     // A #REQ-ID deep link selects Document mode and reveals the target.
@@ -3114,6 +3680,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       }
     }
 
+    setupTocResizer();
     setupOutlineClicks();
     setupScrollSpy();
     apply();
@@ -3195,7 +3762,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
       catalog.addEventListener('click', function (e) {
         if (e.target.closest('a')) return;
         var row = e.target.closest('tr[data-href]');
-        if (row) location.href = row.getAttribute('data-href');
+        if (row) navigate(row.getAttribute('data-href'));
       });
     }
   }
@@ -3213,6 +3780,7 @@ body[data-view="trace"] .toc__link { cursor: pointer; }
     document.addEventListener('DOMContentLoaded', function () {
       setupTheme();
       setupModHints();
+      setupDiagrams();
       if (document.body.getAttribute('data-page') === 'project') initProjectPage();
       else initDocumentPage();
     });

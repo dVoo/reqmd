@@ -35,7 +35,7 @@ func (k Kind) String() string {
 
 // Node is a single content node in a parsed Markdown document. Every
 // heading becomes a node; a node is a requirement iff it has an adjacent
-// attr block. Prose and other blocks attach to the nearest open heading's
+// reqmd block. Prose and other blocks attach to the nearest open heading's
 // Body. Nodes form a tree via Children, preserving document order.
 type Node struct {
 	Attrs        map[string]any

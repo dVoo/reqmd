@@ -14,7 +14,7 @@ problem:
 
 Both are handled the same way: a small producer emits one JSON bundle in the
 [exchange format](/exchange/v1/), and a single renderer (`reqmd-import`) writes
-the actual reqmd documents. Nobody but the renderer writes `attr` blocks or
+the actual reqmd documents. Nobody but the renderer writes `reqmd` blocks or
 `schema.yaml`.
 
 ```mermaid

@@ -16,7 +16,7 @@ func NewRootCmd(version string) *cobra.Command {
 
 reqmd is a CLI tool for authoring, validating, and exporting
 requirement specifications stored in Markdown files with embedded
-attr blocks validated against JSON Schema (YAML-serialized).
+reqmd blocks validated against JSON Schema (YAML-serialized).
 
 Run "reqmd serve <dir>" for a live-reloading HTML preview, or
 "reqmd export html <dir>" to write standalone HTML pages.`,

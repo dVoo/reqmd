@@ -1,5 +1,5 @@
 // Command reqmd validates and exports requirement specifications stored in
-// Markdown files with embedded attr blocks.
+// Markdown files with embedded reqmd blocks.
 package main
 
 import (

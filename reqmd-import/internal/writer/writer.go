@@ -27,7 +27,7 @@ const GeneratedMarker = "<!-- reqmd: generated -->"
 // hand-authored content.
 const legacyMarker = "<!-- reqmd-code: generated -->"
 
-// Kind discriminates a rendered item. A requirement gets an attr block; a
+// Kind discriminates a rendered item. A requirement gets a reqmd block; a
 // section never does, which is the only difference reqmd cares about.
 const (
 	KindRequirement = "requirement"
@@ -35,7 +35,7 @@ const (
 )
 
 // Item is one resolved content item to render: its heading depth, its final
-// reqmd ID (requirements only), the trace refs, and the remaining attr-block
+// reqmd ID (requirements only), the trace refs, and the remaining reqmd-block
 // entries.
 type Item struct {
 	Fields map[string]any
@@ -48,9 +48,9 @@ type Item struct {
 	Depth  int
 }
 
-// IsRequirement reports whether the item renders an attr block. Only an
+// IsRequirement reports whether the item renders a reqmd block. Only an
 // explicit KindSection makes a section: the zero value is a requirement, so an
-// item built without a kind can never silently lose its attr block.
+// item built without a kind can never silently lose its reqmd block.
 func (i Item) IsRequirement() bool {
 	return i.Kind != KindSection
 }
@@ -160,7 +160,7 @@ func RenderItem(it Item) (string, error) {
 		}
 	}
 	if it.IsRequirement() {
-		b.WriteString("```attr\n")
+		b.WriteString("```reqmd\n")
 		if err := writeAttr(&b, it); err != nil {
 			return "", fmt.Errorf("requirement %s: %w", it.ID, err)
 		}
@@ -180,7 +180,7 @@ func RenderItem(it Item) (string, error) {
 	return b.String(), nil
 }
 
-// writeAttr writes the attr-block body: status first, then the remaining
+// writeAttr writes the reqmd-block body: status first, then the remaining
 // attributes in sorted key order (deterministic output), then the trace list.
 func writeAttr(b *strings.Builder, it Item) error {
 	if it.Status != "" {

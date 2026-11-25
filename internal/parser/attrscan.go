@@ -15,7 +15,7 @@ import (
 // result never depends on which path produced it.
 var errUnsupported = errors.New("attr scanner: unsupported syntax")
 
-// decodeAttrs parses the contents of an ```attr block into a map. It runs the
+// decodeAttrs parses the contents of an ```reqmd block into a map. It runs the
 // fast line scanner first and falls back to yaml.v3 for anything the scanner
 // cannot reproduce byte-for-byte (see errUnsupported).
 func decodeAttrs(src string) (map[string]any, error) {
@@ -30,16 +30,16 @@ func decodeAttrs(src string) (map[string]any, error) {
 	// keeps the result identical to a fresh nil map and allocates once.
 	m := make(map[string]any, 8)
 	if yamlErr := yaml.Unmarshal([]byte(src), &m); yamlErr != nil {
-		return nil, fmt.Errorf("parsing attr block as YAML: %w", yamlErr)
+		return nil, fmt.Errorf("parsing reqmd block as YAML: %w", yamlErr)
 	}
 	return m, nil
 }
 
 // decodeAttrYAML is the fast path: it parses a small flat YAML map (the
-// contents of an ```attr block) into map[string]any without building the
+// contents of an ```reqmd block) into map[string]any without building the
 // intermediate YAML document AST that yaml.v3 allocates.
 //
-// Supported syntax (covers all real-world attr blocks):
+// Supported syntax (covers all real-world reqmd blocks):
 //   - key: value          (scalar: string, int, bool)
 //   - key: "quoted value" (quoted string — quotes stripped)
 //   - key:                (list — following lines are "  - item")

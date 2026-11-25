@@ -10,7 +10,7 @@ A quick reference for every reqmd command and every `schema.yaml` option. Each c
 
 ### `reqmd check` — validate requirements and trace links
 
-The main command. Recursively finds all `schema.yaml` files under the given directory and validates every `.md` file with requirement `attr` blocks.
+The main command. Recursively finds all `schema.yaml` files under the given directory and validates every `.md` file with requirement `reqmd` blocks.
 
 ```sh
 reqmd check spec/                          # validate everything under spec/
@@ -206,7 +206,7 @@ Generated `requirements.md` (excerpt):
 
 ````text
 ## REQ-001
-```attr
+```reqmd
 status: draft
 owner: Team Alpha
 ```
@@ -488,7 +488,7 @@ reqmd repin spec/ --yes --promote-unpinned           # also pin refs with no ~N
 reqmd repin spec/ --json                             # machine-readable output
 ```
 
-Rewrites only the `attr` blocks; surrounding Markdown is preserved. Idempotent — a second run after the first reports no changes. Predated pins (pin > upstream version) are surfaced but never auto-fixed.
+Rewrites only the `reqmd` blocks; surrounding Markdown is preserved. Idempotent — a second run after the first reports no changes. Predated pins (pin > upstream version) are surfaced but never auto-fixed.
 
 {{< details summary="Example output" >}}
 Dry-run (default):
@@ -714,7 +714,7 @@ Everything else is an ordinary property you declare yourself — including
 
 ### Suppressing checks
 
-An `attr` block may carry `reqmd-suppress: [code, ...]`. The parser strips it
+An `reqmd` block may carry `reqmd-suppress: [code, ...]`. The parser strips it
 before schema validation (it is not a schema property) and the named checks
 report nothing for that requirement. The complete list of codes:
 
@@ -733,8 +733,8 @@ two kinds:
 
 | Type | Definition | Shown in |
 |------|-----------|----------|
-| `req` | heading followed by an `attr` block | cards, `ls`/CSV rows, all checks |
-| `section` | every other node: a heading without an `attr` block, or the headingless prose before the first heading | plain blocks in HTML, `section` rows in `ls`/CSV, TOC folders |
+| `req` | heading followed by a `reqmd` block | cards, `ls`/CSV rows, all checks |
+| `section` | every other node: a heading without a `reqmd` block, or the headingless prose before the first heading | plain blocks in HTML, `section` rows in `ls`/CSV, TOC folders |
 
 The `section` kind covers both a folder (it has children) and a leaf prose
 block; which one it renders as is derived from its children and never stored,
@@ -748,12 +748,12 @@ filtered out is dropped. `check` is requirement-scoped.
 
 ## The requirement format
 
-Each requirement is a heading, a YAML `attr` block in a fenced code block, and free-form prose. Any heading level works — the first requirement heading anchors the hierarchy, and deeper requirement headings nest under the nearest shallower requirement as sub-requirements:
+Each requirement is a heading, a fenced `reqmd` block of YAML, and free-form prose. Any heading level works — the first requirement heading anchors the hierarchy, and deeper requirement headings nest under the nearest shallower requirement as sub-requirements:
 
 ````text
 ## SYS-001  Temperature warning
 
-```attr
+```reqmd
 priority: High
 status: approved
 trace:
@@ -769,7 +769,7 @@ exceeds 80°C for more than 5 seconds of continuous operation.
 is a safety concern.
 ````
 
-The heading text is the requirement ID plus a title. The `attr` block holds the structured attributes. The prose is the requirement body. The `Rationale:` paragraph is optional but shown in the HTML export.
+The heading text is the requirement ID plus a title. The `reqmd` block holds the structured attributes. The prose is the requirement body. The `Rationale:` paragraph is optional but shown in the HTML export.
 
 ## See also
 

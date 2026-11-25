@@ -22,7 +22,7 @@ my-project/
 
 ## The requirement format
 
-A requirement is just a Markdown document — a heading, a YAML `attr` block, and free-form prose. Open `my-project/requirements.md` to see the format the scaffold generated:
+A requirement is just a Markdown document — a heading, a YAML `reqmd` block, and free-form prose. Open `my-project/requirements.md` to see the format the scaffold generated:
 
 ````markdown
 # Requirements
@@ -31,7 +31,7 @@ This is a sample requirements document. The `status` and `trace` attributes
 are built-in; `owner` is declared in the schema.
 
 ## REQ-001
-```attr
+```reqmd
 status: draft
 owner: Team Alpha
 ```
@@ -40,7 +40,7 @@ The system shall provide a login mechanism.
 *Rationale: Authentication is required for secure access.*
 
 ## REQ-002
-```attr
+```reqmd
 status: draft
 owner: Team Beta
 trace:
@@ -54,8 +54,8 @@ Three parts make up each requirement:
 | Part | How it's written | Purpose |
 |------|------------------|---------|
 | **Heading** | `## REQ-001` — the ID, optionally followed by `: Title` | Gives the requirement its identity; reqmd reads the ID from the heading |
-| **Attributes** | A fenced code block tagged ```attr``` containing YAML | Structured data: `status`, `owner`, `trace`, and anything else your schema declares |
-| **Body** | Free-form Markdown prose after the `attr` block | The human-readable requirement statement |
+| **Attributes** | A fenced code block tagged ```reqmd``` containing YAML (` ```yaml reqmd ` is accepted too, for YAML highlighting) | Structured data: `status`, `owner`, `trace`, and anything else your schema declares |
+| **Body** | Free-form Markdown prose after the `reqmd` block | The human-readable requirement statement |
 
 The *Rationale:* paragraph is optional but encouraged — it shows up in the HTML export and gives reviewers the *why*.
 
@@ -64,16 +64,16 @@ The ID can also carry a title, e.g. `## REQ-001: Login`. Anything after the firs
 ## Heading structure
 
 The scaffolded file also shows how reqmd treats headings *without* an
-`attr` block: it doesn't drop them. Every heading becomes a node in a
+`reqmd` block: it doesn't drop them. Every heading becomes a node in a
 document tree — with one exception: `#` (level 1) is the **document
 title**, not content.
 
 - **`# Requirements`** is the document title. It renders as the page
   title in exports and is never a requirement or section node.
-- **`## REQ-001`** and **`## REQ-002`** have `attr` blocks — **requirements**,
+- **`## REQ-001`** and **`## REQ-002`** have `reqmd` blocks — **requirements**,
   the only nodes that participate in validation, trace checks, coverage,
   and `--filter`. Only level-2+ headings can be requirements.
-- A heading such as **`## Notes`** (no `attr` block) is a **section**. With
+- A heading such as **`## Notes`** (no `reqmd` block) is a **section**. With
   children it behaves like a folder; without children it is a plain prose
   block. Folder-versus-leaf is derived from its children and never stored.
 - Prose attaches to the nearest heading's body; prose before the first
@@ -91,7 +91,7 @@ heading after a requirement nests under it as a sub-requirement:
 ```markdown
 ## SYS-001                        ← requirement
 ### SYS-001.1                     ← sub-requirement (parent = SYS-001)
-### Notes                         ← section (no attr block)
+### Notes                         ← section (no reqmd block)
 ```
 
 ## Validate

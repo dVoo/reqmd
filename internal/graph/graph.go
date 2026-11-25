@@ -315,7 +315,7 @@ func New(docs []model.Document) (*Graph, error) {
 					continue
 				}
 				// originalRef is the source-form ref exactly as written in
-				// the attr block (e.g. "doc-id/ID~3" or "ID~3" or "ID").
+				// the reqmd block (e.g. "doc-id/ID~3" or "ID~3" or "ID").
 				// We strip the pin below; the repin command needs the
 				// unmutated form to drive text edits.
 				originalRef := refStr

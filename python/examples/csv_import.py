@@ -59,7 +59,7 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p.add_argument("--section-value", default="Heading", help="--kind-column value that marks a section")
     p.add_argument("--info-value", default="Text", help="--kind-column value that marks a leaf section")
     p.add_argument("--attr", action="append", default=[], metavar="NAME=COLUMN",
-                   help="map a CSV column to an attr-block attribute; repeatable")
+                   help="map a CSV column to a reqmd-block attribute; repeatable")
     return p.parse_args(argv)
 
 
@@ -90,7 +90,7 @@ def main(argv: list[str] | None = None) -> int:
         title=args.title or "Imported requirements",
         x_reqmd=x_reqmd,
         # Every mapped attr is a free-form string; declare it so the generated
-        # schema accepts the attr block.
+        # schema accepts the reqmd block.
         properties={name: {"type": "string"} for name in attr_columns},
     )
     bundle = Bundle([doc])

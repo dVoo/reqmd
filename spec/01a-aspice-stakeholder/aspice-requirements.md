@@ -16,7 +16,7 @@ description: >
 Requirements that keep the requirement model, its hierarchy, tracing and change handling coherent.
 
 ### ASP-SR-001: Structured requirement organization
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS2-BP2", "SWE1-BP2", "HWE1-BP2", "MLE1-BP2"]
 status: approved
@@ -30,12 +30,12 @@ trace:
 ```
 The tool shall support structured organization of requirements using configurable heading levels, ID prefixes, and document-level grouping.
 
-*Rationale:* ASPICE BP2 of each requirements analysis process requires structuring requirements. reqmd supports this via directory-based document grouping, configurable ID prefixes in `x-reqmd.id-prefix`, and dynamic requirement level discovery from the first heading with an attr block. Requirements can be organized hierarchically into documents (directories) and sub-requirements via heading level nesting.
+*Rationale:* ASPICE BP2 of each requirements analysis process requires structuring requirements. reqmd supports this via directory-based document grouping, configurable ID prefixes in `x-reqmd.id-prefix`, and dynamic requirement level discovery from the first heading with a reqmd block. Requirements can be organized hierarchically into documents (directories) and sub-requirements via heading level nesting.
 
 *Already fulfilled by:* Dynamic reqLevel discovery, `x-reqmd.id-prefix` in schema, document directory grouping.
 
 ### ASP-SR-002: Schema-based requirement validation
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS2-BP1", "SWE1-BP1", "HWE1-BP1", "MLE1-BP1"]
 status: approved
@@ -54,7 +54,7 @@ The tool shall validate requirements against a project-defined schema, enforcing
 *Already fulfilled by:* Schema compilation and validation per document directory (internal/schema/).
 
 ### ASP-SR-003: Heading-level hierarchy decomposition
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS2-BP2", "SWE1-BP2"]
 status: approved
@@ -66,12 +66,12 @@ trace:
 ```
 The tool shall support requirement decomposition through heading-level hierarchy, automatically linking child requirements to their parent without manual trace declarations.
 
-*Rationale:* ASPICE requires structuring requirements in a hierarchy. reqmd's dynamic `reqLevel` discovery lets authors use any heading level (`#`, `##`, `###`) for requirements. A heading at `reqLevel + 1` with an attr block becomes a child of the preceding `reqLevel` requirement, with automatic `ParentID` assignment and graph edge creation.
+*Rationale:* ASPICE requires structuring requirements in a hierarchy. reqmd's dynamic `reqLevel` discovery lets authors use any heading level (`#`, `##`, `###`) for requirements. A heading at `reqLevel + 1` with a reqmd block becomes a child of the preceding `reqLevel` requirement, with automatic `ParentID` assignment and graph edge creation.
 
 *Already fulfilled by:* Dynamic reqLevel parser, `###` sub-requirement detection via `isNextAttrBlock()`, Pass 3 auto-edges in graph.
 
 ### ASP-SR-004: Cross-document traceability
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS2-BP5", "SYS3-BP4", "SWE1-BP5", "SWE2-BP4", "SWE3-BP4", "HWE1-BP5", "HWE2-BP5"]
 status: approved
@@ -93,7 +93,7 @@ The tool shall establish bidirectional traceability between requirements at adja
 *Already fulfilled by:* `trace` attribute, graph `CachedNode` with Inbound/Outbound, `upstream` document chaining, check results for broken references.
 
 ### ASP-SR-005: Trace chain validation
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS2-BP5", "SYS3-BP4", "SWE4-BP4", "SWE5-BP6", "SWE6-BP4", "HWE3-BP5", "HWE4-BP5"]
 status: approved
@@ -115,7 +115,7 @@ The tool shall verify completeness and integrity of trace chains, detecting brok
 *Already fulfilled by:* Graph Pass 2 (10 checks), `checkUntraced()`, `checkCircular()`, `checkBrokenReference()`, etc.
 
 ### ASP-SR-006: Requirement-to-verification traceability and result recording
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS4-BP1", "SYS4-BP2", "SYS4-BP3", "SYS4-BP4", "SYS5-BP1", "SYS5-BP2", "SYS5-BP3", "SYS5-BP4", "SWE4-BP1", "SWE4-BP2", "SWE4-BP3", "SWE4-BP4", "SWE5-BP1", "SWE5-BP3", "SWE5-BP4", "SWE5-BP5", "SWE5-BP6", "SWE6-BP1", "SWE6-BP2", "SWE6-BP3", "SWE6-BP4", "VAL1-BP1", "VAL1-BP2", "VAL1-BP3", "HWE3-BP1", "HWE3-BP3", "HWE3-BP4", "HWE3-BP5", "HWE4-BP1", "HWE4-BP3", "HWE4-BP4", "HWE4-BP5", "MLE4-BP1", "MLE4-BP3", "MLE4-BP6"]
 status: approved
@@ -165,7 +165,7 @@ The tool shall support traceability between requirements and their verification 
 *Already fulfilled by:* `verify` attribute for measure declaration, `--results` flag for ephemeral result loading on `check` and `serve`, CTRF parser (`internal/verify`), manual-results markdown loading, `missing-verdict` / `failing-verdict` / `version-pin` graph checks, `verified: pass` verdict annotation in check output, verdict badges in HTML export and live serve preview.
 
 ### ASP-SR-010: Readable requirement documentation
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS1-BP4", "SYS5-BP5", "SWE6-BP5", "VAL1-BP5", "SUP8-BP6"]
 status: approved
@@ -185,7 +185,7 @@ The tool shall generate human-readable requirement documentation that communicat
 *Already fulfilled by:* HTML export with cards, tree TOC, trace tabs, dark mode, search/filter.
 
 ### ASP-SR-011: Interdependency analysis
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS2-BP3", "SWE1-BP3", "SWE2-BP3", "MLE1-BP3"]
 status: draft
@@ -205,7 +205,7 @@ The tool shall support analysis of requirement interdependencies to detect incon
 *Already fulfilled by:* Graph query methods, circular dependency detection, no-downstream check. *Gap:* Semantic correctness analysis is a human review concern.
 
 ### ASP-SR-016: Portable export distribution
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS2-BP6", "SYS3-BP5", "SWE1-BP6", "SWE2-BP5", "HWE1-BP6", "HWE2-BP6", "MLE1-BP6", "MLE2-BP7"]
 status: approved
@@ -228,7 +228,7 @@ The tool shall enable distribution of requirement documentation and impact analy
 *Already fulfilled by:* Standalone HTML export, CSV export, trace chain tab strip, tree TOC sidebar.
 
 ### ASP-SR-017: Impact analysis support
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS2-BP3", "SYS2-BP4", "SWE1-BP3", "SWE1-BP4", "HWE1-BP3", "HWE1-BP4"]
 status: draft
@@ -250,7 +250,7 @@ The tool shall support impact analysis by identifying all requirements affected 
 *Already fulfilled by:* Graph traversal methods (`UpstreamNeighbors`, `DownstreamNeighbors`), bidirectional Inbound/Outbound edges. *Gap:* No dedicated `reqmd impact <id>` CLI command yet — current impact analysis requires using the graph API programmatically.
 
 ### ASP-SR-020: V-model refinement levels
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS5-BP2", "SWE4-BP2", "SWE5-BP3", "SWE6-BP2", "HWE3-BP3", "HWE4-BP3", "VAL1-BP2"]
 status: approved
@@ -272,7 +272,7 @@ The tool shall support V-model work product progression through multiple levels 
 *Already fulfilled by:* Multi-level doc chain, `upstream` config, trace chain tab strip in HTML export, configurable per-dir schema.
 
 ### ASP-SR-021: Safety attribute support
-```attr
+```reqmd
 process: SYS
 aspice-bp: ["SYS2-BP1", "SWE1-BP1"]
 status: draft
@@ -294,7 +294,7 @@ The tool shall support safety attribute assignment to requirements (ASIL QM/A/B/
 Requirements that keep the software-level derivation and its verification consistent.
 
 ### ASP-SR-022: Source-code traceability
-```attr
+```reqmd
 process: SWE
 aspice-bp: ["SYS2-BP5", "SWE1-BP5", "SWE3-BP3"]
 status: approved
@@ -316,7 +316,7 @@ The tool shall support traceability between source-code artifacts and requiremen
 Requirements covering quality assurance, configuration management, problem resolution and change requests.
 
 ### ASP-SR-007: Change tracking for requirements
-```attr
+```reqmd
 process: SUP
 aspice-bp: ["SUP10-BP4"]
 status: approved
@@ -332,7 +332,7 @@ The tool shall support recording of change information for individual requiremen
 *Already fulfilled by:* `version` built-in, `disposition`/`disposition-reason` attributes, `trace` attribute for CR linking.
 
 ### ASP-SR-008: Automated quality validation
-```attr
+```reqmd
 process: SUP
 aspice-bp: ["SUP1-BP3", "SUP1-BP6"]
 status: approved
@@ -349,7 +349,7 @@ The tool shall automatically validate requirement work products against defined 
 *Already fulfilled by:* 4-pass validation pipeline, severity levels, `--json` flag, exit codes (0/1/2).
 
 ### ASP-SR-009: Configuration management support
-```attr
+```reqmd
 process: SUP
 aspice-bp: ["SUP8-BP1", "SUP8-BP2", "SUP8-BP3", "SUP8-BP5", "SUP8-BP7"]
 status: draft
@@ -370,7 +370,7 @@ The tool shall support configuration management of requirement work products thr
 *Already fulfilled by:* Unique IDs per requirement, `version` attribute, Git-native file format. *Gap:* No built-in baseline capture or configuration management tool integration beyond what the VCS provides.
 
 ### ASP-SR-013: Issue and change tracking
-```attr
+```reqmd
 process: SUP
 aspice-bp: ["SUP9-BP1", "SUP9-BP6", "SUP10-BP1", "SUP10-BP5", "SUP10-BP6"]
 status: draft
@@ -395,7 +395,7 @@ The tool shall support unique identification and tracking of issues and change r
 Requirements covering project and risk management expectations the tool must support.
 
 ### ASP-SR-018: Requirement metrics and measurement
-```attr
+```reqmd
 process: MAN
 aspice-bp: ["MAN6-BP2", "MAN6-BP3", "MAN6-BP4"]
 status: draft
@@ -418,7 +418,7 @@ The tool shall provide metrics and measurements on requirement artifacts, includ
 Requirements covering reuse of requirement assets across projects.
 
 ### ASP-SR-015: External standard referencing
-```attr
+```reqmd
 process: REU
 aspice-bp: ["REU2-BP1", "REU2-BP5"]
 status: approved

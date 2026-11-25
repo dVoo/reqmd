@@ -4,7 +4,7 @@
 
 ## internal/model/builtin.go
 ### IMP-model-AttrDisposition-acdff3a: AttrDisposition
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -13,12 +13,12 @@ x-reqmd.symbol-kind: const
 trace: []
 ```
 
-Built-in attribute keys used in requirement attr blocks. They are
+Built-in attribute keys used in requirement reqmd blocks. They are
 injected into every schema by internal/schema.Compile and accessed by
 graph checks and HTML export.
 
 ### IMP-model-AttrDispositionReason-f8355ee: AttrDispositionReason
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -27,12 +27,12 @@ x-reqmd.symbol-kind: const
 trace: []
 ```
 
-Built-in attribute keys used in requirement attr blocks. They are
+Built-in attribute keys used in requirement reqmd blocks. They are
 injected into every schema by internal/schema.Compile and accessed by
 graph checks and HTML export.
 
 ### IMP-model-AttrRequiresTraceFrom-261c85c: AttrRequiresTraceFrom
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -41,12 +41,12 @@ x-reqmd.symbol-kind: const
 trace: []
 ```
 
-Built-in attribute keys used in requirement attr blocks. They are
+Built-in attribute keys used in requirement reqmd blocks. They are
 injected into every schema by internal/schema.Compile and accessed by
 graph checks and HTML export.
 
 ### IMP-model-AttrStatus-0033655: AttrStatus
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -55,12 +55,12 @@ x-reqmd.symbol-kind: const
 trace: []
 ```
 
-Built-in attribute keys used in requirement attr blocks. They are
+Built-in attribute keys used in requirement reqmd blocks. They are
 injected into every schema by internal/schema.Compile and accessed by
 graph checks and HTML export.
 
 ### IMP-model-AttrTrace-e4c0e28: AttrTrace
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -69,12 +69,12 @@ x-reqmd.symbol-kind: const
 trace: []
 ```
 
-Built-in attribute keys used in requirement attr blocks. They are
+Built-in attribute keys used in requirement reqmd blocks. They are
 injected into every schema by internal/schema.Compile and accessed by
 graph checks and HTML export.
 
 ### IMP-model-AttrVerify-394826e: AttrVerify
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -83,12 +83,12 @@ x-reqmd.symbol-kind: const
 trace: []
 ```
 
-Built-in attribute keys used in requirement attr blocks. They are
+Built-in attribute keys used in requirement reqmd blocks. They are
 injected into every schema by internal/schema.Compile and accessed by
 graph checks and HTML export.
 
 ### IMP-model-AttrVersion-253d1dd: AttrVersion
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -97,12 +97,12 @@ x-reqmd.symbol-kind: const
 trace: []
 ```
 
-Built-in attribute keys used in requirement attr blocks. They are
+Built-in attribute keys used in requirement reqmd blocks. They are
 injected into every schema by internal/schema.Compile and accessed by
 graph checks and HTML export.
 
 ### IMP-model-AttrResultEvidence-cca1fcb: AttrResultEvidence
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -117,7 +117,7 @@ x-reqmd.* — the same convention as reqmd-code's provenance attributes —
 so they can never collide with authored schema attributes.
 
 ### IMP-model-AttrResultOutcome-5a2e39e: AttrResultOutcome
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -132,7 +132,7 @@ x-reqmd.* — the same convention as reqmd-code's provenance attributes —
 so they can never collide with authored schema attributes.
 
 ### IMP-model-AttrResultVerifiedAt-30b0e27: AttrResultVerifiedAt
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -147,7 +147,7 @@ x-reqmd.* — the same convention as reqmd-code's provenance attributes —
 so they can never collide with authored schema attributes.
 
 ### IMP-model-AttrResultVerifier-5a573d0: AttrResultVerifier
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -162,7 +162,7 @@ x-reqmd.* — the same convention as reqmd-code's provenance attributes —
 so they can never collide with authored schema attributes.
 
 ### IMP-model-StripPin-f9a274d: StripPin
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -183,7 +183,7 @@ codebase: graph (Pass 2 pin extraction), repin (newRefFrom, stripPin
 for display), and verify (MergeLatest key normalization).
 
 ### IMP-model-StatusApproved-be78e3d: StatusApproved
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -196,7 +196,7 @@ Built-in status enum values. The default (when no status attr is
 declared) is StatusApproved — see StatusDefault.
 
 ### IMP-model-StatusDraft-a123da1: StatusDraft
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -209,7 +209,7 @@ Built-in status enum values. The default (when no status attr is
 declared) is StatusApproved — see StatusDefault.
 
 ### IMP-model-StatusDefault-2219a8f: StatusDefault
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin.go
@@ -224,7 +224,7 @@ requirement. The built-in `status` attribute is enum [draft, approved];
 
 ## internal/model/builtin\_test.go
 ### IMP-model-TestStripPin-4488901: TestStripPin
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/builtin_test.go
@@ -236,7 +236,7 @@ trace:
 
 ## internal/model/format.go
 ### IMP-model-FormatScalar-41a318f: FormatScalar
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/format.go
@@ -255,7 +255,7 @@ This is the shared scalar formatter used by the exporter and reporter
 packages to avoid duplicating the same type switch in four places.
 
 ### IMP-model-AttrString-ac410c6: AttrString
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/format.go
@@ -264,7 +264,7 @@ x-reqmd.symbol-kind: function
 trace: []
 ```
 
-Attribute accessors. Attr values come from the YAML attr block and are
+Attribute accessors. Attr values come from the YAML reqmd block and are
 typed by the parser (string, bool, int, []any of those). These helpers
 are the single place that type-switches on them; every consumer (graph
 checks, exporters, reporters) reads attrs through them instead of
@@ -273,7 +273,7 @@ AttrString returns the string value of attrs[key], or "" when the key
 is absent or holds a non-string value.
 
 ### IMP-model-AttrStrings-b28638f: AttrStrings
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/format.go
@@ -288,7 +288,7 @@ absent (so callers can tell "not set" from "explicitly empty") and
 items are dropped.
 
 ### IMP-model-AttrList-6a7d22b: AttrList
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/format.go
@@ -301,7 +301,7 @@ AttrList returns an array attr in its native []any form, converting a
 []string. Returns nil when the key is absent or not an array.
 
 ### IMP-model-AttrInt-1b173ec: AttrInt
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/format.go
@@ -315,7 +315,7 @@ practice: int and int64 (YAML decode) and float64 (JSON round-trip).
 Returns 0 when the key is absent or undecodable.
 
 ### IMP-model-FormatAttr-04da9dc: FormatAttr
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/format.go
@@ -330,7 +330,7 @@ FormatScalar, slices and maps as compact JSON. Unknown types render as
 
 ## internal/model/node.go
 ### IMP-model-Kind-382a382: Kind
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -342,7 +342,7 @@ trace: []
 Kind discriminates the node types in a document's content tree.
 
 #### IMP-model-String-0301365: String
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -354,7 +354,7 @@ trace: []
 String returns the lowercase display name used in text and JSON output.
 
 ### IMP-model-KindRequirement-ace5645: KindRequirement
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -364,7 +364,7 @@ trace: []
 ```
 
 ### IMP-model-KindSection-031c53d: KindSection
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -374,7 +374,7 @@ trace: []
 ```
 
 ### IMP-model-Node-aaeb5ec: Node
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -385,11 +385,11 @@ trace: []
 
 Node is a single content node in a parsed Markdown document. Every
 heading becomes a node; a node is a requirement iff it has an adjacent
-attr block. Prose and other blocks attach to the nearest open heading's
+reqmd block. Prose and other blocks attach to the nearest open heading's
 Body. Nodes form a tree via Children, preserving document order.
 
 #### IMP-model-IsRequirement-4ca5fff: IsRequirement
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -402,7 +402,7 @@ IsRequirement reports whether the node is a requirement (as opposed to
 a section).
 
 ### IMP-model-XReqmd-25ba149: XReqmd
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -415,7 +415,7 @@ XReqmd holds reqmd-specific directory metadata from schema.yaml.
 All fields map directly to the x-reqmd extension block.
 
 ### IMP-model-TraceUpstream-c4a21d4: TraceUpstream
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -427,7 +427,7 @@ trace: []
 TraceUpstream declares the expected upstream layer and source directories.
 
 ### IMP-model-SourceConfig-1cf24c7: SourceConfig
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -439,7 +439,7 @@ trace: []
 SourceConfig describes where to find and how to parse the originating artefact.
 
 ### IMP-model-CollectSectionPaths-2a19657: CollectSectionPaths
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -455,7 +455,7 @@ the NDJSON export (the section_path column) and the baseline diff (a parent
 delta), so the two can never disagree.
 
 ### IMP-model-sectionPathSeparator-8ff6927: sectionPathSeparator
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -467,7 +467,7 @@ trace: []
 sectionPathSeparator joins ancestor section titles in a section path.
 
 ### IMP-model-Document-57ebc69: Document
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -488,7 +488,7 @@ of a synthetic document carry no schema, no ID prefix, and no source file
 that tooling may rewrite (e.g. repin must skip them).
 
 #### IMP-model-Requirements-83ad233: Requirements
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -502,7 +502,7 @@ Requirements returns all requirement-kind nodes in document order
 in-place mutation updates the document.
 
 ### IMP-model-CollectRequirements-a8770c2: CollectRequirements
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node.go
@@ -516,7 +516,7 @@ requirement-kind nodes in document order.
 
 ## internal/model/node\_test.go
 ### IMP-model-TestNodeAllFields-4f66d3a: TestNodeAllFields
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node_test.go
@@ -527,7 +527,7 @@ trace:
 ```
 
 ### IMP-model-TestNodeEdgeCases-7f138f6: TestNodeEdgeCases
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node_test.go
@@ -538,7 +538,7 @@ trace:
 ```
 
 ### IMP-model-TestKindString-4623907: TestKindString
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node_test.go
@@ -549,7 +549,7 @@ trace:
 ```
 
 ### IMP-model-TestCollectRequirements-e08b61e: TestCollectRequirements
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node_test.go
@@ -560,7 +560,7 @@ trace:
 ```
 
 ### IMP-model-TestDocumentRequirements-0d84ca1: TestDocumentRequirements
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node_test.go
@@ -571,7 +571,7 @@ trace:
 ```
 
 ### IMP-model-TestDocumentZeroNodes-71758c0: TestDocumentZeroNodes
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: internal/model/node_test.go
@@ -583,7 +583,7 @@ trace:
 
 ## reqmd-code/internal/model/short\_hash.go
 ### IMP-model-ShortHash-5aa3366: ShortHash
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/model/short_hash.go
@@ -611,7 +611,7 @@ self-cancel under XOR, so the explicit XOR is what disambiguates
 
 ## reqmd-code/internal/model/symbol.go
 ### IMP-model-SymbolKind-9dece46: SymbolKind
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/model/symbol.go
@@ -625,7 +625,7 @@ extract. Each language plugin maps its AST node kinds to one of these
 values; the writer treats them uniformly.
 
 ### IMP-model-SymbolConst-0d7f4e7: SymbolConst
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/model/symbol.go
@@ -635,7 +635,7 @@ trace: []
 ```
 
 ### IMP-model-SymbolFunction-45ca65c: SymbolFunction
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/model/symbol.go
@@ -645,7 +645,7 @@ trace: []
 ```
 
 ### IMP-model-SymbolMethod-866e67d: SymbolMethod
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/model/symbol.go
@@ -655,7 +655,7 @@ trace: []
 ```
 
 ### IMP-model-SymbolType-a1c089c: SymbolType
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/model/symbol.go
@@ -665,7 +665,7 @@ trace: []
 ```
 
 ### IMP-model-SymbolVar-0a710d5: SymbolVar
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/model/symbol.go
@@ -675,7 +675,7 @@ trace: []
 ```
 
 ### IMP-model-Symbol-ef16294: Symbol
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/model/symbol.go
@@ -691,7 +691,7 @@ normalizer/tracer, which turn it into a GeneratedReq for the writer.
 Coordinates are 1-based for human readability (matching what editors show).
 
 ### IMP-model-StripReceiverName-9a492f8: StripReceiverName
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/model/symbol.go

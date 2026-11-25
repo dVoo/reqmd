@@ -9,7 +9,7 @@ import (
 
 // This file holds the structural assertions the rendering tests use instead of
 // substring matching. A rendered document is asserted through its outline —
-// heading level, heading text, and the parsed attr block — so a change in
+// heading level, heading text, and the parsed reqmd block — so a change in
 // formatting (spacing, quoting style, key order) does not break a test that is
 // really about structure, while a change in nesting or identity does.
 
@@ -21,7 +21,7 @@ type outlineHeading struct {
 }
 
 // outline parses a rendered document into its headings. It only understands the
-// shape the renderer produces (ATX headings, opaque ```attr blocks), which is
+// shape the renderer produces (ATX headings, opaque ```reqmd blocks), which is
 // exactly what the assertions need.
 func outline(t *testing.T, md string) []outlineHeading {
 	t.Helper()
@@ -34,13 +34,13 @@ func outline(t *testing.T, md string) []outlineHeading {
 			continue
 		}
 		h := outlineHeading{Level: level, Text: text}
-		// The attr block, when present, is the next non-blank line.
+		// The reqmd block, when present, is the next non-blank line.
 		for j := i + 1; j < len(lines); j++ {
 			next := strings.TrimSpace(lines[j])
 			if next == "" {
 				continue
 			}
-			if next != "```attr" {
+			if next != "```reqmd" {
 				break
 			}
 			var block []string
@@ -49,7 +49,7 @@ func outline(t *testing.T, md string) []outlineHeading {
 			}
 			attrs := map[string]any{}
 			if err := yaml.Unmarshal([]byte(strings.Join(block, "\n")), &attrs); err != nil {
-				t.Fatalf("rendered attr block for %q is not valid YAML: %v", text, err)
+				t.Fatalf("rendered reqmd block for %q is not valid YAML: %v", text, err)
 			}
 			h.Attrs = attrs
 			break

@@ -38,7 +38,7 @@ func newCheckCmd() *cobra.Command {
 		Long: `Check (validate) requirements against their schema.
 
 Given a directory, recursively finds all schema.yaml files and
-validates every .md file with requirement attr blocks against the
+validates every .md file with requirement reqmd blocks against the
 corresponding schema. In single-file mode (-s), validates a single
 .md file against an explicit schema.
 

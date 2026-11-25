@@ -36,8 +36,12 @@ var (
 	traceFieldRe = regexp.MustCompile(`^(\s*-?\s*(?:trace|requires-trace-from):\s*\[?\s*)(.*?)(\s*\]?\s*)$`)
 )
 
-// attrFence marks a requirement heading in the generated Markdown.
-const attrFence = "```attr"
+// attrFence and attrFenceAlt mark a requirement heading in the generated
+// Markdown; the bare form is what the generator itself writes.
+const (
+	attrFence    = "```reqmd"
+	attrFenceAlt = "```yaml reqmd"
+)
 
 const placeholderFmt = "ZZ_BENCH_PH_%d_ZZ"
 
@@ -92,7 +96,7 @@ func main() {
 		if readErr != nil {
 			return fmt.Errorf("reading %s: %w", p, readErr)
 		}
-		// Only headings that introduce an attr block are requirements; a plain
+		// Only headings that introduce a reqmd block are requirements; a plain
 		// prose heading that happens to contain a dash must not be renamed.
 		lines := strings.Split(string(body), "\n")
 		for _, loc := range headingIDRe.FindAllStringSubmatchIndex(string(body), -1) {
@@ -158,14 +162,14 @@ func main() {
 }
 
 // hasAttrBlock reports whether the heading on line i is followed by an
-// `attr` fence, which is what makes it a requirement heading.
+// `reqmd` fence, which is what makes it a requirement heading.
 func hasAttrBlock(lines []string, i int) bool {
 	for j := i + 1; j < len(lines) && j <= i+3; j++ {
 		line := strings.TrimSpace(lines[j])
 		if line == "" {
 			continue
 		}
-		return line == attrFence
+		return line == attrFence || line == attrFenceAlt
 	}
 	return false
 }

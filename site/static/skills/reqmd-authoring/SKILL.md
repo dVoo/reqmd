@@ -1,6 +1,6 @@
 ---
 name: reqmd-authoring
-description: Create, write, and maintain reqmd requirement documents. Use to scaffold a document directory with reqmd init, author schema.yaml (JSON Schema 2020-12 plus the x-reqmd block), compose requirement headings with fenced attr YAML blocks, apply id-prefix/document-id/level/upstream rules, use built-in attributes (trace, status, disposition, version, verify, requires-trace-from, reqmd-suppress), keep container and info headings, and evolve a spec tree without breaking the trace graph. Triggers include "add a requirement", "new spec directory", "write schema.yaml", "attr block", "id-prefix", "document-id", and "restructure requirements".
+description: Create, write, and maintain reqmd requirement documents. Use to scaffold a document directory with reqmd init, author schema.yaml (JSON Schema 2020-12 plus the x-reqmd block), compose requirement headings with fenced attr YAML blocks, apply id-prefix/document-id/level/upstream rules, use built-in attributes (trace, status, disposition, version, verify, requires-trace-from, reqmd-suppress), keep container and info headings, and evolve a spec tree without breaking the trace graph. Triggers include "add a requirement", "new spec directory", "write schema.yaml", "reqmd block", "id-prefix", "document-id", and "restructure requirements".
 ---
 
 # Authoring reqmd documents
@@ -25,7 +25,7 @@ fixing findings, use the `reqmd-usage` skill.
    `disposition: rejected` with a reason.
 3. **Preserve prose.** A change is a heading/`attr` edit, not a file rewrite.
    Keep the rationale and history.
-4. **Nothing is dropped.** Headings without `attr` blocks are content
+4. **Nothing is dropped.** Headings without `reqmd` blocks are content
    (containers/info) — do not delete them to "tidy up".
 5. **One document directory = one `schema.yaml`.** Different subsystems can
    have different schemas.
@@ -64,13 +64,13 @@ reqmd init my-feat/ --preset ./my-preset/              # custom preset dir
 
 ## Requirement anatomy
 
-A requirement is a level-2+ heading, a fenced `attr` block (YAML), then
+A requirement is a level-2+ heading, a fenced `reqmd` block (YAML), then
 free-form prose. An optional title follows the ID after a colon and space.
 
 ````markdown
 ## SYS-001: Boot sequence
 
-```attr
+```reqmd
 status: approved
 priority: High
 verify: Test
@@ -85,7 +85,8 @@ The system shall complete the boot sequence within 2 seconds of ignition on.
 ````
 
 - The heading text is the ID plus optional title.
-- The `attr` fence language must be exactly `attr` — the parser looks for it.
+- The `reqmd` fence language must be `reqmd` or `yaml reqmd` — the parser looks
+  for those two forms and nothing else.
 - `*Rationale:*` is extracted and rendered separately; body prose is everything
   else.
 - Sub-requirements nest under the nearest shallower requirement heading.
@@ -101,7 +102,7 @@ The system shall complete the boot sequence within 2 seconds of ignition on.
 - Two directories may not declare the same `id-prefix` (ERROR); two documents
   may not define the same ID (ERROR).
 - Requirement headings must be **h2 or higher**. An `h1` is the document title
-  and never a requirement; an `h1` with an `attr` block is a parse error.
+  and never a requirement; an `h1` with a `reqmd` block is a parse error.
 
 ## Content model: requirement, container, info
 
@@ -109,9 +110,9 @@ Every heading becomes a node. Choose deliberately:
 
 | Kind | When | Behaviour |
 |---|---|---|
-| `req` | heading followed by an `attr` block | validated, traced, filtered, exported |
-| `container` | heading without `attr` block that has child headings | folder-like grouping; collapsible in HTML, `container` rows in `ls`/CSV |
-| `info` | heading without `attr` block and no children, or leading prose | plain content block; `info` rows in `ls`/CSV |
+| `req` | heading followed by a `reqmd` block | validated, traced, filtered, exported |
+| `container` | heading without `reqmd` block that has child headings | folder-like grouping; collapsible in HTML, `container` rows in `ls`/CSV |
+| `info` | heading without `reqmd` block and no children, or leading prose | plain content block; `info` rows in `ls`/CSV |
 
 Containers and info items carry no attributes and skip all validation, trace,
 and coverage checks. `--filter` prunes requirements but never removes them.
@@ -235,7 +236,7 @@ verified against a specific revision record it on the trace ref:
 
 ````markdown
 ## DN-001
-```attr
+```reqmd
 status: approved
 trace: [UP-001~3]
 ```
@@ -281,7 +282,8 @@ highlighting, and emoji shortcodes.
 
 - Adding an attribute not declared in `properties` (fails under
   `additionalProperties: false`).
-- Dropping the `attr` fence language, or writing `yaml`/no language.
+- Dropping the `reqmd` fence language, or writing `yaml`/no language (write
+  `yaml reqmd` when you want YAML highlighting).
 - Using an `h1` for a requirement.
 - Putting a colon/space in an ID, or renaming an ID.
 - Deleting container/info headings to simplify the file.

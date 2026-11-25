@@ -160,13 +160,15 @@ numbered step for every feature.
 
 ### 1. Requirement files
 
-Each requirement is a Markdown heading followed by a fenced `attr` block with
-YAML attributes, then free-form prose. The heading text **is** the requirement ID.
+Each requirement is a Markdown heading followed by a fenced `reqmd` block with
+YAML attributes, then free-form prose. The fence also accepts the form
+```` ```yaml reqmd ```` for YAML syntax highlighting in editors and on GitHub —
+` ```reqmd ` stays the master form, and it is what every reqmd renderer emits. The heading text **is** the requirement ID.
 An optional title can follow the ID after a colon and space:
 
 ````markdown
 ## IVI-FUN-001: Fast startup
-```attr
+```reqmd
 status: approved
 asil: QM
 maturity: Production
@@ -185,7 +187,7 @@ Demonstrates: `trace` (upstream refs), `version` (version pinning), and the `ID:
 
 ```markdown
 ## IVI-FUN-002
-```attr
+```reqmd
 status: draft
 asil: B
 maturity: Prototype
@@ -203,7 +205,7 @@ Demonstrates: `disposition` + `disposition-reason` (defers traces, suppresses wa
 
 ```markdown
 ## IVI-FUN-003
-```attr
+```reqmd
 status: draft
 maturity: Concept
 verify: Test
@@ -217,7 +219,7 @@ required fields from the schema.
 **Rules:**
 - Heading must start with a unique requirement ID (e.g. `IVI-FUN-001`, `SYS-001`)
 - An optional title can follow the ID after a colon and space: `## IVI-FUN-001: Fast startup`
-- The `attr` block must be valid YAML — keys must match the directory's schema
+- The `reqmd` block must be valid YAML — keys must match the directory's schema
 - Requirement IDs use uppercase letters, digits, and hyphens: `^[A-Z][A-Z0-9]*(-[A-Z0-9]+)*$` with a trailing number segment (e.g. `STK-GOAL-001`, `SYS-FMT-002`). Optional version pinning suffix `~N` is allowed for trace references (e.g. `SYS-001~3`). Colons and spaces are not allowed in IDs — they delimit the optional title.
 - If `x-reqmd.id-prefix` is set, every ID in that directory must start with the declared prefix
 
@@ -228,8 +230,8 @@ becomes a node in a document tree:
 
 | Node kind | When | Rendered as |
 |-----------|------|-------------|
-| **requirement** | heading followed by an `attr` block | card (HTML/CSV/ls row) |
-| **section** | any heading without an `attr` block, plus the leading headingless prose | collapsible folder section in HTML when it has children, plain block otherwise; `section` rows in `ls`/CSV |
+| **requirement** | heading followed by a `reqmd` block | card (HTML/CSV/ls row) |
+| **section** | any heading without a `reqmd` block, plus the leading headingless prose | collapsible folder section in HTML when it has children, plain block otherwise; `section` rows in `ls`/CSV |
 
 Prose and other blocks attach to the nearest open heading's body. Leading
 prose before any heading is captured as a headingless section — content
@@ -242,7 +244,7 @@ a folder or a leaf is derived from its children — never stored:
 Intro prose.                           ← section (headingless leaf)
 
 ## SYS-001: Platform                   ← requirement
-```attr
+```reqmd
 status: approved
 ```
 
@@ -349,14 +351,14 @@ they simply do not complete a coverage chain.
 
 ```yaml
 ## REQ-001: System boot
-```attr
+```reqmd
 status: approved
 trace: [STK-001]
 ```
 
 ```yaml
 ## REQ-002: Power management (in progress)
-```attr
+```reqmd
 status: draft
 trace: [STK-002]
 requires-trace-from: [system]
@@ -560,7 +562,7 @@ reqmd check spec/ --filter 'owner == "alice"' --relaxed-filter
 > [!TIP]
 > **`--relaxed-filter` does two things:** it downgrades an undeclared attribute from a hard error to a warning, *and* it accepts an attribute present on a requirement even when no schema declares it. Good for one-off exploration; keep it off CI, where a mistyped attribute should fail rather than warn.
 
-Use it when a team keeps informal attributes in the attr blocks, or while
+Use it when a team keeps informal attributes in the reqmd blocks, or while
 introducing a new attribute ahead of its schema change. The HTML export
 applies the same rule to its toolbar: the filter menus are built from every
 attribute actually present on a requirement, and undeclared ones are shown
@@ -636,7 +638,7 @@ req        | REQ-002                  | Team Beta    | ["REQ-001"]  |           
 ```
 
 Every node appears in document order with a leading `Type` column —
-`req` for requirements, `section` for headings without `attr` blocks
+`req` for requirements, `section` for headings without `reqmd` blocks
 (folders and leaves alike, shown with their heading text).
 User-defined attributes first, then built-in attributes. Empty cells mean the
 requirement didn't set that attribute. Non-string values (arrays, integers,
@@ -796,14 +798,14 @@ ISO 29148).
 
 ```yaml
 # Upstream declares its current version
-```attr
+```reqmd
 id: UP-001
 version: 3
 ```
 
 ```yaml
 # Downstream pins the version it was verified against
-```attr
+```reqmd
 id: DN-001
 trace: [UP-001~2]   # re-verify against UP-001 v3
 ```
@@ -971,7 +973,7 @@ flowchart TD
 ```
 
 > [!IMPORTANT]
-> **Producers only emit the bundle — `reqmd-import` is the only writer of Markdown/YAML**, so no importer formats a heading or an attr block itself. Every `body` must contain no headings, and the renderer does not check that, so a producer that copies headings into a body breaks the rendered tree.
+> **Producers only emit the bundle — `reqmd-import` is the only writer of Markdown/YAML**, so no importer formats a heading or a reqmd block itself. Every `body` must contain no headings, and the renderer does not check that, so a producer that copies headings into a body breaks the rendered tree.
 
 **Source code.** `reqmd-code` extracts functions, types, and methods from C, C++,
 Go, Python, and Rust via tree-sitter and emits an exchange bundle; `reqmd-import`
@@ -1029,7 +1031,7 @@ worked example.
 
 ```markdown
 ## STAKE-007
-```attr
+```reqmd
 status: approved
 disposition: deferred
 disposition-reason: "Deferred to Phase 2 per steering committee 2025-03-14"
@@ -1044,7 +1046,7 @@ No `trace` → correct for a postponed need.
 
 ```markdown
 ## STAKE-008
-```attr
+```reqmd
 status: approved
 disposition: rejected
 ```
@@ -1077,7 +1079,7 @@ Each `--results` path is auto-detected:
   - Plain `.json` with a CTRF top-level `results` object → parsed as CTRF.
   - Other `.json` (coverage.json, junit exports) → skipped silently.
   - Subdirectories with a `schema.yaml` → loaded as **manual results**
-    (markdown `attr` blocks with `x-reqmd.outcome`, `x-reqmd.verifier`,
+    (markdown `reqmd` blocks with `x-reqmd.outcome`, `x-reqmd.verifier`,
     `x-reqmd.evidence`, `x-reqmd.verified-at`, `trace: [MEASURE-ID]`).
 - **File**: parsed as CTRF (`.ctrf.json` or CTRF-shaped `.json`).
 
@@ -1139,7 +1141,7 @@ x-reqmd:
 
 ```markdown
 ## VR-001: Parser review result
-```attr
+```reqmd
 x-reqmd.outcome: pass
 x-reqmd.verifier: "D. Author"
 x-reqmd.verified-at: 2026-07-15T09:30:00Z

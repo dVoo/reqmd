@@ -1,7 +1,7 @@
 # Manual Verification Results
 
 ## VR-001: Boot Sequence Design Review Result
-```attr
+```reqmd
 status: approved
 x-reqmd.outcome: pass
 x-reqmd.verifier: "A. Reviewer"

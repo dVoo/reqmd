@@ -26,10 +26,10 @@ func reqsOf(nodes []*model.Node) []*model.Node {
 	return model.CollectRequirements(nodes)
 }
 
-// TestParseMD_Full verifies a normal requirement with heading, attr block,
+// TestParseMD_Full verifies a normal requirement with heading, reqmd block,
 // prose body, and *Rationale: line.
 func TestParseMD_Full(t *testing.T) {
-	src := []byte("## REQ-001\n```attr\nid: REQ-001\nasil: ASIL D\n```\nThis requirement shall do something important.\n\n*Rationale: safety critical function\n")
+	src := []byte("## REQ-001\n```reqmd\nid: REQ-001\nasil: ASIL D\n```\nThis requirement shall do something important.\n\n*Rationale: safety critical function\n")
 	nodes := parseReqTree(t, src)
 	reqs := reqsOf(nodes)
 	if len(reqs) != 1 {
@@ -59,7 +59,7 @@ func TestParseMD_Full(t *testing.T) {
 // TestParseMD_NoRationale verifies that a requirement without *Rationale:*
 // has an empty Rational field.
 func TestParseMD_NoRationale(t *testing.T) {
-	src := []byte("## REQ-002\n```attr\nid: REQ-002\nasil: ASIL B\n```\nThis requirement has no rationale.\n")
+	src := []byte("## REQ-002\n```reqmd\nid: REQ-002\nasil: ASIL B\n```\nThis requirement has no rationale.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {
 		t.Fatalf("expected 1 requirement, got %d", len(reqs))
@@ -72,7 +72,7 @@ func TestParseMD_NoRationale(t *testing.T) {
 // TestParseMD_MultipleRequirements verifies that multiple requirements
 // in one document are each parsed correctly.
 func TestParseMD_MultipleRequirements(t *testing.T) {
-	src := []byte("## REQ-A\n```attr\nid: REQ-A\n```\nBody A.\n\n## REQ-B\n```attr\nid: REQ-B\n```\nBody B.\n\n## REQ-C\n```attr\nid: REQ-C\n```\nBody C.\n")
+	src := []byte("## REQ-A\n```reqmd\nid: REQ-A\n```\nBody A.\n\n## REQ-B\n```reqmd\nid: REQ-B\n```\nBody B.\n\n## REQ-C\n```reqmd\nid: REQ-C\n```\nBody C.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 3 {
 		t.Fatalf("expected 3 requirements, got %d", len(reqs))
@@ -93,9 +93,9 @@ func TestParseMD_MultipleRequirements(t *testing.T) {
 }
 
 // TestParseMD_HeadingWithoutAttrIsInfo verifies that a heading without an
-// attr block produces an info item instead of a requirement.
+// reqmd block produces an info item instead of a requirement.
 func TestParseMD_HeadingWithoutAttrIsInfo(t *testing.T) {
-	src := []byte("## Section Title\nThis has no attr block.\n")
+	src := []byte("## Section Title\nThis has no reqmd block.\n")
 	nodes := parseReqTree(t, src)
 	if len(nodes) != 1 {
 		t.Fatalf("expected 1 node, got %d", len(nodes))
@@ -107,18 +107,41 @@ func TestParseMD_HeadingWithoutAttrIsInfo(t *testing.T) {
 	if n.Title != "Section Title" {
 		t.Errorf("Title = %q, want %q", n.Title, "Section Title")
 	}
-	if n.Body != "This has no attr block." {
-		t.Errorf("Body = %q, want %q", n.Body, "This has no attr block.")
+	if n.Body != "This has no reqmd block." {
+		t.Errorf("Body = %q, want %q", n.Body, "This has no reqmd block.")
 	}
 	if reqs := reqsOf(nodes); len(reqs) != 0 {
 		t.Fatalf("expected 0 requirements, got %d", len(reqs))
 	}
 }
 
-// TestParseMD_BadYAML verifies that invalid YAML inside an ```attr``` block
+// TestParseMD_YAMLReqmdFence verifies that the opt-in ```yaml reqmd variant
+// opens a reqmd block just like the bare fence, and that a plain ```yaml fence
+// stays body content.
+func TestParseMD_YAMLReqmdFence(t *testing.T) {
+	src := []byte("## REQ-001\n```yaml reqmd\nid: REQ-001\n```\nBody.\n\n## Section\n```yaml\nnot: a block\n```\n")
+	reqs := reqsOf(parseReqTree(t, src))
+	if len(reqs) != 1 {
+		t.Fatalf("expected 1 requirement, got %d", len(reqs))
+	}
+	if got := reqs[0].Attrs["id"]; got != "REQ-001" {
+		t.Errorf("attrs[id] = %v, want %q", got, "REQ-001")
+	}
+	secs := 0
+	for _, n := range parseReqTree(t, src) {
+		if n.Kind == model.KindSection {
+			secs++
+		}
+	}
+	if secs != 1 {
+		t.Errorf("expected 1 section, got %d", secs)
+	}
+}
+
+// TestParseMD_BadYAML verifies that invalid YAML inside an ```reqmd``` block
 // returns an error.
 func TestParseMD_BadYAML(t *testing.T) {
-	src := []byte("## REQ-BAD\n```attr\n: : invalid yaml\n```\n")
+	src := []byte("## REQ-BAD\n```reqmd\n: : invalid yaml\n```\n")
 	nodes, _, _, err := parseMD(src, "test.md")
 	if err == nil {
 		t.Fatal("expected error for invalid attr YAML, got nil")
@@ -131,7 +154,7 @@ func TestParseMD_BadYAML(t *testing.T) {
 // TestParseMD_NonAttrCodeBlock verifies that a fenced code block with a
 // non-attr info string (e.g. ```json) inside a requirement body is preserved.
 func TestParseMD_NonAttrCodeBlock(t *testing.T) {
-	src := []byte("## REQ-001\n```attr\nid: REQ-001\n```\nSome text.\n\n```json\n{\"key\": \"value\"}\n```\n")
+	src := []byte("## REQ-001\n```reqmd\nid: REQ-001\n```\nSome text.\n\n```json\n{\"key\": \"value\"}\n```\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {
 		t.Fatalf("expected 1 requirement, got %d", len(reqs))
@@ -159,7 +182,7 @@ func TestParseMD_EmptyFile(t *testing.T) {
 // TestParseMD_ThematicBreak verifies that thematic breaks (---) inside
 // a requirement body are preserved and don't disrupt body accumulation.
 func TestParseMD_ThematicBreak(t *testing.T) {
-	src := []byte("## REQ-001\n```attr\nid: REQ-001\n```\nBefore break.\n\n---\nAfter break.\n")
+	src := []byte("## REQ-001\n```reqmd\nid: REQ-001\n```\nBefore break.\n\n---\nAfter break.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {
 		t.Fatalf("expected 1 requirement, got %d", len(reqs))
@@ -173,7 +196,7 @@ func TestParseMD_ThematicBreak(t *testing.T) {
 // TestParseMD_ArrayAttr verifies that an attribute with a YAML array value
 // is parsed into []interface{} with the correct elements.
 func TestParseMD_ArrayAttr(t *testing.T) {
-	src := []byte("## REQ-001\n```attr\ntrace: [SYS-001, SAFE-003]\n```\n")
+	src := []byte("## REQ-001\n```reqmd\ntrace: [SYS-001, SAFE-003]\n```\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {
 		t.Fatalf("expected 1 requirement, got %d", len(reqs))
@@ -193,10 +216,10 @@ func TestParseMD_ArrayAttr(t *testing.T) {
 	}
 }
 
-// TestParseMD_SubReqUnderParent verifies that a ### heading with an attr block
+// TestParseMD_SubReqUnderParent verifies that a ### heading with a reqmd block
 // immediately following a ## heading creates a sub-requirement with ParentID set.
 func TestParseMD_SubReqUnderParent(t *testing.T) {
-	src := []byte("## PARENT-001\n```attr\nid: PARENT-001\n```\nParent body.\n\n### CHILD-001\n```attr\nid: CHILD-001\n```\nChild body.\n")
+	src := []byte("## PARENT-001\n```reqmd\nid: PARENT-001\n```\nParent body.\n\n### CHILD-001\n```reqmd\nid: CHILD-001\n```\nChild body.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 2 {
 		t.Fatalf("expected 2 requirements (parent + child), got %d", len(reqs))
@@ -227,7 +250,7 @@ func TestParseMD_SubReqUnderParent(t *testing.T) {
 // TestParseMD_MultipleSubReqs verifies that multiple ### sub-requirements
 // under the same ## parent all get the correct ParentID.
 func TestParseMD_MultipleSubReqs(t *testing.T) {
-	src := []byte("## PARENT\n```attr\nid: PARENT\n```\nP.\n\n### CHILD-A\n```attr\nid: CHILD-A\n```\nA.\n\n### CHILD-B\n```attr\nid: CHILD-B\n```\nB.\n")
+	src := []byte("## PARENT\n```reqmd\nid: PARENT\n```\nP.\n\n### CHILD-A\n```reqmd\nid: CHILD-A\n```\nA.\n\n### CHILD-B\n```reqmd\nid: CHILD-B\n```\nB.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 3 {
 		t.Fatalf("expected 3 requirements, got %d", len(reqs))
@@ -243,10 +266,10 @@ func TestParseMD_MultipleSubReqs(t *testing.T) {
 	}
 }
 
-// TestParseMD_SubReqDynamicLevel verifies that a ### heading with attr block
+// TestParseMD_SubReqDynamicLevel verifies that a ### heading with reqmd block
 // as the FIRST requirement is a top-level requirement, not an orphan child.
 func TestParseMD_SubReqDynamicLevel(t *testing.T) {
-	src := []byte("### ORPHAN\n```attr\nid: ORPHAN\n```\nNo parent.\n")
+	src := []byte("### ORPHAN\n```reqmd\nid: ORPHAN\n```\nNo parent.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {
 		t.Fatalf("expected 1 requirement, got %d", len(reqs))
@@ -260,9 +283,9 @@ func TestParseMD_SubReqDynamicLevel(t *testing.T) {
 }
 
 // TestParseMD_SubHeadingBecomesInfo verifies that a ### heading without an
-// attr block under a requirement becomes an info item child, not body text.
+// reqmd block under a requirement becomes an info item child, not body text.
 func TestParseMD_SubHeadingBecomesInfo(t *testing.T) {
-	src := []byte("## REQ-001\n```attr\nid: REQ-001\n```\n### Sub Heading\nSome text.\n")
+	src := []byte("## REQ-001\n```reqmd\nid: REQ-001\n```\n### Sub Heading\nSome text.\n")
 	nodes := parseReqTree(t, src)
 	if len(nodes) != 1 {
 		t.Fatalf("expected 1 root node, got %d", len(nodes))
@@ -293,7 +316,7 @@ func TestParseMD_SubHeadingBecomesInfo(t *testing.T) {
 // level when the content tree starts at level 2 (h1 is reserved for the
 // document title).
 func TestParseMD_DynamicReqLevel(t *testing.T) {
-	src := []byte("## TOP\n```attr\nid: TOP\n```\nTop body.\n\n### CHILD\n```attr\nid: CHILD\n```\nChild body.\n")
+	src := []byte("## TOP\n```reqmd\nid: TOP\n```\nTop body.\n\n### CHILD\n```reqmd\nid: CHILD\n```\nChild body.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 2 {
 		t.Fatalf("expected 2 requirements, got %d", len(reqs))
@@ -313,12 +336,12 @@ func TestParseMD_DynamicReqLevel(t *testing.T) {
 }
 
 // TestParseMD_H1IsDocumentTitle verifies that a level-1 heading is treated
-// as the document title: an h1 with an attr block is rejected (requirements
+// as the document title: an h1 with a reqmd block is rejected (requirements
 // must be level 2+), and a plain h1 is captured as the title and never
 // becomes a content node.
 func TestParseMD_H1IsDocumentTitle(t *testing.T) {
-	// h1 + attr block → error.
-	_, _, _, err := parseMD([]byte("# TOP\n```attr\nid: TOP\n```\nBody.\n"), "test.md")
+	// h1 + reqmd block → error.
+	_, _, _, err := parseMD([]byte("# TOP\n```reqmd\nid: TOP\n```\nBody.\n"), "test.md")
 	if err == nil {
 		t.Fatal("expected error for level-1 requirement, got nil")
 	}
@@ -327,7 +350,7 @@ func TestParseMD_H1IsDocumentTitle(t *testing.T) {
 	}
 
 	// Plain h1 → title; no node is created for it.
-	src := []byte("# Widget Spec\n\nIntro prose.\n\n## REQ-001\n```attr\nid: REQ-001\n```\nBody.\n")
+	src := []byte("# Widget Spec\n\nIntro prose.\n\n## REQ-001\n```reqmd\nid: REQ-001\n```\nBody.\n")
 	nodes, title, _, err := parseMD(src, "test.md")
 	if err != nil {
 		t.Fatal(err)
@@ -351,7 +374,7 @@ func TestParseMD_H1IsDocumentTitle(t *testing.T) {
 // the first h1 became the title, and the second one's prose was re-attached
 // to a fresh headingless node.
 func TestParseMD_SecondH1Rejected(t *testing.T) {
-	src := []byte("# First\n\nIntro.\n\n## REQ-001\n```attr\nid: REQ-001\n```\nBody.\n\n# Second\n\nMore.\n")
+	src := []byte("# First\n\nIntro.\n\n## REQ-001\n```reqmd\nid: REQ-001\n```\nBody.\n\n# Second\n\nMore.\n")
 	_, _, _, err := parseMD(src, "test.md")
 	if err == nil {
 		t.Fatal("expected error for a second level-1 heading, got nil")
@@ -360,7 +383,7 @@ func TestParseMD_SecondH1Rejected(t *testing.T) {
 		t.Errorf("error = %q, want mention of a second level-1 heading", err)
 	}
 	// An h1 that is not the first heading but the only one is rejected too.
-	src = []byte("## REQ-001\n```attr\nid: REQ-001\n```\n\n# Late title\n")
+	src = []byte("## REQ-001\n```reqmd\nid: REQ-001\n```\n\n# Late title\n")
 	if _, _, _, err := parseMD(src, "test.md"); err == nil {
 		t.Error("expected error for an h1 after content, got nil")
 	}
@@ -371,7 +394,7 @@ func TestParseMD_SecondH1Rejected(t *testing.T) {
 func TestParseSingleFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "test_req.md")
-	content := []byte("## REQ-FILE\n```attr\nid: REQ-FILE\nasil: ASIL C\n```\nThis requirement was loaded from a file.\n\n*Rationale: file-based parsing\n")
+	content := []byte("## REQ-FILE\n```reqmd\nid: REQ-FILE\nasil: ASIL C\n```\nThis requirement was loaded from a file.\n\n*Rationale: file-based parsing\n")
 	if err := os.WriteFile(path, content, 0o600); err != nil {
 		t.Fatal(err)
 	}
@@ -408,7 +431,7 @@ func TestParseSingleFile(t *testing.T) {
 // TestParseMD_Title verifies that a heading with "ID: Title" format
 // splits the ID and Title correctly.
 func TestParseMD_Title(t *testing.T) {
-	src := []byte("## REQ-001: Login requirement\n```attr\nstatus: Approved\n```\nBody text.\n")
+	src := []byte("## REQ-001: Login requirement\n```reqmd\nstatus: Approved\n```\nBody text.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {
 		t.Fatalf("expected 1 requirement, got %d", len(reqs))
@@ -423,7 +446,7 @@ func TestParseMD_Title(t *testing.T) {
 
 // TestParseMD_NoTitle verifies that a heading without ": " has empty Title.
 func TestParseMD_NoTitle(t *testing.T) {
-	src := []byte("## REQ-002\n```attr\nstatus: Draft\n```\nNo title.\n")
+	src := []byte("## REQ-002\n```reqmd\nstatus: Draft\n```\nNo title.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {
 		t.Fatalf("expected 1 requirement, got %d", len(reqs))
@@ -439,7 +462,7 @@ func TestParseMD_NoTitle(t *testing.T) {
 // TestParseMD_TitleWithColonInTitle verifies that only the first ": " splits
 // (IDs can't contain colons per the ID pattern, but titles may).
 func TestParseMD_TitleWithColonInTitle(t *testing.T) {
-	src := []byte("## REQ-003: Do this: then that\n```attr\nstatus: Approved\n```\nBody.\n")
+	src := []byte("## REQ-003: Do this: then that\n```reqmd\nstatus: Approved\n```\nBody.\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {
 		t.Fatalf("expected 1 requirement, got %d", len(reqs))
@@ -453,10 +476,10 @@ func TestParseMD_TitleWithColonInTitle(t *testing.T) {
 }
 
 // TestParseMD_ContainerHoldsRequirements verifies that a container heading
-// (no attr block) becomes a KindSection node that holds the requirements
+// (no reqmd block) becomes a KindSection node that holds the requirements
 // nested under it, which stay top-level (no requirement parent).
 func TestParseMD_ContainerHoldsRequirements(t *testing.T) {
-	src := []byte("## REQ-1\n```attr\nid: REQ-1\n```\nBody 1.\n\n## Container\n\n### REQ-2\n```attr\nid: REQ-2\n```\nBody 2.\n")
+	src := []byte("## REQ-1\n```reqmd\nid: REQ-1\n```\nBody 1.\n\n## Container\n\n### REQ-2\n```reqmd\nid: REQ-2\n```\nBody 2.\n")
 	nodes := parseReqTree(t, src)
 	if len(nodes) != 2 {
 		t.Fatalf("expected 2 root nodes (REQ-1 + Container), got %d", len(nodes))
@@ -490,7 +513,7 @@ func TestParseMD_ContainerHoldsRequirements(t *testing.T) {
 // a container at the same level breaks the requirement chain; requirements
 // nest under containers and stay top-level.
 func TestParseMD_UserExample1(t *testing.T) {
-	src := []byte("## REQ-1\n```attr\nid: REQ-1\n```\n## Container\n\n### REQ-2\n```attr\nid: REQ-2\n```\n## REQ-3\n```attr\nid: REQ-3\n```\n## Another Container\n\n### Another Container 2\n\n#### REQ-4\n```attr\nid: REQ-4\n```\n")
+	src := []byte("## REQ-1\n```reqmd\nid: REQ-1\n```\n## Container\n\n### REQ-2\n```reqmd\nid: REQ-2\n```\n## REQ-3\n```reqmd\nid: REQ-3\n```\n## Another Container\n\n### Another Container 2\n\n#### REQ-4\n```reqmd\nid: REQ-4\n```\n")
 	nodes := parseReqTree(t, src)
 	reqs := reqsOf(nodes)
 	if len(reqs) != 4 {
@@ -534,7 +557,7 @@ func TestParseMD_UserExample1(t *testing.T) {
 // TestParseMD_DeepNesting verifies requirements at arbitrary depth
 // (3+ levels) chain correctly when no containers intervene.
 func TestParseMD_DeepNesting(t *testing.T) {
-	src := []byte("## R1\n```attr\nid: R1\n```\n### R1.1\n```attr\nid: R1.1\n```\n#### R1.1.1\n```attr\nid: R1.1.1\n```\n")
+	src := []byte("## R1\n```reqmd\nid: R1\n```\n### R1.1\n```reqmd\nid: R1.1\n```\n#### R1.1.1\n```reqmd\nid: R1.1.1\n```\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 3 {
 		t.Fatalf("expected 3 requirements, got %d", len(reqs))
@@ -558,7 +581,7 @@ func TestParseMD_ContainerDoesNotBreakDeeperChain(t *testing.T) {
 	// #### R2 is deeper than R1 → parent=R1 (chain held).
 	// ##### Info is deeper than R2 → info child of R2, chain holds.
 	// ##### R2.1 is deeper than R2 → parent=R2 (chain held).
-	src := []byte("## R1\n```attr\nid: R1\n```\n### Section\n\n#### R2\n```attr\nid: R2\n```\n##### Info\n\n##### R2.1\n```attr\nid: R2.1\n```\n")
+	src := []byte("## R1\n```reqmd\nid: R1\n```\n### Section\n\n#### R2\n```reqmd\nid: R2\n```\n##### Info\n\n##### R2.1\n```reqmd\nid: R2.1\n```\n")
 	nodes := parseReqTree(t, src)
 	reqs := reqsOf(nodes)
 	if len(reqs) != 3 {
@@ -600,7 +623,7 @@ func TestParseMD_ContainerDoesNotBreakDeeperChain(t *testing.T) {
 // TestParseMD_LevelGapNoContainer verifies that a heading gap without a
 // container still links children to the nearest shallower requirement.
 func TestParseMD_LevelGapNoContainer(t *testing.T) {
-	src := []byte("## R-A\n```attr\nid: R-A\n```\n#### R-B\n```attr\nid: R-B\n```\n")
+	src := []byte("## R-A\n```reqmd\nid: R-A\n```\n#### R-B\n```reqmd\nid: R-B\n```\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 2 {
 		t.Fatalf("expected 2 requirements, got %d", len(reqs))
@@ -616,7 +639,7 @@ func TestParseMD_LevelGapNoContainer(t *testing.T) {
 // TestParseMD_SiblingContainersBreakChain verifies that multiple containers
 // at successive levels produce only top-level requirements.
 func TestParseMD_SiblingContainersBreakChain(t *testing.T) {
-	src := []byte("## R1\n```attr\nid: R1\n```\n## C1\n\n## C2\n\n#### R2\n```attr\nid: R2\n```\n")
+	src := []byte("## R1\n```reqmd\nid: R1\n```\n## C1\n\n## C2\n\n#### R2\n```reqmd\nid: R2\n```\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 2 {
 		t.Fatalf("expected 2 requirements, got %d", len(reqs))
@@ -633,7 +656,7 @@ func TestParseMD_SiblingContainersBreakChain(t *testing.T) {
 // is captured as an info node and not dropped, and that an h1 title does not
 // become a wrapping container.
 func TestParseMD_Preamble(t *testing.T) {
-	src := []byte("This document describes the widget.\n\n# Widget Spec\n\n## REQ-001\n```attr\nid: REQ-001\n```\nBody.\n")
+	src := []byte("This document describes the widget.\n\n# Widget Spec\n\n## REQ-001\n```reqmd\nid: REQ-001\n```\nBody.\n")
 	nodes, title, _, err := parseMD(src, "test.md")
 	if err != nil {
 		t.Fatal(err)
@@ -697,7 +720,7 @@ func TestParseMD_RequirementlessFile(t *testing.T) {
 // TestParseMD_ChunkedPreamble verifies that the parallel chunked path
 // (multiple root requirements) still captures the file preamble and title.
 func TestParseMD_ChunkedPreamble(t *testing.T) {
-	src := []byte("Intro prose.\n\n# Widget Spec\n\n## REQ-001\n```attr\nid: REQ-001\n```\nBody 1.\n\n## REQ-002\n```attr\nid: REQ-002\n```\nBody 2.\n\n## REQ-003\n```attr\nid: REQ-003\n```\nBody 3.\n")
+	src := []byte("Intro prose.\n\n# Widget Spec\n\n## REQ-001\n```reqmd\nid: REQ-001\n```\nBody 1.\n\n## REQ-002\n```reqmd\nid: REQ-002\n```\nBody 2.\n\n## REQ-003\n```reqmd\nid: REQ-003\n```\nBody 3.\n")
 	nodes, title, _, err := parseMD(src, "test.md")
 	if err != nil {
 		t.Fatal(err)
@@ -724,7 +747,7 @@ func TestParseMD_ChunkedPreamble(t *testing.T) {
 // container under another requirement gets the right ParentID (nearest
 // shallower requirement) and container nesting.
 func TestParseMD_LevelGapUnderContainer(t *testing.T) {
-	src := []byte("## REQ-A\n```attr\nid: REQ-A\n```\n### Section\n\n#### REQ-B\n```attr\nid: REQ-B\n```\n")
+	src := []byte("## REQ-A\n```reqmd\nid: REQ-A\n```\n### Section\n\n#### REQ-B\n```reqmd\nid: REQ-B\n```\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 2 {
 		t.Fatalf("expected 2 requirements, got %d", len(reqs))
@@ -813,11 +836,11 @@ func bigDoc(t *testing.T, roots int) []byte {
 	b.WriteString("# Big Spec\n\nIntro prose that must survive chunking.\n\n")
 	b.WriteString("## Chapter\n\nContainer prose.\n\n")
 	for _, id := range []string{"BIG-0001", "BIG-0002"} {
-		b.WriteString("### " + id + ": In chapter\n\n```attr\nstatus: approved\n```\n\nBody of " + id + ".\n\n")
+		b.WriteString("### " + id + ": In chapter\n\n```reqmd\nstatus: approved\n```\n\nBody of " + id + ".\n\n")
 	}
 	for i := 0; i < roots; i++ {
 		id := fmt.Sprintf("BIG-%04d", i+100)
-		b.WriteString("## " + id + ": Root requirement\n\n```attr\nstatus: approved\n```\n\n")
+		b.WriteString("## " + id + ": Root requirement\n\n```reqmd\nstatus: approved\n```\n\n")
 		b.WriteString(strings.Repeat("Filler prose that pads the file past the parallel threshold. ", 12))
 		b.WriteString("\n\n")
 	}
@@ -913,7 +936,7 @@ func TestParseMD_ChunkedKeepsPreambleAndBoundaries(t *testing.T) {
 // paragraph keeps its line breaks in the stored body. Dropping them glued the
 // last word of one line onto the first word of the next in the HTML export.
 func TestParseMD_WrappedParagraphKeepsLineBreaks(t *testing.T) {
-	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+	src := []byte("# T\n\n## X-1: t\n\n```reqmd\nstatus: approved\n```\n\n" +
 		"A flat list\nof top-level symbols.\n")
 	nodes, _, _, err := parseMD(src, "wrap.md")
 	if err != nil {
@@ -934,7 +957,7 @@ func TestParseMD_WrappedParagraphKeepsLineBreaks(t *testing.T) {
 // the AST line segments dropped both, which turned every bullet list into one
 // run-on paragraph in the HTML export.
 func TestParseMD_ListBodyPreserved(t *testing.T) {
-	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+	src := []byte("# T\n\n## X-1: t\n\n```reqmd\nstatus: approved\n```\n\n" +
 		"Para intro:\n\n- one\n- two\n- three\n\nAfter.\n")
 	nodes, _, _, err := parseMD(src, "list.md")
 	if err != nil {
@@ -953,7 +976,7 @@ func TestParseMD_ListBodyPreserved(t *testing.T) {
 // TestParseMD_TableBodyPreserved covers the other block that used to be
 // flattened: a GFM table must survive as markdown, rows intact.
 func TestParseMD_TableBodyPreserved(t *testing.T) {
-	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+	src := []byte("# T\n\n## X-1: t\n\n```reqmd\nstatus: approved\n```\n\n" +
 		"| a | b |\n| --- | --- |\n| 1 | 2 |\n")
 	nodes, _, _, err := parseMD(src, "table.md")
 	if err != nil {
@@ -972,7 +995,7 @@ func TestParseMD_TableBodyPreserved(t *testing.T) {
 // parser with its delimiters intact. Without them the exporter cannot turn it
 // into a diagram and renders the diagram source as prose.
 func TestParseMD_MermaidFencePreserved(t *testing.T) {
-	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+	src := []byte("# T\n\n## X-1: t\n\n```reqmd\nstatus: approved\n```\n\n" +
 		"```mermaid\ngraph TD\n  A --> B\n```\n")
 	nodes, _, _, err := parseMD(src, "diagram.md")
 	if err != nil {
@@ -990,7 +1013,7 @@ func TestParseMD_MermaidFencePreserved(t *testing.T) {
 // no body prose.
 func TestParseMD_FrontmatterParsed(t *testing.T) {
 	src := []byte("---\ndescription: Abstract with **markdown**\ntags: [a, b]\n---\n\n" +
-		"# Title\n\n## X-1: first\n\n```attr\nstatus: approved\n```\n\nBody.\n")
+		"# Title\n\n## X-1: first\n\n```reqmd\nstatus: approved\n```\n\nBody.\n")
 	nodes, title, meta, err := parseMD(src, "fm.md")
 	if err != nil {
 		t.Fatal(err)
@@ -1070,7 +1093,7 @@ func TestParseMD_ChunkedFrontmatter(t *testing.T) {
 // opens a metadata block that is never closed. The extension accepts any run of
 // dashes as a separator, so the guard has to as well.
 func TestParseMD_FrontmatterUnterminatedIsError(t *testing.T) {
-	body := "description: never closed\n\n## REQ-1: lost\n\n```attr\nid: REQ-1\ntitle: lost\n```\n"
+	body := "description: never closed\n\n## REQ-1: lost\n\n```reqmd\nid: REQ-1\ntitle: lost\n```\n"
 	for _, opener := range []string{"--", "---", "----"} {
 		src := []byte(opener + "\n" + body)
 		if _, _, _, err := parseMD(src, "unterminated.md"); err == nil {
@@ -1079,7 +1102,7 @@ func TestParseMD_FrontmatterUnterminatedIsError(t *testing.T) {
 	}
 
 	// A properly closed block is metadata, not an error.
-	closed := []byte("---\ndescription: fine\n---\n\n## REQ-1: found\n\n```attr\nid: REQ-1\ntitle: found\n```\n")
+	closed := []byte("---\ndescription: fine\n---\n\n## REQ-1: found\n\n```reqmd\nid: REQ-1\ntitle: found\n```\n")
 	if _, _, meta, err := parseMD(closed, "closed.md"); err != nil {
 		t.Fatalf("closed frontmatter must parse: %v", err)
 	} else if meta["description"] != "fine" {
@@ -1091,7 +1114,7 @@ func TestParseMD_FrontmatterUnterminatedIsError(t *testing.T) {
 // an indented block is re-emitted as a fence so the body keeps code semantics
 // instead of losing its indentation markers.
 func TestParseMD_IndentedCodeBlockBecomesFence(t *testing.T) {
-	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\nProse.\n\n" +
+	src := []byte("# T\n\n## X-1: t\n\n```reqmd\nstatus: approved\n```\n\nProse.\n\n" +
 		"    indented one\n    indented two\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {
@@ -1106,7 +1129,7 @@ func TestParseMD_IndentedCodeBlockBecomesFence(t *testing.T) {
 // TestParseMD_FenceInfoPreserved verifies that everything after the language in
 // a fence's info string survives the body round-trip, not just the language.
 func TestParseMD_FenceInfoPreserved(t *testing.T) {
-	src := []byte("# T\n\n## X-1: t\n\n```attr\nstatus: approved\n```\n\n" +
+	src := []byte("# T\n\n## X-1: t\n\n```reqmd\nstatus: approved\n```\n\n" +
 		"```go title=\"main\"\nfunc main() {}\n```\n")
 	reqs := reqsOf(parseReqTree(t, src))
 	if len(reqs) != 1 {

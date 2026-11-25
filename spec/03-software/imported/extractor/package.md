@@ -4,7 +4,7 @@
 
 ## reqmd-code/internal/extractor/trace.go
 ### IMP-extractor-idShapeRe-3d989b4: idShapeRe
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/extractor/trace.go
@@ -30,7 +30,7 @@ validated by `reqmd check`; everything else is a symbol reference resolved
 by reqmd-code.
 
 ### IMP-extractor-traceRe-a46dbc7: traceRe
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/extractor/trace.go
@@ -46,7 +46,7 @@ At most one leading space is tolerated: doc-comment code examples are
 indented by a tab or four spaces, and must not become real traces.
 
 ### IMP-extractor-heuristicRe-74faede: heuristicRe
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/extractor/trace.go
@@ -66,7 +66,7 @@ requirement IDs (e.g. REQ-AUTH-001, SYS-LOG-002) without swallowing
 short-numbered prose tokens like UTF-8 or HTTP-2.
 
 ### IMP-extractor-TraceRefs-6cc5980: TraceRefs
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/extractor/trace.go
@@ -78,7 +78,7 @@ trace: []
 TraceRefs is the classified result of scanning one item's doc text.
 
 ### IMP-extractor-ExtractTraces-d9a9734: ExtractTraces
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/extractor/trace.go
@@ -100,7 +100,7 @@ useHeuristic enables the broader bare-ID scan (driven by the CLI flag
 
 ## reqmd-code/internal/extractor/trace\_test.go
 ### IMP-extractor-TestExtractTraces-250f30c: TestExtractTraces
-```attr
+```reqmd
 status: approved
 x-reqmd.imported: true
 x-reqmd.source-file: reqmd-code/internal/extractor/trace_test.go

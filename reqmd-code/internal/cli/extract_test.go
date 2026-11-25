@@ -395,7 +395,7 @@ func TestDocSections(t *testing.T) {
 }
 
 // TestRunExtract_DocCommentBecomesSection verifies the wiring end to end: the
-// symbol keeps the attr block and its doc prose moves into a child section, and
+// symbol keeps the reqmd block and its doc prose moves into a child section, and
 // a Markdown heading in the doc does not break the rendered nesting.
 func TestRunExtract_DocCommentBecomesSection(t *testing.T) {
 	src := t.TempDir()

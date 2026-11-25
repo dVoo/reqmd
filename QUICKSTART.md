@@ -89,7 +89,7 @@ Trace links work through a `trace` attribute on the requirement:
 
 ````yaml
 ## SYS-001: Boot Sequence
-```attr
+```reqmd
 status: approved
 trace: [stakeholder/STK-GOAL-001]
 ```

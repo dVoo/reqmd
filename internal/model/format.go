@@ -30,7 +30,7 @@ func FormatScalar(v any) string {
 	}
 }
 
-// Attribute accessors. Attr values come from the YAML attr block and are
+// Attribute accessors. Attr values come from the YAML reqmd block and are
 // typed by the parser (string, bool, int, []any of those). These helpers
 // are the single place that type-switches on them; every consumer (graph
 // checks, exporters, reporters) reads attrs through them instead of

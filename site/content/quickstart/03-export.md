@@ -12,7 +12,7 @@ Export the spec tree from [Step 2](/quickstart/02-trace-your-spec/) to CSV, HTML
 reqmd export csv 02-trace-your-spec/ -o csv-out/
 ```
 
-Produces one CSV per document directory (`stakeholder-requirements.csv`, `system-requirements.csv`, etc.) with a leading `Type` column followed by ID, Title, all schema attributes, Body, Rationale. Rows are emitted in document order for every node — requirements **and** sections (headings without `attr` blocks, plus leading prose) — so the CSV mirrors the source document, not just its requirement subset.
+Produces one CSV per document directory (`stakeholder-requirements.csv`, `system-requirements.csv`, etc.) with a leading `Type` column followed by ID, Title, all schema attributes, Body, Rationale. Rows are emitted in document order for every node — requirements **and** sections (headings without `reqmd` blocks, plus leading prose) — so the CSV mirrors the source document, not just its requirement subset.
 
 ## HTML export
 
@@ -36,7 +36,7 @@ document. Each page has:
 - A compact sticky app bar with the document breadcrumb, outline toggle, and light/dark theme toggle
 - No external scripts for the app itself: the stylesheet and controller are embedded, so pages work offline (exception: a page containing a ` ```mermaid ` diagram loads a version-pinned Mermaid runtime from a CDN — `SW-EXP-004`)
 - Fenced `mermaid` blocks in a body or rationale render as diagrams **only in the HTML export** — `csv`, `json`, and `ls` keep the raw Markdown — and a page containing one needs network access for that pinned runtime
-- Collapsible folder sections and plain prose blocks for headings without `attr` blocks (exactly as authored)
+- Collapsible folder sections and plain prose blocks for headings without `reqmd` blocks (exactly as authored)
 - Sidebar TOC with the same folder nesting
 - Upstream/downstream trace links between files
 - Document chain section (V-model navigation)

@@ -310,7 +310,7 @@ func scaleTargets(targets []int, srcDocDirs int) []scale {
 
 // countTree reports how many requirements and document directories a tree
 // holds, using the same rules as the parser: a document directory holds a
-// schema.yaml, and a requirement is a heading followed by an `attr` fence.
+// schema.yaml, and a requirement is a heading followed by a `reqmd` fence.
 func countTree(root string) (reqs, docs int) {
 	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, walkErr error) error {
 		if walkErr != nil {
@@ -353,7 +353,7 @@ func hasAttrFence(lines []string, i int) bool {
 		if line == "" {
 			continue
 		}
-		return line == "```attr"
+		return line == "```reqmd" || line == "```yaml reqmd"
 	}
 	return false
 }

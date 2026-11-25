@@ -9,7 +9,7 @@ database) into a validated reqmd spec tree.
 
 ## The idea
 
-Nobody should have to hand-write `attr` blocks, `schema.yaml`, or heading
+Nobody should have to hand-write `reqmd` blocks, `schema.yaml`, or heading
 levels. Instead, every producer emits **one JSON exchange format**, and a single
 renderer turns it into reqmd documents:
 
@@ -97,7 +97,7 @@ resolving:
 
 ````markdown
 ## DOORS-1: Brakes module
-```attr
+```reqmd
 status: approved
 priority: High
 trace: []
@@ -144,7 +144,7 @@ reqmd-import codebeamer.json -o spec/00-codebeamer/
 
 Key rules of the format:
 
-- **`kind`** is `"requirement"` (content: gets an `attr` block, is validated,
+- **`kind`** is `"requirement"` (content: gets a `reqmd` block, is validated,
   traced and counted) or `"section"` (structure only). It is mandatory.
 - **`key`** is the source tool's own stable ID, unique within the document, and
   required on requirements. The reqmd ID becomes `<x-reqmd.id-prefix><key>`.
@@ -156,12 +156,12 @@ Key rules of the format:
 - **`children`** nest items, in document order. A child cannot reference a
   missing parent, cannot come before it, and cannot form a cycle — the shape
   makes it unrepresentable.
-- **`fields`** are the attr-block attributes (requirements only; a section with
+- **`fields`** are the reqmd-block attributes (requirements only; a section with
   `fields` is rejected). Values are scalars or flat lists. Names may contain
   only letters, digits, `_`, `-` and `.`.
 - **`body`** is Markdown and must not contain headings. Structure belongs in
   sections, where it can be nested and navigated.
-- **`properties`** / **`required`** declare the attr-block JSON Schema, so the
+- **`properties`** / **`required`** declare the reqmd-block JSON Schema, so the
   generated `schema.yaml` accepts exactly the attributes you emit.
 - **`x-reqmd`** holds everything reqmd-specific (`id-prefix`, `level`,
   `document-id`, `upstream`, `requires-trace-from`, `external`, `dir`, `file`).
